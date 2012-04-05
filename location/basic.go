@@ -5,47 +5,31 @@ import (
 )
 
 type Basic struct {
-	north       Location
-	south       Location
+	exits       map[string]Location
 	name        string
 	description string
 }
 
 func NewBasic(n, d string) (b *Basic) {
 	return &Basic{
+		exits:       map[string]Location{},
 		name:        n,
 		description: d,
 	}
 }
 
-func (from *Basic) SetNorth(l Location) {
-	from.north = l
+func (from *Basic) SetExit(d string, l Location) {
+	from.exits[d] = l
 }
 
-func (from *Basic) SetSouth(l Location) {
-	from.south = l
-}
-
-func (from *Basic) North() (to Location) {
-	if from.north == nil {
-		fmt.Println("You can't go north from here!")
-		to = from
-	} else {
-		fmt.Println("You go north.")
-		to = from.north
+func (from *Basic) Move(d string) (to Location) {
+	if l, ok := from.exits[d]; ok {
+		fmt.Printf("You go %s.\n", d)
+		to = l
 		to.Look()
-	}
-	return
-}
-
-func (from *Basic) South() (to Location) {
-	if from.south == nil {
-		fmt.Println("You can't go south from here!")
-		to = from
 	} else {
-		fmt.Println("You go south.")
-		to = from.south
-		to.Look()
+		fmt.Printf("You can't go %s from here!\n", d)
+		to = from
 	}
 	return
 }
@@ -59,14 +43,9 @@ func (from *Basic) Look() {
 }
 
 func (from *Basic) Exits() {
-
 	fmt.Print("Exits you can see are:")
-	if from.north != nil {
-		fmt.Print(" North")
-	}
-	if from.south != nil {
-		fmt.Print(" South")
+	for e := range from.exits {
+		fmt.Print(" ", e)
 	}
 	fmt.Println("")
-
 }

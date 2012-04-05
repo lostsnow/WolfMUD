@@ -11,21 +11,21 @@ func main() {
 Starting WolfMUD server
 -----------------------`)
 
-	var room location.Location
+	var l location.Location
 
-	rooms := [...]location.Location{
-		location.NewBasic("Room one", "You are in the first room."),
-		location.NewBasic("Room two", "You are in the second room."),
+	world := [...]location.Location{
+		location.NewBasic("Room one", "You are in the first location."),
+		location.NewBasic("Room two", "You are in the second location."),
 	}
 
-	rooms[0].SetNorth(rooms[1])
-	rooms[1].SetSouth(rooms[0])
+	world[0].SetExit("North", world[1])
+	world[1].SetExit("South", world[0])
 
-	room = rooms[0]
-	room.Look()
-	room = room.North()
-	room = room.North()
-	room = room.South()
-	room = room.South()
+	l = world[0]
+	l.Look()
+	l = l.Move("North")
+	l = l.Move("North")
+	l = l.Move("South")
+	l = l.Move("South")
 
 }
