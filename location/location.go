@@ -14,6 +14,6 @@ package location
 type Location interface {
 	Exits()
 	Look()
-	Move(string) Location
-	SetExit(string, Location)
+	Move(exit) Location
+	SetExit(exit, Location)
 }
