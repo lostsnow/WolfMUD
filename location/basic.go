@@ -5,20 +5,20 @@ import (
 )
 
 /*
-	The Exit type is defined so that functions can take an Exit for the exits
-	array index. Then a user can only pass one of the defined valid values in.
-	Note that this type is not exported which would allow user defined and
-	possibly invalid values to be created.
+	The direction type is defined so that functions can take a direction for the
+	exits array index. Then a user can only pass one of the valid defined
+	direction values.  Note that this type is not exported which would allow user
+	defined and probably invalid values to be created.
 */
-type exit uint8
+type direction uint8
 
 /*
-	Exit constants of type exit used to index exits array. Only these valid
-	types can be used. Note that the constants ARE exported while the type is
-	not. This is valid as a user will refer to the constant and not the type.
+	Direction constants of type direction used to index exits array. Only these valid
+	constants can be used. Note that the constants ARE exported while the type is
+	not. This is valid as a user will refer to the constants and not the type.
 */
 const (
-	N, NORTH exit = iota, iota
+	N, NORTH direction = iota, iota
 	NE, NORTHEAST
 	E, EAST
 	SE, SOUTHEAST
@@ -30,7 +30,7 @@ const (
 	D, DOWN
 )
 
-var exitNames = [10]string{
+var directionNames = [10]string{
 	N:  "North",
 	NE: "Northeast",
 	E:  "East",
@@ -56,16 +56,16 @@ func NewBasic(n, d string) (b *Basic) {
 	}
 }
 
-func (from *Basic) SetExit(d exit, l Location) {
+func (from *Basic) SetExit(d direction, l Location) {
 	from.exits[d] = l
 }
 
-func (from *Basic) Move(d exit) (to Location) {
+func (from *Basic) Move(d direction) (to Location) {
 	if to = from.exits[d]; to != nil {
-		fmt.Printf("You go %s.\n", exitNames[d])
+		fmt.Printf("You go %s.\n", directionNames[d])
 		to.Look()
 	} else {
-		fmt.Printf("You can't go %s from here!\n", exitNames[d])
+		fmt.Printf("You can't go %s from here!\n", directionNames[d])
 		to = from
 	}
 	return
@@ -86,9 +86,9 @@ func (from *Basic) Exits() {
 		if l != nil {
 			if found == false {
 				fmt.Print("Exits you can see are:")
-				found = true;
+				found = true
 			}
-			fmt.Print(" ", exitNames[d])
+			fmt.Print(" ", directionNames[d])
 		}
 	}
 	if found == false {
