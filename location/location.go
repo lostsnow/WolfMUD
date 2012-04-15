@@ -13,7 +13,8 @@ package location
 */
 type Location interface {
 	Exits()
-	Look()
+	Look([]string) (bool)
 	Move(direction) Location
 	SetExit(direction, Location)
+	Command(string, []string) (bool)
 }

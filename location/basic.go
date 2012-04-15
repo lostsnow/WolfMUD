@@ -63,7 +63,7 @@ func (from *Basic) SetExit(d direction, l Location) {
 func (from *Basic) Move(d direction) (to Location) {
 	if to = from.exits[d]; to != nil {
 		fmt.Printf("You go %s.\n", directionNames[d])
-		to.Look()
+		to.Look(nil)
 	} else {
 		fmt.Printf("You can't go %s from here!\n", directionNames[d])
 		to = from
@@ -71,12 +71,17 @@ func (from *Basic) Move(d direction) (to Location) {
 	return
 }
 
-func (from *Basic) Look() {
+func (from *Basic) Look(args []string) (handled bool) {
+	if len(args) > 0 {
+		return
+	}
+
 	fmt.Println("")
 	fmt.Println(from.name)
 	fmt.Println(from.description)
 	from.Exits()
 	fmt.Println()
+	return true
 }
 
 func (from *Basic) Exits() {
@@ -95,4 +100,24 @@ func (from *Basic) Exits() {
 		fmt.Print("There are no obvious exits!")
 	}
 	fmt.Println("")
+}
+
+func (from *Basic) Command(c string, args []string) (handled bool) {
+	switch c {
+	case `LOOK`:
+		handled = from.Look(args)
+	case `NORTH`,`N`:
+		from.Move(NORTH)
+		handled = true
+	case `SOUTH`,`S`:
+		from.Move(SOUTH)
+		handled = true
+	case `EAST`,`E`:
+		from.Move(EAST)
+		handled = true
+	case `WEST`,`W`:
+		from.Move(WEST)
+		handled = true
+	}
+	return
 }
