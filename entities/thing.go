@@ -44,7 +44,7 @@ var directionNames = [10]string{
 }
 
 type Looker interface {
-	Look()
+	Look(what Thing)
 }
 
 type Examiner interface {
@@ -58,26 +58,32 @@ type Commander interface {
 // A basic Thing
 
 type Thing interface {
-	Looker
 	Examiner
 	Commander
 	Name() (name string)
+	Locate(l Location)
 }
 
 type thing struct {
 	name        string
 	description string
+	location    Location
 }
 
-func NewThing(name, description string) Thing {
+func NewThing(name, description string, location Location) Thing {
 	return &thing{
 		name,
 		description,
+		location,
 	}
 }
 
 func (t *thing) Name() string {
 	return t.name
+}
+
+func (t *thing) Locate(l Location) {
+	t.location = l
 }
 
 func (t *thing) Command(what Thing, cmd string, args []string) (handled bool) {
@@ -111,11 +117,12 @@ type droper struct {
 	thing
 }
 
-func NewDroper(name, description string) Dropper {
+func NewDroper(name, description string, location Location) Dropper {
 	return &droper{
 		thing{
 			name,
 			description,
+			location,
 		},
 	}
 }
@@ -139,6 +146,7 @@ func (d *droper) Drop() {
 
 type Location interface {
 	Thing
+	Looker
 	Move(what Thing, d direction) (to Location)
 	SetExit(d direction, to Location)
 	Add(t Thing)
@@ -151,11 +159,12 @@ type location struct {
 	contains []Thing
 }
 
-func NewLocation(name, description string) Location {
+func NewLocation(name, description string, l Location) Location {
 	return &location{
 		thing: thing{
 			name,
 			description,
+			l,
 		},
 	}
 }
@@ -182,36 +191,44 @@ func (l *location) Command(what Thing, cmd string, args []string) (handled bool)
 	default:
 		return l.thing.Command(what, cmd, args)
 	case "LOOK":
-		l.Look()
+		l.Look(what)
 	case "NORTH", "N":
 		l.Move(what, NORTH)
 	case "EAST", "E":
 		l.Move(what, EAST)
 	case "SOUTH", "S":
 		l.Move(what, SOUTH)
+	case "WEST", "W":
+		l.Move(what, WEST)
 	}
 	return true
 }
 
-func (l *location) Look() {
+func (l *location) Look(what Thing) {
 	fmt.Printf("\n%s\n\n%s\n\n", l.name, l.description)
 	if len(l.contains) > 0 {
-		fmt.Printf("You can see here:\n")
+		msg := ""
 		for _, t := range l.contains {
-			fmt.Printf("\t%s\n", t.Name())
+			if t != what {
+				msg += fmt.Sprintf("\t%s\n", t.Name())
+			}
+		}
+		if msg != "" {
+			fmt.Printf("You can see here:\n%s\n", msg)
 		}
 	}
 }
 
-func (l *location) Move(what Thing, d direction) (to Location) {
-	if to = l.exits[d]; to != nil {
-		l.Delete(what)
-		fmt.Printf("You go %s.\n", directionNames[d])
-		to.Look()
+func (from *location) Move(what Thing, d direction) (to Location) {
+	if to = from.exits[d]; to != nil {
+		from.Delete(what)
 		to.Add(what)
+		fmt.Printf("You go %s.\n", directionNames[d])
+		to.Look(what)
+		what.Locate(to)
 	} else {
 		fmt.Printf("You can't go %s from here!\n", directionNames[d])
-		to = l
+		to = from
 	}
 	return
 }
@@ -226,19 +243,23 @@ type player struct {
 	thing
 }
 
-func NewPlayer(name, description string) Player {
+func NewPlayer(name, description string, location Location) (p Player) {
 	return &player{
 		thing: thing{
 			name,
 			description,
+			location,
 		},
 	}
 }
 
-func (l *player) Command(what Thing, cmd string, args []string) (handled bool) {
+func (p *player) Command(what Thing, cmd string, args []string) (handled bool) {
 	switch cmd {
 	default:
-		return l.thing.Command(what, cmd, args)
+		if handled = p.location.Command(what, cmd, args); handled == true {
+		} else if handled = p.thing.Command(what, cmd, args); handled == true {
+		}
+		return handled
 	}
 	return true
 }
