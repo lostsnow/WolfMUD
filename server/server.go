@@ -22,24 +22,24 @@ Starting WolfMUD server
 	}
 
 	// Fireplace
-	world[0].SetExit(entities.E, world[3])
-	world[0].SetExit(entities.SE, world[2])
-	world[0].SetExit(entities.S, world[1])
+	world[0].LinkExit(entities.E, world[3])
+	world[0].LinkExit(entities.SE, world[2])
+	world[0].LinkExit(entities.S, world[1])
 
 	// Common room
-	world[1].SetExit(entities.N, world[0])
-	world[1].SetExit(entities.NE, world[3])
-	world[1].SetExit(entities.E, world[2])
+	world[1].LinkExit(entities.N, world[0])
+	world[1].LinkExit(entities.NE, world[3])
+	world[1].LinkExit(entities.E, world[2])
 
 	// Tavern Bar
-	world[2].SetExit(entities.N, world[3])
-	world[2].SetExit(entities.W, world[1])
-	world[2].SetExit(entities.NW, world[0])
+	world[2].LinkExit(entities.N, world[3])
+	world[2].LinkExit(entities.W, world[1])
+	world[2].LinkExit(entities.NW, world[0])
 
 	// Tavern Entrance
-	world[3].SetExit(entities.S, world[2])
-	world[3].SetExit(entities.SW, world[1])
-	world[3].SetExit(entities.W, world[0])
+	world[3].LinkExit(entities.S, world[2])
+	world[3].LinkExit(entities.SW, world[1])
+	world[3].LinkExit(entities.W, world[0])
 
 	/*
 		p := player.New("Diddymus", world[0])
@@ -60,6 +60,7 @@ Starting WolfMUD server
 
 	world[0].Add(p1)
 	p1.Command(p1, "LOOK", nil)
+	p1.Command(p1, "LOOK", []string{"TASS"})
 
 	p1.Command(p1, "SOUTH", nil)
 	p1.Command(p1, "EAST", nil)
