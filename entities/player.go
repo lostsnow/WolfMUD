@@ -2,11 +2,13 @@ package entities
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Player interface {
 	Thing
 	Inventory
+	Parse(cmd string)
 }
 
 type player struct {
@@ -14,12 +16,18 @@ type player struct {
 	inventory
 }
 
-func (p *player) Dummy() {
-}
-
 func NewPlayer(name, alias, description string, location Location) (p Player) {
 	return &player{
 		thing: thing{name, alias, description, location},
+	}
+}
+
+func (p *player) Parse(cmd string) {
+	fmt.Printf("\n> %s\n", cmd)
+	words := strings.Split(strings.ToUpper(cmd), " ")
+	handled := p.Command(p, words[0], words[1:])
+	if handled == false {
+		fmt.Printf("Eh? %s?\n\n", cmd)
 	}
 }
 

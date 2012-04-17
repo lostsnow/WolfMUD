@@ -38,28 +38,6 @@ func main() {
 	world[3].LinkExit(entities.SW, world[1])
 	world[3].LinkExit(entities.W, world[0])
 
-	/*
-		p := player.New("Diddymus", world[0])
-		p.Parse("LOOK")
-		p.Parse("S")
-		p.Parse("E")
-		p.Parse("N")
-		p.Parse("W")
-		p.Parse("Say The quick brown fox jumps over the lazy dog but that's not enough for a line length of over 80 characters!")
-
-		time.Sleep(2 * time.Second)
-	*/
-
-	/*
-	t1 := entities.NewThing("Ball 1", "BALL", "This is a simple ball", nil);
-	i := entities.NewInventory();
-	i.Add(t1)
-	i.Add(t2)
-	fmt.Printf("%V", i)
-	i.Remove("BALL", 0)
-	fmt.Printf("%V", i)
-	*/
-
 	t1 := entities.NewThing("A curious brass lattice", "LATTICE", "This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity.", nil);
 	t2 := entities.NewThing("A small ball", "BALL", "This is a small rubber ball.", nil);
 
@@ -73,46 +51,18 @@ func main() {
 	p1.Add(t2)
 
 	world[0].Add(p1)
-	if p1.Command(p1, "LOOK", nil) == false {
-		println("EH?")
-	}
+	p1.Command(p1, "LOOK", nil)
 
-	println ("> LOOK LATTICE")
-	if p1.Command(p1, "LOOK", []string{"LATTICE"}) == false {
-		println("EH, LOOK LATTICE?")
-	}
-
-	println ("\n> LOOK TASS")
-	if p1.Command(p1, "LOOK", []string{"TASS"}) == false {
-		println("EH, LOOK TASS?")
-	}
-
-	println ("\n> INVENTORY")
-	if p1.Command(p1, "INVENTORY", nil) == false {
-		println("EH, INVENTORY?")
-	}
-
-	println ("\n> INV")
-	if p1.Command(p1, "INV", nil) == false {
-		println("EH, INV?")
-	}
-
-	println ("\n> LOOK BALL")
-	if p1.Command(p1, "LOOK", []string{"BALL"}) == false {
-		println("EH, LOOK BALL?")
-	}
-
-	println ("\n> EXAMINE BALL")
-	if p1.Command(p1, "EXAMINE", []string{"BALL"}) == false {
-		println("EH, EXAMINE BALL?")
-	}
+	p1.Parse("look")
+	p1.Parse("look lattice")
+	p1.Parse("look tass")
+	p1.Parse("inventory")
+	p1.Parse("inv")
+	p1.Parse("look ball")
+	p1.Parse("examine ball")
+	p1.Parse("west")
+	p1.Parse("south")
+	p1.Parse("n")
 
 	println("\n+++ GOODBYE WORLD +++\n")
-
-	//p1.Command(p1, "WEST", nil)
-	//p1.Command(p1, "SOUTH", nil)
-	//p1.Command(p1, "EAST", nil)
-	//p1.Command(p1, "NORTH", nil)
-	//p1.Command(p1, "W", nil)
-
 }
