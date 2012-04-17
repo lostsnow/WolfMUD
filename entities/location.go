@@ -45,58 +45,72 @@ var directionNames = [10]string{
 
 type Location interface {
 	Thing
+	Inventory
 	Looker
 	Move(what Thing, d direction) (handled bool)
 	LinkExit(d direction, to Location)
-	Add(t Thing)
-	Delete(t Thing)
 }
 
 type location struct {
 	thing
-	exits    [10]Location
-	contains []Thing
+	inventory
+	exits [10]Location
 }
 
-func NewLocation(name, description string, l Location) Location {
+func NewLocation(name, alias, description string, l Location) Location {
 	return &location{
-		thing: thing{name, description, l},
+		thing:     thing{name, alias, description, l},
+		inventory: inventory{},
 	}
 }
 
 func (l *location) Command(what Thing, cmd string, args []string) (handled bool) {
 	switch cmd {
-	default:
-		handled = l.thing.Command(what, cmd, args)
 	case "LOOK":
 		handled = l.Look(what, args)
 	case "NORTH", "N":
 		handled = l.Move(what, NORTH)
+	case "NORTHEAST", "NE":
+		handled = l.Move(what, NORTHEAST)
 	case "EAST", "E":
 		handled = l.Move(what, EAST)
+	case "SOUTHEAST", "SE":
+		handled = l.Move(what, SOUTHEAST)
 	case "SOUTH", "S":
 		handled = l.Move(what, SOUTH)
+	case "SOUTHWEST", "SW":
+		handled = l.Move(what, SOUTHWEST)
 	case "WEST", "W":
 		handled = l.Move(what, WEST)
+	case "NORTHWEST", "NW":
+		handled = l.Move(what, NORTHWEST)
+	case "UP":
+		handled = l.Move(what, UP)
+	case "DOWN":
+		handled = l.Move(what, DOWN)
 	}
+
+	if handled == false {
+		handled = l.thing.Command(what, cmd, args)
+		if handled == false {
+			handled = l.inventory.delegate(what, cmd, args)
+		}
+	}
+
 	return handled
 }
 
 func (l *location) Look(what Thing, args []string) (handled bool) {
-	if len(args) == 0 {
-		fmt.Printf("\n%s\n\n%s\n\n", l.name, l.description)
-		if len(l.contains) > 0 {
-			msg := ""
-			for _, t := range l.contains {
-				if t != what {
-					msg += fmt.Sprintf("\t%s\n", t.Name())
-				}
-			}
-			if msg != "" {
-				fmt.Printf("You can see here:\n%s\n", msg)
-			}
-		}
+	if len(args) != 0 {
+		return false
 	}
+
+	fmt.Printf("\n%s\n\n%s\n", l.name, l.description)
+
+	if list := l.List(what); list != "" {
+		fmt.Printf(l.List(what))
+	}
+	fmt.Println("")
 	return true
 }
 
@@ -104,29 +118,15 @@ func (l *location) LinkExit(d direction, to Location) {
 	l.exits[d] = to
 }
 
-func (l *location) Add(t Thing) {
-	l.contains = append(l.contains, t)
-}
-
-func (l *location) Delete(t Thing) {
-	for k, v := range l.contains {
-		if v == t {
-			l.contains = append(l.contains[:k], l.contains[k+1:]...)
-			break
-		}
-	}
-}
-
 func (from *location) Move(what Thing, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
-		from.Delete(what)
+		from.Remove(what.Alias(), 1)
 		to.Add(what)
+		what.Locate(to)
 		fmt.Printf("You go %s.\n", directionNames[d])
 		to.Look(what, nil)
-		what.Locate(to)
 	} else {
 		fmt.Printf("You can't go %s from here!\n", directionNames[d])
-		to = from
 	}
 	return true
 }

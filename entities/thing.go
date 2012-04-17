@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"strings"
 )
 
 type Looker interface {
@@ -9,7 +10,7 @@ type Looker interface {
 }
 
 type Examiner interface {
-	Examine()
+	Examine(what Thing, args []string) (handled bool)
 }
 
 type Commander interface {
@@ -22,25 +23,27 @@ type Thing interface {
 	Examiner
 	Commander
 	Name() (name string)
+	Alias() (name string)
 	Locate(l Location)
 }
 
 type thing struct {
 	name        string
+	alias       string
 	description string
 	location    Location
 }
 
-func NewThing(name, description string, location Location) Thing {
-	return &thing{
-		name,
-		description,
-		location,
-	}
+func NewThing(name, alias, description string, location Location) Thing {
+	return &thing{name, strings.ToUpper(alias), description, location}
 }
 
 func (t *thing) Name() string {
 	return t.name
+}
+
+func (t *thing) Alias() string {
+	return t.alias
 }
 
 func (t *thing) Locate(l Location) {
@@ -50,86 +53,35 @@ func (t *thing) Locate(l Location) {
 func (t *thing) Command(what Thing, cmd string, args []string) (handled bool) {
 	switch cmd {
 	default:
-		return false
+		handled = false // thing has nothing further to delegate to :(
 	case "LOOK":
-		t.Look()
+		handled = t.Look(what, args)
 	case "EXAMINE":
-		t.Examine()
+		handled = t.Examine(what, args)
 	}
-	return true
+	return handled
 }
 
-func (t *thing) Look() {
-	fmt.Printf("You look at %s\n%s\n", t.name, t.description)
-}
-
-func (t *thing) Examine() {
-	fmt.Printf("You examine %s\n%s\n", t.name, t.description)
-}
-
-// A droppable Thing
-
-type Dropper interface {
-	Thing
-	Drop()
-}
-
-type droper struct {
-	thing
-}
-
-func NewDroper(name, description string, location Location) Dropper {
-	return &droper{
-		thing{
-			name,
-			description,
-			location,
-		},
+func (t *thing) Look(what Thing, args []string) (handled bool) {
+	if len(args) == 0 {
+		return false
 	}
-}
 
-func (d *droper) Command(what Thing, cmd string, args []string) (handled bool) {
-	switch cmd {
-	default:
-		return d.thing.Command(what, cmd, args)
-	case "DROP":
-		d.Drop()
+	if args[0] == t.Alias() {
+		fmt.Printf("You look at %s\n%s\n", t.name, t.description)
+		return true
 	}
-	return true
+	return false
 }
 
-func (d *droper) Drop() {
-	fmt.Printf("You drop %s\n", d.name)
-	return
-}
-
-// A player
-
-type Player interface {
-	Thing
-}
-
-type player struct {
-	thing
-}
-
-func NewPlayer(name, description string, location Location) (p Player) {
-	return &player{
-		thing: thing{
-			name,
-			description,
-			location,
-		},
+func (t *thing) Examine(what Thing, args []string) (handled bool) {
+	if len(args) == 0 {
+		return false
 	}
-}
 
-func (p *player) Command(what Thing, cmd string, args []string) (handled bool) {
-	switch cmd {
-	default:
-		if handled = p.location.Command(what, cmd, args); handled == true {
-		} else if handled = p.thing.Command(what, cmd, args); handled == true {
-		}
-		return handled
+	if args[0] == t.Alias() {
+		fmt.Printf("You examine %s\n%s\n", t.name, t.description)
+		return true
 	}
-	return true
+	return false
 }
