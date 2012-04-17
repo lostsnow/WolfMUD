@@ -107,9 +107,10 @@ func (l *location) Look(what Thing, args []string) (handled bool) {
 
 	fmt.Printf("\n%s\n\n%s\n", l.name, l.description)
 
-	if list := l.List(what); list != "" {
-		fmt.Printf(l.List(what))
+	for _, v := range l.inventory.List(what) {
+		fmt.Printf("You can see %s here\n", v.Name())
 	}
+
 	fmt.Println("")
 	return true
 }

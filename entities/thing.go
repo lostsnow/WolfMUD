@@ -68,7 +68,7 @@ func (t *thing) Look(what Thing, args []string) (handled bool) {
 	}
 
 	if args[0] == t.Alias() {
-		fmt.Printf("You look at %s\n%s\n", t.name, t.description)
+		fmt.Printf("You look at %s. %s\n", t.name, t.description)
 		return true
 	}
 	return false
@@ -80,7 +80,7 @@ func (t *thing) Examine(what Thing, args []string) (handled bool) {
 	}
 
 	if args[0] == t.Alias() {
-		fmt.Printf("You examine %s\n%s\n", t.name, t.description)
+		fmt.Printf("You examine %s. %s\n", t.name, t.description)
 		return true
 	}
 	return false

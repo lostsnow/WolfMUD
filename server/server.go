@@ -61,10 +61,10 @@ func main() {
 	*/
 
 	t1 := entities.NewThing("A curious brass lattice", "LATTICE", "This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity.", nil);
-	t2 := entities.NewThing("A small ball", "BALL", "This is a small rubber ball", nil);
+	t2 := entities.NewThing("A small ball", "BALL", "This is a small rubber ball.", nil);
 
-	p1 := entities.NewPlayer("Diddymus", "DIDDYMUS", "An adventurer like yourself", world[0])
-	p2 := entities.NewPlayer("Tass", "TASS", "An adventurer like yourself", world[0])
+	p1 := entities.NewPlayer("Diddymus", "DIDDYMUS", "An adventurer like yourself.", world[0])
+	p2 := entities.NewPlayer("Tass", "TASS", "An adventurer like yourself.", world[0])
 
 	world[0].Add(t1)
 	//world[0].Add(t2)
@@ -85,6 +85,26 @@ func main() {
 	println ("\n> LOOK TASS")
 	if p1.Command(p1, "LOOK", []string{"TASS"}) == false {
 		println("EH, LOOK TASS?")
+	}
+
+	println ("\n> INVENTORY")
+	if p1.Command(p1, "INVENTORY", nil) == false {
+		println("EH, INVENTORY?")
+	}
+
+	println ("\n> INV")
+	if p1.Command(p1, "INV", nil) == false {
+		println("EH, INV?")
+	}
+
+	println ("\n> LOOK BALL")
+	if p1.Command(p1, "LOOK", []string{"BALL"}) == false {
+		println("EH, LOOK BALL?")
+	}
+
+	println ("\n> EXAMINE BALL")
+	if p1.Command(p1, "EXAMINE", []string{"BALL"}) == false {
+		println("EH, EXAMINE BALL?")
 	}
 
 	println("\n+++ GOODBYE WORLD +++\n")

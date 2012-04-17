@@ -21,7 +21,7 @@ func NewInventory() Inventory {
 }
 
 func (i *inventory) delegate(what Thing, cmd string, args []string) (handled bool) {
-	if len(args[0]) == 0 {
+	if len(args) == 0 {
 		return false
 	}
 
@@ -80,18 +80,25 @@ func (i *inventory) Remove(alias string, occurance int) (t Thing) {
 	return
 }
 
-func (i *inventory) List(ommit Thing) (list string) {
+func (i *inventory) List(ommit Thing) (list []Thing) {
+
+	mobiles := make([]Thing, 0, 10)
+	things := make([]Thing, 0, 10)
+
 	for _, alias := range i.content {
 		for _, object := range alias {
 			if object == ommit {
 				continue
 			}
 			if _, ok := object.(Player); ok {
-				list = "You can see " + object.Name() + " here.\n" + list
+				mobiles = append(mobiles, object)
 			} else {
-				list += "You can see " + object.Name() + " here.\n"
+				things = append(things, object)
 			}
 		}
 	}
+
+	list = append(mobiles, things...)
+
 	return list
 }
