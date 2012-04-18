@@ -5,7 +5,6 @@ import (
 )
 
 type Inventory interface {
-	// Commander
 	Add(t Thing)
 	Remove(alias string, occurance int) (t Thing)
 }
@@ -25,7 +24,7 @@ func (i *inventory) delegate(what Thing, cmd string, args []string) (handled boo
 		return false
 	}
 
-	// An inventory delegates to everything in it but handles nothing itself
+	// An inventory delegates to everything in it and handles nothing itself
 	for _, object := range i.content[args[0]] {
 
 		// Don't process ourself at a location - gets recursive!
@@ -98,7 +97,5 @@ func (i *inventory) List(ommit Thing) (list []Thing) {
 		}
 	}
 
-	list = append(mobiles, things...)
-
-	return list
+	return append(mobiles, things...)
 }

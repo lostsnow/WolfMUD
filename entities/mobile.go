@@ -9,16 +9,18 @@ type Mobile interface {
 	Thing
 	Inventory
 	Parse(cmd string)
+	Locate(l Location)
 }
 
 type mobile struct {
 	thing
 	inventory
+	location Location
 }
 
-func NewMobile(name, alias, description string, location Location) (m Mobile) {
+func NewMobile(name, alias, description string) (m Mobile) {
 	return &mobile{
-		thing: thing{name, alias, description, location},
+		thing: thing{name, alias, description},
 	}
 }
 
@@ -31,6 +33,11 @@ func (m *mobile) Parse(cmd string) {
 	}
 }
 
+func (m *mobile) Locate(l Location) {
+	m.location = l
+}
+
+
 func (m *mobile) Command(what Thing, cmd string, args []string) (handled bool) {
 	switch cmd {
 	default:
@@ -42,16 +49,16 @@ func (m *mobile) Command(what Thing, cmd string, args []string) (handled bool) {
 
 		// If we are handling commands for ourself can our environment handle it?
 		if handled == false && what == m {
-			handled = m.thing.location.Command(what, cmd, args)
+			handled = m.location.Command(what, cmd, args)
 		}
 
 	case "INVENTORY", "INV":
-		handled = m.Inventory(what, args)
+		handled = m.inv(what, args)
 	}
 	return handled
 }
 
-func (m *mobile) Inventory(what Thing, args []string) (handled bool) {
+func (m *mobile) inv(what Thing, args []string) (handled bool) {
 	if len(args) != 0 {
 		return false
 	}
@@ -62,4 +69,3 @@ func (m *mobile) Inventory(what Thing, args []string) (handled bool) {
 	}
 	return true
 }
-

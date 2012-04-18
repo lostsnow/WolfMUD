@@ -47,7 +47,7 @@ type Location interface {
 	Thing
 	Inventory
 	Looker
-	Move(what Thing, d direction) (handled bool)
+	move(what Thing, d direction) (handled bool)
 	LinkExit(d direction, to Location)
 }
 
@@ -57,9 +57,9 @@ type location struct {
 	exits [10]Location
 }
 
-func NewLocation(name, alias, description string, l Location) Location {
+func NewLocation(name, alias, description string) Location {
 	return &location{
-		thing:     thing{name, alias, description, l},
+		thing:     thing{name, alias, description},
 		inventory: inventory{},
 	}
 }
@@ -67,27 +67,27 @@ func NewLocation(name, alias, description string, l Location) Location {
 func (l *location) Command(what Thing, cmd string, args []string) (handled bool) {
 	switch cmd {
 	case "LOOK":
-		handled = l.Look(what, args)
+		handled = l.look(what, args)
 	case "NORTH", "N":
-		handled = l.Move(what, NORTH)
+		handled = l.move(what, NORTH)
 	case "NORTHEAST", "NE":
-		handled = l.Move(what, NORTHEAST)
+		handled = l.move(what, NORTHEAST)
 	case "EAST", "E":
-		handled = l.Move(what, EAST)
+		handled = l.move(what, EAST)
 	case "SOUTHEAST", "SE":
-		handled = l.Move(what, SOUTHEAST)
+		handled = l.move(what, SOUTHEAST)
 	case "SOUTH", "S":
-		handled = l.Move(what, SOUTH)
+		handled = l.move(what, SOUTH)
 	case "SOUTHWEST", "SW":
-		handled = l.Move(what, SOUTHWEST)
+		handled = l.move(what, SOUTHWEST)
 	case "WEST", "W":
-		handled = l.Move(what, WEST)
+		handled = l.move(what, WEST)
 	case "NORTHWEST", "NW":
-		handled = l.Move(what, NORTHWEST)
+		handled = l.move(what, NORTHWEST)
 	case "UP":
-		handled = l.Move(what, UP)
+		handled = l.move(what, UP)
 	case "DOWN":
-		handled = l.Move(what, DOWN)
+		handled = l.move(what, DOWN)
 	}
 
 	if handled == false {
@@ -100,7 +100,7 @@ func (l *location) Command(what Thing, cmd string, args []string) (handled bool)
 	return handled
 }
 
-func (l *location) Look(what Thing, args []string) (handled bool) {
+func (l *location) look(what Thing, args []string) (handled bool) {
 	if len(args) != 0 {
 		return false
 	}
@@ -119,13 +119,15 @@ func (l *location) LinkExit(d direction, to Location) {
 	l.exits[d] = to
 }
 
-func (from *location) Move(what Thing, d direction) (handled bool) {
+func (from *location) move(what Thing, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
 		from.Remove(what.Alias(), 1)
 		to.Add(what)
-		what.Locate(to)
+		if m, ok := what.(Mobile); ok {
+			m.Locate(to)
+		}
 		fmt.Printf("You go %s.\n", directionNames[d])
-		to.Look(what, nil)
+		to.look(what, nil)
 	} else {
 		fmt.Printf("You can't go %s from here!\n", directionNames[d])
 	}
