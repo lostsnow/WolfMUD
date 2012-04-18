@@ -90,7 +90,7 @@ func (i *inventory) List(ommit Thing) (list []Thing) {
 			if object == ommit {
 				continue
 			}
-			if _, ok := object.(Player); ok {
+			if _, ok := object.(Mobile); ok {
 				mobiles = append(mobiles, object)
 			} else {
 				things = append(things, object)

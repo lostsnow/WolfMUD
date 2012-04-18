@@ -4,7 +4,7 @@ import (
 	"fmt"
 	// "time"
 	// "wolfmud.org/location"
-	// "wolfmud.org/player"
+	// "wolfmud.org/mobile"
 	"wolfmud.org/entities"
 )
 
@@ -41,28 +41,28 @@ func main() {
 	t1 := entities.NewThing("A curious brass lattice", "LATTICE", "This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity.", nil);
 	t2 := entities.NewThing("A small ball", "BALL", "This is a small rubber ball.", nil);
 
-	p1 := entities.NewPlayer("Diddymus", "DIDDYMUS", "An adventurer like yourself.", world[0])
-	p2 := entities.NewPlayer("Tass", "TASS", "An adventurer like yourself.", world[0])
+	m1 := entities.NewMobile("Diddymus", "DIDDYMUS", "An adventurer like yourself.", world[0])
+	m2 := entities.NewMobile("Tass", "TASS", "An adventurer like yourself.", world[0])
 
 	world[0].Add(t1)
 	//world[0].Add(t2)
-	world[0].Add(p2)
+	world[0].Add(m2)
 	//world[0].Remove("TASS", 1)
-	p1.Add(t2)
+	m1.Add(t2)
 
-	world[0].Add(p1)
-	p1.Command(p1, "LOOK", nil)
+	world[0].Add(m1)
+	m1.Command(m1, "LOOK", nil)
 
-	p1.Parse("look")
-	p1.Parse("look lattice")
-	p1.Parse("look tass")
-	p1.Parse("inventory")
-	p1.Parse("inv")
-	p1.Parse("look ball")
-	p1.Parse("examine ball")
-	p1.Parse("west")
-	p1.Parse("south")
-	p1.Parse("n")
+	m1.Parse("look")
+	m1.Parse("look lattice")
+	m1.Parse("look tass")
+	m1.Parse("inventory")
+	m1.Parse("inv")
+	m1.Parse("look ball")
+	m1.Parse("examine ball")
+	m1.Parse("west")
+	m1.Parse("south")
+	m1.Parse("n")
 
 	println("\n+++ GOODBYE WORLD +++\n")
 }
