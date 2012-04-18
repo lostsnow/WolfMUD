@@ -2,7 +2,6 @@ package entities
 
 import (
 	"fmt"
-	"strings"
 )
 
 type Mobile interface {
@@ -26,8 +25,7 @@ func NewMobile(name, alias, description string) (m Mobile) {
 
 func (m *mobile) Parse(cmd string) {
 	fmt.Printf("\n> %s\n", cmd)
-	words := strings.Split(strings.ToUpper(cmd), " ")
-	handled := m.Command(m, words[0], words[1:])
+	handled := m.Command(NewCmd(m, cmd))
 	if handled == false {
 		fmt.Printf("Eh? %s?\n\n", cmd)
 	}
@@ -38,33 +36,33 @@ func (m *mobile) Locate(l Location) {
 }
 
 
-func (m *mobile) Command(what Thing, cmd string, args []string) (handled bool) {
-	switch cmd {
+func (m *mobile) Command(c Cmd) (handled bool) {
+	switch c.Verb() {
 	default:
-		handled = m.thing.Command(what, cmd, args)
+		handled = m.thing.Command(c)
 
-		if handled == false && what == m {
-			handled = m.inventory.delegate(what, cmd, args)
+		if handled == false && c.What() == m {
+			handled = m.inventory.delegate(c)
 		}
 
 		// If we are handling commands for ourself can our environment handle it?
-		if handled == false && what == m {
-			handled = m.location.Command(what, cmd, args)
+		if handled == false && c.What() == m {
+			handled = m.location.Command(c)
 		}
 
 	case "INVENTORY", "INV":
-		handled = m.inv(what, args)
+		handled = m.inv(c)
 	}
 	return handled
 }
 
-func (m *mobile) inv(what Thing, args []string) (handled bool) {
-	if len(args) != 0 {
+func (m *mobile) inv(c Cmd) (handled bool) {
+	if c.Target() != nil {
 		return false
 	}
 
 	fmt.Println("You are currently carrying:")
-	for _, v := range m.inventory.List(what) {
+	for _, v := range m.inventory.List(c.What()) {
 		fmt.Printf("\t%s\n", v.Name())
 	}
 	return true

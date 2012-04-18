@@ -75,7 +75,7 @@ func main() {
 	m1.Locate(world[0])
 	world[0].Add(m1)
 
-	m1.Command(m1, "LOOK", nil)
+	m1.Command(entities.NewCmd(m1, "LOOK"))
 
 	m1.Parse("look")
 	m1.Parse("look lattice")

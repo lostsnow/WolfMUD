@@ -57,34 +57,34 @@ func (t *thing) Alias() string {
 	return t.alias
 }
 
-func (t *thing) Command(what Thing, cmd string, args []string) (handled bool) {
-	switch cmd {
+func (t *thing) Command(c Cmd) (handled bool) {
+	switch c.Verb() {
 	case "LOOK":
-		handled = t.look(what, args)
+		handled = t.look(c)
 	case "EXAMINE":
-		handled = t.examine(what, args)
+		handled = t.examine(c)
 	}
 	return handled
 }
 
-func (t *thing) look(what Thing, args []string) (handled bool) {
-	if len(args) == 0 {
+func (t *thing) look(c Cmd) (handled bool) {
+	if c.Target() == nil {
 		return false
 	}
 
-	if args[0] == t.Alias() {
+	if *c.Target() == t.Alias() {
 		fmt.Printf("You look at %s. %s\n", t.name, t.description)
 		return true
 	}
 	return false
 }
 
-func (t *thing) examine(what Thing, args []string) (handled bool) {
-	if len(args) == 0 {
+func (t *thing) examine(c Cmd) (handled bool) {
+	if c.Target() == nil {
 		return false
 	}
 
-	if args[0] == t.Alias() {
+	if *c.Target() == t.Alias() {
 		fmt.Printf("You examine %s. %s\n", t.name, t.description)
 		return true
 	}

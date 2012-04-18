@@ -47,7 +47,7 @@ type Location interface {
 	Thing
 	Inventory
 	Looker
-	move(what Thing, d direction) (handled bool)
+	move(c Cmd, d direction) (handled bool)
 	LinkExit(d direction, to Location)
 }
 
@@ -64,50 +64,50 @@ func NewLocation(name, alias, description string) Location {
 	}
 }
 
-func (l *location) Command(what Thing, cmd string, args []string) (handled bool) {
-	switch cmd {
+func (l *location) Command(c Cmd) (handled bool) {
+	switch c.Verb() {
 	case "LOOK":
-		handled = l.look(what, args)
+		handled = l.look(c)
 	case "NORTH", "N":
-		handled = l.move(what, NORTH)
+		handled = l.move(c, NORTH)
 	case "NORTHEAST", "NE":
-		handled = l.move(what, NORTHEAST)
+		handled = l.move(c, NORTHEAST)
 	case "EAST", "E":
-		handled = l.move(what, EAST)
+		handled = l.move(c, EAST)
 	case "SOUTHEAST", "SE":
-		handled = l.move(what, SOUTHEAST)
+		handled = l.move(c, SOUTHEAST)
 	case "SOUTH", "S":
-		handled = l.move(what, SOUTH)
+		handled = l.move(c, SOUTH)
 	case "SOUTHWEST", "SW":
-		handled = l.move(what, SOUTHWEST)
+		handled = l.move(c, SOUTHWEST)
 	case "WEST", "W":
-		handled = l.move(what, WEST)
+		handled = l.move(c, WEST)
 	case "NORTHWEST", "NW":
-		handled = l.move(what, NORTHWEST)
+		handled = l.move(c, NORTHWEST)
 	case "UP":
-		handled = l.move(what, UP)
+		handled = l.move(c, UP)
 	case "DOWN":
-		handled = l.move(what, DOWN)
+		handled = l.move(c, DOWN)
 	}
 
 	if handled == false {
-		handled = l.thing.Command(what, cmd, args)
+		handled = l.thing.Command(c)
 		if handled == false {
-			handled = l.inventory.delegate(what, cmd, args)
+			handled = l.inventory.delegate(c)
 		}
 	}
 
 	return handled
 }
 
-func (l *location) look(what Thing, args []string) (handled bool) {
-	if len(args) != 0 {
+func (l *location) look(c Cmd) (handled bool) {
+	if c.Target() != nil {
 		return false
 	}
 
 	fmt.Printf("\n%s\n\n%s\n", l.name, l.description)
 
-	for _, v := range l.inventory.List(what) {
+	for _, v := range l.inventory.List(c.What()) {
 		fmt.Printf("You can see %s here\n", v.Name())
 	}
 
@@ -119,15 +119,15 @@ func (l *location) LinkExit(d direction, to Location) {
 	l.exits[d] = to
 }
 
-func (from *location) move(what Thing, d direction) (handled bool) {
+func (from *location) move(c Cmd, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
-		from.Remove(what.Alias(), 1)
-		to.Add(what)
-		if m, ok := what.(Mobile); ok {
+		from.Remove(c.What().Alias(), 1)
+		to.Add(c.What())
+		if m, ok := c.What().(Mobile); ok {
 			m.Locate(to)
 		}
 		fmt.Printf("You go %s.\n", directionNames[d])
-		to.look(what, nil)
+		to.look(c)
 	} else {
 		fmt.Printf("You can't go %s from here!\n", directionNames[d])
 	}
