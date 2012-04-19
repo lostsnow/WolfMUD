@@ -3,9 +3,15 @@ package main
 import (
 	"fmt"
 	"wolfmud.org/entities"
+	//"runtime/pprof"
+	//"os"
 )
 
 func main() {
+	//f, _ := os.Create("server.prof")
+	//pprof.StartCPUProfile(f)
+	//defer pprof.StopCPUProfile()
+
 	fmt.Println("\n+++ HELLO WORLD +++")
 
 	world := [...]entities.Location{
@@ -75,7 +81,7 @@ func main() {
 	m1.Locate(world[0])
 	world[0].Add(m1)
 
-	m1.Command(entities.NewCmd(m1, "LOOK"))
+	m1.Process(entities.NewCommand(m1, "LOOK"))
 
 	m1.Parse("look")
 	m1.Parse("look lattice")

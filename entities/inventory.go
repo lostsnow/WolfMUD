@@ -19,21 +19,21 @@ func NewInventory() Inventory {
 	}
 }
 
-func (i *inventory) delegate(c Cmd) (handled bool) {
-	if c.Target() == nil {
+func (i *inventory) delegate(cmd Command) (handled bool) {
+	if cmd.Target == nil {
 		return false
 	}
 
 	// An inventory delegates to everything in it and handles nothing itself
-	for _, object := range i.content[*c.Target()] {
+	for _, object := range i.content[*cmd.Target] {
 
 		// Don't process ourself at a location - gets recursive!
-		if c.What() == object {
+		if cmd.What == object {
 			continue
 		}
 
-		if _, ok := object.(Commander); ok {
-			handled = object.Command(c)
+		if _, ok := object.(Processor); ok {
+			handled = object.Process(cmd)
 			if handled {
 				break
 			}

@@ -47,7 +47,7 @@ type Location interface {
 	Thing
 	Inventory
 	Looker
-	move(c Cmd, d direction) (handled bool)
+	move(cmd Command, d direction) (handled bool)
 	LinkExit(d direction, to Location)
 }
 
@@ -64,50 +64,50 @@ func NewLocation(name, alias, description string) Location {
 	}
 }
 
-func (l *location) Command(c Cmd) (handled bool) {
-	switch c.Verb() {
+func (l *location) Process(cmd Command) (handled bool) {
+	switch cmd.Verb {
 	case "LOOK":
-		handled = l.look(c)
+		handled = l.look(cmd)
 	case "NORTH", "N":
-		handled = l.move(c, NORTH)
+		handled = l.move(cmd, NORTH)
 	case "NORTHEAST", "NE":
-		handled = l.move(c, NORTHEAST)
+		handled = l.move(cmd, NORTHEAST)
 	case "EAST", "E":
-		handled = l.move(c, EAST)
+		handled = l.move(cmd, EAST)
 	case "SOUTHEAST", "SE":
-		handled = l.move(c, SOUTHEAST)
+		handled = l.move(cmd, SOUTHEAST)
 	case "SOUTH", "S":
-		handled = l.move(c, SOUTH)
+		handled = l.move(cmd, SOUTH)
 	case "SOUTHWEST", "SW":
-		handled = l.move(c, SOUTHWEST)
+		handled = l.move(cmd, SOUTHWEST)
 	case "WEST", "W":
-		handled = l.move(c, WEST)
+		handled = l.move(cmd, WEST)
 	case "NORTHWEST", "NW":
-		handled = l.move(c, NORTHWEST)
+		handled = l.move(cmd, NORTHWEST)
 	case "UP":
-		handled = l.move(c, UP)
+		handled = l.move(cmd, UP)
 	case "DOWN":
-		handled = l.move(c, DOWN)
+		handled = l.move(cmd, DOWN)
 	}
 
 	if handled == false {
-		handled = l.thing.Command(c)
+		handled = l.thing.Process(cmd)
 		if handled == false {
-			handled = l.inventory.delegate(c)
+			handled = l.inventory.delegate(cmd)
 		}
 	}
 
 	return handled
 }
 
-func (l *location) look(c Cmd) (handled bool) {
-	if c.Target() != nil {
+func (l *location) look(cmd Command) (handled bool) {
+	if cmd.Target != nil {
 		return false
 	}
 
 	fmt.Printf("\n%s\n\n%s\n", l.name, l.description)
 
-	for _, v := range l.inventory.List(c.What()) {
+	for _, v := range l.inventory.List(cmd.What) {
 		fmt.Printf("You can see %s here\n", v.Name())
 	}
 
@@ -119,15 +119,15 @@ func (l *location) LinkExit(d direction, to Location) {
 	l.exits[d] = to
 }
 
-func (from *location) move(c Cmd, d direction) (handled bool) {
+func (from *location) move(cmd Command, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
-		from.Remove(c.What().Alias(), 1)
-		to.Add(c.What())
-		if m, ok := c.What().(Mobile); ok {
+		from.Remove(cmd.What.Alias(), 1)
+		to.Add(cmd.What)
+		if m, ok := cmd.What.(Mobile); ok {
 			m.Locate(to)
 		}
 		fmt.Printf("You go %s.\n", directionNames[d])
-		to.look(c)
+		to.look(cmd)
 	} else {
 		fmt.Printf("You can't go %s from here!\n", directionNames[d])
 	}

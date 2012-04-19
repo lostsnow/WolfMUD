@@ -1,5 +1,5 @@
 package entities
 
 type Examiner interface {
-	examine(c Cmd) (handled bool)
+	examine(cmd Command) (handled bool)
 }

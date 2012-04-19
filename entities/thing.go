@@ -1,16 +1,18 @@
 /*
 	Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+
+	Use of this source code is governed by the license in the LICENSE file
+	included with the source code.
 */
 
 package entities
 
 import (
-	"fmt"
 	"strings"
 )
 
 /*
-	Thing is a type representing the most basic type of entity. It is the
+	Thing is an interface representing the most basic type of entity. It is the
 	lowest denominator from which most other entities are built.
 
 	As the thing struct is not exported the Thing type defines accessor methods
@@ -18,15 +20,15 @@ import (
 */
 type Thing interface {
 	Examiner
-	Commander
+	Processor
 	Name() (name string)
 	Alias() (name string)
 }
 
 type thing struct {
-	name        string   // The name of a thing
-	alias       string   // An alias to refer to a thing
-	description string   // A description of the thing
+	name        string // The name of a thing
+	alias       string // An alias to refer to a thing
+	description string // A description of the thing
 }
 
 /*
@@ -46,7 +48,8 @@ func (t *thing) Name() string {
 }
 
 /*
-	Alias returns the alias command processing uses to identify a thing. For example:
+	Alias returns the alias that command processing uses to identify a thing. For
+	example:
 
 		> GET BALL
 
@@ -57,36 +60,39 @@ func (t *thing) Alias() string {
 	return t.alias
 }
 
-func (t *thing) Command(c Cmd) (handled bool) {
-	switch c.Verb() {
-	case "LOOK":
-		handled = t.look(c)
-	case "EXAMINE":
-		handled = t.examine(c)
+/*
+	Process satisfies the Processor interface and implements the main processing
+	for commands usable on a Thing.
+*/
+func (t *thing) Process(cmd Command) (handled bool) {
+
+	// Is the command for 'this' thing?
+	if cmd.Target == nil || *cmd.Target != t.alias {
+		return
 	}
-	return handled
+
+	switch cmd.Verb {
+	case "LOOK", "L":
+		handled = t.look(cmd)
+	case "EXAMINE", "EX":
+		handled = t.examine(cmd)
+	}
+
+	return
 }
 
-func (t *thing) look(c Cmd) (handled bool) {
-	if c.Target() == nil {
-		return false
-	}
-
-	if *c.Target() == t.Alias() {
-		fmt.Printf("You look at %s. %s\n", t.name, t.description)
-		return true
-	}
-	return false
+/*
+	look processes the 'Look' or 'L' command for a Thing.
+*/
+func (t *thing) look(cmd Command) (handled bool) {
+	cmd.Respond("You look at %s. %s\n", t.name, t.description)
+	return true
 }
 
-func (t *thing) examine(c Cmd) (handled bool) {
-	if c.Target() == nil {
-		return false
-	}
-
-	if *c.Target() == t.Alias() {
-		fmt.Printf("You examine %s. %s\n", t.name, t.description)
-		return true
-	}
-	return false
+/*
+	examine processes the 'Examine' or 'Ex' command for a Thing.
+*/
+func (t *thing) examine(cmd Command) (handled bool) {
+	cmd.Respond("You examine %s. %s\n", t.name, t.description)
+	return true
 }

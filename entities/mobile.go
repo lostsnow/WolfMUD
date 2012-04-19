@@ -1,3 +1,10 @@
+/*
+	Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+
+	Use of this source code is governed by the license in the LICENSE file
+	included with the source code.
+*/
+
 package entities
 
 import (
@@ -23,11 +30,11 @@ func NewMobile(name, alias, description string) (m Mobile) {
 	}
 }
 
-func (m *mobile) Parse(cmd string) {
-	fmt.Printf("\n> %s\n", cmd)
-	handled := m.Command(NewCmd(m, cmd))
+func (m *mobile) Parse(input string) {
+	fmt.Printf("\n> %s\n", input)
+	handled := m.Process(NewCommand(m, input))
 	if handled == false {
-		fmt.Printf("Eh? %s?\n\n", cmd)
+		fmt.Printf("Eh? %s?\n\n", input)
 	}
 }
 
@@ -35,35 +42,65 @@ func (m *mobile) Locate(l Location) {
 	m.location = l
 }
 
+/*
+	Process satisfies the Processor interface and implements the main processing
+	for commands by mobiles. This is also the main starting point for commands
+	from players. Commands are handled or delegated to:
 
-func (m *mobile) Command(c Cmd) (handled bool) {
-	switch c.Verb() {
+		1. The current Mobile - INVENTORY, SCORE
+
+		2. Current Mobile's inventory - DROP BALL, EXAMINE BALL
+
+		3. The Mobile's environment/current location - LOOK, NORTH, N
+
+		4. Things at the current location - GET BALL, KILL DIDDYMUS
+
+	Items 2-4 are only processed if the mobile is also the mobile issuing the
+	command - i.e. the mobile is itself.
+
+*/
+func (m *mobile) Process(cmd Command) (handled bool) {
+
+	switch cmd.Verb {
 	default:
-		handled = m.thing.Command(c)
 
-		if handled == false && c.What() == m {
-			handled = m.inventory.delegate(c)
+		// Pass up to embeded thing? Still for mobile
+		handled = m.thing.Process(cmd)
+
+		// Pass up to embeded inventory? 'Self' only
+		if handled == false && cmd.What == m {
+			handled = m.inventory.delegate(cmd)
 		}
 
-		// If we are handling commands for ourself can our environment handle it?
-		if handled == false && c.What() == m {
-			handled = m.location.Command(c)
+		// Pass to current location? 'Self' only
+		if handled == false && cmd.What == m {
+			handled = m.location.Process(cmd)
 		}
 
 	case "INVENTORY", "INV":
-		handled = m.inv(c)
+		handled = m.inv(cmd)
 	}
-	return handled
+
+	return
 }
 
-func (m *mobile) inv(c Cmd) (handled bool) {
-	if c.Target() != nil {
-		return false
+/*
+ */
+func (m *mobile) inv(cmd Command) (handled bool) {
+
+	// Currently we only handle inventory for the current mobile. If a target has
+	// been specified (i.e. someone else) we can't process the command so bail
+	// early. In future we may be able to show the inventory for others - be
+	// interesting for some theiving skills perhaps?
+	if cmd.Target != nil {
+		return
 	}
 
-	fmt.Println("You are currently carrying:")
-	for _, v := range m.inventory.List(c.What()) {
-		fmt.Printf("\t%s\n", v.Name())
+	response := "You are currently carrying:\n"
+	for _, v := range m.inventory.List(cmd.What) {
+		response += fmt.Sprintf("\t%s\n", v.Name())
 	}
+	cmd.Respond(response)
+
 	return true
 }
