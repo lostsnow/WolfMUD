@@ -11,6 +11,17 @@ import (
 	"fmt"
 )
 
+/*
+	Mobile is an interface representing the most basic type of 'living' thing. It
+	is the lowest denominator from which most other creatures and players are
+	built.
+
+	The Mobile interface embeds Thing and Inventory - A Mobile must be able to
+	describe itself and needs to be able to carry things.
+
+	As the mobile struct is not exported the Mobile type defines accessor methods
+	for retrieving some of a thing's fields.
+*/
 type Mobile interface {
 	Thing
 	Inventory
@@ -18,6 +29,12 @@ type Mobile interface {
 	Locate(l Location)
 }
 
+/*
+	The mobile type embeds thing providing basic functionality such as name and
+	description. It also embeds inventory so that any mobile type can carry
+	things around. These satisfy the Thing and Inventory interfaces embeded in
+	the Mobile interface.
+*/
 type mobile struct {
 	thing
 	inventory
@@ -57,48 +74,59 @@ func (m *mobile) Locate(l Location) {
 
 	Items 2-4 are only processed if the mobile is also the mobile issuing the
 	command - i.e. the mobile is itself.
-
 */
 func (m *mobile) Process(cmd Command) (handled bool) {
 
 	switch cmd.Verb {
-	default:
+	case "INVENTORY", "INV":
+		handled = m.inv(cmd)
+	}
 
-		// Pass up to embeded thing? Still for mobile
+	// Pass up to embeded thing?
+	if handled == false {
 		handled = m.thing.Process(cmd)
+	}
 
-		// Pass up to embeded inventory? 'Self' only
-		if handled == false && cmd.What == m {
+	// The following delegations are only done if the current mobile is also the
+	// mobile issuing the command
+	if m == cmd.What {
+
+		if handled == false {
 			handled = m.inventory.delegate(cmd)
 		}
 
-		// Pass to current location? 'Self' only
-		if handled == false && cmd.What == m {
+		if handled == false {
 			handled = m.location.Process(cmd)
 		}
 
-	case "INVENTORY", "INV":
-		handled = m.inv(cmd)
 	}
 
 	return
 }
 
 /*
- */
+  inv lists the things a mobile is carrying in it's inventory.
+
+	Currently we only handle inventory for the current mobile. If a target has
+	been specified (i.e. someone else) we don't process the command but bail out
+	early. In future we may be able to show the inventory for others - be
+	interesting for some theiving skills perhaps?
+*/
 func (m *mobile) inv(cmd Command) (handled bool) {
 
-	// Currently we only handle inventory for the current mobile. If a target has
-	// been specified (i.e. someone else) we can't process the command so bail
-	// early. In future we may be able to show the inventory for others - be
-	// interesting for some theiving skills perhaps?
-	if cmd.Target != nil {
-		return
-	}
+	response := ``
 
-	response := "You are currently carrying:\n"
-	for _, v := range m.inventory.List(cmd.What) {
-		response += fmt.Sprintf("\t%s\n", v.Name())
+	if cmd.Target != nil {
+		return false
+	} else {
+		if inventory := m.inventory.List(cmd.What); len(inventory) == 0 {
+			response = "You are not carrying anything.\n"
+		} else {
+			response = "You are currently carrying:\n"
+			for _, item := range inventory {
+				response += "\t" + item.Name() + "\n"
+			}
+		}
 	}
 	cmd.Respond(response)
 

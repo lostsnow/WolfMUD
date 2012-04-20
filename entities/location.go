@@ -105,13 +105,14 @@ func (l *location) look(cmd Command) (handled bool) {
 		return false
 	}
 
-	fmt.Printf("\n%s\n\n%s\n", l.name, l.description)
+	msg := fmt.Sprintf("\n%s\n\n%s\n", l.name, l.description)
 
 	for _, v := range l.inventory.List(cmd.What) {
-		fmt.Printf("You can see %s here\n", v.Name())
+		msg += fmt.Sprintf("You can see %s here\n", v.Name())
 	}
 
-	fmt.Println("")
+	cmd.Respond(msg)
+
 	return true
 }
 
@@ -126,10 +127,10 @@ func (from *location) move(cmd Command, d direction) (handled bool) {
 		if m, ok := cmd.What.(Mobile); ok {
 			m.Locate(to)
 		}
-		fmt.Printf("You go %s.\n", directionNames[d])
+		cmd.Respond("You go %s.\n", directionNames[d])
 		to.look(cmd)
 	} else {
-		fmt.Printf("You can't go %s from here!\n", directionNames[d])
+		cmd.Respond("You can't go %s from here!\n", directionNames[d])
 	}
 	return true
 }

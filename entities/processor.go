@@ -39,6 +39,11 @@ type Processor interface {
 	Process(Command) (handled bool)
 }
 
+/*
+	Command is a reference to an unexported command struct. It is returned via a
+	call to NewCommand. As command structs are passed around alot between
+	entities Command makes sure we are passing command structs by reference.
+*/
 type Command *command
 
 /*
@@ -104,9 +109,9 @@ func respond(format string, a ...interface{}) {
 	useful things.
 
 	See command struct for more detail.
- */
+*/
 func NewCommand(what Thing, input string) Command {
-	words := strings.Split(strings.ToUpper(input), " ")
+	words := strings.Split(strings.ToUpper(input), ` `)
 
 	cmd := command{}
 
