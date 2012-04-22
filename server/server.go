@@ -8,13 +8,9 @@ import (
 )
 
 func main() {
-	//f, _ := os.Create("server.prof")
-	//pprof.StartCPUProfile(f)
-	//defer pprof.StopCPUProfile()
-
 	fmt.Println("\n+++ HELLO WORLD +++")
 
-	world := [...]entities.Location{
+	world := []entities.Location{
 
 		entities.NewLocation("Fireplace", "FIREPLACE", "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance."),
 
@@ -58,12 +54,12 @@ func main() {
 	)
 
 	// Some mobiles
-	m1 := entities.NewMobile(
+	m1 := entities.NewPlayer(
 		"Diddymus",
 		"DIDDYMUS",
 		"An adventurer like yourself.",
 	)
-	m2 := entities.NewMobile(
+	m2 := entities.NewPlayer(
 		"Tass",
 		"TASS",
 		"An adventurer like yourself.",
@@ -84,11 +80,9 @@ func main() {
 	m1.Process(entities.NewCommand(m1, "LOOK"))
 
 	m1.Parse("look")
-	m1.Parse("look lattice")
-	m1.Parse("look tass")
 	m1.Parse("inventory")
 	m1.Parse("inv")
-	m1.Parse("look ball")
+	m1.Parse("ex ball")
 	m1.Parse("examine ball")
 	m1.Parse("west")
 	m1.Parse("south")

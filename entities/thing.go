@@ -9,6 +9,7 @@ package entities
 
 import (
 	"strings"
+	"reflect"
 )
 
 /*
@@ -61,6 +62,18 @@ func (t *thing) Alias() string {
 }
 
 /*
+	IsAlso tries to determine if two pointers are the same object. It seems that
+	if 'other' is an Interface then comparing this (*thing) with (Thing) will
+	fail. Not sure why it fails when an Interface type seems to usually
+	dereference itself... needs investigation but works for now :(
+
+	TODO: Add checking in case this or other is not a pointer, will panic if so
+*/
+func (this *thing) IsAlso(other interface{}) bool {
+	return reflect.ValueOf(this).Pointer() == reflect.ValueOf(other).Pointer()
+}
+
+/*
 	Process satisfies the Processor interface and implements the main processing
 	for commands usable on a Thing.
 */
@@ -72,21 +85,11 @@ func (t *thing) Process(cmd Command) (handled bool) {
 	}
 
 	switch cmd.Verb {
-	case "LOOK", "L":
-		handled = t.look(cmd)
 	case "EXAMINE", "EX":
 		handled = t.examine(cmd)
 	}
 
 	return
-}
-
-/*
-	look processes the 'Look' or 'L' command for a Thing.
-*/
-func (t *thing) look(cmd Command) (handled bool) {
-	cmd.Respond("You look at %s. %s\n", t.name, t.description)
-	return true
 }
 
 /*

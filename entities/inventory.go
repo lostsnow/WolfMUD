@@ -24,11 +24,12 @@ func (i *inventory) delegate(cmd Command) (handled bool) {
 		return false
 	}
 
-	// An inventory delegates to everything in it and handles nothing itself
+	// An inventory delegates to everything matching the current target alias in
+	// it and handles nothing itself
 	for _, object := range i.content[*cmd.Target] {
 
-		// Don't process ourself at a location - gets recursive!
-		if cmd.What == object {
+		// Don't process command issuer - gets recursive!
+		if cmd.Issuer == object {
 			continue
 		}
 

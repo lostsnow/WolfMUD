@@ -8,7 +8,6 @@
 package entities
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -50,7 +49,7 @@ type Command *command
 	command is a structure that eases handling of command strings. When a new
 	command is created it contains:
 
-		What - What the command is being processed for, usually a mobile/player
+		Issuer - What is issuing the command, usually a mobile/player
 
 		Verb - The verb in the command. E.G. GET, DROP, LOOK, etc...
 
@@ -58,48 +57,13 @@ type Command *command
 
 		Target - A shortcut to command.Nouns[0] - the first noun. Most commands
 		only act on a single noun: GET BALL, DROP SWORD
-
-		Respond - A function modelled on fmt.Printf() to easily send a descriptive
-		response back to 'What': Command.Respond("You drop %s", Thing.Name())
-
-	TODO: Need to split respond into 3 functions:
-
-		Diddymus> KILL TASS
-
-		RespondWhat() - "You attack Tass."
-		RespondTarget() - "Diddymus attacks you."
-		RespondLocation() - "You see Diddymus attack Tass."
-
-	TODO: This needs to be hooked into the player network code when written or
-	sent to a log/ignored for anything else.
 */
 type command struct {
-	What    Thing
+	Issuer  Thing
 	Verb    string
 	Nouns   []string
 	Target  *string
-	Respond func(format string, a ...interface{})
-}
-
-/*
-	respond sends a descriptive response back to command.What. For example if you
-	issued:
-
-		DROP BALL
-
-	You would expect a response like:
-
-		You drop a ball
-
-	respond should be called through the command struct using as an example:
-
-		Command.Respond("You drop %s", Thing.Name())
-
-
-	See also TODO for command struct
-*/
-func respond(format string, a ...interface{}) {
-	fmt.Printf(format, a...)
+	Respond	func(format string, any ...interface{})
 }
 
 /*
@@ -110,16 +74,19 @@ func respond(format string, a ...interface{}) {
 
 	See command struct for more detail.
 */
-func NewCommand(what Thing, input string) Command {
+func NewCommand(issuer Thing, input string) Command {
 	words := strings.Split(strings.ToUpper(input), ` `)
 
 	cmd := command{}
 
-	cmd.What = what
+	cmd.Issuer = issuer
 	cmd.Verb = words[0]
 	cmd.Nouns = words[1:]
-
-	cmd.Respond = respond
+	cmd.Respond = func(format string, any ...interface{}) {
+		if resp, ok := cmd.Issuer.(Responder); ok {
+			resp.Respond(format, any...)
+		}
+	}
 
 	if len(words) > 1 {
 		cmd.Target = &words[1]

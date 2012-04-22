@@ -41,7 +41,7 @@ type mobile struct {
 	location Location
 }
 
-func NewMobile(name, alias, description string) (m Mobile) {
+func NewMobile(name, alias, description string) Mobile {
 	return &mobile{
 		thing: thing{name, alias, description},
 	}
@@ -87,10 +87,7 @@ func (m *mobile) Process(cmd Command) (handled bool) {
 		handled = m.thing.Process(cmd)
 	}
 
-	// The following delegations are only done if the current mobile is also the
-	// mobile issuing the command
-	if m == cmd.What {
-
+	if m.IsAlso(cmd.Issuer) {
 		if handled == false {
 			handled = m.inventory.delegate(cmd)
 		}
@@ -98,7 +95,6 @@ func (m *mobile) Process(cmd Command) (handled bool) {
 		if handled == false {
 			handled = m.location.Process(cmd)
 		}
-
 	}
 
 	return
@@ -114,12 +110,12 @@ func (m *mobile) Process(cmd Command) (handled bool) {
 */
 func (m *mobile) inv(cmd Command) (handled bool) {
 
-	response := ``
+	response := ""
 
 	if cmd.Target != nil {
 		return false
 	} else {
-		if inventory := m.inventory.List(cmd.What); len(inventory) == 0 {
+		if inventory := m.inventory.List(cmd.Issuer); len(inventory) == 0 {
 			response = "You are not carrying anything.\n"
 		} else {
 			response = "You are currently carrying:\n"

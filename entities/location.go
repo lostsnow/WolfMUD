@@ -47,6 +47,7 @@ type Location interface {
 	Thing
 	Inventory
 	Looker
+	Responder
 	move(cmd Command, d direction) (handled bool)
 	LinkExit(d direction, to Location)
 }
@@ -92,9 +93,10 @@ func (l *location) Process(cmd Command) (handled bool) {
 
 	if handled == false {
 		handled = l.thing.Process(cmd)
-		if handled == false {
-			handled = l.inventory.delegate(cmd)
-		}
+	}
+
+	if handled == false {
+		handled = l.inventory.delegate(cmd)
 	}
 
 	return handled
@@ -107,7 +109,7 @@ func (l *location) look(cmd Command) (handled bool) {
 
 	msg := fmt.Sprintf("\n%s\n\n%s\n", l.name, l.description)
 
-	for _, v := range l.inventory.List(cmd.What) {
+	for _, v := range l.inventory.List(cmd.Issuer) {
 		msg += fmt.Sprintf("You can see %s here\n", v.Name())
 	}
 
@@ -122,15 +124,29 @@ func (l *location) LinkExit(d direction, to Location) {
 
 func (from *location) move(cmd Command, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
-		from.Remove(cmd.What.Alias(), 1)
-		to.Add(cmd.What)
-		if m, ok := cmd.What.(Mobile); ok {
+		from.Remove(cmd.Issuer.Alias(), 1)
+		from.Respond("You see %s go %s.\n", cmd.Issuer.Name(), directionNames[d])
+
+		if m, ok := cmd.Issuer.(Mobile); ok {
 			m.Locate(to)
 		}
+
 		cmd.Respond("You go %s.\n", directionNames[d])
+		to.Respond("You see %s walk in.\n", cmd.Issuer.Name())
+		to.Add(cmd.Issuer)
+
 		to.look(cmd)
 	} else {
 		cmd.Respond("You can't go %s from here!\n", directionNames[d])
 	}
 	return true
+}
+
+func (l *location) Respond(format string, any ...interface{}) {
+	msg := fmt.Sprintf(format, any...)
+	for _, v := range l.inventory.List(nil) {
+		if resp, ok := v.(Responder); ok {
+			resp.Respond(msg)
+		}
+	}
 }
