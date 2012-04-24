@@ -67,7 +67,7 @@ func NewLocation(name, alias, description string) Location {
 
 func (l *location) Process(cmd Command) (handled bool) {
 	switch cmd.Verb {
-	case "LOOK":
+	case "LOOK", "L":
 		handled = l.look(cmd)
 	case "NORTH", "N":
 		handled = l.move(cmd, NORTH)
@@ -114,6 +114,7 @@ func (l *location) look(cmd Command) (handled bool) {
 	}
 
 	cmd.Respond(msg)
+	l.RespondGroup([]Thing{cmd.Issuer}, "You see %s look around.", cmd.Issuer.Name())
 
 	return true
 }
@@ -124,22 +125,34 @@ func (l *location) LinkExit(d direction, to Location) {
 
 func (from *location) move(cmd Command, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
+		from.RespondGroup([]Thing{cmd.Issuer}, "You see %s go %s.\n", cmd.Issuer.Name(), directionNames[d])
 		from.Remove(cmd.Issuer.Alias(), 1)
-		from.Respond("You see %s go %s.\n", cmd.Issuer.Name(), directionNames[d])
-
-		if m, ok := cmd.Issuer.(Mobile); ok {
-			m.Locate(to)
-		}
 
 		cmd.Respond("You go %s.\n", directionNames[d])
-		to.Respond("You see %s walk in.\n", cmd.Issuer.Name())
 		to.Add(cmd.Issuer)
+		to.RespondGroup([]Thing{cmd.Issuer}, "You see %s walk in.\n", cmd.Issuer.Name())
 
 		to.look(cmd)
 	} else {
 		cmd.Respond("You can't go %s from here!\n", directionNames[d])
 	}
 	return true
+}
+
+func (l *location) RespondGroup(ommit []Thing, format string, any ...interface{}) {
+	msg := fmt.Sprintf(format, any...)
+
+OMMIT:
+	for _, v := range l.inventory.List(nil) {
+		if resp, ok := v.(Responder); ok {
+			for _, o := range ommit {
+				if o.IsAlso(v) {
+					continue OMMIT
+				}
+			}
+			resp.Respond(msg)
+		}
+	}
 }
 
 func (l *location) Respond(format string, any ...interface{}) {
@@ -157,7 +170,7 @@ func (l *location) Add(t Thing) {
 }
 
 func (l *location) Remove(alias string, occurance int) (t Thing) {
-	t = l.Remove(alias, occurance)
+	t = l.inventory.Remove(alias, occurance)
 	t.Locate(nil)
 	return
 }

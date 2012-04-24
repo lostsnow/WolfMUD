@@ -26,6 +26,7 @@ type Thing interface {
 	Alias() (name string)
 	Locate(l Location)
 	Where() (l Location)
+	IsAlso(other Thing) bool
 }
 
 type thing struct {
@@ -109,6 +110,6 @@ func (t *thing) Process(cmd Command) (handled bool) {
 */
 func (t *thing) examine(cmd Command) (handled bool) {
 	cmd.Respond("You examine %s. %s", t.name, t.description)
-	cmd.Issuer.Where().Respond("You see %s examine %s.", cmd.Issuer.Name(), t.name)
+	cmd.Issuer.Where().RespondGroup([]Thing{cmd.Issuer}, "You see %s examine %s.", cmd.Issuer.Name(), t.name)
 	return true
 }

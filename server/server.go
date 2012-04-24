@@ -1,14 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"wolfmud.org/entities"
-	"runtime"
+	"net"
+	"strconv"
 )
 
 func main() {
-	fmt.Println("\n+++ HELLO WORLD +++")
-
 	world := []entities.Location{
 
 		entities.NewLocation("Fireplace", "FIREPLACE", "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance."),
@@ -52,73 +50,30 @@ func main() {
 		"This is a small rubber ball.",
 	)
 
-	// Some mobiles
-	m1 := entities.NewPlayer(
-		"Diddymus",
-		"DIDDYMUS",
-		"An adventurer like yourself.",
-	)
-	m2 := entities.NewPlayer(
-		"Tass",
-		"TASS",
-		"An adventurer like yourself.",
-	)
-
-	// Put lattice into the world
 	world[0].Add(t1)
+	world[0].Add(t2)
 
-	// Put Tass into the world
-	m2.Locate(world[0])
-	world[0].Add(m2)
+	ln, err := net.Listen("tcp", ":4001")
+	if err != nil {
+		// handle error
+	}
 
-	// Put ball into Diddymus' inventory, then add to world
-	m1.Add(t2)
-	world[0].Add(m1)
+	println("WolfMUD server running...")
 
-	m1.Process(entities.NewCommand(m1, "LOOK"))
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
+	n := 1
 
-	m1.Input("look")
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
-
-	m1.Input("inventory")
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
-
-	m1.Input("inv")
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
-
-	m1.Input("ex lattice")
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
-
-	m1.Input("examine ball")
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
-
-	m1.Input("west")
-	runtime.Gosched()
-	println("[Diddymus] "+m1.Output())
-	println("[Tass] "+m2.Output())
-
-	//m1.Input("south")
-	//runtime.Gosched()
-	//println(m1.Output())
-	//println(m2.Output())
-
-	//m1.Input("n")
-	//runtime.Gosched()
-	//println(m1.Output())
-	//println(m2.Output())
-
-	println("\n+++ GOODBYE WORLD +++\n")
+	for {
+		println("Waiting for connection...")
+		conn, err := ln.Accept()
+		if err != nil {
+			// handle error
+			continue
+		}
+		println("Connection from: "+conn.RemoteAddr().String())
+		postfix := strconv.Itoa(n)
+		p := entities.NewPlayer("Player "+postfix,"PLAYER"+postfix,"This is Player "+postfix+".")
+		n++
+		world[0].Add(p)
+		go p.Run(conn)
+	}
 }
