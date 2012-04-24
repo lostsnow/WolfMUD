@@ -26,7 +26,6 @@ type Mobile interface {
 	Thing
 	Inventory
 	Parse(cmd string)
-	Locate(l Location)
 }
 
 /*
@@ -38,12 +37,11 @@ type Mobile interface {
 type mobile struct {
 	thing
 	inventory
-	location Location
 }
 
 func NewMobile(name, alias, description string) Mobile {
 	return &mobile{
-		thing: thing{name, alias, description},
+		thing: *NewThing(name, alias, description).(*thing),
 	}
 }
 
@@ -53,10 +51,6 @@ func (m *mobile) Parse(input string) {
 	if handled == false {
 		fmt.Printf("Eh? %s?\n\n", input)
 	}
-}
-
-func (m *mobile) Locate(l Location) {
-	m.location = l
 }
 
 /*

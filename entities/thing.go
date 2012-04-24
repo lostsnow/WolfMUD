@@ -8,8 +8,8 @@
 package entities
 
 import (
-	"strings"
 	"reflect"
+	"strings"
 )
 
 /*
@@ -24,21 +24,24 @@ type Thing interface {
 	Processor
 	Name() (name string)
 	Alias() (name string)
+	Locate(l Location)
+	Where() (l Location)
 }
 
 type thing struct {
-	name        string // The name of a thing
-	alias       string // An alias to refer to a thing
-	description string // A description of the thing
+	name        string   // The name of a thing
+	alias       string   // An alias to refer to a thing
+	description string   // A description of the thing
+	location    Location // Where the thing is
 }
 
 /*
 	NewThing is a constructor to create things of type Thing. A thing cannot be
-	created directly because it is not exported, however the Thing type is
+	created directly because it is not exported, however the Thing interface is
 	exported and acts to provide external access.
 */
 func NewThing(name, alias, description string) Thing {
-	return &thing{name, strings.ToUpper(alias), description}
+	return &thing{name, strings.ToUpper(alias), description, nil}
 }
 
 /*
@@ -61,15 +64,24 @@ func (t *thing) Alias() string {
 	return t.alias
 }
 
+func (t *thing) Locate(l Location) {
+	t.location = l
+}
+
+func (t *thing) Where() (l Location) {
+	return t.location
+}
+
 /*
-	IsAlso tries to determine if two pointers are the same object. It seems that
-	if 'other' is an Interface then comparing this (*thing) with (Thing) will
-	fail. Not sure why it fails when an Interface type seems to usually
-	dereference itself... needs investigation but works for now :(
+	IsAlso tries to determine if a *thing and interface Thing are pointing to the
+	same object. Simply comparing the two (*thing == Thing) will fail as they are
+	different types. So we get the address for both and compare that.
+
+	NOTE: Might be better to add a unique ID to thing and compare that maybe?
 
 	TODO: Add checking in case this or other is not a pointer, will panic if so
 */
-func (this *thing) IsAlso(other interface{}) bool {
+func (this *thing) IsAlso(other Thing) bool {
 	return reflect.ValueOf(this).Pointer() == reflect.ValueOf(other).Pointer()
 }
 
@@ -96,6 +108,7 @@ func (t *thing) Process(cmd Command) (handled bool) {
 	examine processes the 'Examine' or 'Ex' command for a Thing.
 */
 func (t *thing) examine(cmd Command) (handled bool) {
-	cmd.Respond("You examine %s. %s\n", t.name, t.description)
+	cmd.Respond("You examine %s. %s", t.name, t.description)
+	cmd.Issuer.Where().Respond("You see %s examine %s.", cmd.Issuer.Name(), t.name)
 	return true
 }

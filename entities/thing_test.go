@@ -9,69 +9,81 @@ package entities
 
 import (
 	"reflect"
-	"strings"
 	"testing"
+	"runtime"
 )
 
-var testData = [][]string{
-	{"A ball", "BALL", "This is a small ball."},
-	{"A curious brass lattice", "LATTICE", "This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity."},
-}
-
 func TestNewThing(t *testing.T) {
-	for _, row := range testData {
-		t1 := NewThing(row[0], row[1], row[2])
-		expected := "*entities.thing"
-		if reflect.TypeOf(t1).String() != expected {
-			t.Errorf("NewThing: Wrong type, expected: %s got %T: %#v", expected, t1, t1)
-		}
-		if _, ok := t1.(Examiner); !ok {
-			t.Errorf("NewThing: Does not implement Examiner interface")
-		}
-		if _, ok := t1.(Processor); !ok {
-			t.Errorf("NewThing: Does not implement Processor interface")
-		}
+
+	t1 := NewThing("A ball", "BALL", "This is a test ball.")
+
+	expected := "*entities.thing"
+	if reflect.TypeOf(t1).String() != expected {
+		t.Errorf("NewThing: Wrong type, expected: %s got %T: %#v", expected, t1, t1)
+	}
+	if _, ok := t1.(Examiner); !ok {
+		t.Errorf("NewThing: Does not implement Examiner interface")
+	}
+	if _, ok := t1.(Processor); !ok {
+		t.Errorf("NewThing: Does not implement Processor interface")
 	}
 }
 
 func TestName(t *testing.T) {
-	for _, row := range testData {
-		t1 := NewThing(row[0], row[1], row[2])
-		expected := row[0]
-		if result := t1.Name(); result != expected {
-			t.Errorf("Name: Wrong name, expected: %s got: %#v", expected, result)
-		}
+
+	t1 := NewThing("A ball", "BALL", "This is a test ball.")
+
+	expected := "A ball"
+	if result := t1.Name(); result != expected {
+		t.Errorf("Name: Wrong name, expected: %s got: %#v", expected, result)
 	}
 }
 
 func TestAlias(t *testing.T) {
-	for _, row := range testData {
-		t1 := NewThing(row[0], row[1], row[2])
-		expected := strings.ToUpper(row[1])
-		if result := t1.Alias(); result != expected {
-			t.Errorf("Alias: Wrong alias, expected: %s got: %#v", expected, result)
-		}
+	t1 := NewThing("A ball", "BALL", "This is a test ball.")
+
+	expected := "BALL"
+	if result := t1.Alias(); result != expected {
+		t.Errorf("Alias: Wrong alias, expected: %s got: %#v", expected, result)
 	}
 }
 
-func ExampleProcess_examine() {
-	commandHelper("EXAMINE")
-	// Output:
-	// You examine A ball. This is a small ball.
-	// You examine A curious brass lattice. This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity.
-}
+func TestProcess_examine(t *testing.T) {
+	l1 := NewLocation("Test Room", "TEST1", "This is a test room")
+	p1 := NewPlayer("Bob", "Bob", "This is Bob.")
+	t1 := NewThing("A ball", "BALL", "This is a test ball.")
+	l1.Add(t1)
+	l1.Add(p1)
+	p1.Locate(l1)
+	t1.Locate(l1)
 
-func ExampleProcess_ex() {
-	commandHelper("EX")
-	// Output:
-	// You examine A ball. This is a small ball.
-	// You examine A curious brass lattice. This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity.
-}
+	handled := false
+	response := ""
+	expected := ""
 
-func commandHelper(cmd string) (handled bool) {
-	for _, row := range testData {
-		t1 := NewThing(row[0], row[1], row[2])
-		handled = t1.Process(NewCommand(t1, cmd+" "+t1.Alias()))
+	// Bypass Input() and Process directly
+	handled = p1.Process(NewCommand(p1, "EXAMINE BALL"))
+	runtime.Gosched()
+	response = p1.Output()
+	expected = "You examine A ball. This is a test ball."
+
+	if response != expected {
+		t.Errorf("EXAMINE: wrong response\nGOT: |%s|\nEXP: |%s|\n", response, expected)
 	}
-	return
+	if !handled {
+		t.Errorf("EXAMINE: not handled: EXAMINE BALL\n")
+	}
+
+	// Bypass Input() and Process directly
+	handled = p1.Process(NewCommand(p1, "EXAMINE BANANA"))
+	runtime.Gosched()
+	response = p1.Output()
+	expected = ""
+
+	if response != expected {
+		t.Errorf("EXAMINE: wrong response\nGOT: |%s|\nEXP: |%s|\n", response, expected)
+	}
+	if handled {
+		t.Errorf("EXAMINE: handled: EXAMINE BANANA\n")
+	}
 }

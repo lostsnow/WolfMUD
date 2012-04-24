@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"wolfmud.org/entities"
-	//"runtime/pprof"
-	//"os"
+	"runtime"
 )
 
 func main() {
@@ -74,19 +73,52 @@ func main() {
 
 	// Put ball into Diddymus' inventory, then add to world
 	m1.Add(t2)
-	m1.Locate(world[0])
 	world[0].Add(m1)
 
 	m1.Process(entities.NewCommand(m1, "LOOK"))
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
 
-	m1.Parse("look")
-	m1.Parse("inventory")
-	m1.Parse("inv")
-	m1.Parse("ex ball")
-	m1.Parse("examine ball")
-	m1.Parse("west")
-	m1.Parse("south")
-	m1.Parse("n")
+	m1.Input("look")
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
+
+	m1.Input("inventory")
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
+
+	m1.Input("inv")
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
+
+	m1.Input("ex lattice")
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
+
+	m1.Input("examine ball")
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
+
+	m1.Input("west")
+	runtime.Gosched()
+	println("[Diddymus] "+m1.Output())
+	println("[Tass] "+m2.Output())
+
+	//m1.Input("south")
+	//runtime.Gosched()
+	//println(m1.Output())
+	//println(m2.Output())
+
+	//m1.Input("n")
+	//runtime.Gosched()
+	//println(m1.Output())
+	//println(m2.Output())
 
 	println("\n+++ GOODBYE WORLD +++\n")
 }

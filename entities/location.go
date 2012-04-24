@@ -60,8 +60,8 @@ type location struct {
 
 func NewLocation(name, alias, description string) Location {
 	return &location{
-		thing:     thing{name, alias, description},
-		inventory: inventory{},
+		thing:     *NewThing(name, alias, description).(*thing),
+		inventory: *NewInventory().(*inventory),
 	}
 }
 
@@ -149,4 +149,15 @@ func (l *location) Respond(format string, any ...interface{}) {
 			resp.Respond(msg)
 		}
 	}
+}
+
+func (l *location) Add(t Thing) {
+	l.inventory.Add(t)
+	t.Locate(l)
+}
+
+func (l *location) Remove(alias string, occurance int) (t Thing) {
+	t = l.Remove(alias, occurance)
+	t.Locate(nil)
+	return
 }
