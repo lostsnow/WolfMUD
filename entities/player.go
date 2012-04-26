@@ -9,7 +9,7 @@ import (
 type Player interface {
 	Mobile
 	Responder
-	Run(conn net.Conn)
+	Start(conn net.Conn)
 	Input(text string)
 	Output(conn net.Conn)
 }
@@ -17,15 +17,17 @@ type Player interface {
 type player struct {
 	mobile
 	responder
+	world  World
 	input  chan string
 	output chan string
 	conn   net.Conn
 }
 
-func NewPlayer(name, alias, description string) Player {
+func NewPlayer(w World, name, alias, description string) Player {
 
 	p := &player{
 		mobile: *NewMobile(name, alias, description).(*mobile),
+		world:  w,
 		input:  make(chan string, 10),
 		output: make(chan string, 10),
 	}
@@ -43,33 +45,45 @@ func NewPlayer(name, alias, description string) Player {
 	return p
 }
 
-func (p *player) Run(conn net.Conn) {
+func (p *player) Start(conn net.Conn) {
 
 	go p.Output(conn)
+
+	var buffer [255]byte
 
 	conn.Write([]byte("\n\nWelcome To WolfMUD\n\n"))
 	p.Where().RespondGroup([]Thing{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 	p.Input("LOOK")
 
 	for {
-		var buffer [255]byte
-		b, _ := conn.Read(buffer[0:254])
-		p.Input(string(buffer[0:b]))
+		if b, err := conn.Read(buffer[0:254]); err != nil {
+			fmt.Printf("player.Start: Comms error for: %s, %s\n", p.Name(), err)
+			if l := p.location; l != nil {
+				l.Remove(p.Alias(), 1)
+				p.world.RespondGroup([]Thing{p}, "\nAAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", p.Alias())
+			}
+			fmt.Printf("Releasing player: %s\n", p.Name())
+			conn.Close()
+			return
+		} else {
+			p.Input(string(buffer[0:b]))
+		}
 	}
-	conn.Close()
 }
 
 func (p *player) Input(text string) {
 	text = strings.TrimSpace(text)
 	p.input <- text
-	println("Received [" + text + "]")
 }
 
 func (p *player) Output(conn net.Conn) {
 	for {
 		select {
 		case s := <-p.output:
-			conn.Write([]byte(s))
+			if _, err := conn.Write([]byte(s)); err != nil {
+				fmt.Printf("player.Output: Comms error for: %s, %s\n", p.Name(), err)
+				return
+			}
 		}
 	}
 }
