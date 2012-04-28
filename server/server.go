@@ -27,7 +27,7 @@ func main() {
 	l2.LinkExit(entities.E, l3)
 
 	// Tavern Bar
-	l3.LinkExit(entities.N, l3)
+	l3.LinkExit(entities.N, l4)
 	l3.LinkExit(entities.W, l2)
 	l3.LinkExit(entities.NW, l1)
 

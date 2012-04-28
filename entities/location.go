@@ -107,10 +107,10 @@ func (l *location) look(cmd Command) (handled bool) {
 		return false
 	}
 
-	msg := fmt.Sprintf("\n%s\n\n%s\n", l.name, l.description)
+	msg := fmt.Sprintf("%s\n\n%s", l.name, l.description)
 
 	for _, v := range l.inventory.List(cmd.Issuer) {
-		msg += fmt.Sprintf("You can see %s here\n", v.Name())
+		msg += fmt.Sprintf("\nYou can see %s here", v.Name())
 	}
 
 	cmd.Respond(msg)
@@ -125,16 +125,16 @@ func (l *location) LinkExit(d direction, to Location) {
 
 func (from *location) move(cmd Command, d direction) (handled bool) {
 	if to := from.exits[d]; to != nil {
-		from.RespondGroup([]Thing{cmd.Issuer}, "You see %s go %s.\n", cmd.Issuer.Name(), directionNames[d])
+		from.RespondGroup([]Thing{cmd.Issuer}, "You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
 		from.Remove(cmd.Issuer.Alias(), 1)
 
-		cmd.Respond("You go %s.\n", directionNames[d])
+		cmd.Respond("You go %s.", directionNames[d])
 		to.Add(cmd.Issuer)
-		to.RespondGroup([]Thing{cmd.Issuer}, "You see %s walk in.\n", cmd.Issuer.Name())
+		to.RespondGroup([]Thing{cmd.Issuer}, "You see %s walk in.", cmd.Issuer.Name())
 
 		to.look(cmd)
 	} else {
-		cmd.Respond("You can't go %s from here!\n", directionNames[d])
+		cmd.Respond("You can't go %s from here!", directionNames[d])
 	}
 	return true
 }
