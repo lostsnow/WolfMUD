@@ -4,6 +4,18 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"runtime"
+)
+
+type stats struct {
+	Alloc       uint64
+	HeapObjects uint64
+	Goroutines  int
+}
+
+var (
+	orig *stats
+	old  *stats
 )
 
 var playerCount = 0
@@ -18,11 +30,13 @@ type World interface {
 
 type world struct {
 	locations []Location
-	players   []Player
+	players   map[string]Player
 }
 
 func NewWorld() World {
-	return &world{}
+	return &world{
+		players: make(map[string]Player, 10),
+	}
 }
 
 func (w *world) Start() {
@@ -31,17 +45,19 @@ func (w *world) Start() {
 
 	ln, err := net.Listen("tcp", "localhost:4001")
 	if err != nil {
-		fmt.Printf("server.main: Error setting up listener, %s\nServer will now exit.\n", err)
+		fmt.Printf("world.Start: Error setting up listener, %s\nServer will now exit.\n", err)
 		return
 	}
 
 	fmt.Println("Accepting connections.")
+	w.Stats()
 
 	for {
 		if conn, err := ln.Accept(); err != nil {
-			fmt.Printf("server.main: Error accepting connection: %s\nServer will now exit.\n", err)
+			fmt.Printf("world.Start: Error accepting connection: %s\nServer will now exit.\n", err)
 			return
 		} else {
+			fmt.Printf("world.Start: connection from %s.\n", conn.RemoteAddr().String())
 			w.AddPlayer(conn)
 		}
 	}
@@ -56,16 +72,25 @@ func (w *world) AddPlayer(conn net.Conn) {
 		"Player "+postfix,
 		"PLAYER"+postfix,
 		"This is Player "+postfix+".",
+		conn,
 	)
 
-	fmt.Printf("Connection from: %s, allocated %s\n", conn.RemoteAddr().String(), p.Name())
-
-	w.players = append(w.players, p)
+	w.players[p.Alias()] = p
 	w.locations[0].Add(p)
-	go p.Start(conn)
+
+	fmt.Printf("world.AddPlayer: connection %s allocated %s, %d players online.\n", p.Conn.RemoteAddr().String(), p.Name(), len(w.players))
+
+	go p.Start()
+
+	w.Stats()
 }
 
 func (w *world) RemovePlayer(alias string) {
+	p := w.players[alias]
+	p.Where().Remove(alias, 1)
+	delete(w.players, alias)
+	fmt.Printf("world.RemovePlayer: removing %s, %d players online.\n", alias, len(w.players))
+	w.Stats()
 }
 
 func (w *world) AddLocation(l Location) {
@@ -91,4 +116,31 @@ OMMIT:
 			p.Respond(msg)
 		}
 	}
+}
+
+func (w *world) Stats() {
+	runtime.GC()
+	m := new(runtime.MemStats)
+	runtime.ReadMemStats(m)
+	ng := runtime.NumGoroutine()
+
+	if old == nil {
+		old = new(stats)
+		old.Alloc = m.Alloc
+		old.HeapObjects = m.HeapObjects
+		old.Goroutines = ng
+	}
+
+	if orig == nil {
+		orig = new(stats)
+		orig.Alloc = m.Alloc
+		orig.HeapObjects = m.HeapObjects
+		orig.Goroutines = ng
+	}
+
+	fmt.Printf("Alloc: %d (%d/%d), HeapObjects: %d (%d/%d), Go Routines: %d (%d/%d)\n", m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines)
+
+	old.Alloc = m.Alloc
+	old.HeapObjects = m.HeapObjects
+	old.Goroutines = ng
 }
