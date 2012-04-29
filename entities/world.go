@@ -78,7 +78,7 @@ func (w *world) AddPlayer(conn net.Conn) {
 	w.players[p.Alias()] = p
 	w.locations[0].Add(p)
 
-	fmt.Printf("world.AddPlayer: connection %s allocated %s, %d players online.\n", p.Conn.RemoteAddr().String(), p.Name(), len(w.players))
+	fmt.Printf("world.AddPlayer: connection %s allocated %s, %d players online.\n", conn.RemoteAddr().String(), p.Name(), len(w.players))
 
 	go p.Start()
 
