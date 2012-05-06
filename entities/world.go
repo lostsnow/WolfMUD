@@ -3,8 +3,9 @@ package entities
 import (
 	"fmt"
 	"net"
-	"strconv"
 	"runtime"
+	"strconv"
+	"time"
 )
 
 type stats struct {
@@ -29,13 +30,14 @@ type World interface {
 }
 
 type world struct {
-	locations []Location
-	players   map[string]Player
+	locations   []Location
+	players     []Player
+	playersLock chan bool
 }
 
 func NewWorld() World {
 	return &world{
-		players: make(map[string]Player, 10),
+		playersLock: make(chan bool, 1),
 	}
 }
 
@@ -50,6 +52,15 @@ func (w *world) Start() {
 	}
 
 	fmt.Println("Accepting connections.")
+
+	// Setup stat ticker
+	c := time.Tick(5 * time.Second)
+	go func() {
+		for _ = range c {
+			w.Stats()
+		}
+	}()
+
 	w.Stats()
 
 	for {
@@ -64,6 +75,11 @@ func (w *world) Start() {
 }
 
 func (w *world) AddPlayer(conn net.Conn) {
+	w.playersLock <- true
+	defer func() {
+		<-w.playersLock
+	}()
+
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
 
@@ -75,22 +91,32 @@ func (w *world) AddPlayer(conn net.Conn) {
 		conn,
 	)
 
-	w.players[p.Alias()] = p
+	w.players = append(w.players, p)
 	w.locations[0].Add(p)
 
 	fmt.Printf("world.AddPlayer: connection %s allocated %s, %d players online.\n", conn.RemoteAddr().String(), p.Name(), len(w.players))
 
 	go p.Start()
-
-	w.Stats()
 }
 
 func (w *world) RemovePlayer(alias string) {
-	p := w.players[alias]
-	p.Where().Remove(alias, 1)
-	delete(w.players, alias)
-	fmt.Printf("world.RemovePlayer: removing %s, %d players online.\n", alias, len(w.players))
-	w.Stats()
+	w.playersLock <- true
+	defer func() {
+		<-w.playersLock
+	}()
+
+	for i, p := range w.players {
+		if p.Alias() == alias {
+			if l := p.Where(); l == nil {
+				fmt.Printf("world.RemovePlayer: Eeep! %s is nowhere!.\n", alias)
+			} else {
+				l.Remove(alias, 1)
+			}
+			w.players = append(w.players[0:i], w.players[i+1:]...)
+			fmt.Printf("world.RemovePlayer: removing %s, %d players online.\n", alias, len(w.players))
+			return
+		}
+	}
 }
 
 func (w *world) AddLocation(l Location) {
@@ -98,6 +124,11 @@ func (w *world) AddLocation(l Location) {
 }
 
 func (w *world) Respond(format string, any ...interface{}) {
+	w.playersLock <- true
+	defer func() {
+		<-w.playersLock
+	}()
+
 	msg := fmt.Sprintf(format, any...)
 	for _, p := range w.players {
 		p.Respond(msg)
@@ -105,6 +136,11 @@ func (w *world) Respond(format string, any ...interface{}) {
 }
 
 func (w *world) RespondGroup(ommit []Thing, format string, any ...interface{}) {
+	w.playersLock <- true
+	defer func() {
+		<-w.playersLock
+	}()
+
 	msg := fmt.Sprintf(format, any...)
 
 OMMIT:
@@ -120,6 +156,7 @@ OMMIT:
 
 func (w *world) Stats() {
 	runtime.GC()
+	runtime.Gosched()
 	m := new(runtime.MemStats)
 	runtime.ReadMemStats(m)
 	ng := runtime.NumGoroutine()
@@ -138,7 +175,7 @@ func (w *world) Stats() {
 		orig.Goroutines = ng
 	}
 
-	fmt.Printf("Alloc: %d (%d/%d), HeapObjects: %d (%d/%d), Go Routines: %d (%d/%d)\n", m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines)
+	fmt.Printf("%s: %12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d]  %6d PL\n", time.Now().Format(time.Stamp), m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines, len(w.players))
 
 	old.Alloc = m.Alloc
 	old.HeapObjects = m.HeapObjects
