@@ -5,6 +5,8 @@ import (
 	"net"
 	"runtime"
 	"time"
+	//"os"
+	//"runtime/pprof"
 )
 
 type stats struct {
@@ -42,7 +44,13 @@ func (w *world) Start() {
 
 	fmt.Println("Starting WolfMUD server...")
 
-	ln, err := net.Listen("tcp", "localhost:4001")
+	ta, err := net.ResolveTCPAddr("tcp", "localhost:4001");
+	if err != nil {
+		fmt.Printf("world.Start: Error resolving TCP address, %s\nServer will now exit.\n", err)
+		return
+	}
+
+	ln, err := net.ListenTCP("tcp", ta)
 	if err != nil {
 		fmt.Printf("world.Start: Error setting up listener, %s\nServer will now exit.\n", err)
 		return
@@ -60,18 +68,30 @@ func (w *world) Start() {
 
 	w.Stats()
 
+	//cx := 0
+
 	for {
-		if conn, err := ln.Accept(); err != nil {
+		if conn, err := ln.AcceptTCP(); err != nil {
 			fmt.Printf("world.Start: Error accepting connection: %s\nServer will now exit.\n", err)
 			return
 		} else {
 			fmt.Printf("world.Start: connection from %s.\n", conn.RemoteAddr().String())
 			w.startPlayer(conn)
+
+			/*
+			cx++
+			if cx == 1000 {
+				f, _ := os.Create("memprofile")
+				pprof.WriteHeapProfile(f)
+				f.Close()
+			}
+			*/
+
 		}
 	}
 }
 
-func (w *world) startPlayer(conn net.Conn) {
+func (w *world) startPlayer(conn *net.TCPConn) {
 	c := NewClient(conn)
 	p := NewPlayer(w)
 
@@ -87,13 +107,9 @@ func (w *world) startPlayer(conn net.Conn) {
 }
 
 func (w *world) AddPlayer(p Player) {
-	fmt.Printf("world.AddPlayer: locking\n")
 	w.playersLock <- true
-	fmt.Printf("world.AddPlayer: locked\n")
 	defer func() {
-		fmt.Printf("world.AddPlayer: unlocking\n")
 		<-w.playersLock
-		fmt.Printf("world.AddPlayer: unlocked\n")
 	}()
 
 	w.players = append(w.players, p)
@@ -102,13 +118,9 @@ func (w *world) AddPlayer(p Player) {
 
 func (w *world) RemovePlayer(player Player) {
 	name := player.Name()
-	fmt.Printf("world.RemovePlayer: locking for %s\n", name)
 	w.playersLock <- true
-	fmt.Printf("world.RemovePlayer: locked for %s\n", name)
 	defer func() {
-		fmt.Printf("world.RemovePlayer: unlocking for %s\n", name)
 		<-w.playersLock
-		fmt.Printf("world.RemovePlayer: unlocked for %s\n", name)
 	}()
 
 	for i, p := range w.players {
@@ -137,29 +149,17 @@ func (w *world) Respond(format string, any ...interface{}) {
 }
 
 func (w *world) RespondGroup(ommit []Thing, format string, any ...interface{}) {
-	if ommit == nil {
-		fmt.Printf("world.RespondGroup: start, ommitting nobody\n");
-	} else {
-		names := ""
-		for _, o := range ommit {
-			names += " "+o.Name()
-		}
-		fmt.Printf("world.RespondGroup: start, ommit %s\n", names);
-	}
 	msg := fmt.Sprintf(format, any...)
 
 OMMIT:
 	for _, p := range w.players {
 		for _, o := range ommit {
 			if o.IsAlso(p) {
-				fmt.Printf("world.RespondGroup: ommitting %s\n", p.Name());
 				continue OMMIT
 			}
-			fmt.Printf("world.RespondGroup: responding to %s\n", p.Name());
 			p.Respond(msg)
 		}
 	}
-	fmt.Printf("world.RespondGroup: complete\n");
 }
 
 func (w *world) Stats() {

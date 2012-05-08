@@ -59,7 +59,6 @@ func (p *player) DetachClient() {
 	defer func(){
 		<-p.lock
 	}()
-	p.client.DetachPlayer()
 	p.client = nil
 }
 
@@ -74,12 +73,15 @@ func (p *player) hasClient() bool {
 func (p *player) Destroy() {
 
 	name := p.name
-	fmt.Printf("Destroying player: %s\n", name)
+	world := p.world
 
-	p.world.RespondGroup([]Thing{p}, "\nAAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	fmt.Printf("Destroying player: %s\n", name)
 
 	p.world.RemovePlayer(p)
 	p.world = nil
+	p.DetachClient()
+
+	world.RespondGroup(nil, "\nAAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 
 	fmt.Printf("Destroyed player: %s\n", name)
 }
@@ -94,6 +96,8 @@ func (p *player) Parse(input string) {
 func (p *player) Respond(format string, any ...interface{}) {
 	if c := p.client; c != nil {
 		c.SendResponse(format, any...)
+	} else {
+		fmt.Printf("player.Respond: %s is a Zombie\n", p.name)
 	}
 }
 

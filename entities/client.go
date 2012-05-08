@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 )
 
 type Client interface {
@@ -15,17 +16,20 @@ type Client interface {
 }
 
 type client struct {
-	player      Player
-	name        string
-	conn        net.Conn
-	connBadLock chan bool
-	connBad     bool
+	player       Player
+	name         string
+	conn         *net.TCPConn
+	sendFail     bool
+	receiveFail  bool
+	send         chan string
+	senderWakeup chan bool
 }
 
-func NewClient(conn net.Conn) Client {
+func NewClient(conn *net.TCPConn) Client {
 	return &client{
-		conn:        conn,
-		connBadLock: make(chan bool, 1),
+		conn:         conn,
+		send:         make(chan string, 100),
+		senderWakeup: make(chan bool, 1),
 	}
 }
 
@@ -38,65 +42,86 @@ func (c *client) DetachPlayer() {
 	c.player = nil
 }
 
-func (c *client) setConnBad(err error) {
-	c.connBad = true
-
-	fmt.Printf("client.setConnBad: Comms error for: %s, %s\n", c.name, err)
-	if err := c.conn.Close(); err != nil {
-		fmt.Printf("client.setConnBad: Error closing socket for %s, %s\n", c.name, err)
-	}
-	return
+func (c *client) Start() {
+	go c.receiver()
+	go c.sender()
 }
 
-func (c *client) Start() {
+func (c *client) receiver() {
 
 	var inBuffer [255]byte
 
+	c.conn.SetKeepAlive(false)
+	c.conn.SetLinger(0)
+
 	for {
-		c.connBadLock <- true
-		if c.connBad {
-			<-c.connBadLock
+		if c.receiveFail || c.sendFail {
 			break
 		}
+		c.conn.SetReadDeadline(time.Now().Add(time.Minute))
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
-			c.setConnBad(err)
-			<-c.connBadLock
-			p := c.player
-			p.DetachClient()
-			p.Destroy()
+			c.receiveFail = true
+			fmt.Printf("client.receiver: Comms error for: %s, %s\n", c.name, err)
+			if err := c.conn.Close(); err != nil {
+				fmt.Printf("client.receiver: Error closing socket for %s, %s\n", c.name, err)
+			}
 			break
 		} else {
-			<-c.connBadLock
 			input := strings.TrimSpace(string(inBuffer[0:b]))
 			c.player.Parse(input)
 		}
 	}
 
-	fmt.Printf("client.Start: Ending for %s\n", c.name)
+	p := c.player
+	p.DetachClient()
+	p.Destroy()
+	c.senderWakeup <- true
 
+	fmt.Printf("client.receiver: Ending for %s\n", c.name)
 }
 
 func (c *client) SendResponse(format string, any ...interface{}) {
-	c.SendPlain("\n"+format+"\n>", any...)
+	msg := fmt.Sprintf("\n"+format+"\n>", any...)
+	if c.sendFail || c.receiveFail {
+		//fmt.Printf("client.SendResponse: oops %s dropping message %s\n", c.name, msg)
+	} else {
+		//fmt.Printf("client.SendResponse: %s adding to queue %d\n", c.name, len(c.send))
+		c.send <- msg
+	}
 }
 
 func (c *client) SendPlain(format string, any ...interface{}) {
-	c.connBadLock <- true
-	if c.connBad {
-		<-c.connBadLock
-		return
+	if c.sendFail || c.receiveFail {
+		//fmt.Printf("client.SendPlain: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
+	} else {
+		c.send <- fmt.Sprintf(format, any...)
+	}
+}
+
+func (c *client) sender() {
+
+	for {
+		if c.receiveFail || c.sendFail {
+			break
+		}
+		select {
+		case <-c.senderWakeup:
+
+		case msg := <-c.send:
+			if c.sendFail {
+				//fmt.Printf("client.sender: oops %s dropping message %s\n", c.name, msg)
+			} else {
+				if _, err := c.conn.Write([]byte(msg)); err != nil {
+					c.sendFail = true
+					fmt.Printf("client.sender: Comms error for: %s, %s\n", c.name, err)
+					//if err := c.conn.Close(); err != nil {
+					//	fmt.Printf("client.sender: Error closing socket for %s, %s\n", c.name, err)
+					//}
+					break
+				}
+			}
+		}
 	}
 
-	s := fmt.Sprintf(format, any...)
-	if _, err := c.conn.Write([]byte(s)); err != nil {
-		c.setConnBad(err)
-		<-c.connBadLock
-		p := c.player
-		p.DetachClient()
-		p.Destroy()
-		fmt.Printf("client.Send: Comms error for: %s, %s\n", c.name, err)
-	} else {
-		<-c.connBadLock
-	}
-	return
+	fmt.Printf("client.sender: Ending for %s\n", c.name)
 }
