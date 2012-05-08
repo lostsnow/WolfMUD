@@ -58,10 +58,15 @@ func (c *client) receiver() {
 		if c.receiveFail || c.sendFail {
 			break
 		}
-		c.conn.SetReadDeadline(time.Now().Add(time.Minute))
+		c.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
-			c.receiveFail = true
-			fmt.Printf("client.receiver: Comms error for: %s, %s\n", c.name, err)
+			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
+				c.SendPlain("\n\n +++ Connection Idle for X minutes, Logged out by Server +++\n\nBye Bye\n\n")
+				fmt.Printf("client.receiver: Closing idle connection for: %s\n", c.name)
+			} else {
+				c.receiveFail = true
+				fmt.Printf("client.receiver: Comms error for: %s, %s, %T\n", c.name, err, err)
+			}
 			if err := c.conn.Close(); err != nil {
 				fmt.Printf("client.receiver: Error closing socket for %s, %s\n", c.name, err)
 			}

@@ -5,8 +5,6 @@ import (
 	"net"
 	"runtime"
 	"time"
-	//"os"
-	//"runtime/pprof"
 )
 
 type stats struct {
@@ -58,17 +56,7 @@ func (w *world) Start() {
 
 	fmt.Println("Accepting connections.")
 
-	// Setup stat ticker
-	c := time.Tick(5 * time.Second)
-	go func() {
-		for _ = range c {
-			w.Stats()
-		}
-	}()
-
-	w.Stats()
-
-	//cx := 0
+	w.startStats()
 
 	for {
 		if conn, err := ln.AcceptTCP(); err != nil {
@@ -77,16 +65,6 @@ func (w *world) Start() {
 		} else {
 			fmt.Printf("world.Start: connection from %s.\n", conn.RemoteAddr().String())
 			w.startPlayer(conn)
-
-			/*
-			cx++
-			if cx == 1000 {
-				f, _ := os.Create("memprofile")
-				pprof.WriteHeapProfile(f)
-				f.Close()
-			}
-			*/
-
 		}
 	}
 }
@@ -149,6 +127,8 @@ func (w *world) Respond(format string, any ...interface{}) {
 }
 
 func (w *world) RespondGroup(ommit []Thing, format string, any ...interface{}) {
+
+	fmt.Printf("world.RespondGroup: responding\n")
 	msg := fmt.Sprintf(format, any...)
 
 OMMIT:
@@ -157,12 +137,24 @@ OMMIT:
 			if o.IsAlso(p) {
 				continue OMMIT
 			}
-			p.Respond(msg)
 		}
+		p.Respond(msg)
 	}
 }
 
-func (w *world) Stats() {
+func (w *world) startStats() {
+	c := time.Tick(5 * time.Second)
+	go func() {
+		for _ = range c {
+			w.stats()
+		}
+	}()
+
+	// 1st time initialisation
+	w.stats()
+}
+
+func (w *world) stats() {
 	runtime.GC()
 	runtime.Gosched()
 	m := new(runtime.MemStats)
@@ -183,7 +175,7 @@ func (w *world) Stats() {
 		orig.Goroutines = ng
 	}
 
-	fmt.Printf("%s: %12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d]  %6d PL\n", time.Now().Format(time.Stamp), m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines, len(w.players))
+	fmt.Printf("%s: %12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d] %4d PL\n", time.Now().Format(time.Stamp), m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines, len(w.players))
 
 	old.Alloc = m.Alloc
 	old.HeapObjects = m.HeapObjects

@@ -81,7 +81,7 @@ func (p *player) Destroy() {
 	p.world = nil
 	p.DetachClient()
 
-	world.RespondGroup(nil, "\nAAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	world.RespondGroup(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 
 	fmt.Printf("Destroyed player: %s\n", name)
 }
