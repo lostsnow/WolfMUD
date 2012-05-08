@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"runtime"
-	"strconv"
 	"time"
 )
 
@@ -19,13 +18,11 @@ var (
 	old  *stats
 )
 
-var playerCount = 0
-
 type World interface {
 	Responder
 	Start()
-	AddPlayer(conn net.Conn)
-	RemovePlayer(alias string)
+	AddPlayer(player Player)
+	RemovePlayer(player Player)
 	AddLocation(l Location)
 }
 
@@ -69,51 +66,60 @@ func (w *world) Start() {
 			return
 		} else {
 			fmt.Printf("world.Start: connection from %s.\n", conn.RemoteAddr().String())
-			w.AddPlayer(conn)
+			w.startPlayer(conn)
 		}
 	}
 }
 
-func (w *world) AddPlayer(conn net.Conn) {
-	w.playersLock <- true
-	defer func() {
-		<-w.playersLock
-	}()
+func (w *world) startPlayer(conn net.Conn) {
+	c := NewClient(conn)
+	p := NewPlayer(w)
 
-	playerCount++
-	postfix := strconv.Itoa(playerCount)
+	p.AttachClient(c)
 
-	p := NewPlayer(
-		w,
-		"Player "+postfix,
-		"PLAYER"+postfix,
-		"This is Player "+postfix+".",
-		conn,
-	)
-
-	w.players = append(w.players, p)
-	w.locations[0].Add(p)
+	c.SendPlain("\n\nWelcome to WolfMUD\n\n")
+	p.Parse("LOOK")
+	p.Where().RespondGroup([]Thing{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 
 	fmt.Printf("world.AddPlayer: connection %s allocated %s, %d players online.\n", conn.RemoteAddr().String(), p.Name(), len(w.players))
 
-	go p.Start()
+	go c.Start()
 }
 
-func (w *world) RemovePlayer(alias string) {
+func (w *world) AddPlayer(p Player) {
+	fmt.Printf("world.AddPlayer: locking\n")
 	w.playersLock <- true
+	fmt.Printf("world.AddPlayer: locked\n")
 	defer func() {
+		fmt.Printf("world.AddPlayer: unlocking\n")
 		<-w.playersLock
+		fmt.Printf("world.AddPlayer: unlocked\n")
+	}()
+
+	w.players = append(w.players, p)
+	w.locations[0].Add(p)
+}
+
+func (w *world) RemovePlayer(player Player) {
+	name := player.Name()
+	fmt.Printf("world.RemovePlayer: locking for %s\n", name)
+	w.playersLock <- true
+	fmt.Printf("world.RemovePlayer: locked for %s\n", name)
+	defer func() {
+		fmt.Printf("world.RemovePlayer: unlocking for %s\n", name)
+		<-w.playersLock
+		fmt.Printf("world.RemovePlayer: unlocked for %s\n", name)
 	}()
 
 	for i, p := range w.players {
-		if p.Alias() == alias {
+		if p == player {
 			if l := p.Where(); l == nil {
-				fmt.Printf("world.RemovePlayer: Eeep! %s is nowhere!.\n", alias)
+				fmt.Printf("world.RemovePlayer: Eeep! %s is nowhere!.\n", name)
 			} else {
-				l.Remove(alias, 1)
+				l.Remove(player.Alias(), 1)
 			}
 			w.players = append(w.players[0:i], w.players[i+1:]...)
-			fmt.Printf("world.RemovePlayer: removing %s, %d players online.\n", alias, len(w.players))
+			fmt.Printf("world.RemovePlayer: removing %s, %d players online.\n", name, len(w.players))
 			return
 		}
 	}
@@ -124,11 +130,6 @@ func (w *world) AddLocation(l Location) {
 }
 
 func (w *world) Respond(format string, any ...interface{}) {
-	w.playersLock <- true
-	defer func() {
-		<-w.playersLock
-	}()
-
 	msg := fmt.Sprintf(format, any...)
 	for _, p := range w.players {
 		p.Respond(msg)
@@ -136,22 +137,29 @@ func (w *world) Respond(format string, any ...interface{}) {
 }
 
 func (w *world) RespondGroup(ommit []Thing, format string, any ...interface{}) {
-	w.playersLock <- true
-	defer func() {
-		<-w.playersLock
-	}()
-
+	if ommit == nil {
+		fmt.Printf("world.RespondGroup: start, ommitting nobody\n");
+	} else {
+		names := ""
+		for _, o := range ommit {
+			names += " "+o.Name()
+		}
+		fmt.Printf("world.RespondGroup: start, ommit %s\n", names);
+	}
 	msg := fmt.Sprintf(format, any...)
 
 OMMIT:
 	for _, p := range w.players {
 		for _, o := range ommit {
 			if o.IsAlso(p) {
+				fmt.Printf("world.RespondGroup: ommitting %s\n", p.Name());
 				continue OMMIT
 			}
+			fmt.Printf("world.RespondGroup: responding to %s\n", p.Name());
 			p.Respond(msg)
 		}
 	}
+	fmt.Printf("world.RespondGroup: complete\n");
 }
 
 func (w *world) Stats() {

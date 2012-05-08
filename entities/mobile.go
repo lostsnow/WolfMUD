@@ -88,7 +88,7 @@ func (m *mobile) Process(cmd Command) (handled bool) {
 
 		if handled == false {
 			l := m.location
-			if: l != nil {
+			if l != nil {
 				handled = l.Process(cmd)
 			}
 		}
