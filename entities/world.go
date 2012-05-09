@@ -11,6 +11,7 @@ type stats struct {
 	Alloc       uint64
 	HeapObjects uint64
 	Goroutines  int
+	MaxPlayers	int
 }
 
 var (
@@ -128,7 +129,6 @@ func (w *world) Respond(format string, any ...interface{}) {
 
 func (w *world) RespondGroup(ommit []Thing, format string, any ...interface{}) {
 
-	fmt.Printf("world.RespondGroup: responding\n")
 	msg := fmt.Sprintf(format, any...)
 
 OMMIT:
@@ -160,12 +160,14 @@ func (w *world) stats() {
 	m := new(runtime.MemStats)
 	runtime.ReadMemStats(m)
 	ng := runtime.NumGoroutine()
+	pl := len(w.players)
 
 	if old == nil {
 		old = new(stats)
 		old.Alloc = m.Alloc
 		old.HeapObjects = m.HeapObjects
 		old.Goroutines = ng
+		old.MaxPlayers = pl
 	}
 
 	if orig == nil {
@@ -173,9 +175,14 @@ func (w *world) stats() {
 		orig.Alloc = m.Alloc
 		orig.HeapObjects = m.HeapObjects
 		orig.Goroutines = ng
+		orig.MaxPlayers = pl
 	}
 
-	fmt.Printf("%s: %12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d] %4d PL\n", time.Now().Format(time.Stamp), m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines, len(w.players))
+	if old.MaxPlayers < pl {
+		old.MaxPlayers = pl
+	}
+
+	fmt.Printf("%s: %12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d] %4d PL[%4d]\n", time.Now().Format(time.Stamp), m.Alloc, int(m.Alloc-old.Alloc), int(m.Alloc-orig.Alloc), m.HeapObjects, int(m.HeapObjects-old.HeapObjects), int(m.HeapObjects-orig.HeapObjects), ng, ng-old.Goroutines, ng-orig.Goroutines, pl, old.MaxPlayers)
 
 	old.Alloc = m.Alloc
 	old.HeapObjects = m.HeapObjects

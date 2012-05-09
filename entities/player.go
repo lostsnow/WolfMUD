@@ -2,6 +2,9 @@ package entities
 
 import (
 	"fmt"
+	"os"
+	"runtime"
+	"runtime/pprof"
 	"strconv"
 )
 
@@ -47,7 +50,7 @@ func NewPlayer(w World) Player {
 
 func (p *player) AttachClient(client Client) {
 	p.lock <- true
-	defer func(){
+	defer func() {
 		<-p.lock
 	}()
 	p.client = client
@@ -56,7 +59,7 @@ func (p *player) AttachClient(client Client) {
 
 func (p *player) DetachClient() {
 	p.lock <- true
-	defer func(){
+	defer func() {
 		<-p.lock
 	}()
 	p.client = nil
@@ -64,7 +67,7 @@ func (p *player) DetachClient() {
 
 func (p *player) hasClient() bool {
 	p.lock <- true
-	defer func(){
+	defer func() {
 		<-p.lock
 	}()
 	return (p.client != nil)
@@ -96,6 +99,7 @@ func (p *player) Parse(input string) {
 func (p *player) Respond(format string, any ...interface{}) {
 	if c := p.client; c != nil {
 		c.SendResponse(format, any...)
+		runtime.Gosched()
 	} else {
 		fmt.Printf("player.Respond: %s is a Zombie\n", p.name)
 	}
@@ -103,5 +107,39 @@ func (p *player) Respond(format string, any ...interface{}) {
 
 func (p *player) RespondGroup(ommit []Thing, format string, any ...interface{}) {
 	p.location.RespondGroup(ommit, format, any...)
+	return
+}
+
+func (p *player) Process(cmd Command) (handled bool) {
+
+	switch cmd.Verb {
+	default:
+		handled = p.mobile.Process(cmd)
+	case "MEMPROF":
+		f, err := os.Create("memprof")
+		if err != nil {
+			p.Respond("Memory Profile Not Dumped: %s", err)
+			break
+		}
+		pprof.WriteHeapProfile(f)
+		f.Close()
+
+		p.Respond("Memory profile dumped")
+		handled = true
+	case "CPUSTART":
+		f, err := os.Create("cpuprof")
+		if err != nil {
+			p.Respond("CPU Profiling not started: %s", err)
+			break
+		}
+		pprof.StartCPUProfile(f)
+		p.Respond("CPU Profiling started" )
+		handled = true
+	case "CPUSTOP":
+		pprof.StopCPUProfile()
+		p.Respond("CPU Profiling stopped" )
+		handled = true
+	}
+
 	return
 }

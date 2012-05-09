@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"net"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -58,14 +59,14 @@ func (c *client) receiver() {
 		if c.receiveFail || c.sendFail {
 			break
 		}
-		c.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+		c.conn.SetReadDeadline(time.Now().Add(10 * time.Minute))
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
 				c.SendPlain("\n\n +++ Connection Idle for X minutes, Logged out by Server +++\n\nBye Bye\n\n")
 				fmt.Printf("client.receiver: Closing idle connection for: %s\n", c.name)
 			} else {
 				c.receiveFail = true
-				fmt.Printf("client.receiver: Comms error for: %s, %s, %T\n", c.name, err, err)
+				fmt.Printf("client.receiver: Comms error for: %s, %s\n", c.name, err)
 			}
 			if err := c.conn.Close(); err != nil {
 				fmt.Printf("client.receiver: Error closing socket for %s, %s\n", c.name, err)
@@ -86,20 +87,18 @@ func (c *client) receiver() {
 }
 
 func (c *client) SendResponse(format string, any ...interface{}) {
-	msg := fmt.Sprintf("\n"+format+"\n>", any...)
-	if c.sendFail || c.receiveFail {
-		//fmt.Printf("client.SendResponse: oops %s dropping message %s\n", c.name, msg)
-	} else {
-		//fmt.Printf("client.SendResponse: %s adding to queue %d\n", c.name, len(c.send))
-		c.send <- msg
-	}
+	c.SendPlain("\n"+format+"\n>", any...)
 }
 
 func (c *client) SendPlain(format string, any ...interface{}) {
+	msg := fmt.Sprintf(format, any...)
 	if c.sendFail || c.receiveFail {
 		//fmt.Printf("client.SendPlain: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
-		c.send <- fmt.Sprintf(format, any...)
+		for i := 0; i < 50 && (cap(c.send)-len(c.send)) < 5; i++ {
+			runtime.Gosched()
+		}
+		c.send <- msg
 	}
 }
 

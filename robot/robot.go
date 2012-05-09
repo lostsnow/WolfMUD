@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"math/rand"
 	"net"
+	"runtime"
 	"time"
 )
 
@@ -23,8 +24,12 @@ func main() {
 	seed, _ := crypto.Int(crypto.Reader, big.NewInt(0x7FFFFFFFFFFFFFFF))
 	rand.Seed(seed.Int64())
 
+	launched := make(chan bool, 1)
+
 	for i := 0; i < *nbr; i++ {
-		go NewBot()
+		go NewBot(launched)
+		runtime.Gosched()
+		<-launched
 		fmt.Print(".")
 	}
 
@@ -35,10 +40,12 @@ func main() {
 
 }
 
-func NewBot() {
+func NewBot(launched chan bool) {
 	// Set base speed so we can have slow and fast bots
-	baseSpeed := (rand.Intn(9) + 1) * 10
-	steps := 8 + rand.Intn(32)
+	baseSpeed := ((rand.Intn(5) + 1) * 100) + 2000
+	steps := 64 + rand.Intn(64)
+
+	launched <- true
 
 	for {
 
@@ -48,6 +55,7 @@ func NewBot() {
 		// Start a reader to absorb data we get back from server
 		go func() {
 			for {
+				runtime.Gosched()
 				var buffer [255]byte
 				if b, err := conn.Read(buffer[0:254]); err != nil {
 					return
@@ -64,7 +72,8 @@ func NewBot() {
 		// Run script Ad infinitum with slight timing variations
 		for i := 0; i < steps; i++ {
 			for _, cmd := range script {
-				time.Sleep(time.Duration(rand.Intn(250)+baseSpeed) * time.Millisecond)
+				runtime.Gosched()
+				time.Sleep(time.Duration(rand.Intn(500)+baseSpeed) * time.Millisecond)
 				conn.Write([]byte(cmd))
 			}
 		}
