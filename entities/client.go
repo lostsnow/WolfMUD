@@ -62,7 +62,7 @@ func (c *client) receiver() {
 		c.conn.SetReadDeadline(time.Now().Add(10 * time.Minute))
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
-				c.SendPlain("\n\n +++ Connection Idle for X minutes, Logged out by Server +++\n\nBye Bye\n\n")
+				c.SendPlain("\n\nIdle connection terminated by server.\n\nBye Bye\n\n")
 				fmt.Printf("client.receiver: Closing idle connection for: %s\n", c.name)
 			} else {
 				c.receiveFail = true

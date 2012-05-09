@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"strings"
 )
 
 /*
@@ -107,14 +108,26 @@ func (l *location) look(cmd Command) (handled bool) {
 		return false
 	}
 
-	msg := fmt.Sprintf("%s\n\n%s", l.name, l.description)
+	availableExits := []string{}
 
-	for _, v := range l.inventory.List(cmd.Issuer) {
-		msg += fmt.Sprintf("\nYou can see %s here", v.Name())
+	for direction, location := range l.exits {
+		if location != nil {
+			availableExits = append(availableExits, directionNames[direction])
+		}
 	}
 
+	availableThings := []string{}
+
+	for _, v := range l.inventory.List(cmd.Issuer) {
+		availableThings = append(availableThings, "You can see "+v.Name()+" here")
+	}
+	if len(availableThings) > 0 {
+		availableThings = append(availableThings, "")
+	}
+
+	msg := fmt.Sprintf("%s\n%s\n%s\nYou can see exits: %s", l.name, l.description, strings.Join(availableThings, "\n"), strings.Join(availableExits, ", "))
+
 	cmd.Respond(msg)
-	l.RespondGroup([]Thing{cmd.Issuer}, "You see %s look around.", cmd.Issuer.Name())
 
 	return true
 }

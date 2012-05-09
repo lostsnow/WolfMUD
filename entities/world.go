@@ -76,7 +76,16 @@ func (w *world) startPlayer(conn *net.TCPConn) {
 
 	p.AttachClient(c)
 
-	c.SendPlain("\n\nWelcome to WolfMUD\n\n")
+	c.SendPlain(`
+
+WolfMUD © 2012 Andrew 'Diddymus' Rolfe
+
+    World
+    Of
+    Living
+    Fantasy
+
+`)
 	p.Parse("LOOK")
 	p.Where().RespondGroup([]Thing{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 

@@ -67,7 +67,7 @@ func NewBot(launched chan bool) {
 		}()
 
 		// Script to 'execute'
-		script := []string{"S", "E", "N", "W"}
+		script := []string{"S", "E", "N", "E", "E", "W", "S", "E", "W", "S", "N", "N", "W", "W"}
 
 		// Run script Ad infinitum with slight timing variations
 		for i := 0; i < steps; i++ {

@@ -16,6 +16,16 @@ func main() {
 
 	l4 := entities.NewLocation("Tavern entrance", "TAVERNENTRANCE", "You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street.")
 
+	l5 := entities.NewLocation("Street between Tavern and Bakers","TAVERNBAKERSSTREET","You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south.")
+
+	l6 := entities.NewLocation("Baker's Shop","BAKERS","You are standing in a bakers shop. Low tables show an array of fresh breads, cakes and the like. The smells here are beyond description.")
+
+	l7 := entities.NewLocation("Street outside Pawn Shop","PAWNSHOPSTREET","You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you.")
+
+	l8 := entities.NewLocation("Pawn Shop","PAWNSHOP","You are in small Pawn shop. All around you on shelves are what looks like a load of useless junk.")
+
+	l9 := entities.NewLocation("Fountain Square","FOUNTAINSQUARE","You are in a small square at the crossing of two roads. In the centre of the square a magnificent fountain has been erected, providing fresh water to any who want it. From here the streets lead off in all directions.")
+
 	// Fireplace
 	l1.LinkExit(entities.E, l4)
 	l1.LinkExit(entities.SE, l3)
@@ -32,14 +42,40 @@ func main() {
 	l3.LinkExit(entities.NW, l1)
 
 	// Tavern Entrance
+	l4.LinkExit(entities.E, l5)
 	l4.LinkExit(entities.S, l3)
 	l4.LinkExit(entities.SW, l2)
 	l4.LinkExit(entities.W, l1)
+
+	// Street between Tavern and Bakers
+	l5.LinkExit(entities.E, l6)
+	l5.LinkExit(entities.S, l7)
+	l5.LinkExit(entities.W, l4)
+
+	// Bakers
+	l6.LinkExit(entities.W, l5)
+
+	// Street outside Pawn Shop
+	l7.LinkExit(entities.N, l5)
+	l7.LinkExit(entities.E, l8)
+	l7.LinkExit(entities.S, l9)
+
+	// Pawn Shop
+	l8.LinkExit(entities.W, l7)
+
+	// Fountain Square
+	l9.LinkExit(entities.N, l7)
+// ???
 
 	world.AddLocation(l1)
 	world.AddLocation(l2)
 	world.AddLocation(l3)
 	world.AddLocation(l4)
+	world.AddLocation(l5)
+	world.AddLocation(l6)
+	world.AddLocation(l7)
+	world.AddLocation(l8)
+	world.AddLocation(l9)
 
 	// Some objects
 	t1 := entities.NewThing(
