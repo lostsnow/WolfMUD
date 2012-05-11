@@ -76,7 +76,7 @@ func (w *world) startPlayer(conn *net.TCPConn) {
 
 	p.AttachClient(c)
 
-	c.SendPlain(`
+	c.SendWithoutPrompt(`
 
 WolfMUD © 2012 Andrew 'Diddymus' Rolfe
 

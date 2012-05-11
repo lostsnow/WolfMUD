@@ -12,8 +12,8 @@ type Client interface {
 	Start()
 	AttachPlayer(p Player)
 	DetachPlayer()
-	SendResponse(format string, any ...interface{})
-	SendPlain(format string, any ...interface{})
+	Send(format string, any ...interface{})
+	SendWithoutPrompt(format string, any ...interface{})
 }
 
 type client struct {
@@ -62,7 +62,7 @@ func (c *client) receiver() {
 		c.conn.SetReadDeadline(time.Now().Add(10 * time.Minute))
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
-				c.SendPlain("\n\nIdle connection terminated by server.\n\nBye Bye\n\n")
+				c.Send("\n\nIdle connection terminated by server.\n\nBye Bye\n\n")
 				fmt.Printf("client.receiver: Closing idle connection for: %s\n", c.name)
 			} else {
 				c.receiveFail = true
@@ -86,14 +86,14 @@ func (c *client) receiver() {
 	fmt.Printf("client.receiver: Ending for %s\n", c.name)
 }
 
-func (c *client) SendResponse(format string, any ...interface{}) {
-	c.SendPlain("\n"+format+"\n>", any...)
+func (c *client) Send(format string, any ...interface{}) {
+	c.SendWithoutPrompt("\n"+format+"\n>", any...)
 }
 
-func (c *client) SendPlain(format string, any ...interface{}) {
+func (c *client) SendWithoutPrompt(format string, any ...interface{}) {
 	msg := fmt.Sprintf(format, any...)
 	if c.sendFail || c.receiveFail {
-		//fmt.Printf("client.SendPlain: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
+		//fmt.Printf("client.Send: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
 		for i := 0; i < 50 && (cap(c.send)-len(c.send)) < 5; i++ {
 			runtime.Gosched()

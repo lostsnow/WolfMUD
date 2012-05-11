@@ -98,7 +98,7 @@ func (p *player) Parse(input string) {
 
 func (p *player) Respond(format string, any ...interface{}) {
 	if c := p.client; c != nil {
-		c.SendResponse(format, any...)
+		c.Send(format, any...)
 		runtime.Gosched()
 	} else {
 		fmt.Printf("player.Respond: %s is a Zombie\n", p.name)
