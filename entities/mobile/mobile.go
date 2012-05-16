@@ -70,7 +70,7 @@ func (m *Mobile) inv(cmd *command.Command) (handled bool) {
 	if cmd.Target != nil {
 		return false
 	} else {
-		if inventory := m.Inventory.List(nil); len(inventory) == 0 {
+		if inventory := m.Inventory.List(); len(inventory) == 0 {
 			response = "You are not carrying anything."
 		} else {
 			response = "You are currently carrying:\n"

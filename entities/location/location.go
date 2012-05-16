@@ -76,14 +76,8 @@ func (l *Location) Add(thing thing.Interface) {
 func (l *Location) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
 	msg := fmt.Sprintf("\n"+format, any...)
 
-OMMIT:
-	for _, v := range l.Inventory.List(nil) {
+	for _, v := range l.Inventory.List(ommit...) {
 		if resp, ok := v.(responder.Interface); ok {
-			for _, o := range ommit {
-				if o.IsAlso(v) {
-					continue OMMIT
-				}
-			}
 			resp.Respond(msg)
 		}
 	}

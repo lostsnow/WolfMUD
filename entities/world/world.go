@@ -86,7 +86,6 @@ func (w *World) AddLocation(l location.Interface) {
 }
 
 func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
-	fmt.Println("World broadcast: %#v", player.PlayerList.List())
 
 	msg := fmt.Sprintf("\n"+format, any...)
 
