@@ -1,4 +1,4 @@
-package entities
+package client
 
 import (
 	"fmt"
@@ -6,18 +6,19 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"wolfmud.org/utils/parser"
 )
 
-type Client interface {
+type Interface interface {
 	Start()
-	AttachPlayer(p Player)
-	DetachPlayer()
+	AttachParser(p parser.Interface)
+	DetachParser()
 	Send(format string, any ...interface{})
 	SendWithoutPrompt(format string, any ...interface{})
 }
 
-type client struct {
-	player       Player
+type Client struct {
+	parser       parser.Interface
 	name         string
 	conn         *net.TCPConn
 	sendFail     bool
@@ -26,29 +27,29 @@ type client struct {
 	senderWakeup chan bool
 }
 
-func NewClient(conn *net.TCPConn) Client {
-	return &client{
+func New(conn *net.TCPConn) *Client {
+	return &Client{
 		conn:         conn,
 		send:         make(chan string, 100),
 		senderWakeup: make(chan bool, 1),
 	}
 }
 
-func (c *client) AttachPlayer(p Player) {
-	c.player = p
+func (c *Client) AttachParser(p parser.Interface) {
+	c.parser = p
 	c.name = p.Name()
 }
 
-func (c *client) DetachPlayer() {
-	c.player = nil
+func (c *Client) DetachParser() {
+	c.parser = nil
 }
 
-func (c *client) Start() {
+func (c *Client) Start() {
 	go c.receiver()
 	go c.sender()
 }
 
-func (c *client) receiver() {
+func (c *Client) receiver() {
 
 	var inBuffer [255]byte
 
@@ -74,23 +75,23 @@ func (c *client) receiver() {
 			break
 		} else {
 			input := strings.TrimSpace(string(inBuffer[0:b]))
-			c.player.Parse(input)
+			c.parser.Parse(input)
 		}
 	}
 
-	p := c.player
-	p.DetachClient()
+	p := c.parser
+	//p.DetachClient()
 	p.Destroy()
 	c.senderWakeup <- true
 
 	fmt.Printf("client.receiver: Ending for %s\n", c.name)
 }
 
-func (c *client) Send(format string, any ...interface{}) {
-	c.SendWithoutPrompt("\n"+format+"\n>", any...)
+func (c *Client) Send(format string, any ...interface{}) {
+	c.SendWithoutPrompt(format+"\n>", any...)
 }
 
-func (c *client) SendWithoutPrompt(format string, any ...interface{}) {
+func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
 	msg := fmt.Sprintf(format, any...)
 	if c.sendFail || c.receiveFail {
 		//fmt.Printf("client.Send: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
@@ -102,7 +103,7 @@ func (c *client) SendWithoutPrompt(format string, any ...interface{}) {
 	}
 }
 
-func (c *client) sender() {
+func (c *Client) sender() {
 
 	for {
 		if c.receiveFail || c.sendFail {

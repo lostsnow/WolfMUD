@@ -1,0 +1,167 @@
+package location
+
+import (
+	"fmt"
+	"strings"
+	"wolfmud.org/entities/inventory"
+	"wolfmud.org/entities/thing"
+	"wolfmud.org/utils/command"
+	"wolfmud.org/utils/responder"
+)
+
+type direction uint8
+
+const (
+	N, NORTH direction = iota, iota
+	NE, NORTHEAST
+	E, EAST
+	SE, SOUTHEAST
+	S, SOUTH
+	SW, SOUTHWEST
+	W, WEST
+	NW, NORTHWEST
+	U, UP
+	D, DOWN
+)
+
+var directionNames = [10]string{
+	N:  "North",
+	NE: "Northeast",
+	E:  "East",
+	SE: "Southeast",
+	S:  "South",
+	SW: "Southwest",
+	W:  "West",
+	NW: "Northwest",
+	U:  "Up",
+	D:  "Down",
+}
+
+type Interface interface {
+	command.Interface
+	inventory.Interface
+	LinkExit(d direction, to Interface)
+	Look(cmd *command.Command) (handled bool)
+	Broadcast(ommit []thing.Interface, format string, any ...interface{})
+}
+
+type Locateable interface {
+	Locate(Interface)
+}
+
+type Location struct {
+	*thing.Thing
+	*inventory.Inventory
+	exits [10]Interface
+}
+
+func New(name string, aliases []string, description string) *Location {
+	return &Location{
+		Thing:     thing.New(name, aliases, description),
+		Inventory: &inventory.Inventory{},
+	}
+}
+
+func (l *Location) LinkExit(d direction, to Interface) {
+	l.exits[d] = to
+}
+
+func (l *Location) Add(thing thing.Interface) {
+	if t, ok := thing.(Locateable); ok {
+		t.Locate(l)
+	}
+	l.Inventory.Add(thing)
+}
+
+func (l *Location) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
+	msg := fmt.Sprintf("\n"+format, any...)
+
+OMMIT:
+	for _, v := range l.Inventory.List(nil) {
+		if resp, ok := v.(responder.Interface); ok {
+			for _, o := range ommit {
+				if o.IsAlso(v) {
+					continue OMMIT
+				}
+			}
+			resp.Respond(msg)
+		}
+	}
+}
+
+func (l *Location) Process(cmd *command.Command) (handled bool) {
+	switch cmd.Verb {
+	case "LOOK", "L":
+		handled = l.Look(cmd)
+	case "NORTH", "N":
+		handled = l.move(cmd, NORTH)
+	case "NORTHEAST", "NE":
+		handled = l.move(cmd, NORTHEAST)
+	case "EAST", "E":
+		handled = l.move(cmd, EAST)
+	case "SOUTHEAST", "SE":
+		handled = l.move(cmd, SOUTHEAST)
+	case "SOUTH", "S":
+		handled = l.move(cmd, SOUTH)
+	case "SOUTHWEST", "SW":
+		handled = l.move(cmd, SOUTHWEST)
+	case "WEST", "W":
+		handled = l.move(cmd, WEST)
+	case "NORTHWEST", "NW":
+		handled = l.move(cmd, NORTHWEST)
+	case "UP":
+		handled = l.move(cmd, UP)
+	case "DOWN":
+		handled = l.move(cmd, DOWN)
+	}
+
+	if handled == false {
+		//handled = l.thing.Process(cmd)
+	}
+
+	if handled == false {
+		//handled = l.Inventory.delegate(cmd)
+	}
+
+	return handled
+}
+
+func (l *Location) Look(cmd *command.Command) (handled bool) {
+
+	thingsHere := []string{}
+	for _, o := range l.Inventory.List(cmd.Issuer) {
+		thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
+	}
+
+	validExits := []string{}
+	for d, l := range l.exits {
+		if l != nil {
+			validExits = append(validExits, directionNames[d])
+		}
+	}
+
+	cmd.Respond("%s\n%s\n%s\n\nYou can see exits: %s", l.Name(), l.Description(), strings.Join(thingsHere, "\n"), strings.Join(validExits, ", "))
+
+	return true
+}
+
+func (l *Location) Move(d direction) (to Interface) {
+	return l.exits[d]
+}
+
+func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
+	if to := l.exits[d]; to != nil {
+		l.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
+
+		l.Remove(cmd.Issuer)
+
+		cmd.Respond("You go %s.", directionNames[d])
+		to.Add(cmd.Issuer)
+		to.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s walk in.", cmd.Issuer.Name())
+
+		to.Look(cmd)
+	} else {
+		cmd.Respond("You can't go %s from here!", directionNames[d])
+	}
+	return true
+}
