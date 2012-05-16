@@ -18,10 +18,10 @@ type Interface interface {
 }
 
 type Command struct {
-	Issuer  thing.Interface
-	Verb    string
-	Nouns   []string
-	Target  *string
+	Issuer thing.Interface
+	Verb   string
+	Nouns  []string
+	Target *string
 }
 
 func New(issuer thing.Interface, input string) *Command {

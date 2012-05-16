@@ -7,7 +7,7 @@ import (
 type Interface interface {
 	Add(thing thing.Interface)
 	Remove(thing thing.Interface)
-	List(ommit thing.Interface) ([]thing.Interface)
+	List(ommit thing.Interface) []thing.Interface
 }
 
 type Inventory struct {

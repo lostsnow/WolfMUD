@@ -11,7 +11,7 @@ type stats struct {
 	Alloc       uint64
 	HeapObjects uint64
 	Goroutines  int
-	MaxPlayers	int
+	MaxPlayers  int
 }
 
 type Stats struct {

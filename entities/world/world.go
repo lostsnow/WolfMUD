@@ -3,12 +3,12 @@ package world
 import (
 	"fmt"
 	"net"
+	"wolfmud.org/client"
 	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/client"
-	"wolfmud.org/utils/stats"
 	"wolfmud.org/utils/broadcaster"
+	"wolfmud.org/utils/stats"
 )
 
 type Interface interface {
@@ -18,12 +18,11 @@ type Interface interface {
 }
 
 type World struct {
-	locations   []location.Interface
+	locations []location.Interface
 }
 
 func New() *World {
-	return &World{
-	}
+	return &World{}
 }
 
 func (w *World) Start() {

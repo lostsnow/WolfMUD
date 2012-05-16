@@ -18,15 +18,15 @@ func main() {
 
 	l4 := location.New("Tavern entrance", []string{"TAVERNENTRANCE"}, "You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street.")
 
-	l5 := location.New("Street between Tavern and Bakers",[]string{"TAVERNBAKERSSTREET"},"You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south.")
+	l5 := location.New("Street between Tavern and Bakers", []string{"TAVERNBAKERSSTREET"}, "You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south.")
 
-	l6 := location.New("Baker's Shop",[]string{"BAKERS"},"You are standing in a bakers shop. Low tables show an array of fresh breads, cakes and the like. The smells here are beyond description.")
+	l6 := location.New("Baker's Shop", []string{"BAKERS"}, "You are standing in a bakers shop. Low tables show an array of fresh breads, cakes and the like. The smells here are beyond description.")
 
-	l7 := location.New("Street outside Pawn Shop",[]string{"PAWNSHOPSTREET"},"You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you.")
+	l7 := location.New("Street outside Pawn Shop", []string{"PAWNSHOPSTREET"}, "You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you.")
 
-	l8 := location.New("Pawn Shop",[]string{"PAWNSHOP"},"You are in small Pawn shop. All around you on shelves are what looks like a load of useless junk.")
+	l8 := location.New("Pawn Shop", []string{"PAWNSHOP"}, "You are in small Pawn shop. All around you on shelves are what looks like a load of useless junk.")
 
-	l9 := location.New("Fountain Square",[]string{"FOUNTAINSQUARE"},"You are in a small square at the crossing of two roads. In the centre of the square a magnificent fountain has been erected, providing fresh water to any who want it. From here the streets lead off in all directions.")
+	l9 := location.New("Fountain Square", []string{"FOUNTAINSQUARE"}, "You are in a small square at the crossing of two roads. In the centre of the square a magnificent fountain has been erected, providing fresh water to any who want it. From here the streets lead off in all directions.")
 
 	// Fireplace
 	l1.LinkExit(location.E, l4)
@@ -67,8 +67,8 @@ func main() {
 
 	// Fountain Square
 	l9.LinkExit(location.N, l7)
-// ???
-//
+	// ???
+	//
 	world.AddLocation(l1)
 	world.AddLocation(l2)
 	world.AddLocation(l3)

@@ -6,7 +6,7 @@ var Next chan UID
 
 func init() {
 	Next = make(chan UID)
-	go func(){
+	go func() {
 		uid := UID(0)
 		for {
 			uid++
