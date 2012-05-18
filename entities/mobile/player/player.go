@@ -2,7 +2,9 @@ package player
 
 import (
 	"fmt"
+	"os"
 	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"wolfmud.org/client"
 	"wolfmud.org/entities/mobile"
@@ -110,13 +112,28 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 		handled = p.Mobile.Process(cmd)
 	case "SNEEZE":
 		handled = p.sneeze(cmd)
+	case "MEMPROF":
+		handled = p.memprof(cmd)
 	}
 
 	return
 }
 
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
-	cmd.Respond("You sneeze. Ahhhccchhhooo!!!")
-	p.world.Broadcast([]thing.Interface{p}, "Ahhhccchhhooo!!")
+	p.Respond("You sneeze. Aaaaccchhhooo!")
+	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
+	return true
+}
+
+func (p *Player) memprof(cmd *command.Command) (handled bool) {
+	f, err := os.Create("memprof")
+	if err != nil {
+		p.Respond("Memory Profile Not Dumped: %s", err)
+		return false
+	}
+	pprof.WriteHeapProfile(f)
+	f.Close()
+
+	cmd.Respond("Memory profile dumped")
 	return true
 }

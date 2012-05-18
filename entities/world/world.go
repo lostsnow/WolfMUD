@@ -1,56 +1,79 @@
+// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+//
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
+
+// Package world holds references to all of the locations in the world and
+// accepts new client connections.
 package world
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"wolfmud.org/client"
 	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/stats"
 )
 
-type Interface interface {
-	broadcaster.Interface
-	AddLocation(l location.Interface)
-	Start()
-}
+// greeting is displayed when a new client connects.
+//
+// TODO: Soft code with rest of settings.
+const (
+	greeting = `
 
+WolfMUD © 2012 Andrew 'Diddymus' Rolfe
+
+    World
+    Of
+    Living
+    Fantasy
+
+`
+)
+
+// World represents a single game world. It has references to all of the
+// locations available.
 type World struct {
 	locations []location.Interface
 }
 
-func New() *World {
+// Create brings a new world into existance and returns a reference to it.
+func Create() *World {
 	return &World{}
 }
 
-func (w *World) Start() {
+// Genesis starts the world - what else? :)
+func (w *World) Genesis() {
 
-	fmt.Println("Starting WolfMUD server...")
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile);
 
-	ta, err := net.ResolveTCPAddr("tcp", "localhost:4001")
+	log.Println("Starting WolfMUD server...")
+
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:4001")
 	if err != nil {
-		fmt.Printf("world.Start: Error resolving TCP address, %s\nServer will now exit.\n", err)
+		log.Printf("Error resolving TCP address, %s\nServer will now exit.\n", err)
 		return
 	}
 
-	ln, err := net.ListenTCP("tcp", ta)
+	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		fmt.Printf("world.Start: Error setting up listener, %s\nServer will now exit.\n", err)
+		log.Printf("Error setting up listener, %s\nServer will now exit.\n", err)
 		return
 	}
 
-	fmt.Println("Accepting connections.")
+	log.Printf("Accepting connections on: %s\n", addr)
 
 	stats.Start()
 
 	for {
-		if conn, err := ln.AcceptTCP(); err != nil {
-			fmt.Printf("world.Start: Error accepting connection: %s\nServer will now exit.\n", err)
+		if conn, err := listener.AcceptTCP(); err != nil {
+			log.Printf("Error accepting connection: %s\nServer will now exit.\n", err)
 			return
 		} else {
-			fmt.Printf("world.Start: connection from %s.\n", conn.RemoteAddr().String())
+			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
 			w.startPlayer(conn)
 		}
 	}
@@ -62,21 +85,12 @@ func (w *World) startPlayer(conn *net.TCPConn) {
 
 	p.AttachClient(c)
 
-	c.SendWithoutPrompt(`
-
-WolfMUD © 2012 Andrew 'Diddymus' Rolfe
-
-    World
-    Of
-    Living
-    Fantasy
-
-`)
+	c.SendWithoutPrompt(greeting)
 	w.locations[0].Add(p)
 	p.Parse("LOOK")
 	w.locations[0].Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 
-	fmt.Printf("world.startPlayer: connection %s allocated %s, %d players online.\n", conn.RemoteAddr().String(), p.Name(), player.PlayerList.Length())
+	log.Printf("Connection %s allocated %s, %d players online.\n", conn.RemoteAddr().String(), p.Name(), player.PlayerList.Length())
 
 	go c.Start()
 }
@@ -91,10 +105,8 @@ func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interfa
 
 OMMIT:
 	for _, p := range player.PlayerList.List() {
-		fmt.Printf("Checking: %s\n", p.Name())
 		for _, o := range ommit {
 			if o.IsAlso(p) {
-				fmt.Printf("Ommiting: %s\n", p.Name())
 				continue OMMIT
 			}
 		}

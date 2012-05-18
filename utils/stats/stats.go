@@ -1,38 +1,75 @@
+// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+//
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
+
+// Package stats implements periodic collection and display of various -
+// possibly interisting - statistics. A typical reading might be:
+//
+//	2012/05/18 14:32:19       448024 A[   +40624    +45416]          483 HO[   +50    +64]      8 GO[    +2     +2]    1 PL[   1]
+//
+// This shows:
+//
+//	448024 A[   +40624    +45416] - allocated memory, change since last collection, change since start
+//	        483 HO[   +50    +64] - heap objects, change since last collection, change since start
+//	          8 GO[    +2     +2] - Goroutines, change since last collection, change since start
+//	                   1 PL[   1] - Number of players, maximum players logged on at once
 package stats
 
 import (
-	"fmt"
+	"log"
 	"runtime"
 	"time"
 	"wolfmud.org/entities/mobile/player"
 )
 
-type stats struct {
+// Interval can be changed before calling Start to set a different collection
+// interval.
+//
+// TODO: When we have sorted out global settings this needs moving there.
+var (
+	Interval = 5 * time.Minute // Time  between collections
+)
+
+// record represents a single collection of statistical data.
+type record struct {
 	Alloc       uint64
 	HeapObjects uint64
 	Goroutines  int
 	MaxPlayers  int
 }
 
-type Stats struct {
-	orig *stats
-	old  *stats
+// save records a set of data into a record type.
+func (s *record) save(alloc, heap uint64, goroutines, maxPlayers int) {
+	s.Alloc = alloc
+	s.HeapObjects = heap
+	s.Goroutines = goroutines
+	s.MaxPlayers = maxPlayers
 }
 
+// state is used to hold record data between each collection run
+type state struct {
+	s *record // Original starting stats
+	o *record // Old stats from previous loop
+}
+
+// Start begins collection and reporting of statistics. The interval between
+// updates is controlled via the stats.Interval variable.
 func Start() {
-	c := time.Tick(5 * time.Second)
-	s := new(Stats)
+	c := time.Tick(Interval)
+	s := &state{&record{}, &record{}}
+
 	go func() {
 		for _ = range c {
-			s.stats()
+			s.collect()
 		}
 	}()
 
-	// 1st time initialisation
-	s.stats()
+	s.collect() // 1st time initialisation
 }
 
-func (s *Stats) stats() {
+// collect runs periodically to collect, process and report statistics.
+func (s *state) collect() {
 	runtime.GC()
 	runtime.Gosched()
 
@@ -40,32 +77,32 @@ func (s *Stats) stats() {
 	runtime.ReadMemStats(m)
 
 	ng := runtime.NumGoroutine()
-
 	pl := player.PlayerList.Length()
 
-	if s.old == nil {
-		s.old = new(stats)
-		s.old.Alloc = m.Alloc
-		s.old.HeapObjects = m.HeapObjects
-		s.old.Goroutines = ng
-		s.old.MaxPlayers = pl
+	if s.s.Alloc == 0 {
+		s.s.save(m.Alloc, m.HeapObjects, ng, pl)
+		s.o.save(m.Alloc, m.HeapObjects, ng, pl)
 	}
 
-	if s.orig == nil {
-		s.orig = new(stats)
-		s.orig.Alloc = m.Alloc
-		s.orig.HeapObjects = m.HeapObjects
-		s.orig.Goroutines = ng
-		s.orig.MaxPlayers = pl
+	// Calculate difference in resources since last run
+	ad := int64(m.Alloc - s.o.Alloc)
+	hd := int(m.HeapObjects - s.o.HeapObjects)
+	gd := ng - s.o.Goroutines
+
+	// Calculate difference in resources since start
+	as := int64(m.Alloc - s.s.Alloc)
+	hs := int(m.HeapObjects - s.s.HeapObjects)
+	gs := ng - s.s.Goroutines
+
+	// Calculate max players
+	maxPlayers := s.o.MaxPlayers
+	if s.o.MaxPlayers < pl {
+		maxPlayers = pl
 	}
 
-	if s.old.MaxPlayers < pl {
-		s.old.MaxPlayers = pl
-	}
+	log.Printf("%12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d] %4d PL[%4d]\n",
+		m.Alloc, ad, as, m.HeapObjects, hd, hs, ng, gd, gs, pl, maxPlayers,
+	)
 
-	fmt.Printf("%s: %12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d] %4d PL[%4d]\n", time.Now().Format(time.Stamp), m.Alloc, int(m.Alloc-s.old.Alloc), int(m.Alloc-s.orig.Alloc), m.HeapObjects, int(m.HeapObjects-s.old.HeapObjects), int(m.HeapObjects-s.orig.HeapObjects), ng, ng-s.old.Goroutines, ng-s.orig.Goroutines, pl, s.old.MaxPlayers)
-
-	s.old.Alloc = m.Alloc
-	s.old.HeapObjects = m.HeapObjects
-	s.old.Goroutines = ng
+	s.o.save(m.Alloc, m.HeapObjects, ng, maxPlayers)
 }
