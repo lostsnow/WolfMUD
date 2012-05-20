@@ -15,7 +15,7 @@ import (
 )
 
 type Interface interface {
-	Locate(l location.Interface)
+	Relocate(l location.Interface)
 }
 
 type Mobile struct {
@@ -31,8 +31,12 @@ func New(name string, alias []string, description string) *Mobile {
 	}
 }
 
-func (m *Mobile) Locate(l location.Interface) {
+func (m *Mobile) Relocate(l location.Interface) {
 	m.location = l
+}
+
+func (m *Mobile) Locate() (location.Interface) {
+	return m.location
 }
 
 func (m *Mobile) Process(cmd *command.Command) (handled bool) {

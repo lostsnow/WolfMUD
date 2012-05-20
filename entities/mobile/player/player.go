@@ -18,9 +18,6 @@ var (
 )
 
 type Interface interface {
-	AttachClient(client client.Interface)
-	DetachClient()
-	Destroy()
 }
 
 type Player struct {
@@ -64,27 +61,21 @@ func (p *Player) DetachClient() {
 	defer func() {
 		<-p.lock
 	}()
+	p.client.DetachParser();
 	p.client = nil
+	p.destroy()
 }
 
-func (p *Player) hasClient() bool {
-	p.lock <- true
-	defer func() {
-		<-p.lock
-	}()
-	return (p.client != nil)
-}
-
-func (p *Player) Destroy() {
+func (p *Player) destroy() {
 
 	name := p.Name()
 
 	fmt.Printf("Destroying player: %s\n", name)
 
+	p.Locate().Remove(p)
 	PlayerList.Remove(p)
-	p.DetachClient()
 
-	//world.RespondGroup(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 
 	fmt.Printf("Destroyed player: %s\n", name)
 }
@@ -114,13 +105,15 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 		handled = p.sneeze(cmd)
 	case "MEMPROF":
 		handled = p.memprof(cmd)
+	case "WHO":
+		handled = p.who(cmd)
 	}
 
 	return
 }
 
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
-	p.Respond("You sneeze. Aaaaccchhhooo!")
+	p.Respond("You sneeze. Aaahhhccchhhooo!")
 	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
 	return true
 }
@@ -135,5 +128,21 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 	f.Close()
 
 	cmd.Respond("Memory profile dumped")
+	return true
+}
+
+func (p *Player) who(cmd *command.Command) (handled bool) {
+	p.Locate().Broadcast([]thing.Interface{p}, "You see %s concentrate.", p.Name())
+	msg := ""
+
+	for _, p := range PlayerList.List(p) {
+		msg += fmt.Sprintf("  %s\n", p.Name())
+	}
+
+	if (len(msg) == 0) {
+		msg = "You are all alone in this world."
+	}
+
+	p.Respond(msg)
 	return true
 }

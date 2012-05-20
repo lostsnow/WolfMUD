@@ -35,7 +35,7 @@ WolfMUD © 2012 Andrew 'Diddymus' Rolfe
 )
 
 // World represents a single game world. It has references to all of the
-// locations available.
+// locations available in it.
 type World struct {
 	locations []location.Interface
 }

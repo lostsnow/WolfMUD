@@ -43,7 +43,7 @@ func Load(world *world.World) {
 
 	l12 := location.New("Street outside Weapon Shop", []string{"WEAPONSHOP", "STREET"}, "You are on a well kept, wide street which runs to the east and west. To the south you can see a weapon shop.")
 
-	l13 := location.New("Weapons Shop", []string{"WEAPONS", "SHOP"}, "You are in a small weapons shop. If it's 'big gun' stuff your after you would do better looking else where.")
+	l13 := location.New("Weapons Shop", []string{"WEAPONS", "SHOP"}, "You are in a small weapons shop. If it's 'big gun' stuff you're after you would do better looking else where.")
 
 	l14 := location.New("Crossroads", []string{"CROSSROADS"}, "You are at the cross roads of two streets. One street runs east to west and the other north to south.")
 
@@ -73,7 +73,7 @@ func Load(world *world.World) {
 	// Street between Tavern and Bakers
 	l5.LinkExit(location.E, l6)
 	l5.LinkExit(location.S, l7)
-	l5.LinkExit(location.W, l4)
+	l5.LinkExit(location.W, l3)
 
 	// Bakers
 	l6.LinkExit(location.W, l5)

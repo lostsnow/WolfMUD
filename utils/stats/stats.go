@@ -28,7 +28,7 @@ import (
 //
 // TODO: When we have sorted out global settings this needs moving there.
 var (
-	Interval = 5 * time.Minute // Time  between collections
+	Interval = 10 * time.Second // Time  between collections
 )
 
 // record represents a single collection of statistical data.

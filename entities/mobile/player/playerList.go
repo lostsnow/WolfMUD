@@ -19,7 +19,7 @@ func (l *playerList) Add(player *Player) {
 
 func (l *playerList) Remove(player *Player) {
 	for index, p := range l.players {
-		if p == player {
+		if player.IsAlso(p) {
 			l.players = append(l.players[:index], l.players[index+1:]...)
 			break
 		}
@@ -30,7 +30,7 @@ func (l *playerList) Length() int {
 	return len(l.players)
 }
 
-func (l *playerList) List(ommit ...thing.Interface) (list []responder.Interface) {
+func (l *playerList) List(ommit ...thing.Interface) (list []*Player) {
 
 OMMIT:
 	for _, player := range l.players {
@@ -38,8 +38,8 @@ OMMIT:
 			if player.IsAlso(o) {
 				continue OMMIT
 			}
-			list = append(list, player)
 		}
+		list = append(list, player)
 	}
 
 	return

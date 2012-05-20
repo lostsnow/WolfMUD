@@ -80,8 +80,7 @@ func (c *Client) receiver() {
 	}
 
 	p := c.parser
-	//p.DetachClient()
-	p.Destroy()
+	p.DetachClient()
 	c.senderWakeup <- true
 
 	fmt.Printf("client.receiver: Ending for %s\n", c.name)
@@ -92,14 +91,13 @@ func (c *Client) Send(format string, any ...interface{}) {
 }
 
 func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
-	msg := fmt.Sprintf(format, any...)
 	if c.sendFail || c.receiveFail {
 		//fmt.Printf("client.Send: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
 		for i := 0; i < 50 && (cap(c.send)-len(c.send)) < 5; i++ {
 			runtime.Gosched()
 		}
-		c.send <- msg
+		c.send <- fmt.Sprintf(format, any...)
 	}
 }
 
@@ -111,6 +109,11 @@ func (c *Client) sender() {
 		}
 		select {
 		case <-c.senderWakeup:
+			fmt.Printf("client.sender: send length %d, draining\n", len(c.send))
+			if len(c.send) != 0 {
+				for _ = range c.send {
+				}
+			}
 
 		case msg := <-c.send:
 			if c.sendFail {

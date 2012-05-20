@@ -46,7 +46,8 @@ type Interface interface {
 }
 
 type Locateable interface {
-	Locate(Interface)
+	Relocate(Interface)
+	Locate() Interface
 }
 
 type Location struct {
@@ -68,7 +69,7 @@ func (l *Location) LinkExit(d direction, to Interface) {
 
 func (l *Location) Add(thing thing.Interface) {
 	if t, ok := thing.(Locateable); ok {
-		t.Locate(l)
+		t.Relocate(l)
 	}
 	l.Inventory.Add(thing)
 }
