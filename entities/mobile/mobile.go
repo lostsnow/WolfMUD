@@ -8,6 +8,8 @@
 package mobile
 
 import (
+	"log"
+	"runtime"
 	"wolfmud.org/entities/inventory"
 	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/thing"
@@ -25,10 +27,18 @@ type Mobile struct {
 }
 
 func New(name string, alias []string, description string) *Mobile {
-	return &Mobile{
+	m := &Mobile{
 		Thing:     thing.New(name, alias, description),
 		Inventory: inventory.New(),
 	}
+
+	runtime.SetFinalizer(m, Final)
+
+	return m
+}
+
+func Final(m *Mobile) {
+	log.Printf("+++ Mobile %d finalized: %s +++\n", m.UniqueId(), m.Name())
 }
 
 func (m *Mobile) Relocate(l location.Interface) {

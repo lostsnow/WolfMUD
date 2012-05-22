@@ -16,6 +16,8 @@
 package thing
 
 import (
+	"log"
+	"runtime"
 	"strings"
 	. "wolfmud.org/utils/UID"
 )
@@ -47,12 +49,22 @@ func New(name string, aliases []string, description string) *Thing {
 		aliases[i] = strings.ToUpper(strings.TrimSpace(a))
 	}
 
-	return &Thing{
+	t := &Thing{
 		name:        name,
 		aliases:     aliases,
 		description: description,
 		uniqueId:    <-Next,
 	}
+
+	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
+
+	runtime.SetFinalizer(t, Final)
+
+	return t
+}
+
+func Final(t *Thing) {
+	log.Printf("+++ Thing %d finalized: %s +++\n", t.uniqueId, t.name)
 }
 
 // Description returns the description for a Thing.

@@ -10,6 +10,7 @@
 package inventory
 
 import (
+	"log"
 	"wolfmud.org/entities/thing"
 )
 
@@ -32,16 +33,23 @@ func New() *Inventory {
 
 // Add puts an object implementing thing.Interface into the Inventory.
 func (i *Inventory) Add(thing thing.Interface) {
+	//log.Printf("Add %s", thing.Name())
 	i.contents = append(i.contents, thing)
 }
 
 // Remove takes an object implementing thing.Interface from the Inventory.
 func (i *Inventory) Remove(thing thing.Interface) {
+	found := false
 	for index, t := range i.contents {
 		if t.IsAlso(thing) {
 			i.contents = append(i.contents[:index], i.contents[index+1:]...)
+			//log.Printf("Removed %s", thing.Name())
+			found = true
 			break
 		}
+	}
+	if !found {
+		log.Printf("EEP!!! %s Not found to remove", thing.Name())
 	}
 }
 

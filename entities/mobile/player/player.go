@@ -2,15 +2,17 @@ package player
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
 	"strconv"
-	"wolfmud.org/client"
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/broadcaster"
+	"wolfmud.org/utils/UID"
+//	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/command"
+	"wolfmud.org/utils/sender"
 )
 
 var (
@@ -22,12 +24,13 @@ type Interface interface {
 
 type Player struct {
 	*mobile.Mobile
-	client client.Interface
-	world  broadcaster.Interface
+	sender sender.Interface
+	//world  broadcaster.Interface
 	lock   chan bool
+	id     UID.UID
 }
 
-func New(world broadcaster.Interface) *Player {
+func New(sender sender.Interface) *Player {
 
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
@@ -38,46 +41,39 @@ func New(world broadcaster.Interface) *Player {
 
 	p := &Player{
 		Mobile: mobile.New(name, alias, description),
-		world:  world,
-		lock:   make(chan bool, 1),
+		sender: sender,
+		//world:  world,
+		//lock:   make(chan bool, 1),
 	}
+	p.id = p.Mobile.Thing.UniqueId()
 
-	PlayerList.Add(p)
+	//PlayerList.Add(p)
+
+	runtime.SetFinalizer(p, Final)
 
 	return p
 }
 
-func (p *Player) AttachClient(client client.Interface) {
-	p.lock <- true
-	defer func() {
-		<-p.lock
-	}()
-	p.client = client
-	client.AttachParser(p)
-}
-
-func (p *Player) DetachClient() {
-	p.lock <- true
-	defer func() {
-		<-p.lock
-	}()
-	p.client.DetachParser();
-	p.client = nil
-	p.destroy()
+func Final(p *Player) {
+	log.Printf("+++ Player %d finalized +++\n", p.id)
 }
 
 func (p *Player) destroy() {
 
 	name := p.Name()
 
-	fmt.Printf("Destroying player: %s\n", name)
+	log.Printf("Destroying player: %s\n", name)
 
-	p.Locate().Remove(p)
-	PlayerList.Remove(p)
+	//p.Locate().Remove(p)
+	//PlayerList.Remove(p)
 
-	p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	//p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 
-	fmt.Printf("Destroyed player: %s\n", name)
+	//p.world = nil
+	p.sender = nil
+	p.Mobile = nil
+
+	log.Printf("Destroyed player: %s\n", name)
 }
 
 func (p *Player) Parse(input string) {
@@ -88,7 +84,7 @@ func (p *Player) Parse(input string) {
 }
 
 func (p *Player) Respond(format string, any ...interface{}) {
-	if c := p.client; c != nil {
+	if c := p.sender; c != nil {
 		c.Send(format, any...)
 		runtime.Gosched()
 	} else {
@@ -114,7 +110,7 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	p.Respond("You sneeze. Aaahhhccchhhooo!")
-	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
+	//p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
 	return true
 }
 
@@ -139,7 +135,7 @@ func (p *Player) who(cmd *command.Command) (handled bool) {
 		msg += fmt.Sprintf("  %s\n", p.Name())
 	}
 
-	if (len(msg) == 0) {
+	if len(msg) == 0 {
 		msg = "You are all alone in this world."
 	}
 

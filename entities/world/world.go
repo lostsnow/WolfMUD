@@ -45,7 +45,8 @@ func Create() *World {
 	return &World{}
 }
 
-// Genesis starts the world - what else? :)
+// Genesis starts the world - what else? :) Genesis opens the listening server
+// socket and accepts connections. It also starts the stats Goroutine.
 func (w *World) Genesis() {
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
@@ -73,43 +74,18 @@ func (w *World) Genesis() {
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
-			w.startPlayer(conn)
+			go client.Spawn(conn)
 		}
 	}
 }
 
-// startPlayer connects a client to a player and puts the player into the world.
-func (w *World) startPlayer(conn *net.TCPConn) {
-	c := client.New(conn)
-	p := player.New(w)
-
-	p.AttachClient(c)
-
-	c.SendWithoutPrompt(greeting)
-	w.locations[0].Add(p)
-	p.Parse("LOOK")
-
-	w.locations[0].Broadcast(
-		[]thing.Interface{p},
-		"There is a puff of smoke and %s appears spluttering and coughing.",
-		p.Name(),
-	)
-
-	log.Printf(
-		"Connection %s allocated %s, %d players online.\n",
-		conn.RemoteAddr().String(),
-		p.Name(),
-		player.PlayerList.Length(),
-	)
-
-	go c.Start()
-}
-
+// AddLocation adds a location to the list of locations for this world.
 func (w *World) AddLocation(l location.Interface) {
 	w.locations = append(w.locations, l)
 }
 
 func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
+	log.Printf("World Broadcast")
 	msg := fmt.Sprintf("\n"+format, any...)
 
 	for _, p := range player.PlayerList.List(ommit...) {

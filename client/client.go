@@ -2,11 +2,17 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"runtime"
 	"strings"
 	"time"
 	"wolfmud.org/utils/parser"
+	"wolfmud.org/entities/mobile/player"
+)
+
+const (
+	MAX_RETRIES = 2
 )
 
 type Interface interface {
@@ -21,32 +27,42 @@ type Client struct {
 	parser       parser.Interface
 	name         string
 	conn         *net.TCPConn
-	sendFail     bool
-	receiveFail  bool
+	bail         bool
 	send         chan string
 	senderWakeup chan bool
+	ending       chan bool
 }
 
-func New(conn *net.TCPConn) *Client {
-	return &Client{
+func Final(c *Client) {
+	log.Printf("+++ Client %s finalized +++\n", c.name)
+}
+
+func Spawn(conn *net.TCPConn) {
+
+	c := &Client{
 		conn:         conn,
 		send:         make(chan string, 100),
 		senderWakeup: make(chan bool, 1),
+		ending:       make(chan bool),
 	}
-}
 
-func (c *Client) AttachParser(p parser.Interface) {
-	c.parser = p
-	c.name = p.Name()
-}
+	runtime.SetFinalizer(c, Final)
 
-func (c *Client) DetachParser() {
-	c.parser = nil
-}
+	c.parser = player.New(c)
 
-func (c *Client) Start() {
 	go c.receiver()
 	go c.sender()
+
+	<-c.ending
+	<-c.ending
+
+	c.parser = nil
+
+	if err := c.conn.Close(); err != nil {
+		log.Printf("Error closing socket for %s, %s\n", c.name, err)
+	}
+
+	log.Printf("Ended Start for %s\n", c.name)
 }
 
 func (c *Client) receiver() {
@@ -55,35 +71,35 @@ func (c *Client) receiver() {
 
 	c.conn.SetKeepAlive(false)
 	c.conn.SetLinger(0)
+	idleRetrys := MAX_RETRIES
 
-	for {
-		if c.receiveFail || c.sendFail {
-			break
-		}
-		c.conn.SetReadDeadline(time.Now().Add(10 * time.Minute))
+	for ; !c.bail && idleRetrys > 0; idleRetrys-- {
+		c.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
-			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
-				c.Send("\n\nIdle connection terminated by server.\n\nBye Bye\n\n")
-				fmt.Printf("client.receiver: Closing idle connection for: %s\n", c.name)
-			} else {
-				c.receiveFail = true
-				fmt.Printf("client.receiver: Comms error for: %s, %s\n", c.name, err)
+			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
+				log.Printf("Comms error for: %s, %s\n", c.name, err)
+				c.bail = true
 			}
-			if err := c.conn.Close(); err != nil {
-				fmt.Printf("client.receiver: Error closing socket for %s, %s\n", c.name, err)
-			}
-			break
 		} else {
 			input := strings.TrimSpace(string(inBuffer[0:b]))
 			c.parser.Parse(input)
+			idleRetrys = MAX_RETRIES + 1
 		}
 	}
 
-	p := c.parser
-	p.DetachClient()
+	// Connection idle and we ran out of retries?
+	if idleRetrys == 0 {
+		c.Send("\n\nIdle connection terminated by server.\n\nBye Bye\n\n")
+		log.Printf("Closing idle connection for: %s\n", c.name)
+		c.bail = true
+	}
+
+	log.Printf("Sending wakeup signal for %s\n", c.name)
 	c.senderWakeup <- true
 
-	fmt.Printf("client.receiver: Ending for %s\n", c.name)
+	log.Printf("Ending receiver for %s\n", c.name)
+	c.ending <- true
 }
 
 func (c *Client) Send(format string, any ...interface{}) {
@@ -91,10 +107,15 @@ func (c *Client) Send(format string, any ...interface{}) {
 }
 
 func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
-	if c.sendFail || c.receiveFail {
-		//fmt.Printf("client.Send: oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
+	if c.bail {
+		log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
-		for i := 0; i < 50 && (cap(c.send)-len(c.send)) < 5; i++ {
+		for i := 0; i < 10 && (cap(c.send)-len(c.send)) < 5; i++ {
+			if c.bail {
+				log.Printf("reschedule %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
+				return
+			}
+			log.Printf("reschedule %s\n", c.name)
 			runtime.Gosched()
 		}
 		c.send <- fmt.Sprintf(format, any...)
@@ -103,33 +124,24 @@ func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
 
 func (c *Client) sender() {
 
-	for {
-		if c.receiveFail || c.sendFail {
-			break
-		}
+	for !c.bail {
 		select {
 		case <-c.senderWakeup:
-			fmt.Printf("client.sender: send length %d, draining\n", len(c.send))
-			if len(c.send) != 0 {
-				for _ = range c.send {
-				}
-			}
-
+			c.bail = true
+			break
 		case msg := <-c.send:
-			if c.sendFail {
-				//fmt.Printf("client.sender: oops %s dropping message %s\n", c.name, msg)
+			if c.bail {
+				log.Printf("oops %s dropping message %s\n", c.name, msg)
 			} else {
 				if _, err := c.conn.Write([]byte(msg)); err != nil {
-					c.sendFail = true
-					fmt.Printf("client.sender: Comms error for: %s, %s\n", c.name, err)
-					//if err := c.conn.Close(); err != nil {
-					//	fmt.Printf("client.sender: Error closing socket for %s, %s\n", c.name, err)
-					//}
+					log.Printf("Comms error for: %s, %s\n", c.name, err)
+					c.bail = true
 					break
 				}
 			}
 		}
 	}
 
-	fmt.Printf("client.sender: Ending for %s\n", c.name)
+	log.Printf("Ending sender for %s\n", c.name)
+	c.ending <- true
 }
