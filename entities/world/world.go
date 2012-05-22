@@ -74,7 +74,7 @@ func (w *World) Genesis() {
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
-			go client.Spawn(conn)
+			go client.Spawn(conn, w)
 		}
 	}
 }
@@ -84,8 +84,11 @@ func (w *World) AddLocation(l location.Interface) {
 	w.locations = append(w.locations, l)
 }
 
+func (w *World) AddThing(t thing.Interface) {
+	w.locations[0].Add(t)
+}
+
 func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
-	log.Printf("World Broadcast")
 	msg := fmt.Sprintf("\n"+format, any...)
 
 	for _, p := range player.PlayerList.List(ommit...) {

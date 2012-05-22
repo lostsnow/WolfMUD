@@ -7,12 +7,13 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/parser"
 	"wolfmud.org/entities/mobile/player"
 )
 
 const (
-	MAX_RETRIES = 2
+	MAX_RETRIES = 60 // Each retry is 10 seconds
 )
 
 type Interface interface {
@@ -37,7 +38,7 @@ func Final(c *Client) {
 	log.Printf("+++ Client %s finalized +++\n", c.name)
 }
 
-func Spawn(conn *net.TCPConn) {
+func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 
 	c := &Client{
 		conn:         conn,
@@ -48,7 +49,7 @@ func Spawn(conn *net.TCPConn) {
 
 	runtime.SetFinalizer(c, Final)
 
-	c.parser = player.New(c)
+	c.parser = player.New(c, world)
 
 	go c.receiver()
 	go c.sender()
@@ -56,6 +57,7 @@ func Spawn(conn *net.TCPConn) {
 	<-c.ending
 	<-c.ending
 
+	c.parser.Destroy()
 	c.parser = nil
 
 	if err := c.conn.Close(); err != nil {
@@ -74,7 +76,7 @@ func (c *Client) receiver() {
 	idleRetrys := MAX_RETRIES
 
 	for ; !c.bail && idleRetrys > 0; idleRetrys-- {
-		c.conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+		c.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {

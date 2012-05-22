@@ -43,7 +43,6 @@ func (i *Inventory) Remove(thing thing.Interface) {
 	for index, t := range i.contents {
 		if t.IsAlso(thing) {
 			i.contents = append(i.contents[:index], i.contents[index+1:]...)
-			//log.Printf("Removed %s", thing.Name())
 			found = true
 			break
 		}

@@ -10,7 +10,7 @@ import (
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/UID"
-//	"wolfmud.org/utils/broadcaster"
+	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/sender"
 )
@@ -25,12 +25,11 @@ type Interface interface {
 type Player struct {
 	*mobile.Mobile
 	sender sender.Interface
-	//world  broadcaster.Interface
-	lock   chan bool
+	world  broadcaster.Interface
 	id     UID.UID
 }
 
-func New(sender sender.Interface) *Player {
+func New(sender sender.Interface, world broadcaster.Interface) *Player {
 
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
@@ -42,12 +41,16 @@ func New(sender sender.Interface) *Player {
 	p := &Player{
 		Mobile: mobile.New(name, alias, description),
 		sender: sender,
-		//world:  world,
-		//lock:   make(chan bool, 1),
+		world:  world,
 	}
 	p.id = p.Mobile.Thing.UniqueId()
 
-	//PlayerList.Add(p)
+	// Put player into the world, announce and describe
+	world.AddThing(p)
+	p.Locate().Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	p.Parse("LOOK")
+
+	PlayerList.Add(p)
 
 	runtime.SetFinalizer(p, Final)
 
@@ -58,18 +61,18 @@ func Final(p *Player) {
 	log.Printf("+++ Player %d finalized +++\n", p.id)
 }
 
-func (p *Player) destroy() {
+func (p *Player) Destroy() {
 
 	name := p.Name()
 
 	log.Printf("Destroying player: %s\n", name)
 
-	//p.Locate().Remove(p)
-	//PlayerList.Remove(p)
+	p.Locate().Remove(p)
+	PlayerList.Remove(p)
 
-	//p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 
-	//p.world = nil
+	p.world = nil
 	p.sender = nil
 	p.Mobile = nil
 
@@ -88,7 +91,7 @@ func (p *Player) Respond(format string, any ...interface{}) {
 		c.Send(format, any...)
 		runtime.Gosched()
 	} else {
-		fmt.Printf("player.Respond: %s is a Zombie\n", p.Name())
+		fmt.Printf("player.Respond: Player %d is a Zombie\n", p.id)
 	}
 }
 
@@ -110,7 +113,7 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	p.Respond("You sneeze. Aaahhhccchhhooo!")
-	//p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
+	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
 	return true
 }
 

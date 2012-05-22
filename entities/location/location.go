@@ -2,7 +2,6 @@ package location
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"wolfmud.org/entities/inventory"
 	"wolfmud.org/entities/thing"
@@ -85,10 +84,8 @@ func (l *Location) Remove(thing thing.Interface) {
 func (l *Location) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
 	msg := fmt.Sprintf("\n"+format, any...)
 
-	log.Printf("Broadcast to %s", l.Name())
 	for _, v := range l.Inventory.List(ommit...) {
 		if resp, ok := v.(responder.Interface); ok {
-			log.Printf("Broadcast to %#v", resp)
 			resp.Respond(msg)
 		}
 	}
