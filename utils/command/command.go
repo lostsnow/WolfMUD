@@ -13,7 +13,6 @@ import (
 	"wolfmud.org/utils/responder"
 )
 
-
 // Interface should be implemented by anything that wants to process/react
 // to commands. These commands are usually from players and mobiles but also
 // commonly from other objects. For example a lever when pulled may issue an
@@ -27,6 +26,7 @@ import (
 // TODO: Beef up description when examples available.
 type Interface interface {
 	Process(*Command) (handled bool)
+	//IsLocked(thing thing.Interface) bool
 }
 
 // Command represents the state of the command currently being processed.
@@ -35,6 +35,8 @@ type Command struct {
 	Verb   string          // 1st word (verb): GET, DROP, EXAMINE etc
 	Nouns  []string        // 2nd...nth words
 	Target *string         // Alias for 2nd word - normally the verb's target
+	Locks  []thing.Interface
+	Relock thing.Interface
 }
 
 // New creates a new Command instance. The string is broken into words using
@@ -74,5 +76,42 @@ func New(issuer thing.Interface, input string) *Command {
 func (c *Command) Respond(format string, any ...interface{}) {
 	if i, ok := c.Issuer.(responder.Interface); ok {
 		i.Respond(format, any...)
+	}
+}
+
+func (c *Command) IsLocked(thing thing.Interface) bool {
+	a := thing.UniqueId()
+	for _, b := range c.Locks {
+		if a == b.UniqueId() {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Command) ClearRelock() {
+	c.Relock = nil
+}
+
+// BUG(D) Should really implement sort interface?
+func (c *Command) AddLock() {
+	defer c.ClearRelock()
+
+	if c.Relock != nil {
+		c.Locks = append(c.Locks, c.Relock)
+		if len(c.Locks) == 1 {
+			return
+		}
+		for swap := true; swap; {
+			swap = false
+			for i := 0; i < len(c.Locks)-1; i++ {
+				if i < len(c.Locks) {
+					if c.Locks[i].UniqueId() > c.Locks[i+1].UniqueId() {
+						c.Locks[i], c.Locks[i+1] = c.Locks[i+1], c.Locks[i]
+						swap = true
+					}
+				}
+			}
+		}
 	}
 }

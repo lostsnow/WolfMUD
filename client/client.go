@@ -42,7 +42,7 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 
 	c := &Client{
 		conn:         conn,
-		send:         make(chan string, 100),
+		send:         make(chan string, 2048),
 		senderWakeup: make(chan bool, 1),
 		ending:       make(chan bool),
 	}
@@ -110,17 +110,21 @@ func (c *Client) Send(format string, any ...interface{}) {
 
 func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
 	if c.bail {
-		log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
+		//log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
-		for i := 0; i < 10 && (cap(c.send)-len(c.send)) < 5; i++ {
-			if c.bail {
-				log.Printf("reschedule %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
-				return
-			}
-			log.Printf("reschedule %s\n", c.name)
-			runtime.Gosched()
+		//for i := 0; i < 25 && (cap(c.send)-len(c.send)) < 5; i++ {
+		//	if c.bail {
+		//		log.Printf("reschedule %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
+		//		return
+		//	}
+		//	log.Printf("reschedule %s\n", c.name)
+		//	runtime.Gosched()
+		//}
+		if (cap(c.send)-len(c.send)) < 5 {
+			log.Printf("oops %s dropping message, sending too slow.\n", c.name)
+		} else {
+			c.send <- fmt.Sprintf(format, any...)
 		}
-		c.send <- fmt.Sprintf(format, any...)
 	}
 }
 
@@ -133,7 +137,7 @@ func (c *Client) sender() {
 			break
 		case msg := <-c.send:
 			if c.bail {
-				log.Printf("oops %s dropping message %s\n", c.name, msg)
+				//log.Printf("oops %s dropping message %s\n", c.name, msg)
 			} else {
 				if _, err := c.conn.Write([]byte(msg)); err != nil {
 					log.Printf("Comms error for: %s, %s\n", c.name, err)

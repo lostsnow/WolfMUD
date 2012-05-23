@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
+	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/UID"
@@ -45,7 +46,7 @@ func New(sender sender.Interface, world broadcaster.Interface) *Player {
 	}
 	p.id = p.Mobile.Thing.UniqueId()
 
-	// Put player into the world, announce and describe
+	// Put player into the world, announce and describe location
 	world.AddThing(p)
 	p.Locate().Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 	p.Parse("LOOK")
@@ -79,10 +80,49 @@ func (p *Player) Destroy() {
 	log.Printf("Destroyed player: %s\n", name)
 }
 
+// Parse parses commands passed to delegates handling of the command. To
+// avoid deadlocks, inconsistencies, races and other unmentionables we lock
+// the location of the player. There is a race condition between getting the
+// player's location and locking it - they may have moved in-between. We
+// therefore get and lock their current location then check it's still their
+// current location. If it is not we unlock and try again.
+//
+// If a command effects more than one location we have to release the current
+// lock on the location and relock the locations in Unique Id order before
+// trying again. Locking in a consistent order avoids deadlocks.
+//
+// MOST of the time we are only interested in a few things: The current player,
+// it's location, items at the location, mobiles at the location. We can
+// therefore avoid complex fine grained locking on each individual Thing and
+// just lock on the whole location. This does mean if there are a LOT of things
+// happening in one specific location we will not have as much parallelism as we
+// would like.
 func (p *Player) Parse(input string) {
-	handled := p.Process(command.New(p, input))
-	if handled == false {
-		p.Respond("Eh? %s?", input)
+
+	cmd := command.New(p, input)
+	cmd.Relock = p.Locate()
+
+	for cmd.Relock != nil {
+		cmd.AddLock()
+		p.subParse(cmd)
+	}
+
+}
+
+func (p *Player) subParse(cmd *command.Command) {
+	for _, l := range cmd.Locks {
+		if t, ok := l.(location.Interface); ok {
+			t.Lock()
+			defer func(){
+				t.Unlock()
+			}()
+		}
+	}
+	if cmd.IsLocked(p.Locate()) {
+		handled := p.Process(cmd)
+		if handled == false && cmd.Relock == nil {
+			p.Respond("Eh?")
+		}
 	}
 }
 

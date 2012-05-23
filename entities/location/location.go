@@ -2,6 +2,7 @@ package location
 
 import (
 	"fmt"
+	//"log"
 	"strings"
 	"wolfmud.org/entities/inventory"
 	"wolfmud.org/entities/thing"
@@ -38,11 +39,14 @@ var directionNames = [10]string{
 }
 
 type Interface interface {
+	thing.Interface
 	command.Interface
 	inventory.Interface
 	LinkExit(d direction, to Interface)
 	Look(cmd *command.Command) (handled bool)
 	Broadcast(ommit []thing.Interface, format string, any ...interface{})
+	Lock()
+	Unlock()
 }
 
 type Locateable interface {
@@ -54,13 +58,27 @@ type Location struct {
 	*thing.Thing
 	*inventory.Inventory
 	exits [10]Interface
+	lock  chan bool
 }
 
 func New(name string, aliases []string, description string) *Location {
 	return &Location{
 		Thing:     thing.New(name, aliases, description),
 		Inventory: &inventory.Inventory{},
+		lock:      make(chan bool, 1),
 	}
+}
+
+func (l *Location) Lock() {
+	//log.Printf("Locking %s", l.Name())
+	l.lock <- true
+	//log.Printf("Locked %s", l.Name())
+}
+
+func (l *Location) Unlock() {
+	//log.Printf("Unlocking %s", l.Name())
+	<-l.lock
+	//log.Printf("Unlocked %s", l.Name())
 }
 
 func (l *Location) LinkExit(d direction, to Interface) {
@@ -153,6 +171,11 @@ func (l *Location) Move(d direction) (to Interface) {
 
 func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 	if to := l.exits[d]; to != nil {
+		if !cmd.IsLocked(to) {
+			cmd.Relock = to
+			return true
+		}
+
 		l.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
 
 		l.Remove(cmd.Issuer)
