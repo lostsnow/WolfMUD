@@ -68,8 +68,8 @@ func (p *Player) Destroy() {
 
 	log.Printf("Destroying player: %s\n", name)
 
-	p.Locate().Remove(p)
-	PlayerList.Remove(p)
+	for !p.remove() {
+	}
 
 	p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 
@@ -78,6 +78,18 @@ func (p *Player) Destroy() {
 	p.Mobile = nil
 
 	log.Printf("Destroyed player: %s\n", name)
+}
+
+func (p *Player) remove() (removed bool) {
+	l := p.Locate()
+	l.Lock()
+	defer l.Unlock()
+	if l.IsAlso(p.Locate()) {
+		p.Locate().Remove(p)
+		PlayerList.Remove(p)
+		removed = true
+	}
+	return
 }
 
 // Parse parses commands passed to delegates handling of the command. To
@@ -102,18 +114,18 @@ func (p *Player) Parse(input string) {
 	cmd := command.New(p, input)
 	cmd.Relock = p.Locate()
 
-	for cmd.Relock != nil {
+	for retry := false; cmd.Relock != nil || retry; {
 		cmd.AddLock()
-		p.subParse(cmd)
+		retry = p.subParse(cmd)
 	}
 
 }
 
-func (p *Player) subParse(cmd *command.Command) {
+func (p *Player) subParse(cmd *command.Command) (retry bool) {
 	for _, l := range cmd.Locks {
 		if t, ok := l.(location.Interface); ok {
 			t.Lock()
-			defer func(){
+			defer func() {
 				t.Unlock()
 			}()
 		}
@@ -123,7 +135,10 @@ func (p *Player) subParse(cmd *command.Command) {
 		if handled == false && cmd.Relock == nil {
 			p.Respond("Eh?")
 		}
+	} else {
+		retry = true
 	}
+	return
 }
 
 func (p *Player) Respond(format string, any ...interface{}) {

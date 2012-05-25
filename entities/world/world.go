@@ -85,7 +85,10 @@ func (w *World) AddLocation(l location.Interface) {
 }
 
 func (w *World) AddThing(t thing.Interface) {
-	w.locations[0].Add(t)
+	id := 0 //t.UniqueId() % 15
+	w.locations[id].Lock()
+	w.locations[id].Add(t)
+	w.locations[id].Unlock()
 }
 
 func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {

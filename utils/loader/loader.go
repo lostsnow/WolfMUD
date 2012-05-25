@@ -71,6 +71,7 @@ func Load(world *world.World) {
 	l4.LinkExit(location.W, l2)
 
 	// Street between Tavern and Bakers
+	l5.LinkExit(location.N, l14)
 	l5.LinkExit(location.E, l6)
 	l5.LinkExit(location.S, l7)
 	l5.LinkExit(location.W, l3)

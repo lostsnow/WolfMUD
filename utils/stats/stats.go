@@ -28,7 +28,10 @@ import (
 //
 // TODO: When we have sorted out global settings this needs moving there.
 var (
-	Interval = 10 * time.Second // Time  between collections
+	Interval    = 10 * time.Second // Time  between collections
+	unitPrefixs = [...]string{
+		"b", "k", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb",
+	}
 )
 
 // record represents a single collection of statistical data.
@@ -89,20 +92,37 @@ func (s *state) collect() {
 	hd := int(m.HeapObjects - s.o.HeapObjects)
 	gd := ng - s.o.Goroutines
 
-	// Calculate difference in resources since start
-	as := int64(m.Alloc - s.s.Alloc)
-	hs := int(m.HeapObjects - s.s.HeapObjects)
-	gs := ng - s.s.Goroutines
-
 	// Calculate max players
 	maxPlayers := s.o.MaxPlayers
 	if s.o.MaxPlayers < pl {
 		maxPlayers = pl
 	}
 
-	log.Printf("%12d A[%+9d %+9d] %12d HO[%+6d %+6d] %6d GO[%+6d %+6d] %4d PL[%4d]\n",
-		m.Alloc, ad, as, m.HeapObjects, hd, hs, ng, gd, gs, pl, maxPlayers,
+	as1, at1 := uscale(m.Alloc)
+	as2, at2 := scale(ad)
+
+	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d\n",
+		as1, at1, as2, at2, m.HeapObjects, hd, ng, gd, pl, maxPlayers,
 	)
 
 	s.o.save(m.Alloc, m.HeapObjects, ng, maxPlayers)
+}
+
+func uscale(n uint64) (scaled int64, scale string) {
+	i := 0
+	for n > 1024 {
+		i++
+		n = n >> 10
+	}
+	return int64(n), unitPrefixs[i]
+}
+
+func scale(n int64) (scaled int64, scale string) {
+	if n < 0 {
+		scaled, scale = uscale(uint64(n * -1))
+		scaled *= -1
+	} else {
+		scaled, scale = uscale(uint64(n))
+	}
+	return
 }

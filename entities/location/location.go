@@ -25,7 +25,7 @@ const (
 	D, DOWN
 )
 
-var directionNames = [10]string{
+var directionNames = [...]string{
 	N:  "North",
 	NE: "Northeast",
 	E:  "East",
@@ -57,7 +57,7 @@ type Locateable interface {
 type Location struct {
 	*thing.Thing
 	*inventory.Inventory
-	exits [10]Interface
+	exits [len(directionNames)]Interface
 	lock  chan bool
 }
 

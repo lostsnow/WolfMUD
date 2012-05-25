@@ -8,17 +8,26 @@ import (
 
 type playerList struct {
 	players []*Player
+	lock chan bool
 }
 
 var (
 	PlayerList playerList
 )
 
+func init() {
+	PlayerList.lock = make(chan bool, 1)
+}
+
 func (l *playerList) Add(player *Player) {
+	l.lock <- true
+	defer func(){<-l.lock}()
 	l.players = append(l.players, player)
 }
 
 func (l *playerList) Remove(player *Player) {
+	l.lock <- true
+	defer func(){<-l.lock}()
 	found := false
 	for index, p := range l.players {
 		if player.IsAlso(p) {
@@ -33,10 +42,14 @@ func (l *playerList) Remove(player *Player) {
 }
 
 func (l *playerList) Length() int {
+	l.lock <- true
+	defer func(){<-l.lock}()
 	return len(l.players)
 }
 
 func (l *playerList) List(ommit ...thing.Interface) (list []*Player) {
+	l.lock <- true
+	defer func(){<-l.lock}()
 
 OMMIT:
 	for _, player := range l.players {

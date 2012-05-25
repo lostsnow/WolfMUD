@@ -42,7 +42,7 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 
 	c := &Client{
 		conn:         conn,
-		send:         make(chan string, 2048),
+		send:         make(chan string, 4096),
 		senderWakeup: make(chan bool, 1),
 		ending:       make(chan bool),
 	}
