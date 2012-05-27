@@ -47,15 +47,15 @@ func (l *playerList) Length() int {
 	return len(l.players)
 }
 
-func (l *playerList) List(ommit ...thing.Interface) (list []*Player) {
+func (l *playerList) List(omit ...thing.Interface) (list []*Player) {
 	l.lock <- true
 	defer func(){<-l.lock}()
 
-OMMIT:
+OMIT:
 	for _, player := range l.players {
-		for _, o := range ommit {
+		for _, o := range omit {
 			if player.IsAlso(o) {
-				continue OMMIT
+				continue OMIT
 			}
 		}
 		list = append(list, player)

@@ -43,7 +43,7 @@ type Interface interface {
 	inventory.Interface
 	LinkExit(d direction, to Interface)
 	Look(cmd *command.Command) (handled bool)
-	Broadcast(ommit []thing.Interface, format string, any ...interface{})
+	Broadcast(omit []thing.Interface, format string, any ...interface{})
 }
 
 type Locateable interface {
@@ -82,10 +82,10 @@ func (l *Location) Remove(thing thing.Interface) {
 	l.Inventory.Remove(thing)
 }
 
-func (l *Location) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
+func (l *Location) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	msg := fmt.Sprintf("\n"+format, any...)
 
-	for _, v := range l.Inventory.List(ommit...) {
+	for _, v := range l.Inventory.List(omit...) {
 		if resp, ok := v.(responder.Interface); ok {
 			resp.Respond(msg)
 		}
@@ -155,7 +155,7 @@ func (l *Location) Move(d direction) (to Interface) {
 func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 	if to := l.exits[d]; to != nil {
 		if !cmd.IsLocked(to) {
-			cmd.Relock = to
+			cmd.Lock = to
 			return true
 		}
 

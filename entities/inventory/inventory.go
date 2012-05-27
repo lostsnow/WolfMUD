@@ -10,18 +10,22 @@
 package inventory
 
 import (
-	"log"
 	"wolfmud.org/entities/thing"
+)
+
+const (
+	NOT_FOUND = -1 // Used if Thing not found in Inventory
 )
 
 // Interface describes the methods required to be an Inventory.
 type Interface interface {
 	Add(thing thing.Interface)
+	Contains(thing thing.Interface) bool
 	Remove(thing thing.Interface)
-	List(ommit ...thing.Interface) []thing.Interface
+	List(omit ...thing.Interface) []thing.Interface
 }
 
-// Inventory is a default implementation satisfiying the inventory interface.
+// Inventory is a default implementation satisfying the inventory interface.
 type Inventory struct {
 	contents []thing.Interface
 }
@@ -33,28 +37,44 @@ func New() *Inventory {
 
 // Add puts an object implementing thing.Interface into the Inventory.
 func (i *Inventory) Add(thing thing.Interface) {
-	//log.Printf("Add %s", thing.Name())
-	i.contents = append(i.contents, thing)
+	if i.find(thing) == NOT_FOUND {
+		i.contents = append(i.contents, thing)
+	}
+}
+
+// Contains returns true if an object implementing thing.Interface is in the
+// Inventory, otherwise it returns false.
+func (i *Inventory) Contains(thing thing.Interface) bool {
+	return i.find(thing) != NOT_FOUND
+}
+
+// find is an internal helper which returns the index of a Thing in the
+// Inventory. If the item is not in the Inventory then NOT_FOUND is returned.
+// Ideally we do not want external users manipulating the indexes, therefore
+// this method is not exported and users of the Inventory can use Contains to
+// test for an object.
+//
+// Currently we brute force using a for/range and bail early when a match is
+// found.
+func (i *Inventory) find(thing thing.Interface) (index int) {
+	for index, t := range i.contents {
+		if t.IsAlso(thing) {
+			return index
+		}
+	}
+	return NOT_FOUND
 }
 
 // Remove takes an object implementing thing.Interface from the Inventory.
 func (i *Inventory) Remove(thing thing.Interface) {
-	found := false
-	for index, t := range i.contents {
-		if t.IsAlso(thing) {
-			i.contents = append(i.contents[:index], i.contents[index+1:]...)
-			found = true
-			break
-		}
-	}
-	if !found {
-		log.Printf("EEP!!! %s Not found to remove", thing.Name())
+	if index := i.find(thing); index != NOT_FOUND {
+		i.contents = append(i.contents[:index], i.contents[index+1:]...)
 	}
 }
 
 // List returns a slice of thing.Interface in the Inventory, possibly with
-// specific items ommited. An example of when you want to ommit something is
-// when a Player does something - you send a specific message to the player:
+// specific items omitted. An example of when you want to omit something is when
+// a Player does something - you send a specific message to the player:
 //
 //  You pick up a ball.
 //
@@ -62,18 +82,18 @@ func (i *Inventory) Remove(thing thing.Interface) {
 //
 //  You see Diddymus pick up a ball.
 //
-// However when broadcasting the message to the location you want to ommit the
+// However when broadcasting the message to the location you want to omit the
 // 'actor' who has the specific message.
 //
 // Note that locations implement an inventory to store what mobiles/players and
 // things are present which is why this works.
-func (i *Inventory) List(ommit ...thing.Interface) (list []thing.Interface) {
+func (i *Inventory) List(omit ...thing.Interface) (list []thing.Interface) {
 
-OMMIT:
+OMIT:
 	for _, thing := range i.contents {
-		for _, o := range ommit {
+		for _, o := range omit {
 			if thing.IsAlso(o) {
-				continue OMMIT
+				continue OMIT
 			}
 		}
 		list = append(list, thing)

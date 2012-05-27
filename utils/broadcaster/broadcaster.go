@@ -5,6 +5,6 @@ import (
 )
 
 type Interface interface {
-	Broadcast(ommit []thing.Interface, format string, any ...interface{})
+	Broadcast(omit []thing.Interface, format string, any ...interface{})
 	AddThing(thing thing.Interface)
 }

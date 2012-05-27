@@ -13,7 +13,7 @@
 //	thing1.UniqueId() == thing2.UniqueId()
 //
 // Due to the unique ID copies should not be made by assignment unless a new
-// unique ID is allocated.
+// unique ID is allocated or the assignment is very temporary.
 package thing
 
 import (
@@ -70,6 +70,8 @@ func New(name string, aliases []string, description string) *Thing {
 	return t
 }
 
+// final is used by a finalizer for debugging if settings.DebugFinalizers is
+// true.
 func final(t *Thing) {
 	log.Printf("+++ Thing %d finalized: %s +++\n", t.uniqueId, t.name)
 }
@@ -103,20 +105,22 @@ func (t *Thing) IsAlias(alias string) bool {
 	return false
 }
 
-// IsAlso tests two things to see if one of them 'is also' the other - hence the
-// functions name.
+// IsAlso tests two Things to see if one of them 'is also' the other - hence the
+// function's name.
 //
 // WolfMUD uses a lot of Interfaces and embedded types. So we may be comparing,
 // for example, a Player with a Mobile. However this causes issues:
 //
 //	- Mobile and Player are not the same types
 //	- They can have different interfaces
-//	- Pointers to a Mobile embeded in a Player will be different (of course)
+//	- Pointers to a Mobile embedded in a Player will be different (of course)
 //
 // So to make things easy we have the unique ID and can use either of:
 //
 //	thisPlayer.IsAlso(thisMobile)
 //	thisPlayer.UniqueId() == thisMobile.UniqueId()
+//
+// The first example using IsAlso tends to make the code easier to read.
 func (t *Thing) IsAlso(thing Interface) bool {
 	return t.uniqueId == thing.UniqueId()
 }
@@ -124,7 +128,7 @@ func (t *Thing) IsAlso(thing Interface) bool {
 // Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
 // should only be called when the lock is held via a successful Lock call. The
 // reason for the method instead of making the lock in the struct public - you
-// cannot access struct properties direcly through the Interface.
+// cannot access struct properties directly through the Interface.
 func (t *Thing) Lock() {
 	t.lock <- true
 }

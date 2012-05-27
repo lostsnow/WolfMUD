@@ -75,10 +75,10 @@ func (w *World) AddThing(t thing.Interface) {
 	w.locations[id].Unlock()
 }
 
-func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
+func (w *World) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	msg := fmt.Sprintf("\n"+format, any...)
 
-	for _, p := range player.PlayerList.List(ommit...) {
+	for _, p := range player.PlayerList.List(omit...) {
 		p.Respond(msg)
 	}
 }
