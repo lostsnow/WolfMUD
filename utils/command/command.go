@@ -30,13 +30,15 @@ type Interface interface {
 }
 
 // Command represents the state of the command currently being processed.
+// Command is also used to pass around locking information as the command is
+// processed.
 type Command struct {
-	Issuer thing.Interface   // What is issuing the command
-	Verb   string            // 1st word (verb): GET, DROP, EXAMINE etc
-	Nouns  []string          // 2nd...nth words
-	Target *string           // Alias for 2nd word - normally the verb's target
-	Locks  []thing.Interface // Locks we want to hold
-	Lock   thing.Interface   // An additional lock we need
+	Issuer        thing.Interface   // What is issuing the command
+	Verb          string            // 1st word (verb): GET, DROP, EXAMINE etc
+	Nouns         []string          // 2nd...nth words
+	Target        *string           // Alias for 2nd word - normally the verb's target
+	Locks         []thing.Interface // Locks we want to hold
+	locksModified bool              // Locks modified since last LocksModified() call?
 }
 
 // New creates a new Command instance. The input string is broken into words
@@ -79,44 +81,55 @@ func (c *Command) Respond(format string, any ...interface{}) {
 	}
 }
 
-func (c *Command) IsLocked(thing thing.Interface) bool {
-	a := thing.UniqueId()
-	for _, b := range c.Locks {
-		if a == b.UniqueId() {
+// CanLock checks if the command has the thing in it's locks list. This only
+// determines if the thing is in the Locks slice - not if it is or is not
+// actually locked.
+func (c *Command) CanLock(thing thing.Interface) bool {
+	for _, l := range c.Locks {
+		if thing.IsAlso(l) {
 			return true
 		}
 	}
 	return false
 }
 
-func (c *Command) clearLock() {
-	c.Lock = nil
+// LocksModified returns true if the Locks slice has been modified since the
+// Command was created or since the last call of LocksModified.
+//
+// NOTE: Calling this function will also reset the check to false.
+func (c *Command) LocksModified() (modified bool) {
+	modified = c.locksModified
+	c.locksModified = false
+	return
 }
 
+// AddLock adds a reference to a thing and adds it to the Locks slice in the
+// correct position. Locks should always be acquired in unique Id sequence
+// lowest to highest to avoid deadlocks. By using this method the Locks property
+// can easily be iterated via a range and in the correct sequence required.
 //
 // NOTE: We cannot add the same Lock twice otherwise we would deadlock ourself
 // when locking.
 //
 // BUG(D) Should really implement sort interface?
-func (c *Command) AddLock() {
+func (c *Command) AddLock(t thing.Interface) {
 
-	if c.Lock == nil || c.IsLocked(c.Lock) {
+	if t == nil || c.CanLock(t) {
 		return
 	}
-	defer c.clearLock()
 
-	if c.Lock != nil {
-		c.Locks = append(c.Locks, c.Lock)
-		if len(c.Locks) == 1 {
-			return
-		}
-		for swap := true; swap; {
-			swap = false
-			for i := len(c.Locks)-2; i >= 0; i-- {
-				if c.Locks[i].UniqueId() > c.Locks[i+1].UniqueId() {
-					c.Locks[i], c.Locks[i+1] = c.Locks[i+1], c.Locks[i]
-					swap = true
-				}
+	c.locksModified = true
+
+	c.Locks = append(c.Locks, t)
+	if len(c.Locks) == 1 {
+		return
+	}
+	for swap := true; swap; {
+		swap = false
+		for i := len(c.Locks) - 2; i >= 0; i-- {
+			if c.Locks[i].UniqueId() > c.Locks[i+1].UniqueId() {
+				c.Locks[i], c.Locks[i+1] = c.Locks[i+1], c.Locks[i]
+				swap = true
 			}
 		}
 	}

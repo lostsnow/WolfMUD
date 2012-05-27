@@ -125,10 +125,9 @@ func (p *Player) remove() (removed bool) {
 func (p *Player) Parse(input string) {
 
 	cmd := command.New(p, input)
-	cmd.Lock = p.Locate()
+	cmd.AddLock(p.Locate())
 
-	for retry := false; cmd.Lock != nil || retry; {
-		cmd.AddLock()
+	for retry := cmd.LocksModified(); retry; {
 		retry = p.parseStage2(cmd)
 	}
 
@@ -139,9 +138,10 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 		l.Lock()
 		defer l.Unlock()
 	}
-	if cmd.IsLocked(p.Locate()) {
+	if cmd.CanLock(p.Locate()) {
 		handled := p.Process(cmd)
-		if handled == false && cmd.Lock == nil {
+		retry = cmd.LocksModified()
+		if handled == false && !retry {
 			p.Respond("Eh?")
 		}
 	} else {

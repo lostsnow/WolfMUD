@@ -154,8 +154,8 @@ func (l *Location) Move(d direction) (to Interface) {
 
 func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 	if to := l.exits[d]; to != nil {
-		if !cmd.IsLocked(to) {
-			cmd.Lock = to
+		if !cmd.CanLock(to) {
+			cmd.AddLock(to)
 			return true
 		}
 
