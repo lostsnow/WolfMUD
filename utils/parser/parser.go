@@ -4,4 +4,5 @@ type Interface interface {
 	Parse(input string)
 	Name() (name string)
 	Destroy()
+	Quitting() bool
 }

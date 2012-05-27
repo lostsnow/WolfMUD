@@ -14,6 +14,7 @@ import (
 	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
+	"wolfmud.org/utils/settings"
 )
 
 type Interface interface {
@@ -32,12 +33,15 @@ func New(name string, alias []string, description string) *Mobile {
 		Inventory: inventory.New(),
 	}
 
-	runtime.SetFinalizer(m, Final)
+	if settings.DebugFinalizers {
+		log.Printf("Mobile %d created: %s\n", m.UniqueId(), m.Name())
+		runtime.SetFinalizer(m, final)
+	}
 
 	return m
 }
 
-func Final(m *Mobile) {
+func final(m *Mobile) {
 	log.Printf("+++ Mobile %d finalized: %s +++\n", m.UniqueId(), m.Name())
 }
 
@@ -62,9 +66,9 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 	//}
 
 	if m.IsAlso(cmd.Issuer) {
-		if handled == false {
-			//handled = m.Inventory.delegate(cmd)
-		}
+		//if handled == false {
+		//	handled = m.Inventory.delegate(cmd)
+		//}
 
 		if handled == false {
 			l := m.location

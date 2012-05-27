@@ -7,27 +7,24 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
-	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/UID"
 	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/sender"
+	"wolfmud.org/utils/settings"
 )
 
 var (
 	playerCount = 0
 )
 
-type Interface interface {
-}
-
 type Player struct {
 	*mobile.Mobile
-	sender sender.Interface
-	world  broadcaster.Interface
-	id     UID.UID
+	sender   sender.Interface
+	world    broadcaster.Interface
+	name     string
+	quitting bool
 }
 
 func New(sender sender.Interface, world broadcaster.Interface) *Player {
@@ -44,7 +41,7 @@ func New(sender sender.Interface, world broadcaster.Interface) *Player {
 		sender: sender,
 		world:  world,
 	}
-	p.id = p.Mobile.Thing.UniqueId()
+	p.name = p.Name()
 
 	// Put player into the world, announce and describe location
 	world.AddThing(p)
@@ -53,31 +50,47 @@ func New(sender sender.Interface, world broadcaster.Interface) *Player {
 
 	PlayerList.Add(p)
 
-	runtime.SetFinalizer(p, Final)
+	if settings.DebugFinalizers {
+		log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
+		runtime.SetFinalizer(p, final)
+	}
 
 	return p
 }
 
-func Final(p *Player) {
-	log.Printf("+++ Player %d finalized +++\n", p.id)
+func final(p *Player) {
+	log.Printf("+++ %s finalized +++\n", p.name)
+}
+
+func (p *Player) Quitting() bool {
+	p.Lock()
+	defer p.Unlock()
+	return p.quitting
 }
 
 func (p *Player) Destroy() {
 
 	name := p.Name()
 
-	log.Printf("Destroying player: %s\n", name)
+	log.Printf("Destroy: %s\n", name)
+
+	if p.Quitting() {
+		log.Printf("%s is quitting @ %s", name, p.Locate().Name())
+		p.Locate().Broadcast(nil, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", name)
+	}
 
 	for !p.remove() {
 	}
 
-	p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	if !p.Quitting() {
+		p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+	}
 
 	p.world = nil
 	p.sender = nil
 	p.Mobile = nil
 
-	log.Printf("Destroyed player: %s\n", name)
+	log.Printf("Destroyed: %s\n", name)
 }
 
 func (p *Player) remove() (removed bool) {
@@ -92,10 +105,10 @@ func (p *Player) remove() (removed bool) {
 	return
 }
 
-// Parse parses commands passed to delegates handling of the command. To
-// avoid deadlocks, inconsistencies, races and other unmentionables we lock
-// the location of the player. There is a race condition between getting the
-// player's location and locking it - they may have moved in-between. We
+// Parse takes a string and begins the delegation to potential processors. To
+// avoid deadlocks, inconsistencies, race conditions and other unmentionables we
+// lock the location of the player. However there is a race condition between getting
+// the player's location and locking it - they may have moved in-between. We
 // therefore get and lock their current location then check it's still their
 // current location. If it is not we unlock and try again.
 //
@@ -116,19 +129,15 @@ func (p *Player) Parse(input string) {
 
 	for retry := false; cmd.Relock != nil || retry; {
 		cmd.AddLock()
-		retry = p.subParse(cmd)
+		retry = p.parseLocker(cmd)
 	}
 
 }
 
-func (p *Player) subParse(cmd *command.Command) (retry bool) {
+func (p *Player) parseLocker(cmd *command.Command) (retry bool) {
 	for _, l := range cmd.Locks {
-		if t, ok := l.(location.Interface); ok {
-			t.Lock()
-			defer func() {
-				t.Unlock()
-			}()
-		}
+		l.Lock()
+		defer l.Unlock()
 	}
 	if cmd.IsLocked(p.Locate()) {
 		handled := p.Process(cmd)
@@ -146,7 +155,7 @@ func (p *Player) Respond(format string, any ...interface{}) {
 		c.Send(format, any...)
 		runtime.Gosched()
 	} else {
-		fmt.Printf("player.Respond: Player %d is a Zombie\n", p.id)
+		log.Printf("Respond: %s is a Zombie\n", p.name)
 	}
 }
 
@@ -155,21 +164,17 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 	switch cmd.Verb {
 	default:
 		handled = p.Mobile.Process(cmd)
-	case "SNEEZE":
-		handled = p.sneeze(cmd)
 	case "MEMPROF":
 		handled = p.memprof(cmd)
+	case "QUIT":
+		handled = p.quit(cmd)
+	case "SNEEZE":
+		handled = p.sneeze(cmd)
 	case "WHO":
 		handled = p.who(cmd)
 	}
 
 	return
-}
-
-func (p *Player) sneeze(cmd *command.Command) (handled bool) {
-	p.Respond("You sneeze. Aaahhhccchhhooo!")
-	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
-	return true
 }
 
 func (p *Player) memprof(cmd *command.Command) (handled bool) {
@@ -182,6 +187,20 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 	f.Close()
 
 	cmd.Respond("Memory profile dumped")
+	return true
+}
+
+func (p *Player) quit(cmd *command.Command) (handled bool) {
+	p.Lock()
+	defer p.Unlock()
+	p.quitting = true
+	log.Printf("quit: %s is quitting.", p.Name())
+	return true
+}
+
+func (p *Player) sneeze(cmd *command.Command) (handled bool) {
+	p.Respond("You sneeze. Aaahhhccchhhooo!")
+	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
 	return true
 }
 

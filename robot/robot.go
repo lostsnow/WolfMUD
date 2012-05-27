@@ -42,13 +42,13 @@ func main() {
 
 func NewBot(launched chan bool) {
 	// Set base speed so we can have slow and fast bots
-	baseSpeed := ((rand.Intn(5) + 1) * 100) + 1000
-	steps := 8 + rand.Intn(8)
 
 	launched <- true
 	var buffer [255]byte
 
 	for {
+		baseSpeed := ((rand.Intn(5) + 1) * 100) + 1000
+		steps := 32 + rand.Intn(32)
 
 		// Connect to server
 		conn, _ := net.Dial("tcp", "localhost:4001")
@@ -67,14 +67,23 @@ func NewBot(launched chan bool) {
 		script := []string{"S", "E", "N", "E", "E", "W", "S", "E", "W", "S", "N", "N", "W", "W"}
 
 		// Run script Ad infinitum with slight timing variations
-		for i := 0; i < steps; i++ {
+		for stepsToTake := steps; stepsToTake > 0; {
 			for _, cmd := range script {
+				stepsToTake--
+				if stepsToTake == 0 {
+					break
+				}
 				runtime.Gosched()
 				time.Sleep(time.Duration(rand.Intn(500)+baseSpeed) * time.Millisecond)
-				conn.Write([]byte(cmd))
+				conn.Write([]byte(cmd+"\r\n"))
 			}
 		}
-
+		if rand.Intn(100) < 95 {
+			runtime.Gosched()
+			time.Sleep(time.Duration(rand.Intn(500)+baseSpeed) * time.Millisecond)
+			conn.Write([]byte("QUIT\r\n"))
+			time.Sleep(5 * time.Second)
+		}
 		conn.Close()
 	}
 }

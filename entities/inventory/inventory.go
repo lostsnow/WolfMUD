@@ -75,8 +75,8 @@ OMMIT:
 			if thing.IsAlso(o) {
 				continue OMMIT
 			}
-			list = append(list, thing)
 		}
+		list = append(list, thing)
 	}
 
 	return

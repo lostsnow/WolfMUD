@@ -18,22 +18,6 @@ import (
 	"wolfmud.org/utils/stats"
 )
 
-// greeting is displayed when a new client connects.
-//
-// TODO: Soft code with rest of settings.
-const (
-	greeting = `
-
-WolfMUD © 2012 Andrew 'Diddymus' Rolfe
-
-    World
-    Of
-    Living
-    Fantasy
-
-`
-)
-
 // World represents a single game world. It has references to all of the
 // locations available in it.
 type World struct {

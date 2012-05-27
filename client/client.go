@@ -7,19 +7,30 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/parser"
-	"wolfmud.org/entities/mobile/player"
+	"wolfmud.org/utils/settings"
 )
 
 const (
-	MAX_RETRIES = 60 // Each retry is 10 seconds
+	MAX_RETRIES      = 60   // Each retry is 10 seconds
+	SEND_BUFFER_SIZE = 4096 // Number of sending messages to buffer
+
+	GREETING = `
+
+WolfMUD © 2012 Andrew 'Diddymus' Rolfe
+
+    World
+    Of
+    Living
+    Fantasy
+
+`
 )
 
 type Interface interface {
 	Start()
-	AttachParser(p parser.Interface)
-	DetachParser()
 	Send(format string, any ...interface{})
 	SendWithoutPrompt(format string, any ...interface{})
 }
@@ -34,7 +45,7 @@ type Client struct {
 	ending       chan bool
 }
 
-func Final(c *Client) {
+func final(c *Client) {
 	log.Printf("+++ Client %s finalized +++\n", c.name)
 }
 
@@ -42,14 +53,20 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 
 	c := &Client{
 		conn:         conn,
-		send:         make(chan string, 4096),
+		send:         make(chan string, SEND_BUFFER_SIZE),
 		senderWakeup: make(chan bool, 1),
 		ending:       make(chan bool),
 	}
 
-	runtime.SetFinalizer(c, Final)
+	c.SendWithoutPrompt(GREETING)
 
 	c.parser = player.New(c, world)
+	c.name = c.parser.Name()
+
+	if settings.DebugFinalizers {
+		log.Printf("Client created: %s\n", c.name)
+		runtime.SetFinalizer(c, final)
+	}
 
 	go c.receiver()
 	go c.sender()
@@ -64,7 +81,11 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 		log.Printf("Error closing socket for %s, %s\n", c.name, err)
 	}
 
-	log.Printf("Ended Start for %s\n", c.name)
+	close(c.ending)
+	close(c.send)
+	close(c.senderWakeup)
+
+	log.Printf("Spawn ending for %s\n", c.name)
 }
 
 func (c *Client) receiver() {
@@ -86,6 +107,9 @@ func (c *Client) receiver() {
 		} else {
 			input := strings.TrimSpace(string(inBuffer[0:b]))
 			c.parser.Parse(input)
+			if c.parser.Quitting() {
+				c.bail = true
+			}
 			idleRetrys = MAX_RETRIES + 1
 		}
 	}
@@ -100,7 +124,7 @@ func (c *Client) receiver() {
 	log.Printf("Sending wakeup signal for %s\n", c.name)
 	c.senderWakeup <- true
 
-	log.Printf("Ending receiver for %s\n", c.name)
+	log.Printf("receiver ending for %s\n", c.name)
 	c.ending <- true
 }
 
@@ -112,15 +136,7 @@ func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
 	if c.bail {
 		//log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
-		//for i := 0; i < 25 && (cap(c.send)-len(c.send)) < 5; i++ {
-		//	if c.bail {
-		//		log.Printf("reschedule %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
-		//		return
-		//	}
-		//	log.Printf("reschedule %s\n", c.name)
-		//	runtime.Gosched()
-		//}
-		if (cap(c.send)-len(c.send)) < 5 {
+		if (cap(c.send) - len(c.send)) < 5 {
 			log.Printf("oops %s dropping message, sending too slow.\n", c.name)
 		} else {
 			c.send <- fmt.Sprintf(format, any...)
@@ -148,6 +164,6 @@ func (c *Client) sender() {
 		}
 	}
 
-	log.Printf("Ending sender for %s\n", c.name)
+	log.Printf("sender ending for %s\n", c.name)
 	c.ending <- true
 }

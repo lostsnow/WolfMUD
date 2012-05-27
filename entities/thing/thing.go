@@ -12,7 +12,8 @@
 //
 //	thing1.UniqueId() == thing2.UniqueId()
 //
-// Due to the unique ID copies should not be made by assignment.
+// Due to the unique ID copies should not be made by assignment unless a new
+// unique ID is allocated.
 package thing
 
 import (
@@ -20,6 +21,7 @@ import (
 	"runtime"
 	"strings"
 	. "wolfmud.org/utils/UID"
+	"wolfmud.org/utils/settings"
 )
 
 // Interface should be implemented by all entities in WolfMUD. It provides
@@ -28,8 +30,10 @@ type Interface interface {
 	Description() string
 	IsAlias(alias string) bool
 	IsAlso(thing Interface) bool
+	Lock()
 	Name() string
 	UniqueId() UID
+	Unlock()
 }
 
 // The Thing type is a default implementation of the thing.Interface
@@ -38,11 +42,12 @@ type Thing struct {
 	description string
 	aliases     []string
 	uniqueId    UID
+	lock        chan bool
 }
 
 // New allocates a new Thing returning a pointer reference. A unique ID will
-// be allocated. The aliases will all be stripped of leading and trailing
-// whitespace converted to uppercase.
+// be allocated automatically. The aliases will all be stripped of leading and
+// trailing whitespace then converted to uppercase.
 func New(name string, aliases []string, description string) *Thing {
 
 	for i, a := range aliases {
@@ -54,16 +59,18 @@ func New(name string, aliases []string, description string) *Thing {
 		aliases:     aliases,
 		description: description,
 		uniqueId:    <-Next,
+		lock:        make(chan bool, 1),
 	}
 
-	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
-
-	runtime.SetFinalizer(t, Final)
+	if settings.DebugFinalizers {
+		log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
+		runtime.SetFinalizer(t, final)
+	}
 
 	return t
 }
 
-func Final(t *Thing) {
+func final(t *Thing) {
 	log.Printf("+++ Thing %d finalized: %s +++\n", t.uniqueId, t.name)
 }
 
@@ -114,6 +121,14 @@ func (t *Thing) IsAlso(thing Interface) bool {
 	return t.uniqueId == thing.UniqueId()
 }
 
+// Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
+// should only be called when the lock is held via a successful Lock call. The
+// reason for the method instead of making the lock in the struct public - you
+// cannot access struct properties direcly through the Interface.
+func (t *Thing) Lock() {
+	t.lock <- true
+}
+
 // Name returns the name given to a Thing.
 func (t *Thing) Name() string {
 	return t.name
@@ -122,4 +137,9 @@ func (t *Thing) Name() string {
 // UniqueId returns the unique ID of a Thing.
 func (t *Thing) UniqueId() UID {
 	return t.uniqueId
+}
+
+// Unlock unlocks a locked Thing. See Lock method for details.
+func (t *Thing) Unlock() {
+	<-t.lock
 }

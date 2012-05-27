@@ -2,7 +2,6 @@ package location
 
 import (
 	"fmt"
-	//"log"
 	"strings"
 	"wolfmud.org/entities/inventory"
 	"wolfmud.org/entities/thing"
@@ -45,8 +44,6 @@ type Interface interface {
 	LinkExit(d direction, to Interface)
 	Look(cmd *command.Command) (handled bool)
 	Broadcast(ommit []thing.Interface, format string, any ...interface{})
-	Lock()
-	Unlock()
 }
 
 type Locateable interface {
@@ -58,27 +55,13 @@ type Location struct {
 	*thing.Thing
 	*inventory.Inventory
 	exits [len(directionNames)]Interface
-	lock  chan bool
 }
 
 func New(name string, aliases []string, description string) *Location {
 	return &Location{
 		Thing:     thing.New(name, aliases, description),
 		Inventory: &inventory.Inventory{},
-		lock:      make(chan bool, 1),
 	}
-}
-
-func (l *Location) Lock() {
-	//log.Printf("Locking %s", l.Name())
-	l.lock <- true
-	//log.Printf("Locked %s", l.Name())
-}
-
-func (l *Location) Unlock() {
-	//log.Printf("Unlocking %s", l.Name())
-	<-l.lock
-	//log.Printf("Unlocked %s", l.Name())
 }
 
 func (l *Location) LinkExit(d direction, to Interface) {
