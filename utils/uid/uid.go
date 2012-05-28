@@ -3,12 +3,12 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// Package UID provides a unique number generator. To get the next unique number
+// Package uid provides a unique number generator. To get the next unique number
 // simply read from the Next channel:
 //
-//  MyId := <- UID.Next
+//  MyId := <- uid.Next
 //
-package UID
+package uid
 
 // UID is currently implemented as a uint64 giving IDs from 1 to
 // 18,446,744,073,709,551,615 or 0x1 to 0xFFFFFFFFFFFFFFFF or 18 Quintillion

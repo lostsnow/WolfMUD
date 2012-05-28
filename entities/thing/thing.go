@@ -20,7 +20,7 @@ import (
 	"log"
 	"runtime"
 	"strings"
-	. "wolfmud.org/utils/UID"
+	. "wolfmud.org/utils/uid"
 	"wolfmud.org/utils/settings"
 )
 
