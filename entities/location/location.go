@@ -3,9 +3,9 @@ package location
 import (
 	"fmt"
 	"strings"
-	"wolfmud.org/entities/inventory"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
+	"wolfmud.org/utils/inventory"
 	"wolfmud.org/utils/responder"
 )
 

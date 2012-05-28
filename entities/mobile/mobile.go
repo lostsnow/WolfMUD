@@ -10,10 +10,10 @@ package mobile
 import (
 	"log"
 	"runtime"
-	"wolfmud.org/entities/inventory"
 	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
+	"wolfmud.org/utils/inventory"
 	"wolfmud.org/utils/settings"
 )
 
@@ -49,7 +49,7 @@ func (m *Mobile) Relocate(l location.Interface) {
 	m.location = l
 }
 
-func (m *Mobile) Locate() (location.Interface) {
+func (m *Mobile) Locate() location.Interface {
 	return m.location
 }
 
