@@ -112,9 +112,9 @@ func (l *Location) Process(cmd *command.Command) (handled bool) {
 		handled = l.move(cmd, WEST)
 	case "NORTHWEST", "NW":
 		handled = l.move(cmd, NORTHWEST)
-	case "UP":
+	case "UP", "U":
 		handled = l.move(cmd, UP)
-	case "DOWN":
+	case "DOWN", "D":
 		handled = l.move(cmd, DOWN)
 	}
 

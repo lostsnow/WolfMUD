@@ -10,7 +10,6 @@ import (
 	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/parser"
-	"wolfmud.org/utils/settings"
 )
 
 const (
@@ -63,10 +62,8 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 	c.parser = player.New(c, world)
 	c.name = c.parser.Name()
 
-	if settings.DebugFinalizers {
-		log.Printf("Client created: %s\n", c.name)
-		runtime.SetFinalizer(c, final)
-	}
+	log.Printf("Client created: %s\n", c.name)
+	runtime.SetFinalizer(c, final)
 
 	go c.receiver()
 	go c.sender()
@@ -129,7 +126,7 @@ func (c *Client) receiver() {
 }
 
 func (c *Client) Send(format string, any ...interface{}) {
-	c.SendWithoutPrompt(format+"\n>", any...)
+	c.SendWithoutPrompt("\n"+format+"\n>", any...)
 }
 
 func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {

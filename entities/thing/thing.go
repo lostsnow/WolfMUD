@@ -21,7 +21,6 @@ import (
 	"runtime"
 	"strings"
 	. "wolfmud.org/utils/uid"
-	"wolfmud.org/utils/settings"
 )
 
 // Interface should be implemented by all entities in WolfMUD. It provides
@@ -62,10 +61,8 @@ func New(name string, aliases []string, description string) *Thing {
 		lock:        make(chan bool, 1),
 	}
 
-	if settings.DebugFinalizers {
-		log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
-		runtime.SetFinalizer(t, final)
-	}
+	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
+	runtime.SetFinalizer(t, final)
 
 	return t
 }

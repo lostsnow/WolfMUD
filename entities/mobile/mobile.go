@@ -14,7 +14,6 @@ import (
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/inventory"
-	"wolfmud.org/utils/settings"
 )
 
 type Interface interface {
@@ -33,10 +32,8 @@ func New(name string, alias []string, description string) *Mobile {
 		Inventory: inventory.New(),
 	}
 
-	if settings.DebugFinalizers {
-		log.Printf("Mobile %d created: %s\n", m.UniqueId(), m.Name())
-		runtime.SetFinalizer(m, final)
-	}
+	log.Printf("Mobile %d created: %s\n", m.UniqueId(), m.Name())
+	runtime.SetFinalizer(m, final)
 
 	return m
 }

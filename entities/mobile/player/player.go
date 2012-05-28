@@ -12,7 +12,6 @@ import (
 	"wolfmud.org/utils/broadcaster"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/sender"
-	"wolfmud.org/utils/settings"
 )
 
 var (
@@ -50,10 +49,8 @@ func New(sender sender.Interface, world broadcaster.Interface) *Player {
 
 	PlayerList.Add(p)
 
-	if settings.DebugFinalizers {
-		log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
-		runtime.SetFinalizer(p, final)
-	}
+	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
+	runtime.SetFinalizer(p, final)
 
 	return p
 }

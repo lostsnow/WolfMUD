@@ -4,7 +4,7 @@
 // included with the source code.
 
 // server is the main executable command used to start a WolfMUD server running.
-// Currently it takes no parameters                                            .
+// Currently it takes no parameters.
 //
 // TODO: There is no technical reason why a server cannot have multiple world
 // instances and run multiple games. Depending on whether we want clients to
@@ -15,8 +15,8 @@ package main
 
 import (
 	"runtime"
-	"wolfmud.org/utils/loader"
 	"wolfmud.org/entities/world"
+	"wolfmud.org/utils/loader"
 )
 
 func main() {
