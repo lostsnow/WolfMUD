@@ -143,7 +143,12 @@ func (l *Location) Look(cmd *command.Command) (handled bool) {
 		}
 	}
 
-	cmd.Respond("%s\n%s\n%s\n\nYou can see exits: %s", l.Name(), l.Description(), strings.Join(thingsHere, "\n"), strings.Join(validExits, ", "))
+	things := ""
+	if len(thingsHere) > 0 {
+		things = strings.Join(thingsHere, "\n")+"\n"
+	}
+
+	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s[WHITE]", l.Name(), l.Description(), things, strings.Join(validExits, ", "))
 
 	return true
 }
@@ -159,13 +164,13 @@ func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 			return true
 		}
 
-		l.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
+		l.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.[WHITE]", cmd.Issuer.Name(), directionNames[d])
 
 		l.Remove(cmd.Issuer)
 
 		cmd.Respond("You go %s.", directionNames[d])
 		to.Add(cmd.Issuer)
-		to.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s walk in.", cmd.Issuer.Name())
+		to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.[WHITE]", cmd.Issuer.Name())
 
 		to.Look(cmd)
 	} else {
