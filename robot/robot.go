@@ -4,6 +4,7 @@ import (
 	crypto "crypto/rand"
 	"flag"
 	"fmt"
+	"io"
 	"math/big"
 	"math/rand"
 	"net"
@@ -47,8 +48,8 @@ func NewBot(launched chan bool) {
 	var buffer [255]byte
 
 	for {
-		baseSpeed := ((rand.Intn(5) + 1) * 100) + 1000
-		steps := 32 + rand.Intn(32)
+		baseSpeed := ((rand.Intn(10) + 1) * 1000) + 1000
+		steps := 250 + rand.Intn(250)
 
 		// Connect to server
 		conn, _ := net.Dial("tcp", "localhost:4001")
@@ -64,7 +65,7 @@ func NewBot(launched chan bool) {
 		}()
 
 		// Script to 'execute'
-		script := []string{"S", "E", "N", "E", "E", "W", "S", "E", "W", "S", "N", "N", "W", "W"}
+		script := "SENEEWNENSEEWWWWNSWNNNWDUESSSWWWNNNSWWESSSSNNNNESSEEEEESSEWSWSNWSNEEESNEEWWWNNWW"
 
 		// Run script Ad infinitum with slight timing variations
 		for stepsToTake := steps; stepsToTake > 0; {
@@ -74,14 +75,15 @@ func NewBot(launched chan bool) {
 					break
 				}
 				runtime.Gosched()
-				time.Sleep(time.Duration(rand.Intn(500)+baseSpeed) * time.Millisecond)
-				conn.Write([]byte(cmd+"\r\n"))
+				time.Sleep(time.Duration((rand.Intn(10)*1000)+baseSpeed) * time.Millisecond)
+				io.WriteString(conn, string(cmd))
+				io.WriteString(conn, "\r\n")
 			}
 		}
 		if rand.Intn(100) < 95 {
 			runtime.Gosched()
 			time.Sleep(time.Duration(rand.Intn(500)+baseSpeed) * time.Millisecond)
-			conn.Write([]byte("QUIT\r\n"))
+			io.WriteString(conn, "QUIT\r\n")
 			time.Sleep(5 * time.Second)
 		}
 		conn.Close()
