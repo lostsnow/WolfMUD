@@ -12,8 +12,14 @@
 // it to a new client instance you practically have a complete but simple TELNET
 // server :)
 //
+// The idea here is to have a client that can talk to any parser. The parser can
+// be anything from a login, a way for creating new players, a mini chat system
+// or an actual player. A typical example usage might be connect and attach to
+// a login parser, once you get a successful login detatch the login parser and
+// connect a player parser.
+//
 // BUG(Diddymus) Currently expects client to be in line mode - won't work with
-//							 windows TELNET currently.
+// windows TELNET currently.
 package client
 
 import (
@@ -43,6 +49,7 @@ const (
     [GREEN]L[WHITE]iving
     [GREEN]F[WHITE]antasy
 
+
 `
 )
 
@@ -61,26 +68,45 @@ var colourTable = map[string]string{
 // regexpLF is a package instance Compiled regex to change LF to CR+LF
 var regexpLF, _ = regexp.Compile("([^\r])\n")
 
+// Interface should be implemented by anything that want's to be a client and
+// interface a TELNET client to the WolfMUD server.
 type Interface interface {
-	Start()
 	Send(format string, any ...interface{})
 	SendWithoutPrompt(format string, any ...interface{})
 }
 
+// Client is the default client implementation.
+//
+// The send channel acts as a demultiplexer serialising and queuing responses
+// back to the TELNET client comming from multiple Goroutines.
+//
+// The senderWakeup channel is used by the receiver Goroutine to wakeup - or
+// timeout - the send channel. The receiver times out reading from the network
+// connection automatically. If the receiver detects we are bailing it wakes up
+// the sender so it too can bail.
 type Client struct {
-	parser       parser.Interface
-	name         string
-	conn         *net.TCPConn
-	bail         bool
-	send         chan string
-	senderWakeup chan bool
-	ending       chan bool
+	parser       parser.Interface // Currently attached parser
+	name         string           // Current name allocated by attached parser
+	conn         *net.TCPConn     // The TELNET network connection
+	bail         bool             // Should the client bail and exit?
+	send         chan string      // channel queues responses from goroutines
+	senderWakeup chan bool				// sender wake up signal
+	ending       chan bool				// Used to wait for sender & receiver to end
 }
 
+// final is used for debugging to make sure the GC is cleaning up
 func final(c *Client) {
 	log.Printf("+++ Client %s finalized +++\n", c.name)
 }
 
+// Spawn manages the main client Goroutine. It creates the client, starts the
+// receiver and sender, waits for them to finish and then cleans up. So it's not
+// called New because it does more than create the client. It not called Run or
+// Start because it does more than that. Spawn seemed like a good name as it
+// spawns a new client and Goroutines :)
+//
+// TODO: Move display of greeting to login parser.
+// TODO: Modify to handle attaching/detatching multiple parsers
 func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 
 	c := &Client{
@@ -110,10 +136,6 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 	if err := c.conn.Close(); err != nil {
 		log.Printf("Error closing socket for %s, %s\n", c.name, err)
 	}
-
-	close(c.ending)
-	close(c.send)
-	close(c.senderWakeup)
 
 	log.Printf("Spawn ending for %s\n", c.name)
 }
@@ -159,7 +181,7 @@ func (c *Client) receiver() {
 }
 
 func (c *Client) Send(format string, any ...interface{}) {
-	c.SendWithoutPrompt("\n[WHITE]"+format+"\n[MAGENTA]>", any...)
+	c.SendWithoutPrompt("[WHITE]"+format+"\n[MAGENTA]>", any...)
 }
 
 func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {

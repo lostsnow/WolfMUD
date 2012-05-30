@@ -67,8 +67,7 @@ func New(name string, aliases []string, description string) *Thing {
 	return t
 }
 
-// final is used by a finalizer for debugging if settings.DebugFinalizers is
-// true.
+// final is used for debugging to make sure the GC is cleaning up
 func final(t *Thing) {
 	log.Printf("+++ Thing %d finalized: %s +++\n", t.uniqueId, t.name)
 }

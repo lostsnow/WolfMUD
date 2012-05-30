@@ -139,7 +139,7 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 		handled := p.Process(cmd)
 		retry = cmd.LocksModified()
 		if handled == false && !retry {
-			p.Respond("Eh?")
+			cmd.Respond("Eh?")
 		}
 	} else {
 		retry = true
@@ -177,7 +177,7 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 func (p *Player) memprof(cmd *command.Command) (handled bool) {
 	f, err := os.Create("memprof")
 	if err != nil {
-		p.Respond("Memory Profile Not Dumped: %s", err)
+		cmd.Respond("Memory Profile Not Dumped: %s", err)
 		return false
 	}
 	pprof.WriteHeapProfile(f)
@@ -196,8 +196,9 @@ func (p *Player) quit(cmd *command.Command) (handled bool) {
 }
 
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
-	p.Respond("You sneeze. Aaahhhccchhhooo!")
-	p.world.Broadcast([]thing.Interface{p}, "You hear a loud sneeze.")
+	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
+	p.Locate().Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
+	p.world.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
 	return true
 }
 
@@ -213,6 +214,6 @@ func (p *Player) who(cmd *command.Command) (handled bool) {
 		msg = "You are all alone in this world."
 	}
 
-	p.Respond(msg)
+	cmd.Respond(msg)
 	return true
 }

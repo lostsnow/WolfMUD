@@ -168,7 +168,6 @@ func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 
 		l.Remove(cmd.Issuer)
 
-		cmd.Respond("You go %s.", directionNames[d])
 		to.Add(cmd.Issuer)
 		to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.[WHITE]", cmd.Issuer.Name())
 
