@@ -5,7 +5,7 @@
 
 // Package client implements a client connecting to the WolfMUD server. It is
 // actually a mini TELNET server - any TELNET client should be able to connect
-// to and talk to client. It supports ANSI forground colour codes and wrapping
+// to and talk to client. It supports ANSI foreground colour codes and wrapping
 // on whitespace.
 //
 // If you take the client package, add some code to accept a connection and pass
@@ -15,12 +15,15 @@
 // The idea here is to have a client that can talk to any parser. The parser can
 // be anything from a login, a way for creating new players, a mini chat system
 // or an actual player. A typical example usage might be connect and attach to
-// a login parser, once you get a successful login detatch the login parser and
+// a login parser, once you get a successful login detach the login parser and
 // connect a player parser.
 //
-// BUG(Diddymus) Currently expects client to be in line mode - won't work with
-// windows TELNET currently.
+// You could also detach from your player and attach to mobiles and 'puppet'
+// them leading to some interesting possibilities ;)
 package client
+
+// BUG(Diddymus): Currently the client package expects TELNET to be in line
+// mode - won't work with windows TELNET currently.
 
 import (
 	"fmt"
@@ -53,12 +56,14 @@ const (
 `
 )
 
-// colourTable maps colour names to ANSI code sequences.
+// colourTable maps colour names to ANSI escape sequences. The sequences are
+// defined in the ECMA-48 standard or ISO/IEC 6429.
 var colourTable = map[string]string{
 	"[BLACK]":   "\033[30m",
 	"[RED]":     "\033[31m",
 	"[GREEN]":   "\033[32m",
-	"[YELLOW]":  "\033[33m",
+	"[YELLOW]":  "\033[33m", // Note ESC [ 33m can be brown or yellow
+	"[BROWN]":   "\033[33m", // So here we have the same code twice
 	"[BLUE]":    "\033[34m",
 	"[MAGENTA]": "\033[35m",
 	"[CYAN]":    "\033[36m",
@@ -90,8 +95,8 @@ type Client struct {
 	conn         *net.TCPConn     // The TELNET network connection
 	bail         bool             // Should the client bail and exit?
 	send         chan string      // channel queues responses from goroutines
-	senderWakeup chan bool				// sender wake up signal
-	ending       chan bool				// Used to wait for sender & receiver to end
+	senderWakeup chan bool        // sender wake up signal
+	ending       chan bool        // Used to wait for sender & receiver to end
 }
 
 // final is used for debugging to make sure the GC is cleaning up
