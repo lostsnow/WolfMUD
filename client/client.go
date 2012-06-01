@@ -38,6 +38,7 @@ import (
 	"wolfmud.org/utils/parser"
 )
 
+// TODO: When we have sorted out global settings Interval needs moving there.
 const (
 	MAX_RETRIES      = 60   // Each retry is 10 seconds
 	SEND_BUFFER_SIZE = 4096 // Number of sending messages to buffer
@@ -145,6 +146,14 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 	log.Printf("Spawn ending for %s\n", c.name)
 }
 
+// receiver is run as a Goroutine to receive data from the user's TELNET
+// client. receive waits on a connection for 10 seconds before timing out.
+// At this point it decrements the idleRetrys counter. If idleRetrys reaches
+// zero the connection will be closed and the inactive user disconnected. Any
+// received data resets the idleRetrys to the value of MAX_RETRIES. This means
+// that and idle session will be disconnected after MAX_RETRIES * 10 seconds.
+//
+// The other half of the connection is handled by the sender Goroutine.
 func (c *Client) receiver() {
 
 	var inBuffer [255]byte
@@ -153,6 +162,7 @@ func (c *Client) receiver() {
 	c.conn.SetLinger(0)
 	idleRetrys := MAX_RETRIES
 
+	// Loop on connection until we bail out or run out of retries
 	for ; !c.bail && idleRetrys > 0; idleRetrys-- {
 		c.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
@@ -209,6 +219,13 @@ func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
 	}
 }
 
+// sender is run as a Goroutine to send data to the user's TELNET client. Unlike
+// the receiver Goroutine this method blocks reading from the send channel which
+// is used to serialise multiple messages arriving from multiple Goroutines.
+// Due to this a boolean can be sent on the senderWakeup channel to 'timeout'
+// the blocking. This is commonly used when the receiver Goroutine notices a
+// problem, sets the bail flag and then wakes up the sender so that it takes
+// notice and ends.
 func (c *Client) sender() {
 
 	for !c.bail {
