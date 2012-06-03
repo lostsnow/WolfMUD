@@ -8,18 +8,18 @@
 // to and talk to client. It supports ANSI foreground colour codes and wrapping
 // on whitespace.
 //
-// If you take the client package, add some code to accept a connection and pass
-// it to a new client instance you practically have a complete but simple TELNET
-// server :)
+// If you take the client package, write some code to accept a connection and
+// pass it to client.Spawn you practically have a simple TELNET server that can
+// be extended and used for a number of projects :)
 //
-// The idea here is to have a client that can talk to any parser. The parser can
-// be anything from a login, a way for creating new players, a mini chat system
-// or an actual player. A typical example usage might be connect and attach to
-// a login parser, once you get a successful login detach the login parser and
+// The idea here is to have a client that can talk to any parser. The parser
+// can be anything from a login, a menu system, a mini chat system or an actual
+// player session. A typical example usage might be connect and attach to a
+// login parser, once you get a successful login detach the login parser and
 // connect a player parser.
 //
-// You could also detach from your player and attach to mobiles and 'puppet'
-// them leading to some interesting possibilities ;)
+// You could also detach from your player's parser and attach to a mobile's
+// parser and 'puppet' them leading to some interesting possibilities ;)
 package client
 
 // BUG(Diddymus): Currently the client package expects TELNET to be in line
@@ -38,11 +38,13 @@ import (
 	"wolfmud.org/utils/parser"
 )
 
-// TODO: When we have sorted out global settings Interval needs moving there.
+// TODO: When we have sorted out global settings some of these need moving
+// there.
 const (
-	MAX_RETRIES      = 60   // Each retry is 10 seconds
-	SEND_BUFFER_SIZE = 4096 // Number of sending messages to buffer
-	TERM_WIDTH       = 80   // fold wrapping length - see fold function
+	MAX_RETRIES      = 60             // Each retry is 10 seconds
+	SEND_BUFFER_SIZE = 4096           // Number of sending messages to buffer
+	TERM_WIDTH       = 80             // fold wrapping length - see fold function
+	PROMPT           = "\n[MAGENTA]>" // Default prompt
 
 	GREETING = `
 
@@ -59,29 +61,26 @@ const (
 
 // colourTable maps colour names to ANSI escape sequences. The sequences are
 // defined in the ECMA-48 standard or ISO/IEC 6429.
+//
+// TODO: Add more codes like background colours, underline, bold, normal ???
 var colourTable = map[string]string{
 	"[BLACK]":   "\033[30m",
 	"[RED]":     "\033[31m",
 	"[GREEN]":   "\033[32m",
 	"[YELLOW]":  "\033[33m", // Note ESC [ 33m can be brown or yellow
-	"[BROWN]":   "\033[33m", // So here we have the same code twice
+	"[BROWN]":   "\033[33m", // So here we have the same escape code twice
 	"[BLUE]":    "\033[34m",
 	"[MAGENTA]": "\033[35m",
 	"[CYAN]":    "\033[36m",
 	"[WHITE]":   "\033[37m",
 }
 
-// regexpLF is a package instance Compiled regex to change LF to CR+LF
+// regexpLF is a package instance compiled regex to change LF to CR+LF
 var regexpLF, _ = regexp.Compile("([^\r])\n")
 
-// Interface should be implemented by anything that want's to be a client and
-// interface a TELNET client to the WolfMUD server.
-type Interface interface {
-	Send(format string, any ...interface{})
-	SendWithoutPrompt(format string, any ...interface{})
-}
-
 // Client is the default client implementation.
+//
+// The Client type implements the sender interface.
 //
 // The send channel acts as a demultiplexer serialising and queuing responses
 // back to the TELNET client comming from multiple Goroutines.
@@ -174,7 +173,7 @@ func (c *Client) receiver() {
 		} else {
 			input := strings.TrimSpace(string(inBuffer[0:b]))
 			c.parser.Parse(input)
-			if c.parser.Quitting() {
+			if c.parser.IsQuitting() {
 				c.bail = true
 			}
 			idleRetrys = MAX_RETRIES + 1
@@ -195,10 +194,24 @@ func (c *Client) receiver() {
 	c.ending <- true
 }
 
+// Send takes a message with parameters, adds a prompt and sends the message on
+// it's way to the client. Send is modelled after the fmt.Sprintf function and
+// takes a format string and parameters in the same way. In addition the current
+// prompt is added to the end of the message. Actual processing is handled by
+// the client.SendWithoutPrompt method.
+//
+// TODO: Handle multiple user selectable prompts
 func (c *Client) Send(format string, any ...interface{}) {
-	c.SendWithoutPrompt("[WHITE]"+format+"\n[MAGENTA]>", any...)
+	c.SendWithoutPrompt("[WHITE]"+format+PROMPT, any...)
 }
 
+// SendWithoutPrompt takes a message with parameters and sends the message to
+// the client's send channel. SendWithoutPrompt is modelled after the
+// fmt.Sprintf function and takes a format string and parameters in the same
+// way.
+//
+// NOTE: Would it be better to put the colourize, fold and other text
+// processing into the sender method? Pros & Cons?
 func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
 	if c.bail {
 		//log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
@@ -250,14 +263,16 @@ func (c *Client) sender() {
 	c.ending <- true
 }
 
-// fold takes a string of text and turns its into lines of TERM_WIDTH length
+// BUG(Diddymus): fold assumes control sequences are 5 bytes long. When we add
+// more control sequences they probably won't be 5 bytes long.
+
+// fold takes a string of text and turns it into lines of TERM_WIDTH length
 // breaking on whitespace. The text may contain ANSI colour codes in the format
 // \033[xxm - for values of xx see the definition of colourTable. Line endings
-// are expected to be Linefeeds only - LF, \n or 0x0A - normal for *nix systems.
+// are expected to be Linefeeds only - LF, \n or 0x0A - common on *nix systems.
 //
 // TODO: Softcode TERM_WIDTH via a user/player setting.
 //
-// TODO: Assumes control sequences are 5 bytes.
 //
 // TODO: Could probably use some Unicode love.
 //
@@ -297,7 +312,7 @@ func fold(in string) (out string) {
 //
 //	"[RED]C[GREEN]o[YELLOW]l[BLUE]o[MAGENTA]u[CYAN]r"
 //
-// Prints "Colours" each letter in a different colour.
+// Prints "Colour" each letter in a different colour.
 //
 // TODO: Extend to include background colours?
 func colourize(in string) (out string) {

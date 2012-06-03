@@ -1,7 +1,7 @@
-//	Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
 //
-//	Use of this source code is governed by the license in the LICENSE file
-//	included with the source code.
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
 
 // Package responder implements a standard way to send responses to players.
 package responder

@@ -18,14 +18,19 @@ import (
 	"wolfmud.org/utils/stats"
 )
 
+const (
+	HOST = "127.0.0.1" // Host to listen on
+	PORT = "4001"      // Port to listen on
+)
+
 // World represents a single game world. It has references to all of the
 // locations available in it.
 type World struct {
 	locations []location.Interface
 }
 
-// Create brings a new world into existance and returns a reference to it.
-func Create() *World {
+// New creates a new World and returns a reference to it.
+func New() *World {
 	return &World{}
 }
 
@@ -36,7 +41,7 @@ func (w *World) Genesis() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.Println("Starting WolfMUD server...")
 
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:4001")
+	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(HOST, PORT))
 	if err != nil {
 		log.Printf("Error resolving TCP address, %s. Server will now exit.\n", err)
 		return
@@ -69,7 +74,7 @@ func (w *World) AddLocation(l location.Interface) {
 }
 
 func (w *World) AddThing(t thing.Interface) {
-	id := 0 //t.UniqueId() % 15
+	id := 0
 	w.locations[id].Lock()
 	w.locations[id].Add(t)
 	w.locations[id].Unlock()

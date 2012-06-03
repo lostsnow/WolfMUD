@@ -23,7 +23,7 @@ func main() {
 
 	runtime.MemProfileRate = int(1)
 
-	world := world.Create()
+	world := world.New()
 	loader.Load(world)
 	world.Genesis()
 

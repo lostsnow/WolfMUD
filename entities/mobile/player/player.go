@@ -59,7 +59,7 @@ func final(p *Player) {
 	log.Printf("+++ %s finalized +++\n", p.name)
 }
 
-func (p *Player) Quitting() bool {
+func (p *Player) IsQuitting() bool {
 	p.Lock()
 	defer p.Unlock()
 	return p.quitting
@@ -71,7 +71,7 @@ func (p *Player) Destroy() {
 
 	log.Printf("Destroy: %s\n", name)
 
-	if p.Quitting() {
+	if p.IsQuitting() {
 		log.Printf("%s is quitting @ %s", name, p.Locate().Name())
 		p.Locate().Broadcast(nil, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", name)
 	}
@@ -79,7 +79,7 @@ func (p *Player) Destroy() {
 	for !p.remove() {
 	}
 
-	if !p.Quitting() {
+	if !p.IsQuitting() {
 		p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 	}
 
