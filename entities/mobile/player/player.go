@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/broadcaster"
+	"wolfmud.org/utils/responder/broadcaster"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/sender"
 )

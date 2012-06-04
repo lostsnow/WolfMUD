@@ -6,8 +6,7 @@
 // BUG(Diddymus): This package is badly defined and needs reviewing. The
 // Broadcast function should take a slice of responder.Interface and not
 // thing.Interface. The AddThing method should not be here at all but is needed
-// to add to the world which implements the broadcaster.Interface. Possibly
-// broadcaster should be a sub package of the responder package?
+// to add to the world which implements the broadcaster.Interface
 
 // Package broadcaster defines the Interface for sending messages to multiple
 // responders.

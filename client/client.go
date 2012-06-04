@@ -34,7 +34,7 @@ import (
 	"strings"
 	"time"
 	"wolfmud.org/entities/mobile/player"
-	"wolfmud.org/utils/broadcaster"
+	"wolfmud.org/utils/responder/broadcaster"
 	"wolfmud.org/utils/parser"
 )
 
