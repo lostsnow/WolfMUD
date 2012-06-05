@@ -21,7 +21,8 @@ const (
 )
 
 // World represents a single game world. It has references to all of the
-// locations available in it.
+// locations available in it. The locations could be held in an inventory but
+// that is overkill in this situation so we use a slice of locations.
 type World struct {
 	locations []location.Interface
 }
