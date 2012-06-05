@@ -8,13 +8,10 @@
 package world
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"wolfmud.org/client"
 	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/mobile/player"
-	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/stats"
 )
 
@@ -63,7 +60,7 @@ func (w *World) Genesis() {
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
-			go client.Spawn(conn, w)
+			go client.Spawn(conn, w.locations[0])
 		}
 	}
 }
@@ -71,19 +68,4 @@ func (w *World) Genesis() {
 // AddLocation adds a location to the list of locations for this world.
 func (w *World) AddLocation(l location.Interface) {
 	w.locations = append(w.locations, l)
-}
-
-func (w *World) AddThing(t thing.Interface) {
-	id := 0
-	w.locations[id].Lock()
-	w.locations[id].Add(t)
-	w.locations[id].Unlock()
-}
-
-func (w *World) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
-	msg := fmt.Sprintf("\n"+format, any...)
-
-	for _, p := range player.PlayerList.List(omit...) {
-		p.Respond(msg)
-	}
 }

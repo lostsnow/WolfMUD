@@ -34,7 +34,7 @@ import (
 	"strings"
 	"time"
 	"wolfmud.org/entities/mobile/player"
-	"wolfmud.org/utils/responder/broadcaster"
+	"wolfmud.org/entities/location"
 	"wolfmud.org/utils/parser"
 )
 
@@ -110,9 +110,12 @@ func final(c *Client) {
 // Start because it does more than that. Spawn seemed like a good name as it
 // spawns a new client and Goroutines :)
 //
+// The location passed in is used as the starting location. However this will
+// probably change once proper logins are working.
+//
 // TODO: Move display of greeting to login parser.
 // TODO: Modify to handle attaching/detatching multiple parsers
-func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
+func Spawn(conn *net.TCPConn, l location.Interface) {
 
 	c := &Client{
 		conn:         conn,
@@ -123,7 +126,7 @@ func Spawn(conn *net.TCPConn, world broadcaster.Interface) {
 
 	c.SendWithoutPrompt(GREETING)
 
-	c.parser = player.New(c, world)
+	c.parser = player.New(c, l)
 	c.name = c.parser.Name()
 
 	log.Printf("Client created: %s\n", c.name)

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/responder/broadcaster"
+	"wolfmud.org/entities/location"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/sender"
 )
@@ -21,12 +21,11 @@ var (
 type Player struct {
 	*mobile.Mobile
 	sender   sender.Interface
-	world    broadcaster.Interface
 	name     string
 	quitting bool
 }
 
-func New(sender sender.Interface, world broadcaster.Interface) *Player {
+func New(sender sender.Interface, l location.Interface) *Player {
 
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
@@ -38,13 +37,14 @@ func New(sender sender.Interface, world broadcaster.Interface) *Player {
 	p := &Player{
 		Mobile: mobile.New(name, alias, description),
 		sender: sender,
-		world:  world,
 	}
 	p.name = p.Name()
 
 	// Put player into the world, announce and describe location
-	world.AddThing(p)
-	p.Locate().Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	l.Lock()
+	l.Add(p)
+	l.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	l.Unlock()
 	p.Parse("LOOK")
 
 	PlayerList.Add(p)
@@ -80,10 +80,9 @@ func (p *Player) Destroy() {
 	}
 
 	if !p.IsQuitting() {
-		p.world.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
+		PlayerList.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 	}
 
-	p.world = nil
 	p.sender = nil
 	p.Mobile = nil
 
@@ -198,7 +197,7 @@ func (p *Player) quit(cmd *command.Command) (handled bool) {
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
 	p.Locate().Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
-	p.world.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
+	PlayerList.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
 	return true
 }
 
