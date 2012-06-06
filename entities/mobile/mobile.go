@@ -57,15 +57,10 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 		handled = m.inv(cmd)
 	}
 
-	// Pass up to embeded thing?
-	//if handled == false {
-	//	handled = m.Thing.Process(cmd)
-	//}
-
 	if m.IsAlso(cmd.Issuer) {
-		//if handled == false {
-		//	handled = m.Inventory.delegate(cmd)
-		//}
+		if handled == false {
+			handled = m.Inventory.Delegate(cmd)
+		}
 
 		if handled == false {
 			l := m.location

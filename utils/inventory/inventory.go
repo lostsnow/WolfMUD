@@ -11,6 +11,7 @@ package inventory
 
 import (
 	"wolfmud.org/entities/thing"
+	"wolfmud.org/utils/command"
 )
 
 const (
@@ -100,4 +101,25 @@ OMIT:
 	}
 
 	return
+}
+
+// Delegate delegates commands to an invenotry's items. This is most useful
+// when processing commands for a location and the location cannot process the
+// command it passes it on to somethning else that might be able to.
+func (i *Inventory) Delegate(cmd *command.Command) (handled bool) {
+	for _, thing := range i.contents {
+
+		// Don't process the command issuer - gets very recursive!
+		if thing.IsAlso(cmd.Issuer) {
+			continue
+		}
+
+		if thing, ok := thing.(command.Interface); ok {
+			handled = thing.Process(cmd)
+			if handled {
+				return true
+			}
+		}
+	}
+	return false
 }

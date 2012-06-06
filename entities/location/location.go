@@ -3,6 +3,11 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
+// Package location defines all of the location types. Objects or mobiles can
+// be 'at' a location if they are in the locations inventory. Locations are
+// also the main locking mechanism in WolfMUD. By locking a location - usually
+// indirectly via a Command - nothing else can touch the location or it's
+// inventory which any changes are made. See the Command type for more details.
 package location
 
 import (
@@ -14,8 +19,16 @@ import (
 	"wolfmud.org/utils/responder"
 )
 
+// direction type that can be easily change if needed
 type direction uint8
 
+// Constants for directions for indexing. These constants can be used to index
+// the directionNames array or the exits array in the Location struct using
+// either the long or short constant name. For example:
+//
+// directionNames[location.S] is "South" l.exits[location.South] retrieves the
+// south exit for l
+//
 const (
 	N, NORTH direction = iota, iota
 	NE, NORTHEAST
@@ -29,6 +42,11 @@ const (
 	D, DOWN
 )
 
+// directionNames are a map between a direction type and the textual name. This
+// array can be indexed using the direction constants. For example:
+//
+//	directionNames[location.S] is "South"
+//
 var directionNames = [...]string{
 	N:  "North",
 	NE: "Northeast",
@@ -42,6 +60,8 @@ var directionNames = [...]string{
 	D:  "Down",
 }
 
+// Interface defines the methods for a basic location that all derived location
+// types should implement.
 type Interface interface {
 	thing.Interface
 	command.Interface
@@ -51,17 +71,39 @@ type Interface interface {
 	Broadcast(omit []thing.Interface, format string, any ...interface{})
 }
 
+// Locateable defines the interface for something that has a location or can be
+// moved from/to a location. For example a mobile.
 type Locateable interface {
-	Relocate(Interface)
-	Locate() Interface
+	Relocate(Interface) // Relocates a Locateable to a new location
+	Locate() Interface  // Locate gets a Locateable's current location
 }
 
+type exits [len(directionNames)]Interface
+
+func (e exits) String() string {
+	validExits := make([]string, 0, len(directionNames))
+	for d, l := range e {
+		if l != nil {
+			validExits = append(validExits, directionNames[d])
+		}
+	}
+	return strings.Join(validExits, ", ")
+}
+
+// Location provides a default location implementation
 type Location struct {
 	*thing.Thing
 	*inventory.Inventory
-	exits [len(directionNames)]Interface
+	exits exits
 }
 
+// New creates a new Location and returns a reference to it.
+//
+// NOTE: We could save memory at the cost of performance by not allocating the
+// Inventory until something is added - via Add. We could also set it to nil
+// when the last Thing is removed - via Remove. Performance wise we would incur
+// a penality creating the Inventory and also create a lot more for the GC to
+// handle?
 func New(name string, aliases []string, description string) *Location {
 	return &Location{
 		Thing:     thing.New(name, aliases, description),
@@ -69,10 +111,15 @@ func New(name string, aliases []string, description string) *Location {
 	}
 }
 
+// LinkExit links one location to another in the direction given. This is
+// normally only done at setup time when the world is initially loaded.
+//
+// NOTE: The Java version had softlinking - is it still needed?
 func (l *Location) LinkExit(d direction, to Interface) {
 	l.exits[d] = to
 }
 
+// Add puts a Thing at this location.
 func (l *Location) Add(thing thing.Interface) {
 	if t, ok := thing.(Locateable); ok {
 		t.Relocate(l)
@@ -80,6 +127,7 @@ func (l *Location) Add(thing thing.Interface) {
 	l.Inventory.Add(thing)
 }
 
+// Remove takes a Thing from this location.
 func (l *Location) Remove(thing thing.Interface) {
 	if t, ok := thing.(Locateable); ok {
 		t.Relocate(nil)
@@ -87,6 +135,8 @@ func (l *Location) Remove(thing thing.Interface) {
 	l.Inventory.Remove(thing)
 }
 
+// Broadcast sends a message to all responders at this location. This
+// implements the broadcast.Interface - see that for more details.
 func (l *Location) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	msg := fmt.Sprintf("\n"+format, any...)
 
@@ -97,6 +147,8 @@ func (l *Location) Broadcast(omit []thing.Interface, format string, any ...inter
 	}
 }
 
+// Process implements the command.Interface to handle location specific
+// commands.
 func (l *Location) Process(cmd *command.Command) (handled bool) {
 	switch cmd.Verb {
 	case "LOOK", "L":
@@ -124,42 +176,33 @@ func (l *Location) Process(cmd *command.Command) (handled bool) {
 	}
 
 	if handled == false {
-		//handled = l.thing.Process(cmd)
-	}
-
-	if handled == false {
-		//handled = l.Inventory.delegate(cmd)
+		handled = l.Inventory.Delegate(cmd)
 	}
 
 	return handled
 }
 
+// BUG(Diddymus): The Java version listed mobiles before other things in Look.
+
+// TODO: At the expense of memory, performance could be improved by caching
+// location descriptions. The description would only change if the inventory
+// changed.
 func (l *Location) Look(cmd *command.Command) (handled bool) {
 
-	thingsHere := []string{}
-	for _, o := range l.Inventory.List(cmd.Issuer) {
+	list := l.Inventory.List(cmd.Issuer)
+	thingsHere := make([]string, 0, len(list))
+	for _, o := range list {
 		thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
-	}
-
-	validExits := []string{}
-	for d, l := range l.exits {
-		if l != nil {
-			validExits = append(validExits, directionNames[d])
-		}
 	}
 
 	things := ""
 	if len(thingsHere) > 0 {
-		things = strings.Join(thingsHere, "\n")+"\n"
+		things = strings.Join(thingsHere, "\n") + "\n"
 	}
 
-	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", l.Name(), l.Description(), things, strings.Join(validExits, ", "))
+	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", l.Name(), l.Description(), things, l.exits)
 
 	return true
-}
-
-func (l *Location) Move(d direction) (to Interface) {
-	return l.exits[d]
 }
 
 func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
@@ -169,9 +212,8 @@ func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 			return true
 		}
 
-		l.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
-
 		l.Remove(cmd.Issuer)
+		l.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
 
 		to.Add(cmd.Issuer)
 		to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.", cmd.Issuer.Name())
