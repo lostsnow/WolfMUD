@@ -114,6 +114,7 @@ func final(c *Client) {
 // probably change once proper logins are working.
 //
 // TODO: Move display of greeting to login parser.
+//
 // TODO: Modify to handle attaching/detatching multiple parsers
 func Spawn(conn *net.TCPConn, l location.Interface) {
 
@@ -275,7 +276,6 @@ func (c *Client) sender() {
 // are expected to be Linefeeds only - LF, \n or 0x0A - common on *nix systems.
 //
 // TODO: Softcode TERM_WIDTH via a user/player setting.
-//
 //
 // TODO: Could probably use some Unicode love.
 //

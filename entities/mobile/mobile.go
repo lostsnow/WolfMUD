@@ -1,10 +1,11 @@
-/*
-	Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
 
-	Use of this source code is governed by the license in the LICENSE file
-	included with the source code.
-*/
-
+// Package mobile defines the most basic type of mobile. A mobile is any
+// computer controlled non-player character and includes creatures, monsters,
+// fogs, gelatinous cubes or anything else you can think of.
 package mobile
 
 import (
@@ -16,16 +17,14 @@ import (
 	"wolfmud.org/utils/inventory"
 )
 
-type Interface interface {
-	Relocate(l location.Interface)
-}
-
+// Mobile provides a default basic implementation of a mobile.
 type Mobile struct {
 	*thing.Thing
 	*inventory.Inventory
 	location location.Interface
 }
 
+// New creates a new Mobile and returns a reference to it.
 func New(name string, alias []string, description string) *Mobile {
 	m := &Mobile{
 		Thing:     thing.New(name, alias, description),
@@ -38,18 +37,25 @@ func New(name string, alias []string, description string) *Mobile {
 	return m
 }
 
+// final is used for debugging to make sure the GC is cleaning up
 func final(m *Mobile) {
 	log.Printf("+++ Mobile %d finalized: %s +++\n", m.UniqueId(), m.Name())
 }
 
+// Relocate sets a mobile's internal location reference. It implements part of
+// the location.Locateable interface.
 func (m *Mobile) Relocate(l location.Interface) {
 	m.location = l
 }
 
+// Locate gets a mobile's internal location reference. It implements part of
+// the location.Locateable interface.
 func (m *Mobile) Locate() location.Interface {
 	return m.location
 }
 
+// Process implements the command.Interface to handle location specific
+// commands.
 func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 
 	switch cmd.Verb {
@@ -73,6 +79,12 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 	return
 }
 
+// inv implements the 'INVENTORY' command. This provides information about what
+// a mobile is currently carrying. Currently a mobile can only examine it's own
+// inventory - but someone like a theif might find it handy to look into someone
+// elses inventory ;)
+//
+// TODO: Currently very basic, needs to deal with held, weilded, worn items.
 func (m *Mobile) inv(cmd *command.Command) (handled bool) {
 
 	response := ""

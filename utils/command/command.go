@@ -24,6 +24,7 @@ import (
 // - but it WAS still handled.
 //
 // TODO: Beef up description when examples available.
+//
 // TODO: Need to document locking
 type Interface interface {
 	Process(*Command) (handled bool)

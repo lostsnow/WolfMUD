@@ -21,7 +21,7 @@ import (
 
 func main() {
 
-	runtime.MemProfileRate = int(1)
+	runtime.MemProfileRate = int(0)
 
 	world := world.New()
 	loader.Load(world)

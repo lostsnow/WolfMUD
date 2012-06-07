@@ -1,3 +1,9 @@
+// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
+
+// Package player defines an actual human player in the game.
 package player
 
 import (
@@ -14,10 +20,17 @@ import (
 	"wolfmud.org/utils/sender"
 )
 
+// playerCount increments with each player created so we can have unique
+// players - created as 'Player n' until we have proper logins.
+//
+// TODO: Drop playerCount once we have proper logins.
 var (
 	playerCount = 0
 )
 
+// Player is the implementation of a player. Most of the functionallity comes
+// from the Mobile type and methods to implement the parser Interface. Apart
+// from the parser interface methods Player only contains Player specific code.
 type Player struct {
 	*mobile.Mobile
 	sender   sender.Interface
@@ -25,6 +38,7 @@ type Player struct {
 	quitting bool
 }
 
+// New creates a new Player and returns a reference to it.
 func New(sender sender.Interface, l location.Interface) *Player {
 
 	playerCount++
@@ -40,10 +54,16 @@ func New(sender sender.Interface, l location.Interface) *Player {
 	}
 	p.name = p.Name()
 
-	// Put player into the world, announce and describe location
+	// Put player into the world, announce arrival and describe location
 	l.Lock()
 	l.Add(p)
-	l.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+
+	l.Broadcast(
+		[]thing.Interface{p},
+		"There is a puff of smoke and %s appears spluttering and coughing.",
+		p.Name(),
+	)
+
 	l.Unlock()
 	p.Parse("LOOK")
 
@@ -55,16 +75,21 @@ func New(sender sender.Interface, l location.Interface) *Player {
 	return p
 }
 
+// final is used for debugging to make sure the GC is cleaning up
 func final(p *Player) {
 	log.Printf("+++ %s finalized +++\n", p.name)
 }
 
+// IsQuitting returns true if the player is trying to quit otherwise false. It
+// implements part of the parser.Interface.
 func (p *Player) IsQuitting() bool {
 	p.Lock()
 	defer p.Unlock()
 	return p.quitting
 }
 
+// Destroy should cleanly shutdown the Parser when called. It implements part
+// of the parser.Interface.
 func (p *Player) Destroy() {
 
 	name := p.Name()
@@ -76,9 +101,11 @@ func (p *Player) Destroy() {
 		p.Locate().Broadcast(nil, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", name)
 	}
 
+	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
 
+	// Involuntary disconnection?
 	if !p.IsQuitting() {
 		PlayerList.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
 	}
@@ -89,6 +116,7 @@ func (p *Player) Destroy() {
 	log.Printf("Destroyed: %s\n", name)
 }
 
+// remove extracts a player from the world cleanly.
 func (p *Player) remove() (removed bool) {
 	l := p.Locate()
 	l.Lock()

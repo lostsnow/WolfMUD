@@ -129,6 +129,11 @@ func (t *Thing) Lock() {
 	t.lock <- true
 }
 
+// Unlock unlocks a locked Thing. See Lock method for details.
+func (t *Thing) Unlock() {
+	<-t.lock
+}
+
 // Name returns the name given to a Thing.
 func (t *Thing) Name() string {
 	return t.name
@@ -137,9 +142,4 @@ func (t *Thing) Name() string {
 // UniqueId returns the unique ID of a Thing.
 func (t *Thing) UniqueId() UID {
 	return t.uniqueId
-}
-
-// Unlock unlocks a locked Thing. See Lock method for details.
-func (t *Thing) Unlock() {
-	<-t.lock
 }

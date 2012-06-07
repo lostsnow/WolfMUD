@@ -26,8 +26,8 @@ type direction uint8
 // the directionNames array or the exits array in the Location struct using
 // either the long or short constant name. For example:
 //
-// directionNames[location.S] is "South" l.exits[location.South] retrieves the
-// south exit for l
+//	directionNames[location.S] is "South"
+//	l.directionalExits[location.South] retrieves the south exit for l
 //
 const (
 	N, NORTH direction = iota, iota
@@ -60,6 +60,32 @@ var directionNames = [...]string{
 	D:  "Down",
 }
 
+// directionalExits hold the available directional exits from a location. There
+// may be other exits implemented by things such as chutes or portals but these
+// exits are not directional. The primary purpose of defining exits as a type is
+// so that we can add a handy String method.
+type directionalExits [len(directionNames)]Interface
+
+// String returns the available directional exits from a location as a plain
+// string with each direction separated by commas. For example:
+//
+//	"East, Southeast, South"
+//
+// TODO: Implement long exits
+//
+// TODO: Implement 'blocked' exits which are not described. For example if
+// there is a door to the west and the exit 'west' should not be described
+// unless the door is opened.
+func (e directionalExits) String() string {
+	validExits := make([]string, 0, len(directionNames))
+	for d, l := range e {
+		if l != nil {
+			validExits = append(validExits, directionNames[d])
+		}
+	}
+	return strings.Join(validExits, ", ")
+}
+
 // Interface defines the methods for a basic location that all derived location
 // types should implement.
 type Interface interface {
@@ -78,23 +104,11 @@ type Locateable interface {
 	Locate() Interface  // Locate gets a Locateable's current location
 }
 
-type exits [len(directionNames)]Interface
-
-func (e exits) String() string {
-	validExits := make([]string, 0, len(directionNames))
-	for d, l := range e {
-		if l != nil {
-			validExits = append(validExits, directionNames[d])
-		}
-	}
-	return strings.Join(validExits, ", ")
-}
-
 // Location provides a default location implementation
 type Location struct {
 	*thing.Thing
 	*inventory.Inventory
-	exits exits
+	directionalExits
 }
 
 // New creates a new Location and returns a reference to it.
@@ -116,7 +130,7 @@ func New(name string, aliases []string, description string) *Location {
 //
 // NOTE: The Java version had softlinking - is it still needed?
 func (l *Location) LinkExit(d direction, to Interface) {
-	l.exits[d] = to
+	l.directionalExits[d] = to
 }
 
 // Add puts a Thing at this location.
@@ -153,6 +167,8 @@ func (l *Location) Process(cmd *command.Command) (handled bool) {
 	switch cmd.Verb {
 	case "LOOK", "L":
 		handled = l.Look(cmd)
+	case "EXITS", "EX":
+		handled = l.exits(cmd)
 	case "NORTH", "N":
 		handled = l.move(cmd, NORTH)
 	case "NORTHEAST", "NE":
@@ -184,9 +200,13 @@ func (l *Location) Process(cmd *command.Command) (handled bool) {
 
 // BUG(Diddymus): The Java version listed mobiles before other things in Look.
 
-// TODO: At the expense of memory, performance could be improved by caching
-// location descriptions. The description would only change if the inventory
-// changed.
+// Look implements the 'LOOK' command. It describes the location displaying the
+// title, description, things and directional exits.
+//
+// TODO: Implement brief mode.
+//
+// TODO: Implement looking in a specific direction with a maximum viewing
+// distance.
 func (l *Location) Look(cmd *command.Command) (handled bool) {
 
 	list := l.Inventory.List(cmd.Issuer)
@@ -200,13 +220,22 @@ func (l *Location) Look(cmd *command.Command) (handled bool) {
 		things = strings.Join(thingsHere, "\n") + "\n"
 	}
 
-	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", l.Name(), l.Description(), things, l.exits)
+	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", l.Name(), l.Description(), things, l.directionalExits)
 
 	return true
 }
 
+// exits implements the 'EXITS' command. It display the currently available
+// directional exits from the location.
+func (l *Location) exits(cmd *command.Command) (handled bool) {
+	cmd.Respond("[CYAN]You can see exits: [YELLOW]%s", l.directionalExits)
+	return true
+}
+
+// move implements the directional movement commands. This allows movement from
+// location to location by typing a direction such as N or North.
 func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
-	if to := l.exits[d]; to != nil {
+	if to := l.directionalExits[d]; to != nil {
 		if !cmd.CanLock(to) {
 			cmd.AddLock(to)
 			return true
