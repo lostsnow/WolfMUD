@@ -162,8 +162,15 @@ func (l *Location) Broadcast(omit []thing.Interface, format string, any ...inter
 }
 
 // Process implements the command.Interface to handle location specific
-// commands.
+// commands. First we see if anything at the location can process the command
+// and then the location itself. By handling commands in this order anything at
+// a location: doors, barriers, guards, etc - can effect movement easily.
 func (l *Location) Process(cmd *command.Command) (handled bool) {
+
+	if handled = l.Inventory.Delegate(cmd); handled {
+		return
+	}
+
 	switch cmd.Verb {
 	case "LOOK", "L":
 		handled = l.Look(cmd)
@@ -191,11 +198,7 @@ func (l *Location) Process(cmd *command.Command) (handled bool) {
 		handled = l.move(cmd, DOWN)
 	}
 
-	if handled == false {
-		handled = l.Inventory.Delegate(cmd)
-	}
-
-	return handled
+	return
 }
 
 // BUG(Diddymus): The Java version listed mobiles before other things in Look.

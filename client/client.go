@@ -44,7 +44,7 @@ const (
 	MAX_RETRIES      = 60             // Each retry is 10 seconds
 	SEND_BUFFER_SIZE = 4096           // Number of sending messages to buffer
 	TERM_WIDTH       = 80             // fold wrapping length - see fold function
-	PROMPT           = "\n[MAGENTA]>" // Default prompt
+	PROMPT           = "[MAGENTA]>" // Default prompt
 
 	GREETING = `
 
@@ -176,7 +176,11 @@ func (c *Client) receiver() {
 			}
 		} else {
 			input := strings.TrimSpace(string(inBuffer[0:b]))
-			c.parser.Parse(input)
+			if input == "" {
+				c.Send("");
+			} else {
+				c.parser.Parse(input)
+			}
 			if c.parser.IsQuitting() {
 				c.bail = true
 			}
@@ -204,9 +208,18 @@ func (c *Client) receiver() {
 // prompt is added to the end of the message. Actual processing is handled by
 // the client.SendWithoutPrompt method.
 //
+// If the format string is empty we can take a shortcut and just redisplay the
+// prompt. Otherwise we process the whole enchilada making sure the prompt is on
+// a new line when displayed.
+//
 // TODO: Handle multiple user selectable prompts
 func (c *Client) Send(format string, any ...interface{}) {
-	c.SendWithoutPrompt("[WHITE]"+format+PROMPT, any...)
+	if format == "" {
+		c.SendWithoutPrompt(PROMPT)
+	} else {
+		any = append(any, "\n", PROMPT)
+		c.SendWithoutPrompt("[WHITE]"+format+"%s%s", any...)
+	}
 }
 
 // SendWithoutPrompt takes a message with parameters and sends the message to

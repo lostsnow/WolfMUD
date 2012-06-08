@@ -54,20 +54,12 @@ func New(sender sender.Interface, l location.Interface) *Player {
 	}
 	p.name = p.Name()
 
-	// Put player into the world, announce arrival and describe location
-	l.Lock()
-	l.Add(p)
+	// Put player into the world
+	p.add(l)
 
-	l.Broadcast(
-		[]thing.Interface{p},
-		"There is a puff of smoke and %s appears spluttering and coughing.",
-		p.Name(),
-	)
-
-	l.Unlock()
+	// Describe starting location.
+	// NOTE: Don't put this into add() otherwise we deadlock because both do locking!
 	p.Parse("LOOK")
-
-	PlayerList.Add(p)
 
 	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
 	runtime.SetFinalizer(p, final)
@@ -114,6 +106,22 @@ func (p *Player) Destroy() {
 	p.Mobile = nil
 
 	log.Printf("Destroyed: %s\n", name)
+}
+
+// add places a player in the world safely.
+func (p *Player) add(l location.Interface) {
+
+	l.Lock()
+	defer l.Unlock()
+
+	l.Add(p)
+	l.Broadcast(
+		[]thing.Interface{p},
+		"There is a puff of smoke and %s appears spluttering and coughing.",
+		p.Name(),
+	)
+
+	PlayerList.Add(p)
 }
 
 // remove extracts a player from the world cleanly.

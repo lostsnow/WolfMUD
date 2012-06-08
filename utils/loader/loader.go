@@ -12,7 +12,7 @@ package loader
 
 import (
 	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/thing"
+	"wolfmud.org/entities/thing/item"
 	"wolfmud.org/entities/world"
 )
 
@@ -326,17 +326,26 @@ func Load(world *world.World) {
 	world.AddLocation(l42)
 
 	// Some objects
-	t1 := thing.New(
+	t1 := item.New(
 		"A curious brass lattice",
 		[]string{"LATTICE"},
 		"This is a finely crafted, intricate lattice of fine brass wires forming a roughly ball shaped curiosity.",
+		2,
 	)
-	t2 := thing.New(
+	t2 := item.New(
 		"A small ball",
 		[]string{"BALL"},
 		"This is a small rubber ball.",
+		18,
+	)
+	t3 := item.New(
+		"An iron bound chest",
+		[]string{"CHEST"},
+		"This is vary stout wooden chest about 2 foot wide and 1 foot deep. Thick metal bands bind it.",
+		89,
 	)
 
 	l1.Add(t1)
 	l1.Add(t2)
+	l1.Add(t3)
 }
