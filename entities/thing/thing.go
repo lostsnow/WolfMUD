@@ -28,6 +28,7 @@ import (
 type Interface interface {
 	Description() string
 	IsAlias(alias string) bool
+	Aliases() []string
 	IsAlso(thing Interface) bool
 	Lock()
 	Name() string
@@ -99,6 +100,12 @@ func (t *Thing) IsAlias(alias string) bool {
 		}
 	}
 	return false
+}
+
+func (t *Thing) Aliases() (a []string) {
+	a = make([]string, len(t.aliases))
+	copy(a, t.aliases)
+	return
 }
 
 // IsAlso tests two Things to see if one of them 'is also' the other - hence the

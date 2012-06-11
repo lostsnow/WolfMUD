@@ -7,6 +7,8 @@
 // inventory of a location - who and what is at that location. It can also be
 // used as a literal inventory for container type objects such as bags, boxes
 // and pouches.
+//
+// TODO: implement inventory capacity
 package inventory
 
 import (

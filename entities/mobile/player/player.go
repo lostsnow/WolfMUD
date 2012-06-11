@@ -86,6 +86,8 @@ func (p *Player) Destroy() {
 
 	name := p.Name()
 
+	p.dropInventory()
+
 	log.Printf("Destroy: %s\n", name)
 
 	if p.IsQuitting() {
@@ -135,6 +137,19 @@ func (p *Player) remove() (removed bool) {
 		removed = true
 	}
 	return
+}
+
+// dropInventory drops everything the player is carrying.
+func (p *Player) dropInventory() {
+	for _, o := range p.Inventory.List() {
+		if c, ok := o.(command.Interface); ok {
+			if aliases := o.Aliases(); len(aliases) > 0 {
+				c.Process(command.New(p, "DROP "+o.Aliases()[0] ))
+			} else {
+				log.Printf("%s Can't drop: %s, no aliases: %#v", p.Name(), o.Name(), aliases)
+			}
+		}
+	}
 }
 
 // Parse takes a string and begins the delegation to potential processors. To
