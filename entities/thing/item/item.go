@@ -51,10 +51,9 @@ func (i *Item) drop(cmd *command.Command) (handled bool) {
 			if inv.Contains(i) {
 				inv.Remove(i)
 				cmd.Respond("You drop %s.", i.Name())
+				cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s drop %s.", cmd.Issuer.Name(), i.Name())
 
-				l := m.Locate()
-				l.Add(i)
-				l.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s drop %s.", cmd.Issuer.Name(), i.Name())
+				m.Locate().Add(i)
 
 				handled = true
 			}
@@ -84,7 +83,7 @@ func (i *Item) get(cmd *command.Command) (handled bool) {
 		if inv, ok := cmd.Issuer.(inventory.Interface); ok {
 			if l := m.Locate(); l.Contains(i) {
 				l.Remove(i)
-				l.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s pick up %s.", cmd.Issuer.Name(), i.Name())
+				cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s pick up %s.", cmd.Issuer.Name(), i.Name())
 
 				inv.Add(i)
 				cmd.Respond("You pickup %s.", i.Name())

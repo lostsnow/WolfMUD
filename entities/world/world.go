@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	HOST = "127.0.0.1" // Host to listen on
+	HOST = "192.168.0.4" // Host to listen on
 	PORT = "4001"      // Port to listen on
 )
 

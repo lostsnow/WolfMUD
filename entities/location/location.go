@@ -237,6 +237,9 @@ func (l *Location) exits(cmd *command.Command) (handled bool) {
 
 // move implements the directional movement commands. This allows movement from
 // location to location by typing a direction such as N or North.
+//
+// TODO: Modify command so that it can handle buffering of multiple location
+// broadcasts.
 func (l *Location) move(cmd *command.Command, d direction) (handled bool) {
 	if to := l.directionalExits[d]; to != nil {
 		if !cmd.CanLock(to) {

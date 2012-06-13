@@ -24,6 +24,7 @@ package client
 
 // BUG(Diddymus): Currently the client package expects TELNET to be in line
 // mode - won't work with windows TELNET currently.
+// UPDATE: Will work if KLUDGE set to true which enables a nasty kludge :(
 
 import (
 	"fmt"
@@ -33,18 +34,22 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/entities/location"
+	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/utils/parser"
 )
 
 // TODO: When we have sorted out global settings some of these need moving
 // there.
 const (
-	MAX_RETRIES      = 60             // Each retry is 10 seconds
-	SEND_BUFFER_SIZE = 4096           // Number of sending messages to buffer
-	TERM_WIDTH       = 80             // fold wrapping length - see fold function
+	MAX_RETRIES      = 60           // Each retry is 10 seconds
+	SEND_BUFFER_SIZE = 4096         // Number of sending messages to buffer
+	TERM_WIDTH       = 80           // fold wrapping length - see fold function
 	PROMPT           = "[MAGENTA]>" // Default prompt
+
+	// Set to true if using Windows telnet or some other nasty client that
+	// defaults to character-at-a-time mode and not linemode.
+	KLUDGE = false
 
 	GREETING = `
 
@@ -142,6 +147,14 @@ func Spawn(conn *net.TCPConn, l location.Interface) {
 	c.parser.Destroy()
 	c.parser = nil
 
+	// Try and write any remaining messages
+	close(c.send)
+	for msg := range c.send {
+		if _, err := c.conn.Write([]byte(msg)); err != nil {
+			break // If there is an error there is not much we can do about it now...
+		}
+	}
+
 	if err := c.conn.Close(); err != nil {
 		log.Printf("Error closing socket for %s, %s\n", c.name, err)
 	}
@@ -161,6 +174,10 @@ func (c *Client) receiver() {
 
 	var inBuffer [255]byte
 
+	// Only needed if KLUDGE = true :(
+	var tempBuff [255]byte
+	tempOff := 0
+
 	c.conn.SetKeepAlive(false)
 	c.conn.SetLinger(0)
 	idleRetrys := MAX_RETRIES
@@ -175,9 +192,31 @@ func (c *Client) receiver() {
 				c.bail = true
 			}
 		} else {
+
+			// KLUDGE enables a temporary buffer to be built up until we see an LF at
+			// which point we swap our temporary buffer for the partial buffer and
+			// pretend nothing weird happened...
+			//
+			// THIS IS NOT NICE, NOT SAFE, NOT FUNNY, NOT CHEESE! USE AT OWN RISK -
+			// MAY DESTROY YOUR COMPUTER, COFFEE MAKER AND THE UNIVERSE - not
+			// necessarily in that order or any other order.
+			//
+			// This should not be needed when RFC1184 is implemented along with a
+			// *lot* of other TELNET related RFCs
+			if KLUDGE {
+				copy(tempBuff[tempOff:tempOff+b], inBuffer[0:b])
+				tempOff += b
+				if tempBuff[tempOff-1] != 0x0A {
+					continue
+				} else {
+					copy(inBuffer[0:tempOff], tempBuff[0:tempOff])
+					b, tempOff = tempOff, 0
+				}
+			}
+
 			input := strings.TrimSpace(string(inBuffer[0:b]))
 			if input == "" {
-				c.Send("");
+				c.Send("")
 			} else {
 				c.parser.Parse(input)
 			}

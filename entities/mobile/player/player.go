@@ -86,8 +86,6 @@ func (p *Player) Destroy() {
 
 	name := p.Name()
 
-	p.dropInventory()
-
 	log.Printf("Destroy: %s\n", name)
 
 	if p.IsQuitting() {
@@ -140,13 +138,12 @@ func (p *Player) remove() (removed bool) {
 }
 
 // dropInventory drops everything the player is carrying.
-func (p *Player) dropInventory() {
+func (p *Player) dropInventory(cmd *command.Command) {
 	for _, o := range p.Inventory.List() {
 		if c, ok := o.(command.Interface); ok {
 			if aliases := o.Aliases(); len(aliases) > 0 {
-				c.Process(command.New(p, "DROP "+o.Aliases()[0] ))
-			} else {
-				log.Printf("%s Can't drop: %s, no aliases: %#v", p.Name(), o.Name(), aliases)
+				cmd.New("DROP "+o.Aliases()[0])
+				c.Process(cmd)
 			}
 		}
 	}
@@ -178,6 +175,8 @@ func (p *Player) Parse(input string) {
 		retry = p.parseStage2(cmd)
 	}
 
+	cmd.Flush()
+
 }
 
 func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
@@ -204,6 +203,10 @@ func (p *Player) Respond(format string, any ...interface{}) {
 	} else {
 		log.Printf("Respond: %s is a Zombie\n", p.name)
 	}
+}
+
+func (p *Player) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
+	p.Locate().Broadcast(omit, format, any...)
 }
 
 func (p *Player) Process(cmd *command.Command) (handled bool) {
@@ -240,6 +243,8 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 func (p *Player) quit(cmd *command.Command) (handled bool) {
 	p.Lock()
 	defer p.Unlock()
+	p.dropInventory(cmd)
+	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
 	p.quitting = true
 	log.Printf("quit: %s is quitting.", p.Name())
 	return true
@@ -247,13 +252,13 @@ func (p *Player) quit(cmd *command.Command) (handled bool) {
 
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
-	p.Locate().Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
+	cmd.Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
 	PlayerList.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
 	return true
 }
 
 func (p *Player) who(cmd *command.Command) (handled bool) {
-	p.Locate().Broadcast([]thing.Interface{p}, "You see %s concentrate.", p.Name())
+	cmd.Broadcast([]thing.Interface{p}, "You see %s concentrate.", p.Name())
 	msg := ""
 
 	for _, p := range PlayerList.List(p) {

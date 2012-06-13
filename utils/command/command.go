@@ -4,13 +4,14 @@
 // included with the source code.
 
 // Package command implements the representation and state of a command that is
-// being processed.
+// being processed - or a string of commands.
 package command
 
 import (
 	"strings"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/responder"
+	"wolfmud.org/utils/responder/broadcaster"
 )
 
 // Interface should be implemented by anything that wants to process/react
@@ -26,6 +27,8 @@ import (
 // TODO: Beef up description when examples available.
 //
 // TODO: Need to document locking
+//
+// TODO: Document command.NEW vs NEW
 type Interface interface {
 	Process(*Command) (handled bool)
 }
@@ -40,6 +43,21 @@ type Command struct {
 	Target        *string           // Alias for 2nd word - normally the verb's target
 	Locks         []thing.Interface // Locks we want to hold
 	locksModified bool              // Locks modified since last LocksModified() call?
+	response      responseBuffer
+	broadcast     broadcastBuffer
+}
+
+// responseBuffer stores buffered messages send by Respond.
+type responseBuffer struct {
+	format []string
+	any    []interface{}
+}
+
+// broadcastBuffer stores buffered messages send by Broadcast.
+type broadcastBuffer struct {
+	omit   []thing.Interface
+	format []string
+	any    []interface{}
 }
 
 // New creates a new Command instance. The input string is broken into words
@@ -48,37 +66,73 @@ type Command struct {
 // drop ball, examine ball. As this is a common case the second word cam also
 // referenced via the alias Target.
 func New(issuer thing.Interface, input string) *Command {
-	words := strings.Split(strings.ToUpper(input), ` `)
-
 	cmd := Command{}
-
 	cmd.Issuer = issuer
-	cmd.Verb = words[0]
-	cmd.Nouns = words[1:]
-
-	if len(words) > 1 {
-		cmd.Target = &words[1]
-	}
+	cmd.New(input)
 
 	return &cmd
 }
 
+// New assigns a new input string to an existing command instance created using
+// New. The input string is broken into words using whitespace as the separator.
+// The first word is usually the verb - get, drop, examine - and the second word
+// the target noun to act on - get ball, drop ball, examine ball. As this is a
+// common case the second word cam also referenced via the alias Target.
+//
+// Assigning a new input string is useful when you want to issue multiple
+// commands but keep the same locks and buffers. For example assume you have
+// some items and you drop them all in one go by issuing 'DROP ALL'. Internally
+// we can get the aliases for each item in the inventory and loop over them
+// issuing:
+//
+//	cmd.New("DROP "+o.Aliases()[0])
+//
+func (c *Command) New(input string) {
+	words := strings.Split(strings.ToUpper(input), ` `)
+	c.Verb = words[0]
+	c.Nouns = words[1:]
+	if len(words) > 1 {
+		c.Target = &words[1]
+	} else {
+		c.Target = nil
+	}
+}
+
+// Flush processes the buffered messages sent using Respond and Broadcast.
+func (c *Command) Flush() {
+	if len(c.response.format) > 0 {
+		format := strings.Join(c.response.format, "\n")
+		if r, ok := c.Issuer.(responder.Interface); ok {
+			r.Respond(format, c.response.any...)
+		}
+	}
+
+	if len(c.broadcast.format) > 0 {
+		format := strings.Join(c.broadcast.format, "\n")
+		if b, ok := c.Issuer.(broadcaster.Interface); ok {
+			b.Broadcast(c.broadcast.omit, format, c.broadcast.any...)
+		}
+	}
+}
+
 // Respond implements the responder Interface. It is a quick shorthand for
-// responding to the Thing that is issuing the command without having to do any
-// additional bookkeeping.
-//
-// TODO: Need to also implement the broadcast Interface so we can just as easily
-// respond to everyone present not issuing the command. As in:
-//
-//	c.Respond("You sneeze")
-//
-//	c.Broadcast("You see %s sneeze.", c.Issuer.Name())
-//
-// However to do this we need a location which Thing does not carry but will be
-// implemented in a general 'object' which is a thing with location.
+// responding to the Thing that is issuing the command, with buffering, without
+// having to do any additional bookkeeping.
 func (c *Command) Respond(format string, any ...interface{}) {
-	if i, ok := c.Issuer.(responder.Interface); ok {
-		i.Respond(format, any...)
+	if _, ok := c.Issuer.(responder.Interface); ok {
+		c.response.format = append(c.response.format, format)
+		c.response.any = append(c.response.any, any...)
+	}
+}
+
+// Broadcast implements the broadcaster Interface. It is a quick shorthand
+// for broadcasting to the Thing's location that is issuing the command, with
+// buffering, without having to do any additional bookkeeping.
+func (c *Command) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
+	if _, ok := c.Issuer.(broadcaster.Interface); ok {
+		c.broadcast.omit = append(c.broadcast.omit, omit...)
+		c.broadcast.format = append(c.broadcast.format, format)
+		c.broadcast.any = append(c.broadcast.any, any...)
 	}
 }
 
