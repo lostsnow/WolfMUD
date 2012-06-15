@@ -42,10 +42,9 @@ import (
 // TODO: When we have sorted out global settings some of these need moving
 // there.
 const (
-	MAX_RETRIES      = 60           // Each retry is 10 seconds
-	SEND_BUFFER_SIZE = 4096         // Number of sending messages to buffer
-	TERM_WIDTH       = 80           // fold wrapping length - see fold function
-	PROMPT           = "[MAGENTA]>" // Default prompt
+	MAX_RETRIES = 60           // Each retry is 10 seconds
+	TERM_WIDTH  = 80           // fold wrapping length - see fold function
+	PROMPT      = "[MAGENTA]>" // Default prompt
 
 	// Set to true if using Windows telnet or some other nasty client that
 	// defaults to character-at-a-time mode and not linemode.
@@ -95,13 +94,11 @@ var regexpLF, _ = regexp.Compile("([^\r])\n")
 // connection automatically. If the receiver detects we are bailing it wakes up
 // the sender so it too can bail.
 type Client struct {
-	parser       parser.Interface // Currently attached parser
-	name         string           // Current name allocated by attached parser
-	conn         *net.TCPConn     // The TELNET network connection
-	bail         bool             // Should the client bail and exit?
-	send         chan string      // channel queues responses from goroutines
-	senderWakeup chan bool        // sender wake up signal
-	ending       chan bool        // Used to wait for sender & receiver to end
+	parser parser.Interface // Currently attached parser
+	name   string           // Current name allocated by attached parser
+	conn   *net.TCPConn     // The TELNET network connection
+	bail   error
+	lock   chan bool
 }
 
 // final is used for debugging to make sure the GC is cleaning up
@@ -124,42 +121,52 @@ func final(c *Client) {
 func Spawn(conn *net.TCPConn, l location.Interface) {
 
 	c := &Client{
-		conn:         conn,
-		send:         make(chan string, SEND_BUFFER_SIZE),
-		senderWakeup: make(chan bool, 1),
-		ending:       make(chan bool),
+		conn: conn,
+		lock: make(chan bool, 1),
 	}
 
-	c.sendWithoutPrompt(GREETING)
+	if err := c.sendWithoutPrompt(GREETING); !err {
+		c.parser = player.New(c, l)
+		c.name = c.parser.Name()
 
-	c.parser = player.New(c, l)
-	c.name = c.parser.Name()
+		log.Printf("Client created: %s\n", c.name)
+		runtime.SetFinalizer(c, final)
 
-	log.Printf("Client created: %s\n", c.name)
-	runtime.SetFinalizer(c, final)
+		c.receiver()
 
-	go c.receiver()
-	go c.sender()
-
-	<-c.ending
-	<-c.ending
-
-	c.parser.Destroy()
-	c.parser = nil
-
-	// Try and write any remaining messages
-	close(c.send)
-	for msg := range c.send {
-		if _, err := c.conn.Write([]byte(msg)); err != nil {
-			break // If there is an error there is not much we can do about it now...
-		}
+		c.parser.Destroy()
+		c.parser = nil
+	} else {
+		log.Printf("Client went away...")
 	}
+
+	if c.bail != nil {
+		log.Printf("Comms error for: %s, %s\n", c.name, c.bail)
+	}
+
+	close(c.lock)
 
 	if err := c.conn.Close(); err != nil {
 		log.Printf("Error closing socket for %s, %s\n", c.name, err)
 	}
 
 	log.Printf("Spawn ending for %s\n", c.name)
+}
+
+func (c *Client) isBailing() bool {
+	c.lock <- true
+	defer func() {
+		<-c.lock
+	}()
+	return c.bail != nil
+}
+
+func (c *Client) bailing(err error) {
+	c.lock <- true
+	defer func() {
+		<-c.lock
+	}()
+	c.bail = err
 }
 
 // receiver is run as a Goroutine to receive data from the user's TELNET
@@ -183,13 +190,13 @@ func (c *Client) receiver() {
 	idleRetrys := MAX_RETRIES
 
 	// Loop on connection until we bail out or run out of retries
-	for ; !c.bail && idleRetrys > 0; idleRetrys-- {
+	for ; !c.isBailing() && !c.parser.IsQuitting() && idleRetrys > 0; idleRetrys-- {
 		c.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
-				log.Printf("Comms error for: %s, %s\n", c.name, err)
-				c.bail = true
+				c.bailing(err)
+				break
 			}
 		} else {
 
@@ -220,9 +227,6 @@ func (c *Client) receiver() {
 			} else {
 				c.parser.Parse(input)
 			}
-			if c.parser.IsQuitting() {
-				c.bail = true
-			}
 			idleRetrys = MAX_RETRIES + 1
 		}
 	}
@@ -231,14 +235,9 @@ func (c *Client) receiver() {
 	if idleRetrys == 0 {
 		c.sendWithoutPrompt("\n\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 		log.Printf("Closing idle connection for: %s\n", c.name)
-		c.bail = true
 	}
 
-	log.Printf("Sending wakeup signal for %s\n", c.name)
-	c.senderWakeup <- true
-
 	log.Printf("receiver ending for %s\n", c.name)
-	c.ending <- true
 }
 
 // Send takes a message with parameters, adds a prompt and sends the message on
@@ -268,55 +267,24 @@ func (c *Client) Send(format string, any ...interface{}) {
 //
 // NOTE: Would it be better to put the colourize, fold and other text
 // processing into the sender method? Pros & Cons?
-func (c *Client) sendWithoutPrompt(format string, any ...interface{}) {
-	if c.bail {
-		//log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
-	} else {
-		if (cap(c.send) - len(c.send)) < 5 {
-			log.Printf("oops %s dropping message, sending too slow.\n", c.name)
-		} else {
-
-			// NOTE: You need to colourize THEN fold so fold counts colour codes
-			// and NOT colour names ;)
-			data := fmt.Sprintf(format, any...)
-			data = colourize(data)
-			data = fold(data)
-			data = regexpLF.ReplaceAllString(data, "$1\r\n")
-
-			c.send <- data
-		}
-	}
-}
-
-// sender is run as a Goroutine to send data to the user's TELNET client. Unlike
-// the receiver Goroutine this method blocks reading from the send channel which
-// is used to serialise multiple messages arriving from multiple Goroutines.
-// Due to this a boolean can be sent on the senderWakeup channel to 'timeout'
-// the blocking. This is commonly used when the receiver Goroutine notices a
-// problem, sets the bail flag and then wakes up the sender so that it takes
-// notice and ends.
-func (c *Client) sender() {
-
-	for !c.bail {
-		select {
-		case <-c.senderWakeup:
-			c.bail = true
-			break
-		case msg := <-c.send:
-			if c.bail {
-				//log.Printf("oops %s dropping message %s\n", c.name, msg)
-			} else {
-				if _, err := c.conn.Write([]byte(msg)); err != nil {
-					log.Printf("Comms error for: %s, %s\n", c.name, err)
-					c.bail = true
-					break
-				}
-			}
-		}
+func (c *Client) sendWithoutPrompt(format string, any ...interface{}) (err bool) {
+	if c.isBailing() {
+		return true
 	}
 
-	log.Printf("sender ending for %s\n", c.name)
-	c.ending <- true
+	// NOTE: You need to colourize THEN fold so fold counts colour codes
+	// and NOT colour names ;)
+	data := fmt.Sprintf(format, any...)
+	data = colourize(data)
+	data = fold(data)
+	data = regexpLF.ReplaceAllString(data, "$1\r\n")
+
+	if _, err := c.conn.Write([]byte(data)); err != nil {
+		c.bailing(err)
+		return true
+	}
+
+	return false
 }
 
 // BUG(Diddymus): fold assumes control sequences are 5 bytes long. When we add
