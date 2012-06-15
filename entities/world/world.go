@@ -8,10 +8,7 @@
 package world
 
 import (
-	crypto "crypto/rand"
 	"log"
-	"math/big"
-	"math/rand"
 	"net"
 	"wolfmud.org/client"
 	"wolfmud.org/entities/location"
@@ -28,17 +25,11 @@ const (
 // locations available in it. The locations could be held in an inventory but
 // that is overkill in this situation so we use a slice of locations.
 type World struct {
-	locations         []location.Interface
-	startingLocations []*startingLocation.StartingLocation
+	locations []location.Interface
 }
 
 // New creates a new World and returns a reference to it.
 func New() *World {
-
-	// Initialise random number generator with random seed
-	seed, _ := crypto.Int(crypto.Reader, big.NewInt(0x7FFFFFFFFFFFFFFF))
-	rand.Seed(seed.Int64())
-
 	return &World{}
 }
 
@@ -71,7 +62,7 @@ func (w *World) Genesis() {
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
-			go client.Spawn(conn, w.startingLocations[rand.Intn(len(w.startingLocations))])
+			go client.Spawn(conn, startingLocation.GetStart())
 		}
 	}
 }
@@ -79,8 +70,4 @@ func (w *World) Genesis() {
 // AddLocation adds a location to the list of locations for this world.
 func (w *World) AddLocation(l location.Interface) {
 	w.locations = append(w.locations, l)
-
-	if sl, ok := l.(*startingLocation.StartingLocation); ok {
-		w.startingLocations = append(w.startingLocations, sl)
-	}
 }
