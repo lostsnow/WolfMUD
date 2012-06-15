@@ -12,6 +12,7 @@ package loader
 
 import (
 	"wolfmud.org/entities/location"
+	"wolfmud.org/entities/location/startingLocation"
 	"wolfmud.org/entities/thing/item"
 	"wolfmud.org/entities/world"
 )
@@ -19,7 +20,7 @@ import (
 // Load creates entities and adds them to the given world.
 func Load(world *world.World) {
 
-	l1 := location.New("Fireplace", []string{"TAVERN", "FIREPLACE"}, "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance.")
+	l1 := startingLocation.New("Fireplace", []string{"TAVERN", "FIREPLACE"}, "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance.")
 
 	l2 := location.New("Common Room", []string{"TAVERN", "COMMON"}, "You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away.")
 
@@ -57,11 +58,11 @@ func Load(world *world.World) {
 
 	l19 := location.New("Street by North Bridge", []string{"STREET"}, "You are at a junction in the street. You can either head south, east or west. East there is the north bridge over the cities river.")
 
-	l20 := location.New("North Bridge", []string{"NORTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Down river to the south you can see another bridge in a similar state of construction.")
+	l20 := startingLocation.New("North Bridge", []string{"NORTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Down river to the south you can see another bridge in a similar state of construction.")
 
 	l21 := location.New("Street by South Bridge", []string{"STREET"}, "You are at a junction in the street. You can either head north, east or west. East there is the south bridge over the cities river.")
 
-	l22 := location.New("South Bridge", []string{"SOUTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Up river to the north you can see another bridge in a similar state of construction.")
+	l22 := startingLocation.New("South Bridge", []string{"SOUTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Up river to the north you can see another bridge in a similar state of construction.")
 
 	l23 := location.New("Money Changer's Office", []string{"MONEYCHANGER", "SHOP"}, "You are standing in the small office of a Money Changer. The only exit is north into the street.")
 

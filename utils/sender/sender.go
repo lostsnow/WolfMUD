@@ -19,7 +19,4 @@ type Interface interface {
 	// Send should format the message, add any required prompt to the end and
 	// then send the message over the network to the connecting client.
 	Send(format string, any ...interface{})
-
-	// SendWithoutPrompt is like Send but sould not append a prompt.
-	SendWithoutPrompt(format string, any ...interface{})
 }

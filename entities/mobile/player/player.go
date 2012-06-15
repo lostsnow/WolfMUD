@@ -261,11 +261,14 @@ func (p *Player) who(cmd *command.Command) (handled bool) {
 	cmd.Broadcast([]thing.Interface{p}, "You see %s concentrate.", p.Name())
 	msg := ""
 
+	c := 1
 	for _, p := range PlayerList.List(p) {
 		msg += fmt.Sprintf("  %s\n", p.Name())
+		c++
 	}
+	msg += fmt.Sprintf(" TOTAL PLAYERS: %d", c)
 
-	if len(msg) == 0 {
+	if c < 2 {
 		msg = "You are all alone in this world."
 	}
 

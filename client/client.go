@@ -130,7 +130,7 @@ func Spawn(conn *net.TCPConn, l location.Interface) {
 		ending:       make(chan bool),
 	}
 
-	c.SendWithoutPrompt(GREETING)
+	c.sendWithoutPrompt(GREETING)
 
 	c.parser = player.New(c, l)
 	c.name = c.parser.Name()
@@ -229,7 +229,7 @@ func (c *Client) receiver() {
 
 	// Connection idle and we ran out of retries?
 	if idleRetrys == 0 {
-		c.SendWithoutPrompt("\n\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
+		c.sendWithoutPrompt("\n\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 		log.Printf("Closing idle connection for: %s\n", c.name)
 		c.bail = true
 	}
@@ -245,7 +245,7 @@ func (c *Client) receiver() {
 // it's way to the client. Send is modelled after the fmt.Sprintf function and
 // takes a format string and parameters in the same way. In addition the current
 // prompt is added to the end of the message. Actual processing is handled by
-// the client.SendWithoutPrompt method.
+// the client.sendWithoutPrompt method.
 //
 // If the format string is empty we can take a shortcut and just redisplay the
 // prompt. Otherwise we process the whole enchilada making sure the prompt is on
@@ -254,21 +254,21 @@ func (c *Client) receiver() {
 // TODO: Handle multiple user selectable prompts
 func (c *Client) Send(format string, any ...interface{}) {
 	if format == "" {
-		c.SendWithoutPrompt(PROMPT)
+		c.sendWithoutPrompt(PROMPT)
 	} else {
 		any = append(any, "\n", PROMPT)
-		c.SendWithoutPrompt("[WHITE]"+format+"%s%s", any...)
+		c.sendWithoutPrompt("[WHITE]"+format+"%s%s", any...)
 	}
 }
 
-// SendWithoutPrompt takes a message with parameters and sends the message to
-// the client's send channel. SendWithoutPrompt is modelled after the
+// sendWithoutPrompt takes a message with parameters and sends the message to
+// the client's send channel. sendWithoutPrompt is modelled after the
 // fmt.Sprintf function and takes a format string and parameters in the same
 // way.
 //
 // NOTE: Would it be better to put the colourize, fold and other text
 // processing into the sender method? Pros & Cons?
-func (c *Client) SendWithoutPrompt(format string, any ...interface{}) {
+func (c *Client) sendWithoutPrompt(format string, any ...interface{}) {
 	if c.bail {
 		//log.Printf("oops %s dropping message %s\n", c.name, fmt.Sprintf(format, any...))
 	} else {
