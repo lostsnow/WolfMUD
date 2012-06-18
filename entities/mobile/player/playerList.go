@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/responder"
+	"wolfmud.org/utils/text"
 )
 
 type playerList struct {
@@ -66,7 +66,7 @@ OMIT:
 }
 
 func (l *playerList) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
-	msg := fmt.Sprintf("\n"+format, any...)
+	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
 
 	for _, t := range l.List(omit...) {
 		t.Respond(msg)

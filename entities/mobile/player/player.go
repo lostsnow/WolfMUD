@@ -90,7 +90,7 @@ func (p *Player) Destroy() {
 
 	if p.IsQuitting() {
 		log.Printf("%s is quitting @ %s", name, p.Locate().Name())
-		p.Locate().Broadcast(nil, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", name)
+		p.Locate().Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", name)
 	}
 
 	// execute p.remove until successful ... looks weird ;)
@@ -211,7 +211,6 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 func (p *Player) Respond(format string, any ...interface{}) {
 	if c := p.sender; c != nil {
 		c.Send(format, any...)
-		runtime.Gosched()
 	} else {
 		log.Printf("Respond: %s is a Zombie\n", p.name)
 	}
@@ -226,6 +225,10 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 	switch cmd.Verb {
 	default:
 		handled = p.Mobile.Process(cmd)
+	case "CPUSTOP":
+		handled = p.cpustop(cmd)
+	case "CPUSTART":
+		handled = p.cpustart(cmd)
 	case "MEMPROF":
 		handled = p.memprof(cmd)
 	case "QUIT":
@@ -237,6 +240,24 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 	}
 
 	return
+}
+
+func (p *Player) cpustart(cmd *command.Command) (handled bool) {
+	f, err := os.Create("cpuprof")
+	if err != nil {
+		cmd.Respond("CPU Profile Not Started: %s", err)
+		return false
+	}
+	pprof.StartCPUProfile(f)
+
+	cmd.Respond("CPU profile started")
+	return true
+}
+
+func (p *Player) cpustop(cmd *command.Command) (handled bool) {
+	pprof.StopCPUProfile()
+	cmd.Respond("CPU profile stopped")
+	return true
 }
 
 func (p *Player) memprof(cmd *command.Command) (handled bool) {

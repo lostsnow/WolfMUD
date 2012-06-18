@@ -5,7 +5,7 @@
 
 // Package client implements a client connecting to the WolfMUD server. It is
 // actually a mini TELNET server - any TELNET client should be able to connect
-// to and talk to client. It supports ANSI foreground colour codes and wrapping
+// to and talk to client. It supports ANSI foreground color codes and wrapping
 // on whitespace.
 //
 // If you take the client package, write some code to accept a connection and
@@ -30,13 +30,14 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"regexp"
+	//"regexp"
 	"runtime"
 	"strings"
 	"time"
 	"wolfmud.org/entities/location/startingLocation"
 	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/utils/parser"
+	"wolfmud.org/utils/text"
 )
 
 // TODO: When we have sorted out global settings some of these need moving
@@ -65,27 +66,11 @@ const (
 // Prompt definitions
 const (
 	PROMPT_NONE    = ""
-	PROMPT_DEFAULT = "[MAGENTA]>"
+	PROMPT_DEFAULT = text.COLOR_MAGENTA + ">"
 )
 
-// colourTable maps colour names to ANSI escape sequences. The sequences are
-// defined in the ECMA-48 standard or ISO/IEC 6429.
-//
-// TODO: Add more codes like background colours, underline, bold, normal ???
-var colourTable = map[string]string{
-	"[BLACK]":   "\033[30m",
-	"[RED]":     "\033[31m",
-	"[GREEN]":   "\033[32m",
-	"[YELLOW]":  "\033[33m", // Note ESC [ 33m can be brown or yellow
-	"[BROWN]":   "\033[33m", // So here we have the same escape code twice
-	"[BLUE]":    "\033[34m",
-	"[MAGENTA]": "\033[35m",
-	"[CYAN]":    "\033[36m",
-	"[WHITE]":   "\033[37m",
-}
-
 // regexpLF is a package instance compiled regex to change LF to CR+LF
-var regexpLF, _ = regexp.Compile("([^\r])\n")
+//var regexpLF, _ = regexp.Compile("([^\r])\n")
 
 // Client is the default client implementation.
 //
@@ -270,91 +255,23 @@ func (c *Client) Send(format string, any ...interface{}) {
 	}
 
 	any = append(any, c.prompt)
-	format = "[WHITE]" + format + "%s"
+	format = text.COLOR_WHITE + format + "%s"
 
-	// NOTE: You need to colourize THEN fold so fold counts the length of colour
-	// codes and NOT colour names ;)
-	data := fmt.Sprintf(format, any...)
-	data = fold(colourize(data))
-	data = regexpLF.ReplaceAllString(data, "$1\r\n")
+	// NOTE: You need to colorize THEN fold so fold counts the length of color
+	// codes and NOT color names ;)
+	data := format
+
+	if len(any) > 0 {
+		data = fmt.Sprintf(data, any...)
+	}
+
+	data = text.Fold(text.Colorize(data), TERM_WIDTH)
+	//data = regexpLF.ReplaceAllString(data, "$1\r\n")
+	data = strings.Replace(data, "\n", "\r\n", -1)
 
 	if _, err := c.conn.Write([]byte(data)); err != nil {
 		c.bailing(err)
 	}
 
 	return
-}
-
-// BUG(Diddymus): fold assumes control sequences are 5 bytes long. When we add
-// more control sequences they probably won't be 5 bytes long.
-
-// fold takes a string of text and turns it into lines of TERM_WIDTH length
-// breaking on whitespace. The text may contain ANSI colour codes in the format
-// \033[xxm - for values of xx see the definition of colourTable. Line endings
-// are expected to be Linefeeds only - LF, \n or 0x0A - common on *nix systems.
-//
-// TODO: Softcode TERM_WIDTH via a user/player setting.
-//
-// TODO: Could probably use some Unicode love.
-//
-// TODO: Needs to be optimized.
-func fold(in string) (out string) {
-
-	// Shortcut
-	if len(in) < TERM_WIDTH {
-		return in
-	}
-
-	p := 0
-	for _, word := range strings.SplitAfter(in, " ") {
-		for _, atom := range strings.SplitAfter(word, "\n") {
-			l := len(atom) - strings.Count(atom, "\n") - (strings.Count(atom, "\033") * 5)
-			if p+l > TERM_WIDTH {
-				out += "\n"
-				p = 0
-			}
-			p = p + l
-			if strings.HasSuffix(atom, "\n") {
-				p = 0
-			}
-			out += atom
-		}
-	}
-	return
-}
-
-// colourize turns colour names into colour ANSI codes within a string. This
-// allows messages to be coloured easily with colour names. For example the
-// message:
-//
-//	"[RED]Boom![WHITE]"
-//
-// will be turned into:
-//
-//	"\033[31mBoom!\033[37m"
-//
-// Ultimately printing "Boom!" in red. Messages do not need to end in "[WHITE]"
-// as this will be added automatically so you can't forget to do it. Colours
-// can be changed as many times as you want:
-//
-//	"[RED]C[GREEN]o[YELLOW]l[BLUE]o[MAGENTA]u[CYAN]r"
-//
-// Prints "Colour" each letter in a different colour.
-//
-// TODO: Extend to include background colours?
-func colourize(in string) (out string) {
-	for colour, code := range colourTable {
-		in = strings.Replace(in, colour, code, -1)
-	}
-	return in
-}
-
-// monochrome strips colour names from a string. This function is like
-// colourize except the colour name is replaced with nothing - in effect
-// stripping the colours.
-func monochrome(in string) (out string) {
-	for colour := range colourTable {
-		in = strings.Replace(in, colour, "", -1)
-	}
-	return in
 }

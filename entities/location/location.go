@@ -17,6 +17,7 @@ import (
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/inventory"
 	"wolfmud.org/utils/responder"
+	"wolfmud.org/utils/text"
 )
 
 // direction type that can be easily change if needed
@@ -152,7 +153,7 @@ func (l *Location) Remove(thing thing.Interface) {
 // Broadcast sends a message to all responders at this location. This
 // implements the broadcast.Interface - see that for more details.
 func (l *Location) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
-	msg := fmt.Sprintf("\n"+format, any...)
+	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
 
 	for _, v := range l.Inventory.List(omit...) {
 		if resp, ok := v.(responder.Interface); ok {
