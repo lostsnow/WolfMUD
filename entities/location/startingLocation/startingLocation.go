@@ -7,7 +7,7 @@ import (
 
 var startingLocations []*StartingLocation
 
-func GetStart() location.Interface {
+func GetStart() *StartingLocation {
 	return startingLocations[rand.Intn(len(startingLocations))]
 }
 

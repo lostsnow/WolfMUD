@@ -34,7 +34,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"wolfmud.org/entities/location"
+	"wolfmud.org/entities/location/startingLocation"
 	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/utils/parser"
 )
@@ -42,9 +42,8 @@ import (
 // TODO: When we have sorted out global settings some of these need moving
 // there.
 const (
-	MAX_RETRIES = 60           // Each retry is 10 seconds
-	TERM_WIDTH  = 80           // fold wrapping length - see fold function
-	PROMPT      = "[MAGENTA]>" // Default prompt
+	MAX_RETRIES = 60 // Each retry is 10 seconds
+	TERM_WIDTH  = 80 // fold wrapping length - see fold function
 
 	// Set to true if using Windows telnet or some other nasty client that
 	// defaults to character-at-a-time mode and not linemode.
@@ -61,6 +60,12 @@ const (
 
 
 `
+)
+
+// Prompt definitions
+const (
+	PROMPT_NONE    = ""
+	PROMPT_DEFAULT = "[MAGENTA]>"
 )
 
 // colourTable maps colour names to ANSI escape sequences. The sequences are
@@ -98,7 +103,8 @@ type Client struct {
 	name   string           // Current name allocated by attached parser
 	conn   *net.TCPConn     // The TELNET network connection
 	bail   error
-	lock   chan bool
+	mutex  chan bool
+	prompt string
 }
 
 // final is used for debugging to make sure the GC is cleaning up
@@ -107,44 +113,39 @@ func final(c *Client) {
 }
 
 // Spawn manages the main client Goroutine. It creates the client, starts the
-// receiver and sender, waits for them to finish and then cleans up. So it's not
-// called New because it does more than create the client. It not called Run or
-// Start because it does more than that. Spawn seemed like a good name as it
-// spawns a new client and Goroutines :)
-//
-// The location passed in is used as the starting location. However this will
-// probably change once proper logins are working.
+// receiver, waits for it to finish and then cleans up. So it's not called New
+// because it does more than create the client. It not called Run or Start
+// because it does more than that. Spawn seemed like a good name as it spawns a
+// new client and Goroutine :)
 //
 // TODO: Move display of greeting to login parser.
 //
 // TODO: Modify to handle attaching/detatching multiple parsers
-func Spawn(conn *net.TCPConn, l location.Interface) {
+func Spawn(conn *net.TCPConn, l *startingLocation.StartingLocation) {
 
 	c := &Client{
-		conn: conn,
-		lock: make(chan bool, 1),
+		conn:  conn,
+		mutex: make(chan bool, 1),
 	}
 
-	if err := c.sendWithoutPrompt(GREETING); !err {
-		c.parser = player.New(c, l)
-		c.name = c.parser.Name()
+	c.prompt = PROMPT_NONE
+	c.Send(GREETING)
+	c.prompt = PROMPT_DEFAULT
 
-		log.Printf("Client created: %s\n", c.name)
-		runtime.SetFinalizer(c, final)
+	c.parser = player.New(c, l)
+	c.name = c.parser.Name()
 
-		c.receiver()
+	log.Printf("Client created: %s\n", c.name)
+	runtime.SetFinalizer(c, final)
 
-		c.parser.Destroy()
-		c.parser = nil
-	} else {
-		log.Printf("Client went away...")
-	}
+	c.receiver()
+
+	c.parser.Destroy()
+	c.parser = nil
 
 	if c.bail != nil {
 		log.Printf("Comms error for: %s, %s\n", c.name, c.bail)
 	}
-
-	close(c.lock)
 
 	if err := c.conn.Close(); err != nil {
 		log.Printf("Error closing socket for %s, %s\n", c.name, err)
@@ -153,20 +154,32 @@ func Spawn(conn *net.TCPConn, l location.Interface) {
 	log.Printf("Spawn ending for %s\n", c.name)
 }
 
+// Lock takes the lock on the client
+func (c *Client) lock() {
+	c.mutex <- true
+}
+
+// Unlock releases the lock on the client
+func (c *Client) unlock() {
+	<-c.mutex
+}
+
+// isBailing checks to see if the client is currently bailing.
 func (c *Client) isBailing() bool {
-	c.lock <- true
-	defer func() {
-		<-c.lock
-	}()
+	c.lock()
+	defer c.unlock()
 	return c.bail != nil
 }
 
+// bailing records the fact there has been an error and we want to bail. If we
+// are already bailing the current error is not overwritten so we always get the
+// error that initially caused the client to bail.
 func (c *Client) bailing(err error) {
-	c.lock <- true
-	defer func() {
-		<-c.lock
-	}()
-	c.bail = err
+	c.lock()
+	defer c.unlock()
+	if c.bail == nil {
+		c.bail = err
+	}
 }
 
 // receiver is run as a Goroutine to receive data from the user's TELNET
@@ -175,8 +188,6 @@ func (c *Client) bailing(err error) {
 // zero the connection will be closed and the inactive user disconnected. Any
 // received data resets the idleRetrys to the value of MAX_RETRIES. This means
 // that and idle session will be disconnected after MAX_RETRIES * 10 seconds.
-//
-// The other half of the connection is handled by the sender Goroutine.
 func (c *Client) receiver() {
 
 	var inBuffer [255]byte
@@ -233,7 +244,8 @@ func (c *Client) receiver() {
 
 	// Connection idle and we ran out of retries?
 	if idleRetrys == 0 {
-		c.sendWithoutPrompt("\n\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
+		c.prompt = PROMPT_NONE
+		c.Send("\n\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 		log.Printf("Closing idle connection for: %s\n", c.name)
 	}
 
@@ -243,48 +255,34 @@ func (c *Client) receiver() {
 // Send takes a message with parameters, adds a prompt and sends the message on
 // it's way to the client. Send is modelled after the fmt.Sprintf function and
 // takes a format string and parameters in the same way. In addition the current
-// prompt is added to the end of the message. Actual processing is handled by
-// the client.sendWithoutPrompt method.
+// prompt is added to the end of the message.
 //
 // If the format string is empty we can take a shortcut and just redisplay the
 // prompt. Otherwise we process the whole enchilada making sure the prompt is on
 // a new line when displayed.
-//
-// TODO: Handle multiple user selectable prompts
 func (c *Client) Send(format string, any ...interface{}) {
-	if format == "" {
-		c.sendWithoutPrompt(PROMPT)
-	} else {
-		any = append(any, "\n", PROMPT)
-		c.sendWithoutPrompt("[WHITE]"+format+"%s%s", any...)
-	}
-}
-
-// sendWithoutPrompt takes a message with parameters and sends the message to
-// the client's send channel. sendWithoutPrompt is modelled after the
-// fmt.Sprintf function and takes a format string and parameters in the same
-// way.
-//
-// NOTE: Would it be better to put the colourize, fold and other text
-// processing into the sender method? Pros & Cons?
-func (c *Client) sendWithoutPrompt(format string, any ...interface{}) (err bool) {
 	if c.isBailing() {
-		return true
+		return
 	}
 
-	// NOTE: You need to colourize THEN fold so fold counts colour codes
-	// and NOT colour names ;)
+	if len(format) > 0 {
+		format += "\n"
+	}
+
+	any = append(any, c.prompt)
+	format = "[WHITE]" + format + "%s"
+
+	// NOTE: You need to colourize THEN fold so fold counts the length of colour
+	// codes and NOT colour names ;)
 	data := fmt.Sprintf(format, any...)
-	data = colourize(data)
-	data = fold(data)
+	data = fold(colourize(data))
 	data = regexpLF.ReplaceAllString(data, "$1\r\n")
 
 	if _, err := c.conn.Write([]byte(data)); err != nil {
 		c.bailing(err)
-		return true
 	}
 
-	return false
+	return
 }
 
 // BUG(Diddymus): fold assumes control sequences are 5 bytes long. When we add
@@ -301,6 +299,12 @@ func (c *Client) sendWithoutPrompt(format string, any ...interface{}) (err bool)
 //
 // TODO: Needs to be optimized.
 func fold(in string) (out string) {
+
+	// Shortcut
+	if len(in) < TERM_WIDTH {
+		return in
+	}
+
 	p := 0
 	for _, word := range strings.SplitAfter(in, " ") {
 		for _, atom := range strings.SplitAfter(word, "\n") {

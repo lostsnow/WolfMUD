@@ -13,9 +13,9 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strconv"
+	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/mobile"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/entities/location"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/sender"
 )
@@ -142,7 +142,7 @@ func (p *Player) dropInventory(cmd *command.Command) {
 	for _, o := range p.Inventory.List() {
 		if c, ok := o.(command.Interface); ok {
 			if aliases := o.Aliases(); len(aliases) > 0 {
-				cmd.New("DROP "+o.Aliases()[0])
+				cmd.New("DROP " + o.Aliases()[0])
 				c.Process(cmd)
 			}
 		}
@@ -150,11 +150,11 @@ func (p *Player) dropInventory(cmd *command.Command) {
 }
 
 // Parse takes a string and begins the delegation to potential processors. To
-// avoid deadlocks, inconsistencies, race conditions and other unmentionables we
-// lock the location of the player. However there is a race condition between getting
-// the player's location and locking it - they may have moved in-between. We
-// therefore get and lock their current location then check it's still their
-// current location. If it is not we unlock and try again.
+// avoid deadlocks, inconsistencies, race conditions and other unmentionables
+// we lock the location of the player. However there is a race condition
+// between getting the player's location and locking it - they may have moved
+// in-between. We therefore get and lock their current location then check it's
+// still their current location. If it is not we unlock and try again.
 //
 // If a command effects more than one location we have to release the current
 // lock on the location and relock the locations in Unique Id order before
@@ -166,6 +166,18 @@ func (p *Player) dropInventory(cmd *command.Command) {
 // just lock on the whole location. This does mean if there are a LOT of things
 // happening in one specific location we will not have as much parallelism as we
 // would like.
+//
+// TODO: If there many clients trying to connect at once - say 250+ simultaneous
+// clients connecting - then the starting location becomes a bottle neck.
+// Adding more starting locations help spread the bottle neck. What might be an
+// idea is to make parseStage2 smarter and not release locks if they are lower
+// than the locks we now require. For example if we have the ID 100 for the
+// current location and we want to move EAST to location with ID 105 can we just
+// lock 105 instead of unlocking 100 and then locking 100 and 105? Would this
+// give any advantage or disadvantage to players having to unlock and relock
+// as opposed to those who just do the extra lock? I don't think this would
+// deadlock as it would be similar to the current locking but with a slightly
+// longer delay between some locks being taken.
 func (p *Player) Parse(input string) {
 
 	cmd := command.New(p, input)
