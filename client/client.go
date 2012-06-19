@@ -33,7 +33,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"wolfmud.org/entities/location/startingLocation"
+	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/mobile/player"
 	"wolfmud.org/utils/parser"
 	"wolfmud.org/utils/text"
@@ -102,7 +102,7 @@ func final(c *Client) {
 // TODO: Move display of greeting to login parser.
 //
 // TODO: Modify to handle attaching/detatching multiple parsers
-func Spawn(conn *net.TCPConn, l *startingLocation.StartingLocation) {
+func Spawn(conn *net.TCPConn, l *location.Start) {
 
 	c := &Client{
 		conn:  conn,

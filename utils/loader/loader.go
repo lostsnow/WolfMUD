@@ -12,7 +12,6 @@ package loader
 
 import (
 	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/location/startingLocation"
 	"wolfmud.org/entities/thing/item"
 	"wolfmud.org/entities/world"
 )
@@ -20,89 +19,89 @@ import (
 // Load creates entities and adds them to the given world.
 func Load(world *world.World) {
 
-	l1 := startingLocation.New("Fireplace", []string{"TAVERN", "FIREPLACE"}, "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance.")
+	l1 := location.NewStart("Fireplace", []string{"TAVERN", "FIREPLACE"}, "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance.")
 
-	l2 := location.New("Common Room", []string{"TAVERN", "COMMON"}, "You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away.")
+	l2 := location.NewBasic("Common Room", []string{"TAVERN", "COMMON"}, "You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away.")
 
-	l3 := location.New("Tavern entrance", []string{"TAVERN", "ENTRANCE"}, "You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street.")
+	l3 := location.NewBasic("Tavern entrance", []string{"TAVERN", "ENTRANCE"}, "You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street.")
 
-	l4 := location.New("Tavern Bar", []string{"TAVERN", "BAR"}, "You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here.")
+	l4 := location.NewBasic("Tavern Bar", []string{"TAVERN", "BAR"}, "You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here.")
 
-	l5 := location.New("Street between Tavern and Bakers", []string{"TAVERN", "BAKERS", "STREET"}, "You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south.")
+	l5 := location.NewBasic("Street between Tavern and Bakers", []string{"TAVERN", "BAKERS", "STREET"}, "You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south.")
 
-	l6 := location.New("Baker's Shop", []string{"BAKERS"}, "You are standing in a bakers shop. Low tables show an array of fresh breads, cakes and the like. The smells here are beyond description.")
+	l6 := location.NewBasic("Baker's Shop", []string{"BAKERS"}, "You are standing in a bakers shop. Low tables show an array of fresh breads, cakes and the like. The smells here are beyond description.")
 
-	l7 := location.New("Street outside Pawn Shop", []string{"PAWNSHOPSTREET"}, "You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you.")
+	l7 := location.NewBasic("Street outside Pawn Shop", []string{"PAWNSHOPSTREET"}, "You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you.")
 
-	l8 := location.New("Pawn Shop", []string{"PAWNSHOP"}, "You are in small Pawn shop. All around you on shelves are what looks like a load of useless junk.")
+	l8 := location.NewBasic("Pawn Shop", []string{"PAWNSHOP"}, "You are in small Pawn shop. All around you on shelves are what looks like a load of useless junk.")
 
-	l9 := location.New("Fountain Square", []string{"FOUNTAIN", "SQUARE"}, "You are in a small square at the crossing of two roads. In the centre of the square a magnificent fountain has been erected, providing fresh water to any who want it. From here the streets lead off in all directions.")
+	l9 := location.NewBasic("Fountain Square", []string{"FOUNTAIN", "SQUARE"}, "You are in a small square at the crossing of two roads. In the centre of the square a magnificent fountain has been erected, providing fresh water to any who want it. From here the streets lead off in all directions.")
 
-	l10 := location.New("Street outside Armourer", []string{"STREET", "ARMOURER"}, "You are on a well kept cobbled street which runs to the east and west. To the south you can see the shop of an armourer.")
+	l10 := location.NewBasic("Street outside Armourer", []string{"STREET", "ARMOURER"}, "You are on a well kept cobbled street which runs to the east and west. To the south you can see the shop of an armourer.")
 
-	l11 := location.New("Armourer's", []string{"ARMOURER"}, "You are in a small Armourers. Here, if you have the money, you could stagger out weighed down by more armour than a tank.")
+	l11 := location.NewBasic("Armourer's", []string{"ARMOURER"}, "You are in a small Armourers. Here, if you have the money, you could stagger out weighed down by more armour than a tank.")
 
-	l12 := location.New("Street outside Weapon Shop", []string{"WEAPONSHOP", "STREET"}, "You are on a well kept, wide street which runs to the east and west. To the south you can see a weapon shop.")
+	l12 := location.NewBasic("Street outside Weapon Shop", []string{"WEAPONSHOP", "STREET"}, "You are on a well kept, wide street which runs to the east and west. To the south you can see a weapon shop.")
 
-	l13 := location.New("Weapons Shop", []string{"WEAPONS", "SHOP"}, "You are in a small weapons shop. If it's 'big gun' stuff you're after you would do better looking else where.")
+	l13 := location.NewBasic("Weapons Shop", []string{"WEAPONS", "SHOP"}, "You are in a small weapons shop. If it's 'big gun' stuff you're after you would do better looking else where.")
 
-	l14 := location.New("Crossroads", []string{"CROSSROADS"}, "You are at the cross roads of two streets. One street runs east to west and the other north to south.")
+	l14 := location.NewBasic("Crossroads", []string{"CROSSROADS"}, "You are at the cross roads of two streets. One street runs east to west and the other north to south.")
 
-	l15 := location.New("Street outside Trading Post", []string{"STREET", "TRADINGPOST"}, "You are on a street running east to west. To north is a large Trading Post.")
+	l15 := location.NewBasic("Street outside Trading Post", []string{"STREET", "TRADINGPOST"}, "You are on a street running east to west. To north is a large Trading Post.")
 
-	l16 := location.New("Trading Post", []string{"TRADINGPOST", "SHOP"}, "You are standing in a large Trading Post . The only exit is west into the street.")
+	l16 := location.NewBasic("Trading Post", []string{"TRADINGPOST", "SHOP"}, "You are standing in a large Trading Post . The only exit is west into the street.")
 
-	l17 := location.New("Street outside Guard House", []string{"STREET", "GUARDHOUSE"}, "You are on a street running east to west. To north is the cities Guard House.")
+	l17 := location.NewBasic("Street outside Guard House", []string{"STREET", "GUARDHOUSE"}, "You are on a street running east to west. To north is the cities Guard House.")
 
-	l18 := location.New("Guard House", []string{"GUARDHOUSE", "STREET"}, "You are in the cities Guard House.")
+	l18 := location.NewBasic("Guard House", []string{"GUARDHOUSE", "STREET"}, "You are in the cities Guard House.")
 
-	l19 := location.New("Street by North Bridge", []string{"STREET"}, "You are at a junction in the street. You can either head south, east or west. East there is the north bridge over the cities river.")
+	l19 := location.NewBasic("Street by North Bridge", []string{"STREET"}, "You are at a junction in the street. You can either head south, east or west. East there is the north bridge over the cities river.")
 
-	l20 := startingLocation.New("North Bridge", []string{"NORTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Down river to the south you can see another bridge in a similar state of construction.")
+	l20 := location.NewStart("North Bridge", []string{"NORTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Down river to the south you can see another bridge in a similar state of construction.")
 
-	l21 := location.New("Street by South Bridge", []string{"STREET"}, "You are at a junction in the street. You can either head north, east or west. East there is the south bridge over the cities river.")
+	l21 := location.NewBasic("Street by South Bridge", []string{"STREET"}, "You are at a junction in the street. You can either head north, east or west. East there is the south bridge over the cities river.")
 
-	l22 := startingLocation.New("South Bridge", []string{"SOUTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Up river to the north you can see another bridge in a similar state of construction.")
+	l22 := location.NewStart("South Bridge", []string{"SOUTHBRIDGE"}, "You are standing on the west side of an incomplete bridge. By the looks of it the city wants to expand onto the far banks of the river. Up river to the north you can see another bridge in a similar state of construction.")
 
-	l23 := location.New("Money Changer's Office", []string{"MONEYCHANGER", "SHOP"}, "You are standing in the small office of a Money Changer. The only exit is north into the street.")
+	l23 := location.NewBasic("Money Changer's Office", []string{"MONEYCHANGER", "SHOP"}, "You are standing in the small office of a Money Changer. The only exit is north into the street.")
 
-	l24 := location.New("Street outside Money Changer", []string{"STREET"}, "You are in the street outside a small Money Changer's Office. The street heads to the east and west. The entrance to the Money Changer is to the South.")
+	l24 := location.NewBasic("Street outside Money Changer", []string{"STREET"}, "You are in the street outside a small Money Changer's Office. The street heads to the east and west. The entrance to the Money Changer is to the South.")
 
-	l25 := location.New("Street", []string{"STREET"}, "You are in the street which is running east and west. To the north looms a dark alley.")
+	l25 := location.NewBasic("Street", []string{"STREET"}, "You are in the street which is running east and west. To the north looms a dark alley.")
 
-	l26 := location.New("Street outside City Gardens", []string{"STREET"}, "You are at the end of street which runs to the east. To the west you can see the entrance to the City Gardens. A narrow alley runs south.")
+	l26 := location.NewBasic("Street outside City Gardens", []string{"STREET"}, "You are at the end of street which runs to the east. To the west you can see the entrance to the City Gardens. A narrow alley runs south.")
 
-	l27 := location.New("Entrance to City Gardens", []string{"GARDENS", "ENTRANCE"}, "You are standing at the entrance to the City Gardens. Around you flowers blossom and insects hum. West you can see an intricate iron gate leading into the gardens. East the streets await.")
+	l27 := location.NewBasic("Entrance to City Gardens", []string{"GARDENS", "ENTRANCE"}, "You are standing at the entrance to the City Gardens. Around you flowers blossom and insects hum. West you can see an intricate iron gate leading into the gardens. East the streets await.")
 
-	l28 := location.New("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. To the east you can see the gateway, northward there is a fish pond.")
+	l28 := location.NewBasic("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. To the east you can see the gateway, northward there is a fish pond.")
 
-	l29 := location.New("Quiet Sheltered Area", []string{"GARDENS", "SHELTERED"}, "You are in a small quiet area of the garden. Tall bushes have grown up over a trellis work to provide a small shaded area to come and sit in. The only exit from this area is southward.")
+	l29 := location.NewBasic("Quiet Sheltered Area", []string{"GARDENS", "SHELTERED"}, "You are in a small quiet area of the garden. Tall bushes have grown up over a trellis work to provide a small shaded area to come and sit in. The only exit from this area is southward.")
 
-	l30 := location.New("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. The gardens continue north, south and west.")
+	l30 := location.NewBasic("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. The gardens continue north, south and west.")
 
-	l31 := location.New("Fishpond", []string{"GARDENS", "FISHPOND"}, "You are standing next to a small fishpond. Paths lead off north, south and west deeper into the gardens.")
+	l31 := location.NewBasic("Fishpond", []string{"GARDENS", "FISHPOND"}, "You are standing next to a small fishpond. Paths lead off north, south and west deeper into the gardens.")
 
-	l32 := location.New("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. The gardens continue north, south and east.")
+	l32 := location.NewBasic("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. The gardens continue north, south and east.")
 
-	l33 := location.New("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. The gardens continue east, west and south.")
+	l33 := location.NewBasic("Gardens", []string{"GARDENS"}, "You are in a fine, formal garden. Around you small trees and shrubs grow. Here and there a splash of colour is present in the form of small delicate flowers. The gardens continue east, west and south.")
 
-	l34 := location.New("Quiet Sheltered Area", []string{"GARDENS", "SHELTERED"}, "You are in a small quiet area of the garden. Tall bushes have grown up over a trellis work to provide a small shaded area to come and sit in. The only exit from this area is eastward.")
+	l34 := location.NewBasic("Quiet Sheltered Area", []string{"GARDENS", "SHELTERED"}, "You are in a small quiet area of the garden. Tall bushes have grown up over a trellis work to provide a small shaded area to come and sit in. The only exit from this area is eastward.")
 
-	l35 := location.New("Gravel Path", []string{"GARDENS", "PATH"}, "You find yourself on a narrow gravel path leading between some bushes. The path continues south or you can go north into the gardens.")
+	l35 := location.NewBasic("Gravel Path", []string{"GARDENS", "PATH"}, "You find yourself on a narrow gravel path leading between some bushes. The path continues south or you can go north into the gardens.")
 
-	l36 := location.New("Secluded Path by Shed", []string{"GARDENS", "PATH", "SECLUDED"}, "You are on a small secluded gravel path screened off from the formal gardens by some large bushes. To the south you can make out the door to a small shed. A rock has been positioned by the shed, from the looks of it by someone who thought it might be artistic. The gravel path you are on leads northward.")
+	l36 := location.NewBasic("Secluded Path by Shed", []string{"GARDENS", "PATH", "SECLUDED"}, "You are on a small secluded gravel path screened off from the formal gardens by some large bushes. To the south you can make out the door to a small shed. A rock has been positioned by the shed, from the looks of it by someone who thought it might be artistic. The gravel path you are on leads northward.")
 
-	l37 := location.New("Garden Shed", []string{"GARDENS", "SHED"}, "You are in a small garden shed. The only exit appears to be through the door to the north.")
+	l37 := location.NewBasic("Garden Shed", []string{"GARDENS", "SHED"}, "You are in a small garden shed. The only exit appears to be through the door to the north.")
 
-	l38 := location.New("Dim Alley", []string{"ALLEY"}, "You are in a dim alley full of rubbish. The alley continues northward. To the south it leads into the street.")
+	l38 := location.NewBasic("Dim Alley", []string{"ALLEY"}, "You are in a dim alley full of rubbish. The alley continues northward. To the south it leads into the street.")
 
-	l39 := location.New("Dim Alley", []string{"ALLEY"}, "You are in a dim alley full of rubbish. The alley continues north and south.")
+	l39 := location.NewBasic("Dim Alley", []string{"ALLEY"}, "You are in a dim alley full of rubbish. The alley continues north and south.")
 
-	l40 := location.New("Bend in Dim Alley", []string{"ALLEY"}, "You are in a dim alley full of rubbish. Here the alley bends to the south and to the west.")
+	l40 := location.NewBasic("Bend in Dim Alley", []string{"ALLEY"}, "You are in a dim alley full of rubbish. Here the alley bends to the south and to the west.")
 
-	l41 := location.New("Rogue's Den Entrance", []string{"DEN", "ENTRANCE"}, "You are in a dim alley which leads to the east. Partially hidden by rubbish you can see a small trap door.")
+	l41 := location.NewBasic("Rogue's Den Entrance", []string{"DEN", "ENTRANCE"}, "You are in a dim alley which leads to the east. Partially hidden by rubbish you can see a small trap door.")
 
-	l42 := location.New("Rogue's Den", []string{"DEN"}, "You are in a large dim room. Looking around to catch glimpses of things moving in the shadows.")
+	l42 := location.NewBasic("Rogue's Den", []string{"DEN"}, "You are in a large dim room. Looking around to catch glimpses of things moving in the shadows.")
 
 	// Fireplace
 	l1.LinkExit(location.E, l3)

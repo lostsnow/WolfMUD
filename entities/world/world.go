@@ -12,7 +12,6 @@ import (
 	"net"
 	"wolfmud.org/client"
 	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/location/startingLocation"
 	"wolfmud.org/utils/stats"
 )
 
@@ -62,7 +61,7 @@ func (w *World) Genesis() {
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
-			go client.Spawn(conn, startingLocation.GetStart())
+			go client.Spawn(conn, location.GetStart())
 		}
 	}
 }
