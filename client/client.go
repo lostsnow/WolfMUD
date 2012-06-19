@@ -30,7 +30,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	//"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -68,9 +67,6 @@ const (
 	PROMPT_NONE    = ""
 	PROMPT_DEFAULT = text.COLOR_MAGENTA + ">"
 )
-
-// regexpLF is a package instance compiled regex to change LF to CR+LF
-//var regexpLF, _ = regexp.Compile("([^\r])\n")
 
 // Client is the default client implementation.
 //
@@ -257,16 +253,15 @@ func (c *Client) Send(format string, any ...interface{}) {
 	any = append(any, c.prompt)
 	format = text.COLOR_WHITE + format + "%s"
 
-	// NOTE: You need to colorize THEN fold so fold counts the length of color
-	// codes and NOT color names ;)
 	data := format
 
 	if len(any) > 0 {
 		data = fmt.Sprintf(data, any...)
 	}
 
+	// NOTE: You need to colorize THEN fold so fold counts the length of color
+	// codes and NOT color names ;)
 	data = text.Fold(text.Colorize(data), TERM_WIDTH)
-	//data = regexpLF.ReplaceAllString(data, "$1\r\n")
 	data = strings.Replace(data, "\n", "\r\n", -1)
 
 	if _, err := c.conn.Write([]byte(data)); err != nil {
