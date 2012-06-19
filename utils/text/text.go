@@ -3,6 +3,8 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
+// Package text implements some text utilities. At the moment some of the
+// utilities are text/TELNET related and may need to be split up more later on.
 package text
 
 import (
@@ -13,7 +15,7 @@ import (
 // ANSI Color escape sequences. The sequences are defined in the ECMA-48
 // standard or ISO/IEC 6429.
 //
-// For hightrafic constant messages like prompts having:
+// For high traffic constant messages like prompts having:
 //
 //	COLOR_MAGENTA + ">"
 //
@@ -61,8 +63,6 @@ var colorTable = map[string]string{
 // \033[xxm - for values of xx see the definition of colorTable. Line endings
 // are expected to be Linefeeds only - LF, \n or 0x0A - common on *nix systems.
 //
-// TODO: Softcode TERM_WIDTH via a user/player setting.
-//
 // TODO: Could probably use some Unicode love.
 //
 // TODO: Needs to be optimized.
@@ -95,7 +95,7 @@ func Fold(in string, width int) (out string) {
 }
 
 // colorize turns color names into color ANSI codes within a string. This allows
-// messages to be colored easily with color names. For example the message:
+// messages to be colored easily using the color names. For example the message:
 //
 //	"[RED]Boom![WHITE]"
 //
