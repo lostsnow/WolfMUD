@@ -11,7 +11,7 @@ import (
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/inventory"
-	"wolfmud.org/utils/responder"
+	"wolfmud.org/utils/messaging"
 	"wolfmud.org/utils/text"
 )
 
@@ -66,7 +66,7 @@ func (b *Basic) Broadcast(omit []thing.Interface, format string, any ...interfac
 	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
 
 	for _, v := range b.Inventory.List(omit...) {
-		if resp, ok := v.(responder.Interface); ok {
+		if resp, ok := v.(messaging.Responder); ok {
 			resp.Respond(msg)
 		}
 	}

@@ -4,13 +4,13 @@
 // included with the source code.
 
 // Package responder implements a standard way to send responses to players.
-package responder
+package messaging
 
 // Respond should be implemented by anything that wants to 'respond' to players.
 // It is modelled after fmt.Printf so that messages can easily be built with
 // parameters. For example:
 //
 //	cmd.Respond("You go %s.", directionNames[d])
-type Interface interface {
+type Responder interface {
 	Respond(format string, any ...interface{})
 }

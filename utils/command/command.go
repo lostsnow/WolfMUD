@@ -10,8 +10,7 @@ package command
 import (
 	"strings"
 	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/responder"
-	"wolfmud.org/utils/responder/broadcaster"
+	"wolfmud.org/utils/messaging"
 )
 
 // Interface should be implemented by anything that wants to process/react
@@ -102,14 +101,14 @@ func (c *Command) New(input string) {
 func (c *Command) Flush() {
 	if len(c.response.format) > 0 {
 		format := strings.Join(c.response.format, "\n")
-		if r, ok := c.Issuer.(responder.Interface); ok {
+		if r, ok := c.Issuer.(messaging.Responder); ok {
 			r.Respond(format, c.response.any...)
 		}
 	}
 
 	if len(c.broadcast.format) > 0 {
 		format := strings.Join(c.broadcast.format, "\n")
-		if b, ok := c.Issuer.(broadcaster.Interface); ok {
+		if b, ok := c.Issuer.(messaging.Broadcaster); ok {
 			b.Broadcast(c.broadcast.omit, format, c.broadcast.any...)
 		}
 	}
@@ -119,7 +118,7 @@ func (c *Command) Flush() {
 // responding to the Thing that is issuing the command, with buffering, without
 // having to do any additional bookkeeping.
 func (c *Command) Respond(format string, any ...interface{}) {
-	if _, ok := c.Issuer.(responder.Interface); ok {
+	if _, ok := c.Issuer.(messaging.Responder); ok {
 		c.response.format = append(c.response.format, format)
 		c.response.any = append(c.response.any, any...)
 	}
@@ -129,7 +128,7 @@ func (c *Command) Respond(format string, any ...interface{}) {
 // for broadcasting to the Thing's location that is issuing the command, with
 // buffering, without having to do any additional bookkeeping.
 func (c *Command) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
-	if _, ok := c.Issuer.(broadcaster.Interface); ok {
+	if _, ok := c.Issuer.(messaging.Broadcaster); ok {
 		c.broadcast.omit = append(c.broadcast.omit, omit...)
 		c.broadcast.format = append(c.broadcast.format, format)
 		c.broadcast.any = append(c.broadcast.any, any...)

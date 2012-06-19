@@ -7,9 +7,7 @@
 // Broadcast function should take a slice of responder.Interface and not
 // thing.Interface.
 
-// Package broadcaster defines the Interface for sending messages to multiple
-// responders.
-package broadcaster
+package messaging
 
 import (
 	"wolfmud.org/entities/thing"
@@ -25,9 +23,9 @@ import (
 // from the message broadcast to the world:
 //
 //	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
-//	p.Locate().Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
+//	cmd.Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
 //	PlayerList.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
 //
-type Interface interface {
+type Broadcaster interface {
 	Broadcast(omit []thing.Interface, format string, any ...interface{})
 }
