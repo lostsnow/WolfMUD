@@ -100,15 +100,15 @@ func (c *Command) New(input string) {
 // Flush processes the buffered messages sent using Respond and Broadcast.
 func (c *Command) Flush() {
 	if len(c.response.format) > 0 {
-		format := strings.Join(c.response.format, "\n")
 		if r, ok := c.Issuer.(messaging.Responder); ok {
+			format := strings.Join(c.response.format, "\n")
 			r.Respond(format, c.response.any...)
 		}
 	}
 
 	if len(c.broadcast.format) > 0 {
-		format := strings.Join(c.broadcast.format, "\n")
 		if b, ok := c.Issuer.(messaging.Broadcaster); ok {
+			format := strings.Join(c.broadcast.format, "\n")
 			b.Broadcast(c.broadcast.omit, format, c.broadcast.any...)
 		}
 	}

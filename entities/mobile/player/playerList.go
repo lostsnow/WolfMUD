@@ -54,8 +54,9 @@ func (l *playerList) List(omit ...thing.Interface) (list []*Player) {
 
 OMIT:
 	for _, player := range l.players {
-		for _, o := range omit {
+		for i, o := range omit {
 			if player.IsAlso(o) {
+				omit = append(omit[0:i], omit[i+1:]...)
 				continue OMIT
 			}
 		}
@@ -68,7 +69,7 @@ OMIT:
 func (l *playerList) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
 
-	for _, t := range l.List(omit...) {
-		t.Respond(msg)
+	for _, p := range l.List(omit...) {
+		p.Respond(msg)
 	}
 }

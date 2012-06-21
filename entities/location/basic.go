@@ -65,9 +65,12 @@ func (b *Basic) Remove(thing thing.Interface) {
 func (b *Basic) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
 
-	for _, v := range b.Inventory.List(omit...) {
-		if resp, ok := v.(messaging.Responder); ok {
-			resp.Respond(msg)
+	for _, item := range b.Inventory.List(omit...) {
+		switch messenger := item.(type) {
+		case messaging.Responder:
+			messenger.Respond(msg)
+		case messaging.Broadcaster:
+			messenger.Broadcast(omit, format, any...)
 		}
 	}
 }

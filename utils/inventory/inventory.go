@@ -94,8 +94,9 @@ func (i *Inventory) List(omit ...thing.Interface) (list []thing.Interface) {
 
 OMIT:
 	for _, thing := range i.contents {
-		for _, o := range omit {
+		for i, o := range omit {
 			if thing.IsAlso(o) {
+				omit = append(omit[0:i], omit[i+1:]...)
 				continue OMIT
 			}
 		}
