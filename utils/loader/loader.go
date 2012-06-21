@@ -333,12 +333,18 @@ func Load(world *world.World) {
 		2,
 	)
 	t2 := item.New(
-		"A small ball",
+		"A small green ball",
 		[]string{"BALL"},
-		"This is a small rubber ball.",
+		"This is a small, green, rubber ball.",
 		18,
 	)
 	t3 := item.New(
+		"A small red ball",
+		[]string{"BALL"},
+		"This is a small, red, rubber ball.",
+		18,
+	)
+	t4 := item.New(
 		"An iron bound chest",
 		[]string{"CHEST"},
 		"This is vary stout wooden chest about 2 foot wide and 1 foot deep. Thick metal bands bind it.",
@@ -348,4 +354,5 @@ func Load(world *world.World) {
 	l1.Add(t1)
 	l1.Add(t2)
 	l1.Add(t3)
+	l1.Add(t4)
 }

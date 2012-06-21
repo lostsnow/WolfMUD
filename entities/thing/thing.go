@@ -36,7 +36,7 @@ type Interface interface {
 	Unlock()
 }
 
-// The Thing type is a default implementation of the thing.Interface
+// Thing type is a default implementation of the thing.Interface
 type Thing struct {
 	name        string
 	description string
@@ -45,9 +45,9 @@ type Thing struct {
 	lock        chan bool
 }
 
-// New allocates a new Thing returning a pointer reference. A unique ID will
-// be allocated automatically. The aliases will all be stripped of leading and
-// trailing whitespace then converted to uppercase.
+// New allocates a new Thing, returning a pointer reference to it. A unique ID
+// will be allocated automatically. The aliases will all be stripped of leading
+// and trailing whitespace then converted to uppercase.
 func New(name string, aliases []string, description string) *Thing {
 
 	for i, a := range aliases {

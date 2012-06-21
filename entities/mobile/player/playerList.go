@@ -9,7 +9,7 @@ import (
 
 type playerList struct {
 	players []*Player
-	lock chan bool
+	mutex   chan bool
 }
 
 var (
@@ -17,18 +17,26 @@ var (
 )
 
 func init() {
-	PlayerList.lock = make(chan bool, 1)
+	PlayerList.mutex = make(chan bool, 1)
+}
+
+func (l *playerList) lock() {
+	l.mutex <- true
+}
+
+func (l *playerList) unlock() {
+	<-l.mutex
 }
 
 func (l *playerList) Add(player *Player) {
-	l.lock <- true
-	defer func(){<-l.lock}()
+	l.lock()
+	defer l.unlock()
 	l.players = append(l.players, player)
 }
 
 func (l *playerList) Remove(player *Player) {
-	l.lock <- true
-	defer func(){<-l.lock}()
+	l.lock()
+	defer l.unlock()
 	found := false
 	for index, p := range l.players {
 		if player.IsAlso(p) {
@@ -43,14 +51,14 @@ func (l *playerList) Remove(player *Player) {
 }
 
 func (l *playerList) Length() int {
-	l.lock <- true
-	defer func(){<-l.lock}()
+	l.lock()
+	defer l.unlock()
 	return len(l.players)
 }
 
 func (l *playerList) List(omit ...thing.Interface) (list []*Player) {
-	l.lock <- true
-	defer func(){<-l.lock}()
+	l.lock()
+	defer l.unlock()
 
 OMIT:
 	for _, player := range l.players {

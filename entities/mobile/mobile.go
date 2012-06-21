@@ -87,18 +87,18 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 // TODO: Currently very basic, needs to deal with held, weilded, worn items.
 func (m *Mobile) inv(cmd *command.Command) (handled bool) {
 
+	if cmd.Target != "" {
+		return
+	}
+
 	response := ""
 
-	if cmd.Target != nil {
-		return false
+	if inventory := m.Inventory.List(); len(inventory) == 0 {
+		response = "You are not carrying anything."
 	} else {
-		if inventory := m.Inventory.List(); len(inventory) == 0 {
-			response = "You are not carrying anything."
-		} else {
-			response = "You are currently carrying:\n"
-			for _, item := range inventory {
-				response += "\t" + item.Name() + "\n"
-			}
+		response = "You are currently carrying:\n"
+		for _, item := range inventory {
+			response += "\t" + item.Name() + "\n"
 		}
 	}
 	cmd.Respond(response)

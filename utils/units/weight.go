@@ -14,6 +14,15 @@ import (
 // different units of weight can easily be defined.
 type Weight ounces
 
+// A few useful weight constants
+const (
+	ZERO_WEIGHT  = ounces(0)
+	POUND        = ounces(16)
+	HALF_POUND   = POUND / 2
+)
+
+// String implements the Stringer interface so that a weight can have a meaning
+// description like "1lb and 2oz" just by using %s and %v etc.
 func (w Weight) String() string {
 	return ounces(w).String()
 }
@@ -34,24 +43,23 @@ type ounces int
 func (o ounces) String() string {
 	b := new(bytes.Buffer)
 
-	o_int := int(o)
+	oz := o % POUND
+	lb := (o - oz) / POUND
 
-	oz := o_int % 16
-	lb := (o_int - oz) / 16
-
-	if lb >= 2 && oz > 8 {
+	if lb >= 2 && oz > HALF_POUND {
 		lb++
 	}
 
-	if lb != 0 {
-		b.WriteString(strconv.Itoa(lb))
+	if lb != ZERO_WEIGHT {
+		b.WriteString(strconv.Itoa(int(lb)))
 		b.WriteString("lb")
-	}
-	if oz != 0 && lb < 2 {
-		if b.Len() != 0 {
+		if oz != ZERO_WEIGHT && lb < 2 {
 			b.WriteString(" and ")
 		}
-		b.WriteString(strconv.Itoa(oz))
+	}
+
+	if oz != ZERO_WEIGHT && lb < 2 {
+		b.WriteString(strconv.Itoa(int(oz)))
 		b.WriteString("oz")
 	}
 

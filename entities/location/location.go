@@ -15,6 +15,7 @@ import (
 	"strings"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
+	"wolfmud.org/utils/messaging"
 	"wolfmud.org/utils/inventory"
 )
 
@@ -91,9 +92,9 @@ type Interface interface {
 	thing.Interface
 	command.Interface
 	inventory.Interface
+	messaging.Broadcaster
 	LinkExit(d direction, to Interface)
-	Look(cmd *command.Command) (handled bool)
-	Broadcast(omit []thing.Interface, format string, any ...interface{})
+	look(cmd *command.Command) (handled bool)
 }
 
 // Locateable defines the interface for something that has a location or can be

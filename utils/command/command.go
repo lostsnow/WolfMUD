@@ -39,7 +39,7 @@ type Command struct {
 	Issuer        thing.Interface   // What is issuing the command
 	Verb          string            // 1st word (verb): GET, DROP, EXAMINE etc
 	Nouns         []string          // 2nd...nth words
-	Target        *string           // Alias for 2nd word - normally the verb's target
+	Target        string            // Alias for 2nd word - normally the verb's target
 	Locks         []thing.Interface // Locks we want to hold
 	locksModified bool              // Locks modified since last LocksModified() call?
 	response      responseBuffer
@@ -91,9 +91,9 @@ func (c *Command) New(input string) {
 	c.Verb = words[0]
 	c.Nouns = words[1:]
 	if len(words) > 1 {
-		c.Target = &words[1]
+		c.Target = words[1]
 	} else {
-		c.Target = nil
+		c.Target = ""
 	}
 }
 
@@ -129,7 +129,19 @@ func (c *Command) Respond(format string, any ...interface{}) {
 // buffering, without having to do any additional bookkeeping.
 func (c *Command) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	if _, ok := c.Issuer.(messaging.Broadcaster); ok {
-		c.broadcast.omit = append(c.broadcast.omit, omit...)
+
+		// Add omitted things - but not duplicates!
+
+	OMIT:
+		for _, o1 := range omit {
+			for _, o2 := range c.broadcast.omit {
+				if o1.IsAlso(o2) {
+					continue OMIT
+				}
+			}
+			c.broadcast.omit = append(c.broadcast.omit, o1)
+		}
+
 		c.broadcast.format = append(c.broadcast.format, format)
 		c.broadcast.any = append(c.broadcast.any, any...)
 	}

@@ -87,7 +87,7 @@ func (b *Basic) Process(cmd *command.Command) (handled bool) {
 
 	switch cmd.Verb {
 	case "LOOK", "L":
-		handled = b.Look(cmd)
+		handled = b.look(cmd)
 	case "EXITS", "EX":
 		handled = b.exits(cmd)
 	case "NORTH", "N":
@@ -115,16 +115,16 @@ func (b *Basic) Process(cmd *command.Command) (handled bool) {
 	return
 }
 
-// BUG(Diddymus): The Java version listed mobiles before other things in Look.
+// BUG(Diddymus): The Java version listed mobiles before other things in look.
 
-// Look implements the 'LOOK' command. It describes the location displaying the
+// look implements the 'LOOK' command. It describes the location displaying the
 // title, description, things and directional exits.
 //
 // TODO: Implement brief mode.
 //
 // TODO: Implement looking in a specific direction with a maximum viewing
 // distance.
-func (b *Basic) Look(cmd *command.Command) (handled bool) {
+func (b *Basic) look(cmd *command.Command) (handled bool) {
 
 	list := b.Inventory.List(cmd.Issuer)
 	thingsHere := make([]string, 0, len(list))
@@ -142,7 +142,7 @@ func (b *Basic) Look(cmd *command.Command) (handled bool) {
 	return true
 }
 
-// exits implements the 'EXITS' command. It display the currently available
+// exits implements the 'EXITS' command. It displays the currently available
 // directional exits from the location.
 func (b *Basic) exits(cmd *command.Command) (handled bool) {
 	cmd.Respond("[CYAN]You can see exits: [YELLOW]%s", b.directionalExits)
@@ -167,7 +167,7 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 		to.Add(cmd.Issuer)
 		to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.", cmd.Issuer.Name())
 
-		to.Look(cmd)
+		to.look(cmd)
 	} else {
 		cmd.Respond("You can't go %s from here!", directionNames[d])
 	}
