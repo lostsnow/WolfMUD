@@ -34,13 +34,11 @@ var (
 type Player struct {
 	*mobile.Mobile
 	sender   sender.Interface
-	name     string
 	quitting bool
 }
 
-// New creates a new Player and returns a reference to it.
-func New(sender sender.Interface, l location.Interface) *Player {
-
+// TODO: loadPlayer currently just generates a player instead of loading one.
+func loadPlayer(sender sender.Interface) (player *Player) {
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
 
@@ -48,35 +46,42 @@ func New(sender sender.Interface, l location.Interface) *Player {
 	alias := []string{"PLAYER" + postfix}
 	description := "This is Player " + postfix + "."
 
-	p := &Player{
+	return &Player{
 		Mobile: mobile.New(name, alias, description),
 		sender: sender,
 	}
-	p.name = p.Name()
+}
 
-	// Put player into the world
+// New creates a new Player and returns a reference to it. The player is put
+// into the world at a random starting location and the location is described.
+//
+// NOTE: Don't put p.Parse("LOOK") into add() otherwise we deadlock because
+// both will try to get the lock of the starting location.
+func New(sender sender.Interface, l location.Interface) (p *Player) {
+
+	p = loadPlayer(sender)
 	p.add(l)
-
-	// Describe starting location.
-	// NOTE: Don't put this into add() otherwise we deadlock because both do locking!
 	p.Parse("LOOK")
 
 	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
-	runtime.SetFinalizer(p, final)
 
-	return p
+	// Create name for finalizer as p will be gone and p.Name() will panic ;)
+	name := p.Name()
+	runtime.SetFinalizer(&name, final)
+
+	return
 }
 
 // final is used for debugging to make sure the GC is cleaning up
-func final(p *Player) {
-	log.Printf("+++ %s finalized +++\n", p.name)
+func final(name *string) {
+	log.Printf("+++ %s finalized +++\n", *name)
 }
 
 // IsQuitting returns true if the player is trying to quit otherwise false. It
 // implements part of the parser.Interface.
+//
+// TODO: Do we still need the locking around this?
 func (p *Player) IsQuitting() bool {
-	p.Lock()
-	defer p.Unlock()
 	return p.quitting
 }
 
@@ -84,44 +89,25 @@ func (p *Player) IsQuitting() bool {
 // of the parser.Interface.
 func (p *Player) Destroy() {
 
-	name := p.Name()
-
-	log.Printf("Destroy: %s\n", name)
-
-	if p.IsQuitting() {
-		log.Printf("%s is quitting @ %s", name, p.Locate().Name())
-		p.Locate().Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", name)
-	}
-
 	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
 
-	// Involuntary disconnection?
-	if !p.IsQuitting() {
-		PlayerList.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", name)
-	}
+	log.Printf("Destroyed: %s\n", p.Name())
 
 	p.sender = nil
 	p.Mobile = nil
-
-	log.Printf("Destroyed: %s\n", name)
 }
 
 // add places a player in the world safely.
 func (p *Player) add(l location.Interface) {
-
 	l.Lock()
 	defer l.Unlock()
 
 	l.Add(p)
-	l.Broadcast(
-		[]thing.Interface{p},
-		"There is a puff of smoke and %s appears spluttering and coughing.",
-		p.Name(),
-	)
-
 	PlayerList.Add(p)
+
+	l.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 }
 
 // remove extracts a player from the world cleanly.
@@ -129,11 +115,21 @@ func (p *Player) remove() (removed bool) {
 	l := p.Locate()
 	l.Lock()
 	defer l.Unlock()
+
 	if l.IsAlso(p.Locate()) {
-		p.Locate().Remove(p)
+
+		// Quitting or involuntary disconnection?
+		if p.IsQuitting() {
+			p.Locate().Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
+		} else {
+			PlayerList.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", p.Name())
+		}
+
+		l.Remove(p)
 		PlayerList.Remove(p)
 		removed = true
 	}
+
 	return
 }
 
@@ -182,13 +178,13 @@ func (p *Player) Parse(input string) {
 
 	cmd := command.New(p, input)
 	cmd.AddLock(p.Locate())
+	cmd.LocksModified()
 
-	for retry := cmd.LocksModified(); retry; {
-		retry = p.parseStage2(cmd)
+	// Another funky looking for loop :)
+	for p.parseStage2(cmd) {
 	}
 
 	cmd.Flush()
-
 }
 
 func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
@@ -196,24 +192,26 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 		l.Lock()
 		defer l.Unlock()
 	}
-	if cmd.CanLock(p.Locate()) {
-		handled := p.Process(cmd)
-		retry = cmd.LocksModified()
-		if handled == false && !retry {
-			cmd.Respond("Eh?")
-		}
-	} else {
-		retry = true
+
+	// If player moved before we locked we need to retry
+	if !cmd.CanLock(p.Locate()) {
+		return true
 	}
+
+	handled := p.Process(cmd)
+	retry = cmd.LocksModified()
+
+	if !handled && !retry {
+		cmd.Respond("Eh?")
+	}
+
 	return
 }
 
+// NOTE: We should never have a nil sender as it's deallocated only after the
+// player is extracted from the world.
 func (p *Player) Respond(format string, any ...interface{}) {
-	if c := p.sender; c != nil {
-		c.Send(format, any...)
-	} else {
-		log.Printf("Respond: %s is a Zombie\n", p.name)
-	}
+	p.sender.Send(format, any...)
 }
 
 func (p *Player) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
@@ -274,12 +272,10 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 }
 
 func (p *Player) quit(cmd *command.Command) (handled bool) {
-	p.Lock()
-	defer p.Unlock()
 	p.dropInventory(cmd)
 	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
 	p.quitting = true
-	log.Printf("quit: %s is quitting.", p.Name())
+	log.Printf("%s is quitting", p.Name())
 	return true
 }
 

@@ -60,6 +60,22 @@ func (l *playerList) List(omit ...thing.Interface) (list []*Player) {
 	l.lock()
 	defer l.unlock()
 
+  return l.nonLockingList(omit...)
+}
+
+func (l *playerList) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
+	l.lock()
+	defer l.unlock()
+
+	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
+
+	for _, p := range l.nonLockingList(omit...) {
+		p.Respond(msg)
+	}
+}
+
+func (l *playerList) nonLockingList(omit ...thing.Interface) (list []*Player) {
+
 OMIT:
 	for _, player := range l.players {
 		for i, o := range omit {
@@ -72,12 +88,4 @@ OMIT:
 	}
 
 	return
-}
-
-func (l *playerList) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
-	msg := text.Colorize(fmt.Sprintf("\n"+format, any...))
-
-	for _, p := range l.List(omit...) {
-		p.Respond(msg)
-	}
 }
