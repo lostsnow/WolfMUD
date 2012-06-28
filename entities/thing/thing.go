@@ -50,16 +50,16 @@ type Thing struct {
 // and trailing whitespace then converted to uppercase.
 func New(name string, aliases []string, description string) *Thing {
 
-	for i, a := range aliases {
-		aliases[i] = strings.ToUpper(strings.TrimSpace(a))
-	}
-
 	t := &Thing{
 		name:        name,
-		aliases:     aliases,
+		aliases:     make([]string, len(aliases)),
 		description: description,
 		uniqueId:    <-Next,
 		mutex:       make(chan bool, 1),
+	}
+
+	for i, a := range aliases {
+		t.aliases[i] = strings.ToUpper(strings.TrimSpace(a))
 	}
 
 	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
