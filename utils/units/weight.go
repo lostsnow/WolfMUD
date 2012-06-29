@@ -27,6 +27,10 @@ func (w Weight) String() string {
 	return ounces(w).String()
 }
 
+func (w Weight) Int() int {
+	return int(w)
+}
+
 // ounces is used as the standard weight for items.
 type ounces int
 
@@ -41,6 +45,15 @@ type ounces int
 //	89 ounces displays as "6lb" and not "5lb and 9oz"
 //
 func (o ounces) String() string {
+	switch o {
+		case ZERO_WEIGHT:
+			return "nothing";
+		case HALF_POUND:
+			return "half a pound"
+		case POUND:
+			return "a pound"
+	}
+
 	b := new(bytes.Buffer)
 
 	oz := o % POUND
