@@ -14,7 +14,7 @@ import (
 // same an error is reported.
 func Equal(t *testing.T, text string, expect, got interface{}) {
 	if expect != got {
-		t.Errorf("%s expected: %v got: %v", text, expect, got)
+		t.Errorf("%s expected: [%v] got: [%v]", text, expect, got)
 	}
 }
 
@@ -22,6 +22,6 @@ func Equal(t *testing.T, text string, expect, got interface{}) {
 // same an error is reported.
 func NotEqual(t *testing.T, text string, expect, got interface{}) {
 	if expect == got {
-		t.Errorf("%s didn't expect: %v", text, got)
+		t.Errorf("%s didn't expect: [%v]", text, got)
 	}
 }
