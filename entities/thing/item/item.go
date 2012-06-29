@@ -81,7 +81,7 @@ func (i *Item) drop(cmd *command.Command) (handled bool) {
 
 // weigh estimates the weight of the specified item.
 func (i *Item) weigh(cmd *command.Command) (handled bool) {
-	cmd.Respond("You estimate the weight of %s to be about %s.", i.Name(), i.weight)
+	cmd.Respond("You estimate %s to weigh about %s.", i.Name(), i.weight)
 	return true
 }
 
