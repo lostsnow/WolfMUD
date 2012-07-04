@@ -97,11 +97,16 @@ func (i *Inventory) Remove(thing thing.Interface) {
 // things are present which is why this works.
 func (i *Inventory) List(omit ...thing.Interface) (list []thing.Interface) {
 
+	// Don't modify passed slice's elements
+	omitted := make([]thing.Interface, len(omit))
+	copy(omitted, omit)
+
 OMIT:
 	for _, thing := range i.contents {
-		for i, o := range omit {
+		for i, o := range omitted {
 			if thing.IsAlso(o) {
-				omit = append(omit[0:i], omit[i+1:]...)
+				// Whittle down omitted so there is less to check each time
+				omitted = append(omitted[:i], omitted[i+1:]...)
 				continue OMIT
 			}
 		}
@@ -111,9 +116,9 @@ OMIT:
 	return
 }
 
-// Delegate delegates commands to an invenotry's items. This is most useful
+// Delegate delegates commands to an inventory's items. This is most useful
 // when processing commands for a location and the location cannot process the
-// command it passes it on to somethning else that might be able to.
+// command it passes it on to something else that might be able to.
 func (i *Inventory) Delegate(cmd *command.Command) (handled bool) {
 	for _, thing := range i.contents {
 
