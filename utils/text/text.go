@@ -8,7 +8,6 @@
 package text
 
 import (
-	"bytes"
 	"strings"
 )
 
@@ -55,43 +54,72 @@ var colorTable = map[string]string{
 	"[WHITE]":   COLOR_WHITE,
 }
 
-// BUG(Diddymus): fold assumes control sequences are 5 bytes long. When we add
-// more control sequences they probably won't be 5 bytes long.
+// BUG(Diddymus): Fold assumes control sequences are 5 bytes long. When we add
+// more control sequences they probably won't be 5 bytes long. To fix this the
+// two += 5 lines should be a table lookup.
 
-// fold takes a string of text and turns it into lines of a certain length
-// breaking on whitespace. The text may contain ANSI color codes in the format
+// BUG(Diddymus): Fold assumes a fixed font. Some rune may display as 2 or 3
+// cells wide and is dependant on the font used. A rune 2 cells wide in one
+// font may only be 1 cell wide in another font. Due to this the folding may be
+// inaccurate in some instances.
+
+// Fold takes a string of text and turns it into lines of a certain length
+// breaking on spaces. The text may contain ANSI color codes in the format
 // \033[xxm - for values of xx see the definition of colorTable. Line endings
 // are expected to be Linefeeds only - LF, \n or 0x0A - common on *nix systems.
 //
-// TODO: Could probably use some Unicode love.
-//
-// TODO: Needs to be optimized.
-func Fold(in string, width int) (out string) {
-
+// Leading spaces and original linefeeds should remain untouched.
+func Fold(in string, width int) string {
 
 	// Shortcut
-	if len(in) < width {
+	if len(in) <= width {
 		return in
 	}
 
-	b := new(bytes.Buffer)
-	p := 0
+	// We can have a space or newline at the end of a line, spaces then become
+	// newlines and everything works out.
+	width++
 
-	for _, word := range strings.SplitAfter(in, " ") {
-		for _, atom := range strings.SplitAfter(word, "\n") {
-			l := len(atom) - strings.Count(atom, "\n") - (strings.Count(atom, "\033") * 5)
-			if p+l > width {
-				b.WriteString("\n")
-				p = 0
+	lastNL := 0 // Last new line position
+	lastSP := 0 // Last space position
+	zeroNL := 0 // Zero width runes since last new line
+	zeroSP := 0 // Zero width runes since last space
+
+	output := []rune(in)
+
+	for i, r := range output {
+		switch r {
+
+		// A space in the input text
+		case ' ':
+			if (i - lastNL - zeroNL) > width {
+				output[lastSP] = '\n'
+				lastNL, zeroNL = lastSP, zeroSP
 			}
-			p = p + l
-			if strings.HasSuffix(atom, "\n") {
-				p = 0
+			lastSP, zeroSP = i, 0
+
+		// Am original newline in the input text
+		case '\n':
+			if (i - lastNL - zeroNL) > width {
+				output[lastSP] = '\n'
 			}
-			b.WriteString(atom)
+			zeroNL, zeroSP = 0, 0
+			lastNL, lastSP = i, i
+
+		// Start of a control code?
+		case '\033':
+			zeroNL += 5
+			zeroSP += 5
+
 		}
 	}
-	return b.String()
+
+	// Process remaining runes when loop ends
+	if (len(output) - lastNL - zeroNL) > width {
+		output[lastSP] = '\n'
+	}
+
+	return string(output)
 }
 
 // colorize turns color names into color ANSI codes within a string. This allows
