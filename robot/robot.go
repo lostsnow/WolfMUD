@@ -1,11 +1,9 @@
 package main
 
 import (
-	crypto "crypto/rand"
 	"flag"
 	"fmt"
 	"io"
-	"math/big"
 	"math/rand"
 	"net"
 	"runtime"
@@ -22,8 +20,7 @@ func main() {
 	fmt.Printf("Launching %d bots for %d minutes\n", *nbr, *mins)
 
 	// Initialise random number generator with random seed
-	seed, _ := crypto.Int(crypto.Reader, big.NewInt(0x7FFFFFFFFFFFFFFF))
-	rand.Seed(seed.Int64())
+	rand.Seed(time.Now().UnixNano())
 
 	launched := make(chan bool, 1)
 
