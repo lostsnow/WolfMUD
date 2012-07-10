@@ -20,14 +20,14 @@ func GetStart() *Start {
 // Start implements a starting location. That is a location where players can
 // enter the world. It is simply a new type wrapping a Basic location.
 type Start struct {
-	*Basic
+	Basic
 }
 
 // NewStart creates a new Start location and returns a reference to it. It also
 // adds a reference to the created location into the Start slice.
 func NewStart(name string, aliases []string, description string) *Start {
 	l := &Start{
-		Basic: NewBasic(name, aliases, description),
+		Basic: *NewBasic(name, aliases, description),
 	}
 	start = append(start, l)
 	return l

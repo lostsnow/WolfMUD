@@ -10,7 +10,6 @@ package mobile
 
 import (
 	"log"
-	"runtime"
 	"wolfmud.org/entities/location"
 	"wolfmud.org/entities/thing"
 	"wolfmud.org/utils/command"
@@ -19,27 +18,21 @@ import (
 
 // Mobile provides a default basic implementation of a mobile.
 type Mobile struct {
-	*thing.Thing
-	*inventory.Inventory
+	thing.Thing
+	inventory.Inventory
 	location location.Interface
 }
 
 // New creates a new Mobile and returns a reference to it.
 func New(name string, alias []string, description string) *Mobile {
 	m := &Mobile{
-		Thing:     thing.New(name, alias, description),
-		Inventory: inventory.New(),
+		Thing:     *thing.New(name, alias, description),
+		Inventory: *inventory.New(),
 	}
 
 	log.Printf("Mobile %d created: %s\n", m.UniqueId(), m.Name())
-	runtime.SetFinalizer(m, final)
 
 	return m
-}
-
-// final is used for debugging to make sure the GC is cleaning up
-func final(m *Mobile) {
-	log.Printf("+++ Mobile %d finalized: %s +++\n", m.UniqueId(), m.Name())
 }
 
 // Relocate sets a mobile's internal location reference. It implements part of

@@ -9,7 +9,6 @@ package player
 import (
 	"log"
 	"os"
-	"runtime"
 	"runtime/pprof"
 	"strconv"
 	"wolfmud.org/entities/location"
@@ -31,7 +30,7 @@ var (
 // from the Mobile type and methods to implement the parser Interface. Apart
 // from the parser interface methods Player only contains Player specific code.
 type Player struct {
-	*mobile.Mobile
+	mobile.Mobile
 	sender   sender.Interface
 	quitting bool
 }
@@ -47,7 +46,7 @@ func loadPlayer(sender sender.Interface) (player *Player) {
 	description := "This is Player " + postfix + "."
 
 	return &Player{
-		Mobile: mobile.New(name, alias, description),
+		Mobile: *mobile.New(name, alias, description),
 		sender: sender,
 	}
 }
@@ -65,14 +64,7 @@ func New(sender sender.Interface, l location.Interface) (p *Player) {
 
 	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
 
-	runtime.SetFinalizer(p, final)
-
 	return
-}
-
-// final is used for debugging to make sure the GC is cleaning up
-func final(p *Player) {
-	log.Printf("+++ finalized +++\n")
 }
 
 // IsQuitting returns true if the player is trying to quit otherwise false. It
@@ -92,7 +84,6 @@ func (p *Player) Destroy() {
 	log.Printf("Destroyed: %s\n", p.Name())
 
 	p.sender = nil
-	p.Mobile = nil
 }
 
 // add places a player in the world safely and announces their arrival.

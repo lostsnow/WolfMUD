@@ -17,14 +17,14 @@ import (
 
 // Item type is a default implemention of an item.
 type Item struct {
-	*thing.Thing
+	thing.Thing
 	weight units.Weight
 }
 
 // New allocates a new Item and returning a pointer reference to it.
 func New(name string, aliases []string, description string, weight units.Weight) *Item {
 	return &Item{
-		Thing:  thing.New(name, aliases, description),
+		Thing:  *thing.New(name, aliases, description),
 		weight: weight,
 	}
 }

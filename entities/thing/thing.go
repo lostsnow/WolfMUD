@@ -18,7 +18,6 @@ package thing
 
 import (
 	"log"
-	"runtime"
 	"strings"
 	. "wolfmud.org/utils/uid"
 )
@@ -63,14 +62,8 @@ func New(name string, aliases []string, description string) *Thing {
 	}
 
 	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
-	runtime.SetFinalizer(t, final)
 
 	return t
-}
-
-// final is used for debugging to make sure the GC is cleaning up
-func final(t *Thing) {
-	log.Printf("+++ Thing %d finalized: %s +++\n", t.uniqueId, t.name)
 }
 
 // Description returns the description for a Thing.

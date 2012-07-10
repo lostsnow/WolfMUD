@@ -17,8 +17,8 @@ import (
 
 // Basic provides a default location implementation
 type Basic struct {
-	*thing.Thing
-	*inventory.Inventory
+	thing.Thing
+	inventory.Inventory
 	directionalExits
 }
 
@@ -31,8 +31,8 @@ type Basic struct {
 // handle?
 func NewBasic(name string, aliases []string, description string) *Basic {
 	return &Basic{
-		Thing:     thing.New(name, aliases, description),
-		Inventory: &inventory.Inventory{},
+		Thing:     *thing.New(name, aliases, description),
+		Inventory: *inventory.New(),
 	}
 }
 
