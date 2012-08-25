@@ -80,7 +80,11 @@ func (l *playerList) Length() int {
 //
 //	You scream!
 //
-// However you would not want to see the 'You hear someone scream' message.
+// However you would not want the 'You hear someone scream.' message sent to
+// yourself.
+//
+// Note: We are sending directly to players which is OK and needs no locking or
+// synchronisation here apart from the playerList itself.
 func (l *playerList) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	l.lock()
 	defer l.unlock()
