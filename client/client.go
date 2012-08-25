@@ -250,6 +250,8 @@ func (c *Client) Prompt(newPrompt string) (oldPrompt string) {
 // If the format string is empty we can take a shortcut and just redisplay the
 // prompt. Otherwise we process the whole enchilada making sure the prompt is on
 // a new line when displayed.
+//
+// NOTE: Send can be called by multiple goroutines.
 func (c *Client) Send(format string, any ...interface{}) {
 	if c.isBailing() {
 		return
