@@ -72,10 +72,8 @@ func (bb *broadcastBuffer) reset() {
 // New creates a new Command instance. The input string is assigned via a call
 // to command.New() which documents the details.
 func New(issuer thing.Interface, input string) *Command {
-	cmd := Command{}
-	cmd.Issuer = issuer
+	cmd := Command{Issuer: issuer}
 	cmd.New(input)
-
 	return &cmd
 }
 
@@ -95,8 +93,7 @@ func New(issuer thing.Interface, input string) *Command {
 //
 func (c *Command) New(input string) {
 	words := strings.Split(strings.ToUpper(input), ` `)
-	c.Verb = words[0]
-	c.Nouns = words[1:]
+	c.Verb, c.Nouns = words[0], words[1:]
 	if len(words) > 1 {
 		c.Target = words[1]
 	} else {
@@ -173,9 +170,8 @@ func (c *Command) CanLock(thing thing.Interface) bool {
 //
 // NOTE: Calling this function will also reset the check to false.
 func (c *Command) LocksModified() (modified bool) {
-	modified = c.locksModified
-	c.locksModified = false
-	return
+	modified, c.locksModified = c.locksModified, false
+	return modified
 }
 
 // AddLock takes a reference to a thing and adds it to the Locks slice in the
