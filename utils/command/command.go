@@ -54,9 +54,8 @@ type responseBuffer struct {
 
 // broadcastBuffer stores buffered messages send by Broadcast.
 type broadcastBuffer struct {
-	omit   []thing.Interface
-	format []string
-	any    []interface{}
+	responseBuffer
+	omit []thing.Interface
 }
 
 // New creates a new Command instance. The input string is broken into words
