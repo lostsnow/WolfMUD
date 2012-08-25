@@ -32,6 +32,10 @@ type Interface interface {
 	Process(*Command) (handled bool)
 }
 
+// BUG(Diddymus): Locks in the Command struct should not be exported. To keep
+// in internal we need to move the locking from player.Parse() and
+// player.parseStage2() into command.
+
 // Command represents the state of the command currently being processed.
 // Command is also used to pass around locking information as the command is
 // processed.
