@@ -260,9 +260,7 @@ func (c *Client) Send(format string, any ...interface{}) {
 	}
 
 	any = append(any, c.prompt)
-	format = text.COLOR_WHITE + format + "%s"
-
-	data := format
+	data := text.COLOR_WHITE + format + "%s"
 
 	if len(any) > 0 {
 		data = fmt.Sprintf(data, any...)
