@@ -52,10 +52,21 @@ type responseBuffer struct {
 	any    []interface{}
 }
 
+// reset clears the responseBuffer so it can be reused.
+func (rb *responseBuffer) reset() {
+	rb.format, rb.any = nil, nil
+}
+
 // broadcastBuffer stores buffered messages send by Broadcast.
 type broadcastBuffer struct {
 	responseBuffer
 	omit []thing.Interface
+}
+
+// reset clears the broadcastBuffer so it can be reused.
+func (bb *broadcastBuffer) reset() {
+	bb.responseBuffer.reset()
+	bb.omit = nil
 }
 
 // New creates a new Command instance. The input string is assigned via a call
@@ -100,6 +111,7 @@ func (c *Command) Flush() {
 			format := strings.Join(c.response.format, "\n")
 			r.Respond(format, c.response.any...)
 		}
+		c.response.reset()
 	}
 
 	if len(c.broadcast.format) > 0 {
@@ -107,6 +119,7 @@ func (c *Command) Flush() {
 			format := strings.Join(c.broadcast.format, "\n")
 			b.Broadcast(c.broadcast.omit, format, c.broadcast.any...)
 		}
+		c.broadcast.reset()
 	}
 }
 
