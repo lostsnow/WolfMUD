@@ -58,11 +58,8 @@ type broadcastBuffer struct {
 	omit []thing.Interface
 }
 
-// New creates a new Command instance. The input string is broken into words
-// using whitespace as the separator. The first word is usually the verb - get,
-// drop, examine - and the second word the target noun to act on - get ball,
-// drop ball, examine ball. As this is a common case the second word cam also
-// referenced via the alias Target.
+// New creates a new Command instance. The input string is assigned via a call
+// to command.New() which documents the details.
 func New(issuer thing.Interface, input string) *Command {
 	cmd := Command{}
 	cmd.Issuer = issuer
@@ -125,12 +122,11 @@ func (c *Command) Respond(format string, any ...interface{}) {
 
 // Broadcast implements the broadcaster Interface. It is a quick shorthand
 // for broadcasting to the Thing's location that is issuing the command, with
-// buffering, without having to do any additional bookkeeping.
+// buffering, without having to do any additional book keeping.
 func (c *Command) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	if _, ok := c.Issuer.(messaging.Broadcaster); ok {
 
 		// Add omitted things - but not duplicates!
-
 	OMIT:
 		for _, o1 := range omit {
 			for _, o2 := range c.broadcast.omit {
@@ -148,7 +144,8 @@ func (c *Command) Broadcast(omit []thing.Interface, format string, any ...interf
 
 // CanLock checks if the command has the thing in it's locks list. This only
 // determines if the thing is in the Locks slice - not if it is or is not
-// actually locked.
+// actually locked. This is because we may have just added the lock and have
+// not actually tried locking or relocking yet.
 func (c *Command) CanLock(thing thing.Interface) bool {
 	for _, l := range c.Locks {
 		if thing.IsAlso(l) {
@@ -174,14 +171,14 @@ func (c *Command) LocksModified() (modified bool) {
 // can easily be iterated via a range and in the correct sequence required.
 //
 // NOTE: We cannot add the same Lock twice otherwise we would deadlock ourself
-// when locking.
+// when locking - currently we silently drop duplicate locks.
 //
 // This routine is a little cute and avoids doing any 'real' sorting to keep the
 // elements in unique ID sequence. We add our lock to our slice. If we have one
 // element only it's what we just added so we bail.
 //
 // If we have multiple elements we have the appended element on the end and need
-// to check where it goes, shift the trailing element up by one the write our
+// to check where it goes, shift the trailing element up by one then write our
 // new element in:
 //
 //	3 7 9 4 <- append new element to end
@@ -199,10 +196,8 @@ func (c *Command) LocksModified() (modified bool) {
 //
 // This function could be more efficient with large numbers of elements by
 // using a binary search to find the insertion point for the new element.
-// However this would make the code more complex and we don't expect huge
-// numbers of elements.
-//
-// Amazing, 347 characters of code, 1696 characters of comments!
+// However this would make the code more complex and we don't expect to handle
+// huge numbers of locks with this function.
 func (c *Command) AddLock(t thing.Interface) {
 
 	if t == nil || c.CanLock(t) {
