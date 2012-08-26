@@ -61,7 +61,7 @@ func (w *World) Genesis() {
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
-			go client.Spawn(conn, location.GetStart())
+			go client.Spawn(conn)
 		}
 	}
 }

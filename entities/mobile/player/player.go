@@ -56,15 +56,12 @@ func loadPlayer(sender sender.Interface) (player *Player) {
 //
 // NOTE: Don't put p.Parse("LOOK") into add() otherwise we deadlock because
 // both will try to get the lock of the starting location.
-func New(sender sender.Interface, l location.Interface) (p *Player) {
-
+func New(sender sender.Interface) (p *Player) {
 	p = loadPlayer(sender)
-	p.add(l)
+	p.add(location.GetStart())
 	p.Parse("LOOK")
-
 	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
-
-	return
+	return p
 }
 
 // IsQuitting returns true if the player is trying to quit otherwise false. It
