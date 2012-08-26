@@ -53,13 +53,9 @@ func loadPlayer(sender sender.Interface) (player *Player) {
 
 // New creates a new Player and returns a reference to it. The player is put
 // into the world at a random starting location and the location is described.
-//
-// NOTE: Don't put p.Parse("LOOK") into add() otherwise we deadlock because
-// both will try to get the lock of the starting location.
 func New(sender sender.Interface) (p *Player) {
 	p = loadPlayer(sender)
 	p.add(location.GetStart())
-	p.Parse("LOOK")
 	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
 	return p
 }
@@ -83,7 +79,10 @@ func (p *Player) Destroy() {
 	p.sender = nil
 }
 
-// add places a player in the world safely and announces their arrival.
+// add places a player in the world safely and announces their arrival.  We
+// manually build and parse the 'LOOK' command to avoid deadlocking - adding
+// the player locks the location as does a normal p.Parse('LOOK'). We could add
+// the player and then parse but that would require obtaining the lock twice.
 func (p *Player) add(l location.Interface) {
 	l.Lock()
 	defer l.Unlock()
@@ -91,7 +90,12 @@ func (p *Player) add(l location.Interface) {
 	l.Add(p)
 	PlayerList.Add(p)
 
-	l.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	cmd := command.New(p, "LOOK")
+	p.Process(cmd)
+
+	cmd.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+
+	cmd.Flush()
 }
 
 // remove extracts a player from the world cleanly and announces their
