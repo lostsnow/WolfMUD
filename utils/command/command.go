@@ -8,9 +8,9 @@
 package command
 
 import (
-	"strings"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
+	"strings"
 )
 
 // Interface should be implemented by anything that wants to process/react

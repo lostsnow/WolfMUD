@@ -6,12 +6,12 @@
 package command
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
-	"code.wolfmud.org/WolfMUD.git/entities/thing"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 // Define a command issuer harness for testing. This is a minimal Thing that
@@ -209,7 +209,7 @@ func TestLocking(t *testing.T) {
 		}
 
 		// Reverse things slice for 2nd try - inplace without new allocations
-		l := len(things)-1
+		l := len(things) - 1
 		for x := (int)(l / 2); x >= 0; x-- {
 			things[x], things[l-x] = things[l-x], things[x]
 		}
