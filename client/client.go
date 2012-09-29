@@ -50,14 +50,12 @@ const (
 
 	GREETING = `
 
-[GREEN]Wolf[WHITE]MUD © 2012 Andrew 'Diddymus' Rolfe
+[GREEN]Wolf[WHITE]MUD Copyright 2012 Andrew 'Diddymus' Rolfe
 
     [GREEN]W[WHITE]orld
     [GREEN]O[WHITE]f
     [GREEN]L[WHITE]iving
     [GREEN]F[WHITE]antasy
-
-
 `
 )
 
