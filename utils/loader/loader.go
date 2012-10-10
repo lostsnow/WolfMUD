@@ -3,8 +3,6 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// Package loader loads entities into the given world.
-//
 // TODO: The loader should read text files and parse them creating entities
 // that are then loaded into the world. At the moment the file parser has not
 // been written and the loader is hardcoded.
@@ -13,11 +11,10 @@ package loader
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/location"
 	"code.wolfmud.org/WolfMUD.git/entities/thing/item"
-	"code.wolfmud.org/WolfMUD.git/entities/world"
 )
 
 // Load creates entities and adds them to the given world.
-func Load(world *world.World) {
+func Load() {
 
 	l1 := location.NewStart("Fireplace", []string{"TAVERN", "FIREPLACE"}, "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance.")
 
@@ -281,49 +278,6 @@ func Load(world *world.World) {
 
 	// Rogue's Den
 	l42.LinkExit(location.U, l41)
-
-	world.AddLocation(l1)
-	world.AddLocation(l2)
-	world.AddLocation(l3)
-	world.AddLocation(l4)
-	world.AddLocation(l5)
-	world.AddLocation(l6)
-	world.AddLocation(l7)
-	world.AddLocation(l8)
-	world.AddLocation(l9)
-	world.AddLocation(l10)
-	world.AddLocation(l11)
-	world.AddLocation(l12)
-	world.AddLocation(l13)
-	world.AddLocation(l14)
-	world.AddLocation(l15)
-	world.AddLocation(l16)
-	world.AddLocation(l17)
-	world.AddLocation(l18)
-	world.AddLocation(l19)
-	world.AddLocation(l20)
-	world.AddLocation(l21)
-	world.AddLocation(l22)
-	world.AddLocation(l23)
-	world.AddLocation(l24)
-	world.AddLocation(l25)
-	world.AddLocation(l26)
-	world.AddLocation(l27)
-	world.AddLocation(l28)
-	world.AddLocation(l29)
-	world.AddLocation(l30)
-	world.AddLocation(l31)
-	world.AddLocation(l32)
-	world.AddLocation(l33)
-	world.AddLocation(l34)
-	world.AddLocation(l35)
-	world.AddLocation(l36)
-	world.AddLocation(l37)
-	world.AddLocation(l38)
-	world.AddLocation(l39)
-	world.AddLocation(l40)
-	world.AddLocation(l41)
-	world.AddLocation(l42)
 
 	// Some objects
 	t1 := item.New(

@@ -11,7 +11,6 @@ import (
 	"log"
 	"net"
 	"code.wolfmud.org/WolfMUD.git/client"
-	"code.wolfmud.org/WolfMUD.git/entities/location"
 	"code.wolfmud.org/WolfMUD.git/utils/stats"
 )
 
@@ -24,7 +23,6 @@ const (
 // locations available in it. The locations could be held in an inventory but
 // that is overkill in this situation so we use a slice of locations.
 type World struct {
-	locations []location.Interface
 }
 
 // New creates a new World and returns a reference to it.
@@ -64,9 +62,4 @@ func (w *World) Genesis() {
 			go client.Spawn(conn)
 		}
 	}
-}
-
-// AddLocation adds a location to the list of locations for this world.
-func (w *World) AddLocation(l location.Interface) {
-	w.locations = append(w.locations, l)
 }
