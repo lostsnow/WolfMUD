@@ -11,7 +11,6 @@ import (
 	"log"
 	"net"
 	"code.wolfmud.org/WolfMUD.git/client"
-	"code.wolfmud.org/WolfMUD.git/utils/stats"
 )
 
 const (
@@ -34,9 +33,6 @@ func New() *World {
 // socket and accepts connections. It also starts the stats Goroutine.
 func (w *World) Genesis() {
 
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	log.Println("Starting WolfMUD server...")
-
 	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(HOST, PORT))
 	if err != nil {
 		log.Printf("Error resolving TCP address, %s. Server will now exit.\n", err)
@@ -50,8 +46,6 @@ func (w *World) Genesis() {
 	}
 
 	log.Printf("Accepting connections on: %s\n", addr)
-
-	stats.Start()
 
 	for {
 		if conn, err := listener.AcceptTCP(); err != nil {

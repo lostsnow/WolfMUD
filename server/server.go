@@ -14,9 +14,11 @@
 package main
 
 import (
-	"runtime"
 	"code.wolfmud.org/WolfMUD.git/entities/world"
 	"code.wolfmud.org/WolfMUD.git/utils/loader"
+	"code.wolfmud.org/WolfMUD.git/utils/stats"
+	"log"
+	"runtime"
 )
 
 func main() {
@@ -26,5 +28,11 @@ func main() {
 	world := world.New()
 	loader.Load(world)
 	world.Genesis()
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.Println("Starting WolfMUD server...")
+
+	stats.Start()
+
+	log.Println("WolfMUD server ending")
 
 }
