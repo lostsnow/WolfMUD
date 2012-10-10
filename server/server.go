@@ -5,12 +5,6 @@
 
 // server is the main executable command used to start a WolfMUD server running.
 // Currently it takes no parameters.
-//
-// TODO: There is no technical reason why a server cannot have multiple world
-// instances and run multiple games. Depending on whether we want clients to
-// connect to a single port and choose a world or have a port per world and
-// users choose where the client connects the server socket code may need to be
-// relocated from the world to server package.
 package main
 
 import (
@@ -25,13 +19,14 @@ func main() {
 
 	runtime.MemProfileRate = int(0)
 
-	world := world.New()
-	loader.Load(world)
-	world.Genesis()
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.Println("Starting WolfMUD server...")
 
 	stats.Start()
+
+	loader.Load()
+
+	world.New("127.0.0.1", "4001").Genesis()
 
 	log.Println("WolfMUD server ending")
 

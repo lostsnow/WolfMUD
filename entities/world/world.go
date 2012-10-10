@@ -3,45 +3,40 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// Package world holds references to all of the locations in the world and
-// accepts new client connections.
+// Package world waits accepting new client connections. When a new connection
+// is made it gets it's own Goroutine to be handled.
 package world
 
 import (
+	"code.wolfmud.org/WolfMUD.git/client"
 	"log"
 	"net"
-	"code.wolfmud.org/WolfMUD.git/client"
 )
 
-const (
-	HOST = "127.0.0.1" // Host to listen on
-	PORT = "4001"      // Port to listen on
-)
-
-// World represents a single game world. It has references to all of the
-// locations available in it. The locations could be held in an inventory but
-// that is overkill in this situation so we use a slice of locations.
+// World represents the game world.
 type World struct {
+	host string
+	port string
 }
 
 // New creates a new World and returns a reference to it.
-func New() *World {
-	return &World{}
+func New(host, port string) *World {
+	return &World{host, port}
 }
 
 // Genesis starts the world - what else? :) Genesis opens the listening server
 // socket and accepts connections. It also starts the stats Goroutine.
 func (w *World) Genesis() {
 
-	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(HOST, PORT))
+	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(w.host, w.port))
 	if err != nil {
-		log.Printf("Error resolving TCP address, %s. Server will now exit.\n", err)
+		log.Printf("Error resolving TCP address, %s. World is ending.\n", err)
 		return
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Printf("Error setting up listener, %s. Server will now exit.\n", err)
+		log.Printf("Error setting up listener, %s. World is ending.\n", err)
 		return
 	}
 
@@ -49,7 +44,7 @@ func (w *World) Genesis() {
 
 	for {
 		if conn, err := listener.AcceptTCP(); err != nil {
-			log.Printf("Error accepting connection: %s. Server will now exit.\n", err)
+			log.Printf("Error accepting connection: %s. World is ending.\n", err)
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
