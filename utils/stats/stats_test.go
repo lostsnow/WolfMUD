@@ -8,7 +8,7 @@ package stats
 import (
 	"strconv"
 	"testing"
-	. "wolfmud.org/utils/test"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 type result struct {

@@ -10,10 +10,10 @@ package mobile
 
 import (
 	"log"
-	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
-	"wolfmud.org/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/entities/location"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/inventory"
 )
 
 // Mobile provides a default basic implementation of a mobile.

@@ -10,7 +10,7 @@
 package messaging
 
 import (
-	"wolfmud.org/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
 )
 
 // Broadcast should be implemented by anything that wants to send messages to

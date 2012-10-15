@@ -8,7 +8,7 @@ package units
 import (
 	"strconv"
 	"testing"
-	. "wolfmud.org/utils/test"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 var testSubjects = []struct {

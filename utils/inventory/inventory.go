@@ -12,8 +12,8 @@
 package inventory
 
 import (
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
 )
 
 const (

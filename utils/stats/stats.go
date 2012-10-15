@@ -25,7 +25,7 @@ import (
 	"log"
 	"runtime"
 	"time"
-	"wolfmud.org/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 )
 
 // Interval can be changed before calling Start to set a different collection

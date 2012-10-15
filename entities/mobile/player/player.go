@@ -11,11 +11,11 @@ import (
 	"os"
 	"runtime/pprof"
 	"strconv"
-	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/mobile"
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
-	"wolfmud.org/utils/sender"
+	"code.wolfmud.org/WolfMUD.git/entities/location"
+	"code.wolfmud.org/WolfMUD.git/entities/mobile"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/sender"
 )
 
 // playerCount increments with each player created so we can have unique

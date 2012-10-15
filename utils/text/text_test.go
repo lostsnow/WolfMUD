@@ -7,7 +7,7 @@ package text
 
 import (
 	"testing"
-	. "wolfmud.org/utils/test"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 var testFoldSubjects = []struct {

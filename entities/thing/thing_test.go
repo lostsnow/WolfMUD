@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 	"time"
-	. "wolfmud.org/utils/test"
-	. "wolfmud.org/utils/uid"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
+	. "code.wolfmud.org/WolfMUD.git/utils/uid"
 )
 
 var testSubjects = []struct {

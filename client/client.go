@@ -33,9 +33,9 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"wolfmud.org/entities/mobile/player"
-	"wolfmud.org/utils/parser"
-	"wolfmud.org/utils/text"
+	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/utils/parser"
+	"code.wolfmud.org/WolfMUD.git/utils/text"
 )
 
 // TODO: When we have sorted out global settings some of these need moving

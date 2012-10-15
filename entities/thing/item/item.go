@@ -8,11 +8,11 @@
 package item
 
 import (
-	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
-	"wolfmud.org/utils/inventory"
-	"wolfmud.org/utils/units"
+	"code.wolfmud.org/WolfMUD.git/entities/location"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/utils/units"
 )
 
 // Item type is a default implemention of an item.

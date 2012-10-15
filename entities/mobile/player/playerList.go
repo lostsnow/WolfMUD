@@ -9,9 +9,9 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
-	"wolfmud.org/utils/text"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/text"
 )
 
 // playerList type records the current players on the server.

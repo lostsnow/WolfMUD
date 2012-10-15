@@ -8,9 +8,9 @@ package inventory
 import (
 	"strconv"
 	"testing"
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
-	. "wolfmud.org/utils/test"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 // createTestThings makes a batch of Things for testing

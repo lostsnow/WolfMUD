@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"wolfmud.org/entities/thing"
-	. "wolfmud.org/utils/test"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 // Define a command issuer harness for testing. This is a minimal Thing that

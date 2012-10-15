@@ -10,9 +10,9 @@ package world
 import (
 	"log"
 	"net"
-	"wolfmud.org/client"
-	"wolfmud.org/entities/location"
-	"wolfmud.org/utils/stats"
+	"code.wolfmud.org/WolfMUD.git/client"
+	"code.wolfmud.org/WolfMUD.git/entities/location"
+	"code.wolfmud.org/WolfMUD.git/utils/stats"
 )
 
 const (

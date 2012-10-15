@@ -13,10 +13,10 @@ package location
 
 import (
 	"strings"
-	"wolfmud.org/entities/thing"
-	"wolfmud.org/utils/command"
-	"wolfmud.org/utils/messaging"
-	"wolfmud.org/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/messaging"
+	"code.wolfmud.org/WolfMUD.git/utils/inventory"
 )
 
 // direction type that can be easily change if needed

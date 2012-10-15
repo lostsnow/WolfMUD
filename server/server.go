@@ -15,8 +15,8 @@ package main
 
 import (
 	"runtime"
-	"wolfmud.org/entities/world"
-	"wolfmud.org/utils/loader"
+	"code.wolfmud.org/WolfMUD.git/entities/world"
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 )
 
 func main() {

@@ -8,7 +8,7 @@ package uid
 import (
 	"runtime"
 	"testing"
-	. "wolfmud.org/utils/test"
+	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 const (

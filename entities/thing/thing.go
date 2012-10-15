@@ -19,7 +19,7 @@ package thing
 import (
 	"log"
 	"strings"
-	. "wolfmud.org/utils/uid"
+	. "code.wolfmud.org/WolfMUD.git/utils/uid"
 )
 
 // Interface should be implemented by all entities in WolfMUD. It provides

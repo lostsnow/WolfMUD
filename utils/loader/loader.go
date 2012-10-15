@@ -11,9 +11,9 @@
 package loader
 
 import (
-	"wolfmud.org/entities/location"
-	"wolfmud.org/entities/thing/item"
-	"wolfmud.org/entities/world"
+	"code.wolfmud.org/WolfMUD.git/entities/location"
+	"code.wolfmud.org/WolfMUD.git/entities/thing/item"
+	"code.wolfmud.org/WolfMUD.git/entities/world"
 )
 
 // Load creates entities and adds them to the given world.
