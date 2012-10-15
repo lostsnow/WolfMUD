@@ -21,7 +21,7 @@ type Item struct {
 	weight units.Weight
 }
 
-// New allocates a new Item and returning a pointer reference to it.
+// New allocates a new Item and returns a pointer reference to it.
 func New(name string, aliases []string, description string, weight units.Weight) *Item {
 	return &Item{
 		Thing:  *thing.New(name, aliases, description),
@@ -82,12 +82,14 @@ func (i *Item) drop(cmd *command.Command) (handled bool) {
 // weigh estimates the weight of the specified item.
 func (i *Item) weigh(cmd *command.Command) (handled bool) {
 	cmd.Respond("You estimate %s to weigh about %s.", i.Name(), i.weight)
+	cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s estimate the weight of %s.", cmd.Issuer.Name(), i.Name())
 	return true
 }
 
 // examine describes the specific item.
 func (i *Item) examine(cmd *command.Command) (handled bool) {
 	cmd.Respond("You examine %s. %s", i.Name(), i.Description())
+	cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s study %s.", cmd.Issuer.Name(), i.Name())
 	return true
 }
 
