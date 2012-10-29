@@ -15,7 +15,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/units"
 )
 
-// Item type is a default implemention of an item.
+// Item type is a default implementation of an item.
 type Item struct {
 	thing.Thing
 	weight units.Weight

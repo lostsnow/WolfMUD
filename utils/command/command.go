@@ -33,7 +33,7 @@ type Interface interface {
 }
 
 // BUG(Diddymus): Locks in the Command struct should not be exported. To keep
-// in internal we need to move the locking from player.Parse() and
+// it internal we need to move the locking from player.Parse() and
 // player.parseStage2() into command.
 
 // Command represents the state of the command currently being processed.
