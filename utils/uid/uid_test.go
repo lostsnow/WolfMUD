@@ -8,18 +8,21 @@ package uid
 import (
 	"runtime"
 	"testing"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 const (
-	LOOPS          = 10
-	COUNT_PER_LOOP = 10
+	LOOPS          = 100
+	COUNT_PER_LOOP = 100
 	MAX            = LOOPS * COUNT_PER_LOOP
 )
 
 func TestSequence(t *testing.T) {
 	for x := 0; x < LOOPS; x++ {
-		Equal(t, "UID", 1+<-Next, <-Next)
+		have := <-Next
+		want := <-Next - 1
+		if have != want {
+			t.Errorf("Corrupt sequence: Case %d, have %d wanted %d", x, have, want)
+		}
 	}
 }
 
@@ -41,14 +44,15 @@ func TestConcurrency(t *testing.T) {
 
 	// Wait for results
 	for x := 0; x < MAX; x++ {
-		temp := <-results
-		uids = append(uids, temp)
+		uids = append(uids, <-results)
 	}
 
 	// Make sure all results are unique
-	for x := 0; x < (MAX - 1); x++ {
-		for y := x + 1; y < MAX; y++ {
-			NotEqual(t, "Duplicate UID generated", uids[x], uids[y])
+	for x, have := range uids {
+		for y, found := range uids {
+			if have == found && x != y {
+				t.Errorf("Duplicate UID: Cases %d & %d, have %d found %d", x, y, have, found)
+			}
 		}
 	}
 }
