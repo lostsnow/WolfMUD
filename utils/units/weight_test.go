@@ -6,9 +6,7 @@
 package units
 
 import (
-	"strconv"
 	"testing"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 var testSubjects = []struct {
@@ -35,19 +33,29 @@ var testSubjects = []struct {
 	{41, "3lb"},
 	{64, "4lb"},
 	{65, "4lb"},
+	{224, "14lb"}, // 1 stone
+	{448, "28lb"}, // 1 quarter
 	{1000, "62lb"},
+	{1792, "112lb"},   // Hundredweight
+	{35840, "2240lb"}, // Ton
 }
 
 func TestInt(t *testing.T) {
-	for _, s := range testSubjects {
-		subject := Weight(s.weight)
-		Equal(t, "Int", s.weight, subject.Int())
+	for i, s := range testSubjects {
+		have := Weight(s.weight).Int()
+		want := s.weight
+		if have != want {
+			t.Errorf("Invalid weight value: Case %d, have %d wanted %d", i, have, want)
+		}
 	}
 }
 
 func TestStringer(t *testing.T) {
-	for _, s := range testSubjects {
-		subject := Weight(s.weight)
-		Equal(t, "Stringer with "+strconv.Itoa(s.weight), s.description, subject.String())
+	for i, s := range testSubjects {
+		have := Weight(s.weight).String()
+		want := s.description
+		if have != want {
+			t.Errorf("Invalid weight string: Case %d, have %v wanted %v", i, have, want)
+		}
 	}
 }
