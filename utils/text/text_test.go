@@ -7,7 +7,6 @@ package text
 
 import (
 	"testing"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 var testFoldSubjects = []struct {
@@ -85,32 +84,52 @@ var testMonochromeFoldSubjects = []struct {
 }
 
 func TestFold(t *testing.T) {
-	for _, s := range testFoldSubjects {
-		Equal(t, "Fold", s.output, Fold(s.input, s.width))
+	for i, s := range testFoldSubjects {
+		have := Fold(s.input, s.width)
+		want := s.output
+		if have != want {
+			t.Errorf("Invalid fold: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
 func TestColorize(t *testing.T) {
-	for _, s := range testColorSubjects {
-		Equal(t, "Colorize", s.output, Colorize(s.input))
+	for i, s := range testColorSubjects {
+		have := Colorize(s.input)
+		want := s.output
+		if have != want {
+			t.Errorf("Invalid colorize: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
 func TestMonochrome(t *testing.T) {
-	for _, s := range testMonochromeSubjects {
-		Equal(t, "Monochrome", s.output, Monochrome(s.input))
+	for i, s := range testMonochromeSubjects {
+		have := Monochrome(s.input)
+		want := s.output
+		if have != want {
+			t.Errorf("Invalid monochrome: Case %d, have %v wanted %v", i, have, want)
+		}
 	}
 }
 
 func TestColorizeAndFold(t *testing.T) {
-	for _, s := range testColorFoldSubjects {
-		Equal(t, "Colorize & Fold", s.output, Fold(Colorize(s.input), s.width))
+	for i, s := range testColorFoldSubjects {
+		have := Fold(Colorize(s.input), s.width)
+		want := s.output
+		if have != want {
+			t.Errorf("Invalid colorize & fold: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
 func TestMonochromeAndFold(t *testing.T) {
-	for _, s := range testMonochromeFoldSubjects {
-		Equal(t, "Colorize & Fold", s.output, Fold(Monochrome(s.input), s.width))
+	for i, s := range testMonochromeFoldSubjects {
+		have := Fold(Monochrome(s.input), s.width)
+		want := s.output
+		if have != want {
+			t.Errorf("Invalid monochrome & fold: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
