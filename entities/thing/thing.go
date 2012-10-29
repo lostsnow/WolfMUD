@@ -17,9 +17,8 @@
 package thing
 
 import (
-	"log"
-	"strings"
 	. "code.wolfmud.org/WolfMUD.git/utils/uid"
+	"strings"
 )
 
 // Interface should be implemented by all entities in WolfMUD. It provides
@@ -60,8 +59,6 @@ func New(name string, aliases []string, description string) *Thing {
 	for i, a := range aliases {
 		t.aliases[i] = strings.ToUpper(strings.TrimSpace(a))
 	}
-
-	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
 
 	return t
 }
