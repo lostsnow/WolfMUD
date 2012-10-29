@@ -9,11 +9,11 @@
 package mobile
 
 import (
-	"log"
 	"code.wolfmud.org/WolfMUD.git/entities/location"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"log"
 )
 
 // Mobile provides a default basic implementation of a mobile.
@@ -57,11 +57,11 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 	}
 
 	if m.IsAlso(cmd.Issuer) {
-		if handled == false {
+		if !handled {
 			handled = m.Inventory.Delegate(cmd)
 		}
 
-		if handled == false {
+		if !handled {
 			l := m.location
 			if l != nil {
 				handled = l.Process(cmd)

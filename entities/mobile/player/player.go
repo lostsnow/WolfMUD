@@ -7,15 +7,15 @@
 package player
 
 import (
-	"log"
-	"os"
-	"runtime/pprof"
-	"strconv"
 	"code.wolfmud.org/WolfMUD.git/entities/location"
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
+	"log"
+	"os"
+	"runtime/pprof"
+	"strconv"
 )
 
 // playerCount increments with each player created so we can have unique
@@ -230,11 +230,11 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 		handled = p.sneeze(cmd)
 	}
 
-	if handled == false {
+	if !handled {
 		handled = p.Mobile.Process(cmd)
 	}
 
-	if handled == false {
+	if !handled {
 		handled = PlayerList.Process(cmd)
 	}
 
