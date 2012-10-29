@@ -6,9 +6,7 @@
 package stats
 
 import (
-	"strconv"
 	"testing"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
 )
 
 type result struct {
@@ -600,17 +598,23 @@ var testSignedSubjects = []struct {
 }
 
 func TestUscale(t *testing.T) {
-	for _, s := range testUnsignedSubjects {
-		r := result{}
-		r.scaled, r.scale = uscale(s.bytes)
-		Equal(t, "uscale with "+strconv.FormatUint(s.bytes, 10)+" bytes", s.result, r)
+	for i, s := range testUnsignedSubjects {
+		have := result{}
+		have.scaled, have.scale = uscale(s.bytes)
+		want := s.result
+		if have != want {
+			t.Errorf("Invalid unsigned scale: Case %d, have %d %q wanted %d %q", i, have.scaled, have.scale, want.scaled, want.scale)
+		}
 	}
 }
 
 func TestScale(t *testing.T) {
-	for _, s := range testSignedSubjects {
-		r := result{}
-		r.scaled, r.scale = scale(s.bytes)
-		Equal(t, "scale with "+strconv.FormatInt(s.bytes, 10)+" bytes", s.result, r)
+	for i, s := range testSignedSubjects {
+		have := result{}
+		have.scaled, have.scale = scale(s.bytes)
+		want := s.result
+		if have != want {
+			t.Errorf("Invalid signed scale: Case %d, have %d %q wanted %d %q", i, have.scaled, have.scale, want.scaled, want.scale)
+		}
 	}
 }
