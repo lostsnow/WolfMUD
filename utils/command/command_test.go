@@ -7,49 +7,36 @@ package command
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
 	"fmt"
-	"strconv"
 	"strings"
 	"testing"
 )
 
-// Define a command issuer harness for testing. This is a minimal Thing that
-// implements messaging.Responder and messaging.Broadcaster that captures the
-// messages sent so we can compare what was received with what we expected. We
-// can also use it to issue test commands as it is a Thing.
-type testHarness struct {
+// Define simple mock Responder / Broadcaster that captures messages
+type mock struct {
 	thing.Thing
-	response  string
-	broadcast string
+	ResponseBuf  string
+	BroadcastBuf string
 }
 
-func (h *testHarness) String() string {
-	return strconv.Itoa((int)(h.UniqueId()))
+func newMock() *mock { return &mock{*thing.New("Mock", []string{"MOCK"}, "A mock"), "", ""} }
+
+func (m *mock) Reset() { m.ResponseBuf, m.BroadcastBuf = "", "" }
+
+func (m *mock) Respond(format string, any ...interface{}) {
+	m.ResponseBuf += fmt.Sprintf(format, any...)
 }
 
-func NewTestHarness() *testHarness {
-	return &testHarness{
-		Thing: *thing.New("Issuer", []string{"ISSUER"}, "A test issuer"),
-	}
-}
-
-func (h *testHarness) Respond(format string, any ...interface{}) {
-	h.response += fmt.Sprintf(format, any...)
-}
-
-func (h *testHarness) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
+func (m *mock) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	for _, omit := range omit {
-		if omit.IsAlso(h) {
+		if omit.IsAlso(m) {
 			return
 		}
 	}
-	h.broadcast += fmt.Sprintf(format, any...)
+	m.BroadcastBuf += fmt.Sprintf(format, any...)
 }
 
-func (h *testHarness) clearBuffers() {
-	h.response, h.broadcast = "", ""
-}
+// END OF MOCK
 
 type testSubject struct {
 	cmd   string   // Command to issue
@@ -66,35 +53,69 @@ var testSubjects = []testSubject{
 	{"bar", "BAR", []string{}},
 }
 
-func checkCommandStruct(t *testing.T, h *testHarness, s testSubject, c *Command) {
-	Equal(t, "New issuer", h.UniqueId(), c.Issuer.UniqueId())
-	Equal(t, "New verb", s.verb, c.Verb)
-	Equal(t, "New noun", len(s.nouns), len(c.Nouns))
-	for i, n := range s.nouns {
-		Equal(t, "New noun", n, c.Nouns[i])
+func checkCommandStruct(t *testing.T, m *mock, s testSubject, c *Command) {
+
+	// Check command is using right issuer
+	{
+		have := c.Issuer.UniqueId()
+		want := m.UniqueId()
+		if have != want {
+			t.Errorf("Invalid unique ID: have %d wanted %d", have, want)
+		}
 	}
-	if len(s.nouns) > 0 {
-		Equal(t, "New target", s.nouns[0], c.Target)
-	} else {
-		Equal(t, "New target", "", c.Target)
+
+	// Check command's verb
+	{
+		have := c.Verb
+		want := s.verb
+		if have != want {
+			t.Errorf("Invalid verb: have %q wanted %q", have, want)
+		}
+	}
+
+	// Check command's nouns length and texts
+	{
+		have := len(c.Nouns)
+		want := len(s.nouns)
+		if have != want {
+			t.Errorf("Nouns corrupted: have %d wanted %d", have, want)
+		}
+	}
+	for i, want := range s.nouns {
+		have := c.Nouns[i]
+		if have != want {
+			t.Errorf("Invalid noun: Case %d, have %q wanted %q", i, have, want)
+		}
+	}
+
+	// Check command's target
+	{
+		have := c.Target
+		want := ""
+		if len(s.nouns) > 0 {
+			want = s.nouns[0]
+		}
+		if have != want {
+			t.Errorf("Invalid target: have %q wanted %q", have, want)
+		}
 	}
 }
 
 func TestFuncNew(t *testing.T) {
-	h := NewTestHarness()
+	m := newMock()
 
 	for _, s := range testSubjects {
-		checkCommandStruct(t, h, s, New(h, s.cmd))
+		checkCommandStruct(t, m, s, New(m, s.cmd))
 	}
 }
 
 func TestMethodNew(t *testing.T) {
-	h := NewTestHarness()
-	cmd := New(h, "")
+	m := newMock()
+	c := New(m, "")
 
 	for _, s := range testSubjects {
-		cmd.New(s.cmd)
-		checkCommandStruct(t, h, s, cmd)
+		c.New(s.cmd)
+		checkCommandStruct(t, m, s, c)
 	}
 }
 
@@ -106,68 +127,59 @@ var testMessages = [][]string{
 	{"This is", "another multi-line", "test - but now", "with extra added", "lines and vitamin caffine ;)"},
 }
 
-func TestRespond(t *testing.T) {
-	for _, messages := range testMessages {
-		h := NewTestHarness()
-		cmd := New(h, "")
+// This tests Respond and Flush at the same time
+func TestRespondAndFlush(t *testing.T) {
+	for i, messages := range testMessages {
+		m := newMock()
+		c := New(m, "")
+
 		for _, msg := range messages {
-			cmd.Respond(msg)
+			c.Respond(msg)
 		}
-		cmd.Flush()
-		Equal(t, "Respond", strings.Join(messages, "\n"), h.response)
+		c.Flush()
+
+		have := m.ResponseBuf
+		want := strings.Join(messages, "\n")
+		if have != want {
+			t.Errorf("Corrupt response: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
-// Make sure flush is working and clearing the buffers
-func TestRespondFlush(t *testing.T) {
-	h := NewTestHarness()
-	cmd := New(h, "")
-	for _, messages := range testMessages {
-		for _, msg := range messages {
-			cmd.Respond(msg)
-		}
-		cmd.Flush()
-		Equal(t, "Respond Flush", strings.Join(messages, "\n"), h.response)
-		h.clearBuffers()
-	}
-}
+// This tests Broadcast and Flush at the same time
+func TestBroadcastAndFlush(t *testing.T) {
+	for i, messages := range testMessages {
+		m := newMock()
+		c := New(m, "")
 
-func TestBroadcast(t *testing.T) {
-	for _, messages := range testMessages {
-		h := NewTestHarness()
-		cmd := New(h, "")
 		for _, msg := range messages {
-			cmd.Broadcast(nil, msg)
+			c.Broadcast(nil, msg)
 		}
-		cmd.Flush()
-		Equal(t, "Broadcast", strings.Join(messages, "\n"), h.broadcast)
-	}
-}
+		c.Flush()
 
-// Make sure flush is working and clearing the buffers
-func TestBroadcastFlush(t *testing.T) {
-	h := NewTestHarness()
-	cmd := New(h, "")
-	for _, messages := range testMessages {
-		for _, msg := range messages {
-			cmd.Broadcast(nil, msg)
+		have := m.BroadcastBuf
+		want := strings.Join(messages, "\n")
+		if have != want {
+			t.Errorf("Corrupt broadcast: Case %d, have %q wanted %q", i, have, want)
 		}
-		cmd.Flush()
-		Equal(t, "Broadcast Flush", strings.Join(messages, "\n"), h.broadcast)
-		h.clearBuffers()
 	}
 }
 
 func TestBroadcastOmit(t *testing.T) {
-	for _, messages := range testMessages {
-		h := NewTestHarness()
-		omit := []thing.Interface{h}
-		cmd := New(h, "")
+	for i, messages := range testMessages {
+		m := newMock()
+		c := New(m, "")
+
 		for _, msg := range messages {
-			cmd.Broadcast(omit, msg)
+			c.Broadcast([]thing.Interface{m}, msg)
 		}
-		cmd.Flush()
-		Equal(t, "Broadcast (omit)", "", h.broadcast)
+		c.Flush()
+
+		have := m.BroadcastBuf
+		want := ""
+		if have != want {
+			t.Errorf("Corrupt broadcast: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
@@ -177,41 +189,77 @@ func TestLocking(t *testing.T) {
 
 	things := make([]thing.Interface, 10, 10)
 	for x, _ := range things {
-		things[x] = NewTestHarness()
+		things[x] = newMock()
 	}
 
 	// Try tests twice. 1st time with things slice as created. 2nd time with
 	// things slice reversed. This tests the AddLock ordering.
 	for try := 1; try < 3; try++ {
-		cmd := New(things[0], "")
+		c := New(things[0], "")
 
-		for x, h := range things {
-			Equal(t, "Locks length (1)", x, len(cmd.Locks))
+		for i, thing := range things {
 
-			// Check twice as LocksModified() resets when called
-			Equal(t, "Locks modified (1)", false, cmd.LocksModified())
-			Equal(t, "Locks modified (2)", false, cmd.LocksModified())
-
-			for y, h := range things {
-				Equal(t, "Locks can lock (1)", y < x, cmd.CanLock(h))
+			// Check we have right number of locks
+			{
+				have := len(c.Locks)
+				want := i
+				if have != want {
+					t.Errorf("Locks corrupted: Case %d, have %d wanted %d", i, have, want)
+				}
 			}
 
-			cmd.AddLock(h)
-			Equal(t, "Locks length (2)", x+1, len(cmd.Locks))
+			// Check twice as LocksModified() resets when called
+			for try := 1; try < 3; try++ {
+				have := c.LocksModified()
+				want := false
+				if have != want {
+					t.Errorf("Locks modified before add: Try %d, Case %d, have %t wanted %t", try, i, have, want)
+				}
+			}
+
+			// Check what can / can't be locked before adding new lock
+			for y, h := range things {
+				have := c.CanLock(h)
+				want := y < i
+				if have != want {
+					t.Errorf("Invalid locking before add: Lock %d, Case %d, have %t wanted %t", y, i, have, want)
+				}
+			}
+
+			// Add lock and check it was added
+			{
+				c.AddLock(thing)
+				want := i + 1
+				have := len(c.Locks)
+				if have != want {
+					t.Errorf("Lock add failed: Case %d, have %d wanted %d", i, have, want)
+				}
+			}
 
 			// Check twice as LocksModified() resets when called
-			Equal(t, "Locks modified (3)", true, cmd.LocksModified())
-			Equal(t, "Locks modified (4)", false, cmd.LocksModified())
-
-			for y, h := range things {
-				Equal(t, "Locks can lock (2)", y <= x, cmd.CanLock(h))
+			for try := 1; try < 3; try++ {
+				have := c.LocksModified()
+				want := try == 1
+				if have != want {
+					t.Errorf("Locks modified after add: Try %d, Case %d, have %t wanted %t", try+2, i, have, want)
+				}
 			}
+
+			// Check what can / can't be locked after adding new lock
+			for y, h := range things {
+				have := c.CanLock(h)
+				want := y <= i
+				if have != want {
+					t.Errorf("Invalid locking after add: Lock %d, Case %d, have %t wanted %t", y, i, have, want)
+				}
+			}
+
 		}
 
 		// Reverse things slice for 2nd try - inplace without new allocations
 		l := len(things) - 1
-		for x := (int)(l / 2); x >= 0; x-- {
-			things[x], things[l-x] = things[l-x], things[x]
+		for i := l / 2; i >= 0; i-- {
+			things[i], things[l-i] = things[l-i], things[i]
 		}
 	}
 }
