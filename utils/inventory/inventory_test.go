@@ -6,143 +6,239 @@
 package inventory
 
 import (
-	"strconv"
-	"testing"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
+	"strconv"
+	"testing"
+)
+
+const (
+	MAX_TEST_THINGS = 10
 )
 
 // createTestThings makes a batch of Things for testing
 func createTestThings() (things []thing.Interface) {
-	for x := 1; x <= 10; x++ {
-		things = append(things, thing.New("Test thing "+strconv.Itoa(x), []string{"test", "thing" + strconv.Itoa(x)}, "This is a test thing."))
+
+	things = make([]thing.Interface, MAX_TEST_THINGS, MAX_TEST_THINGS)
+
+	for x := 0; x < MAX_TEST_THINGS; x++ {
+
+		a := strconv.Itoa(x)
+
+		things[x] = thing.New(
+			"Thing "+a, []string{"test", "thing" + a}, "Test thing "+a+".",
+		)
+
 	}
 	return
 }
 
 func TestNew(t *testing.T) {
-	_ = New()
+	inv := New()
+
+	if inv == nil {
+		t.Errorf("New inventory not created!")
+	}
+
+	if len(inv.contents) != 0 {
+		t.Errorf("New inventory not empty!")
+	}
 }
 
 func TestAdd(t *testing.T) {
 	things := createTestThings()
-	subject := New()
+	inv := New()
 
 	// Make sure Things added ok
-	for _, thing := range things {
-		l := len(subject.contents)
-		subject.Add(thing)
-		Equal(t, "Add", l+1, len(subject.contents))
+	for i, thing := range things {
+		inv.Add(thing)
+		have := len(inv.contents)
+		want := i + 1
+		if have != want {
+			t.Errorf("Invalid inventory size: Case %d, have %d wanted %d", i, have, want)
+		}
 	}
 
-	// Check all Things are in the inventory
+	// Check inventory only contains test subjects
 FOUND_ITEM:
-	for _, thing := range things {
-		for _, item := range subject.contents {
-			if thing == item {
+	for i, have := range things {
+		for _, want := range inv.contents {
+			if have == want {
 				continue FOUND_ITEM
 			}
 		}
-		t.Errorf("Add '%s' not found in inventory", thing.Name())
+		t.Errorf("Invalid item: Case %d, have %#v", i, have)
 	}
 
-	// Check all inventory items are what we added from Things
+	// Check all test subjects are in the inventory
 FOUND_THING:
-	for _, item := range subject.contents {
-		for _, thing := range things {
-			if item == thing {
+	for i, have := range inv.contents {
+		for _, want := range things {
+			if have == want {
 				continue FOUND_THING
 			}
 		}
-		t.Errorf("Add '%s' should not be in inventory", item.Name())
+		t.Errorf("Missing item: Case %d, have %#v", i, have)
 	}
 
 	// Try adding duplicate item
-	l := len(subject.contents)
-	subject.Add(things[0])
-	Equal(t, "Add duplicate", l, len(subject.contents))
+	want := len(inv.contents)
+	inv.Add(things[0])
+	have := len(inv.contents)
+	if have != want {
+		t.Errorf("Duplicate item added: have %d want %d", have, want)
+	}
 }
 
-func TestRemove(t *testing.T) {
+func TestRemoveNotExist(t *testing.T) {
 	things := createTestThings()
-	subject := New()
+	inv := New()
 
-	// Try removing non-existant item
-	l := len(subject.contents)
-	subject.Remove(things[0])
-	Equal(t, "Remove non-existant", l, len(subject.contents))
-
-	for _, thing := range things {
-		subject.Add(thing)
+	inv.Add(things[0])
+	want := len(inv.contents)
+	inv.Remove(things[1])
+	have := len(inv.contents)
+	if have != want {
+		t.Errorf("Removed non-existant: have %d wanted %d", have, want)
 	}
-	Equal(t, "Remove length", len(things), len(subject.contents))
+}
 
+// When inventory emptied length and capacity should be zero
+func TestRemoveEmpty(t *testing.T) {
+	things := createTestThings()
+	inv := New()
+
+	// Add all things
 	for _, thing := range things {
-		subject.Remove(thing)
+		inv.Add(thing)
 	}
 
-	Equal(t, "Remove length", 0, len(subject.contents))
-	Equal(t, "Remove capacity", 0, cap(subject.contents))
+	// Remove all things
+	for _, thing := range things {
+		inv.Remove(thing)
+	}
+
+	// Check length
+	{
+		have := len(inv.contents)
+		want := 0
+		if have != want {
+			t.Errorf("Wrong length: have %d wanted %d", have, want)
+		}
+	}
+
+	// Check capacity
+	{
+		have := cap(inv.contents)
+		want := 0
+		if have != want {
+			t.Errorf("Wrong capacity: have %d wanted %d", have, want)
+		}
+	}
 }
 
 func TestFind(t *testing.T) {
 	things := createTestThings()
-	subject := New()
+	inv := New()
 
+	// Add odd things
 	for i, thing := range things {
 		if i%2 == 1 {
-			subject.Add(thing)
+			inv.Add(thing)
 		}
 	}
 
+	// Check we can find all odd things we added
 	for i, thing := range things {
+		have := inv.find(thing)
+		want := NOT_FOUND
 		if i%2 == 1 {
-			Equal(t, "find", i/2, subject.find(thing))
-		} else {
-			Equal(t, "find", NOT_FOUND, subject.find(thing))
+			want = i / 2
+		}
+		if have != want {
+			t.Errorf("Invalid find: Case %d, have %d wanted %d", i, have, want)
 		}
 	}
 }
 
 func TestContains(t *testing.T) {
 	things := createTestThings()
-	subject := New()
+	inv := New()
 
+	// Add odd things
 	for i, thing := range things {
 		if i%2 == 1 {
-			subject.Add(thing)
+			inv.Add(thing)
 		}
 	}
 
+	// Check only odd things found
 	for i, thing := range things {
-		Equal(t, "Contains", (i%2 == 1), subject.Contains(thing))
+		have := inv.Contains(thing)
+		want := i%2 == 1
+		if have != want {
+			t.Errorf("Invalid contains: Case %d, have %t wanted %t", i, have, want)
+		}
 	}
 }
 
 func TestList(t *testing.T) {
 	things := createTestThings()
-	subject := New()
+	inv := New()
 
 	for _, thing := range things {
-		subject.Add(thing)
+		inv.Add(thing)
 	}
 
-	// Make sure that List = Things not omitted + Things omitted
-	for x := 0; x < len(things); x++ {
-		l := subject.List(things[x:]...)
-		Equal(t, "List", len(things[:x]), len(l))
-		for i, a := range l {
-			Equal(t, "List", things[i], a)
+	// Make sure that List contains Things not omitted
+	for i := 0; i < len(things); i++ {
+		omitted := things[i:]
+		included := things[:i]
+		list := inv.List(omitted...)
+
+		//t.Errorf("\n%#v\n%#v\n\n", list, included)
+		//continue
+
+		{
+			want := len(things) - len(omitted)
+			have := len(list)
+			if have != want {
+				t.Errorf("List length corrupted: Case %d, have %d wanted %d", i, have, want)
+			}
 		}
+
+		// Make sure all included things in list
+	FOUND_IN_LIST:
+		for i, want := range included {
+			for _, have := range list {
+				if have == want {
+					continue FOUND_IN_LIST
+				}
+			}
+			t.Errorf("List missing item: Case %d, wanted %#v", i, want)
+		}
+
+		// Make sure list contains only included things
+	FOUND_IN_INCLUDED:
+		for i, want := range list {
+			for _, have := range included {
+				if have == want {
+					continue FOUND_IN_INCLUDED
+				}
+			}
+			t.Errorf("Invalid item in list: Case %d, wanted %#v", i, want)
+		}
+
 	}
 }
 
-// Define two test harnesses - but only the first can process commands
+// Define test harness that CAN process commands
 type thingHarness1 struct{ *thing.Thing }
-type thingHarness2 struct{ *thing.Thing }
 
 func (*thingHarness1) Process(cmd *command.Command) (handled bool) { return true }
+
+// Define test harness that CANNOT process commands
+type thingHarness2 struct{ *thing.Thing }
 
 func TestDelegate(t *testing.T) {
 
@@ -154,21 +250,47 @@ func TestDelegate(t *testing.T) {
 		Thing: thing.New("Harness 2", []string{"HARNESS2"}, "This is test harness 2"),
 	}
 
-	subject := New()
-	subject.Add(h1)
+	// Test with h1 which can process commands
+	inv := New()
+	inv.Add(h1)
 
-	handled := subject.Delegate(command.New(h2, "TEST"))
-	Equal(t, "Delegate to another", true, handled)
+	// Check recursion. h1 should not be delegated to when also issuing command
+	{
+		have := inv.Delegate(command.New(h1, "TEST"))
+		want := false
+		if have != want {
+			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
+		}
+	}
 
-	handled = subject.Delegate(command.New(h1, "TEST"))
-	Equal(t, "Delegate to self", false, handled)
+	// h1 should handle command from h2
+	{
+		have := inv.Delegate(command.New(h2, "TEST"))
+		want := true
+		if have != want {
+			t.Errorf("Delegation not handled: have %t wanted %t", have, want)
+		}
+	}
 
-	subject.Remove(h1)
-	subject.Add(h2)
+	// Test with h2 which cannot process commands
+	inv.Remove(h1)
+	inv.Add(h2)
 
-	handled = subject.Delegate(command.New(h1, "TEST"))
-	Equal(t, "Delegate to another", false, handled)
+	// h2 cannot handle command from h1
+	{
+		have := inv.Delegate(command.New(h1, "TEST"))
+		want := false
+		if have != want {
+			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
+		}
+	}
 
-	handled = subject.Delegate(command.New(h2, "TEST"))
-	Equal(t, "Delegate to self", false, handled)
+	// h2 cannot handle command from self
+	{
+		have := inv.Delegate(command.New(h2, "TEST"))
+		want := false
+		if have != want {
+			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
+		}
+	}
 }
