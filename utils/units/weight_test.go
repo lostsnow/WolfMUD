@@ -11,12 +11,10 @@ import (
 	. "wolfmud.org/utils/test"
 )
 
-type testData struct {
+var testSubjects = []struct {
 	weight      int
 	description string
-}
-
-var testSubjects = []*testData{
+}{
 	{0, "nothing"},
 	{1, "1oz"},
 	{6, "6oz"},

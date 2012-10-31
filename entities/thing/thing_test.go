@@ -14,13 +14,11 @@ import (
 	. "wolfmud.org/utils/uid"
 )
 
-type testData struct {
+var testSubjects = []struct {
 	name        string
 	aliases     []string
 	description string
-}
-
-var testSubjects = []*testData{
+}{
 	{"Name", []string{"Alias"}, "Description"},
 	{"Thing", []string{"Thing", "Something"}, "I'm a Thing!"},
 	{"", []string{}, ""},
@@ -124,7 +122,7 @@ func TestUniqueId(t *testing.T) {
 }
 
 func TestLockUnlock(t *testing.T) {
-	subject := New("",nil,"")
+	subject := New("", nil, "")
 
 	// Check size of mutex channel when locking and unlocking
 	subject.Lock()
@@ -135,9 +133,9 @@ func TestLockUnlock(t *testing.T) {
 	// Get start time, lock subject and unlock after 1 second via the goroutine
 	start := time.Now()
 	subject.Lock()
-	go func(){
+	go func() {
 		defer subject.Unlock()
-		time.Sleep(1*time.Second)
+		time.Sleep(1 * time.Second)
 	}()
 
 	// While the goroutine is running try and lock a second time which should
