@@ -37,7 +37,8 @@ type Player struct {
 	quitting bool
 }
 
-// TODO: loadPlayer currently just generates a player instead of loading one.
+// TODO: loadPlayer currently just generates a player instead of actually
+// loading one.
 func loadPlayer(sender sender.Interface) (player *Player) {
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
@@ -79,8 +80,6 @@ func final(name *string) {
 
 // IsQuitting returns true if the player is trying to quit otherwise false. It
 // implements part of the parser.Interface.
-//
-// TODO: Do we still need the locking around this?
 func (p *Player) IsQuitting() bool {
 	return p.quitting
 }
@@ -99,7 +98,7 @@ func (p *Player) Destroy() {
 	p.Mobile = nil
 }
 
-// add places a player in the world safely.
+// add places a player in the world safely and announces their arrival.
 func (p *Player) add(l location.Interface) {
 	l.Lock()
 	defer l.Unlock()
@@ -110,7 +109,8 @@ func (p *Player) add(l location.Interface) {
 	l.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 }
 
-// remove extracts a player from the world cleanly.
+// remove extracts a player from the world cleanly and announces their
+// departure.
 func (p *Player) remove() (removed bool) {
 	l := p.Locate()
 	l.Lock()
@@ -154,7 +154,8 @@ func (p *Player) dropInventory(cmd *command.Command) {
 //
 // If a command effects more than one location we have to release the current
 // lock on the location and relock the locations in Unique Id order before
-// trying again. Locking in a consistent order avoids deadlocks.
+// trying again. Always locking in a consistent order greatly helps in avoiding
+// deadlocks.
 //
 // MOST of the time we are only interested in a few things: The current player,
 // it's location, items at the location, mobiles at the location. We can
@@ -164,16 +165,12 @@ func (p *Player) dropInventory(cmd *command.Command) {
 // would like.
 //
 // TODO: If there many clients trying to connect at once - say 250+ simultaneous
-// clients connecting - then the starting location becomes a bottle neck.
-// Adding more starting locations help spread the bottle neck. What might be an
-// idea is to make parseStage2 smarter and not release locks if they are lower
-// than the locks we now require. For example if we have the ID 100 for the
-// current location and we want to move EAST to location with ID 105 can we just
-// lock 105 instead of unlocking 100 and then locking 100 and 105? Would this
-// give any advantage or disadvantage to players having to unlock and relock
-// as opposed to those who just do the extra lock? I don't think this would
-// deadlock as it would be similar to the current locking but with a slightly
-// longer delay between some locks being taken.
+// clients connecting - then the starting location becomes a bit of a bottle
+// neck (at 1,000+ simultaneous clients connecting is a pain - but once
+// connected things smooth out and become playable again). Adding more starting
+// locations help to spread the bottle neck. Note that this is just an issue
+// with the initial connection and multiple clients all trying to grab the start
+// location lock!
 func (p *Player) Parse(input string) {
 
 	cmd := command.New(p, input)
@@ -187,6 +184,9 @@ func (p *Player) Parse(input string) {
 	cmd.Flush()
 }
 
+// parseStage2 is called by Parse to take advantage of defer unwinding. By
+// splitting the parsing we can easily obtain the locks we want and defer the
+// unlocking. This makes both Parse and parseStage2 very simple.
 func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 	for _, l := range cmd.Locks {
 		l.Lock()
@@ -214,10 +214,18 @@ func (p *Player) Respond(format string, any ...interface{}) {
 	p.sender.Send(format, any...)
 }
 
+// Broadcast implements the broadcaster interface and broadcasts to the
+// player's current location.
 func (p *Player) Broadcast(omit []thing.Interface, format string, any ...interface{}) {
 	p.Locate().Broadcast(omit, format, any...)
 }
 
+// Process implements the command.Interface to handle player specific commands.
+// It also delegates to mobile.Process if the player can't handle the command
+// which also does most of the delegating to get commands processed. . As a
+// last resort we see if PlayerList can handle the command. PlayerList can't be
+// handled by Mobile with everything else as it causes a cyclic import and goes
+// BOOM!
 func (p *Player) Process(cmd *command.Command) (handled bool) {
 
 	switch cmd.Verb {
@@ -240,6 +248,9 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 	return
 }
 
+// cpustart implement the 'CPUSTART' command and starts CPU profiling.
+//
+// TODO: Remove - for debugging only
 func (p *Player) cpustart(cmd *command.Command) (handled bool) {
 	f, err := os.Create("cpuprof")
 	if err != nil {
@@ -252,12 +263,20 @@ func (p *Player) cpustart(cmd *command.Command) (handled bool) {
 	return true
 }
 
+// cpustop implements the 'CPUSTOP' command, stops CPU profiling and writes the
+// profile to cpuprofile in the bin directory.
+//
+// TODO: Remove - for debugging only
 func (p *Player) cpustop(cmd *command.Command) (handled bool) {
 	pprof.StopCPUProfile()
 	cmd.Respond("CPU profile stopped")
 	return true
 }
 
+// memprof implements the 'MEMPROF' command and writes out a memprofile.
+//
+// NOTE: Need to change the value of MemProfileRate in server.go
+// TODO: Remove - for debugging only
 func (p *Player) memprof(cmd *command.Command) (handled bool) {
 	f, err := os.Create("memprof")
 	if err != nil {
@@ -271,6 +290,10 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 	return true
 }
 
+// quit implements the 'QUIT' command.
+//
+// TODO: Document exact effect when finalised and Destroy etc cleaned
+// up/possibly removed.
 func (p *Player) quit(cmd *command.Command) (handled bool) {
 	p.dropInventory(cmd)
 	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
@@ -279,6 +302,9 @@ func (p *Player) quit(cmd *command.Command) (handled bool) {
 	return true
 }
 
+// sneeze implements the 'SNEEZE' command.
+//
+// TODO: Remove - for debugging responders and broadcasters
 func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
 	cmd.Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
