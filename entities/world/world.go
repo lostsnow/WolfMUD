@@ -78,6 +78,7 @@ func (w *World) Genesis() {
 	}
 }
 
+// startPlayer connects a client to a player and puts the player into the world.
 func (w *World) startPlayer(conn *net.TCPConn) {
 	c := client.New(conn)
 	p := player.New(w)
@@ -87,7 +88,12 @@ func (w *World) startPlayer(conn *net.TCPConn) {
 	c.SendWithoutPrompt(greeting)
 	w.locations[0].Add(p)
 	p.Parse("LOOK")
-	w.locations[0].Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+
+	w.locations[0].Broadcast(
+		[]thing.Interface{p},
+		"There is a puff of smoke and %s appears spluttering and coughing.",
+		p.Name(),
+	)
 
 	log.Printf(
 		"Connection %s allocated %s, %d players online.\n",
