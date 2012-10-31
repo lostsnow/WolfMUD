@@ -6,12 +6,10 @@
 package thing
 
 import (
-	"strconv"
+	. "code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 	"testing"
 	"time"
-	. "code.wolfmud.org/WolfMUD.git/utils/test"
-	. "code.wolfmud.org/WolfMUD.git/utils/uid"
 )
 
 var testSubjects = []struct {
@@ -27,48 +25,97 @@ var testSubjects = []struct {
 	{"Duplicate", []string{"Ditto", "Copy"}, "This is a duplicate duplicate"},
 }
 
-func TestNew(t *testing.T) {
-	for _, s := range testSubjects {
-		n := New(s.name, s.aliases, s.description)
+// Make sure aliases parameter is not modified by New
+//
+// NOTE: This MUST come before any other tests otherwise if New IS modifying
+// parameters it would have corrupted the test subjects already!
+//
+// Yes, I spent HOURS debugging this little bugger...
+func TestParameters(t *testing.T) {
+	for i, s := range testSubjects {
 
-		Equal(t, "name", s.name, n.name)
-		Equal(t, "description", s.description, n.description)
-		Equal(t, "aliases size", len(s.aliases), len(n.aliases))
+		aliases_copy := make([]string, len(s.aliases))
+		copy(aliases_copy, s.aliases)
 
-		for i, expect := range s.aliases {
-			expect = strings.ToUpper(strings.TrimSpace(expect))
-			Equal(t, "aliases", expect, n.aliases[i])
+		_ = New(s.name, s.aliases, s.description)
+
+		for j, have := range s.aliases {
+			want := aliases_copy[j]
+			if have != want {
+				t.Errorf("Alias parameter to New modified: Case %d, have %q want %q", i, have, want)
+			}
 		}
 
 	}
+}
 
-	// Make sure aliases are copied and don't reference original slice
-	aliases := []string{"LOWERCASE"}
-	subject := New("", aliases, "")
-	NotEqual(t, "aliases parameter referenced", &aliases, &subject.aliases)
+func TestNew(t *testing.T) {
+	for i, s := range testSubjects {
+		thing := New(s.name, s.aliases, s.description)
+
+		{
+			have := thing.name
+			want := s.name
+			if have != want {
+				t.Errorf("Corrupt name: Case %d, have %q wanted %q", i, have, want)
+			}
+		}
+
+		{
+			have := thing.description
+			want := s.description
+			if have != want {
+				t.Errorf("Corrupt description: Case %d, have %q wanted %q", i, have, want)
+			}
+		}
+
+		{
+			have := len(thing.aliases)
+			want := len(s.aliases)
+			if have != want {
+				t.Errorf("Invalid alias length: Case %d, have %d wanted %d", i, have, want)
+			}
+		}
+
+		for i, have := range thing.aliases {
+			want := strings.ToUpper(strings.TrimSpace(s.aliases[i]))
+			if have != want {
+				t.Errorf("Corrupt alias: Case %d, have %q, wanted %q", i, have, want)
+			}
+		}
+	}
 }
 
 func TestName(t *testing.T) {
-	for _, s := range testSubjects {
-		n := New(s.name, s.aliases, s.description)
-		Equal(t, "Name()", s.name, n.Name())
+	for i, s := range testSubjects {
+		thing := New(s.name, s.aliases, s.description)
+		have := thing.Name()
+		want := s.name
+		if have != want {
+			t.Errorf("Invalid Name: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
 func TestDescription(t *testing.T) {
-	for _, s := range testSubjects {
-		n := New(s.name, s.aliases, s.description)
-		Equal(t, "Description()", s.description, n.Description())
+	for i, s := range testSubjects {
+		thing := New(s.name, s.aliases, s.description)
+		have := thing.Description()
+		want := s.description
+		if have != want {
+			t.Errorf("Invalid Description: Case %d, have %q wanted %q", i, have, want)
+		}
 	}
 }
 
 func TestAliases(t *testing.T) {
 	for _, s := range testSubjects {
-		n := New(s.name, s.aliases, s.description)
-		aliases := n.Aliases()
-		for i, expect := range s.aliases {
-			expect = strings.ToUpper(strings.TrimSpace(expect))
-			Equal(t, "Aliases() index "+strconv.Itoa(i), expect, aliases[i])
+		thing := New(s.name, s.aliases, s.description)
+		for i, have := range thing.Aliases() {
+			want := strings.ToUpper(strings.TrimSpace(s.aliases[i]))
+			if have != want {
+				t.Errorf("Invalid alias: Case %d, have %q wanted %q", i, have, want)
+			}
 		}
 	}
 }
@@ -81,9 +128,13 @@ func TestIsAlso(t *testing.T) {
 	}
 
 	// Match each thing with every other thing - should only be itself
-	for i1, s1 := range subjects {
-		for i2, s2 := range subjects {
-			Equal(t, "IsAlso()", s1.IsAlso(s2), i1 == i2)
+	for i1, subject1 := range subjects {
+		for i2, subject2 := range subjects {
+			have := subject1.IsAlso(subject2)
+			want := i1 == i2
+			if have != want {
+				t.Errorf("Corrupt IsAlso: Case %d, have %t wanted %t", i1, have, want)
+			}
 		}
 	}
 }
@@ -107,47 +158,70 @@ func TestIsAlias(t *testing.T) {
 
 	// Go through all aliases and check in the map to see if IsAlias() should
 	// return true or false
-	for _, s := range subjects {
+	for i, s := range subjects {
 		for a := range allAliases {
-			Equal(t, "IsAlias()", allAliases[a][s.uniqueId], s.IsAlias(a))
+			have := s.IsAlias(a)
+			want := allAliases[a][s.uniqueId]
+			if have != want {
+				t.Errorf("Corrupt IsAlias %q: Case %d, have %t wanted %t", a, i, have, want)
+			}
 		}
 	}
 }
 
 func TestUniqueId(t *testing.T) {
-	for _, s := range testSubjects {
-		n := New(s.name, s.aliases, s.description)
-		Equal(t, "UniqueId()", n.uniqueId, n.UniqueId())
+	for i, s := range testSubjects {
+		thing := New(s.name, s.aliases, s.description)
+
+		have := thing.UniqueId()
+		want := thing.uniqueId
+		if have != want {
+			t.Errorf("Corrupt UniqueId: Case %d, have %d wanted %d", i, have, want)
+		}
 	}
 }
 
 func TestLockUnlock(t *testing.T) {
-	subject := New("", nil, "")
+	thing := New("", nil, "")
 
 	// Check size of mutex channel when locking and unlocking
-	subject.Lock()
-	Equal(t, "Lock()", 1, len(subject.mutex))
-	subject.Unlock()
-	Equal(t, "Unlock()", 0, len(subject.mutex))
+	{
+		thing.Lock()
+		have := len(thing.mutex)
+		want := 1
+		if have != want {
+			t.Errorf("Corrupt mutex length when locking: have %d wanted %d", have, want)
+		}
+
+		thing.Unlock()
+		have = len(thing.mutex)
+		want = 0
+		if have != want {
+			t.Errorf("Corrupt mutex length when unlocking: have %d wanted %d", have, want)
+		}
+	}
 
 	// Get start time, lock subject and unlock after 1 second via the goroutine
 	start := time.Now()
-	subject.Lock()
+	thing.Lock()
 	go func() {
-		defer subject.Unlock()
+		defer thing.Unlock()
 		time.Sleep(1 * time.Second)
 	}()
 
 	// While the goroutine is running try and lock a second time which should
 	// block for at least a second until the goroutine unlocks
-	subject.Lock()
-	subject.Unlock()
+	thing.Lock()
+	thing.Unlock()
 
 	// Now get end time and workout how long we blocked for. If it's not at least
 	// a second something is wrong.
 	delay := time.Now().Sub(start).Seconds()
 
-	if delay < 1 {
-		t.Errorf("Lock() & Unlock() delay less than 1 second - %f, locking not working", delay)
+	have := delay
+	want := 1.0
+
+	if have < want {
+		t.Errorf("Locks not blocking: have %f wanted less than %f", have, want)
 	}
 }
