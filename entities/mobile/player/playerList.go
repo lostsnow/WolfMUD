@@ -1,5 +1,10 @@
 package player
 
+import (
+	"wolfmud.org/entities/thing"
+	"wolfmud.org/utils/responder"
+)
+
 type playerList struct {
 	players []*Player
 }
@@ -25,8 +30,17 @@ func (l *playerList) Length() int {
 	return len(l.players)
 }
 
-func (l *playerList) List() (pl []*Player) {
-	pl = make([]*Player, len(l.players))
-	copy(pl, l.players)
+func (l *playerList) List(ommit ...thing.Interface) (list []responder.Interface) {
+
+OMMIT:
+	for _, player := range l.players {
+		for _, o := range ommit {
+			if player.IsAlso(o) {
+				continue OMMIT
+			}
+			list = append(list, player)
+		}
+	}
+
 	return
 }

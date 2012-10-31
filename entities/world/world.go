@@ -110,16 +110,9 @@ func (w *World) AddLocation(l location.Interface) {
 }
 
 func (w *World) Broadcast(ommit []thing.Interface, format string, any ...interface{}) {
-
 	msg := fmt.Sprintf("\n"+format, any...)
 
-OMMIT:
-	for _, p := range player.PlayerList.List() {
-		for _, o := range ommit {
-			if o.IsAlso(p) {
-				continue OMMIT
-			}
-		}
+	for _, p := range player.PlayerList.List(ommit...) {
 		p.Respond(msg)
 	}
 }
