@@ -7,7 +7,6 @@
 package player
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -229,8 +228,6 @@ func (p *Player) Broadcast(omit []thing.Interface, format string, any ...interfa
 func (p *Player) Process(cmd *command.Command) (handled bool) {
 
 	switch cmd.Verb {
-	default:
-		handled = p.Mobile.Process(cmd)
 	case "CPUSTOP":
 		handled = p.cpustop(cmd)
 	case "CPUSTART":
@@ -241,8 +238,14 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 		handled = p.quit(cmd)
 	case "SNEEZE":
 		handled = p.sneeze(cmd)
-	case "WHO":
-		handled = p.who(cmd)
+	}
+
+	if handled == false {
+		handled = p.Mobile.Process(cmd)
+	}
+
+	if handled == false {
+		handled = PlayerList.Process(cmd)
 	}
 
 	return
@@ -299,6 +302,7 @@ func (p *Player) quit(cmd *command.Command) (handled bool) {
 	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
 	p.quitting = true
 	log.Printf("%s is quitting", p.Name())
+	p.sender.Prompt("")
 	return true
 }
 
@@ -309,24 +313,5 @@ func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
 	cmd.Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
 	PlayerList.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
-	return true
-}
-
-func (p *Player) who(cmd *command.Command) (handled bool) {
-	cmd.Broadcast([]thing.Interface{p}, "You see %s concentrate.", p.Name())
-	msg := ""
-
-	c := 1
-	for _, p := range PlayerList.List(p) {
-		msg += fmt.Sprintf("  %s\n", p.Name())
-		c++
-	}
-	msg += fmt.Sprintf(" TOTAL PLAYERS: %d", c)
-
-	if c < 2 {
-		msg = "You are all alone in this world."
-	}
-
-	cmd.Respond(msg)
 	return true
 }

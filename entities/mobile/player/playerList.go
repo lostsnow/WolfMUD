@@ -6,9 +6,11 @@
 package player
 
 import (
+	"bytes"
 	"fmt"
-	"log"
+	"strconv"
 	"wolfmud.org/entities/thing"
+	"wolfmud.org/utils/command"
 	"wolfmud.org/utils/text"
 )
 
@@ -69,13 +71,6 @@ func (l *playerList) Length() int {
 	return len(l.players)
 }
 
-func (l *playerList) List(omit ...thing.Interface) (list []*Player) {
-	l.lock()
-	defer l.unlock()
-
-  return l.nonLockingList(omit...)
-}
-
 // Broadcast implements the broadcaster interface and sends a message to all
 // players currently on the server. The omit parameter specifies things not to
 // send the message to. For example if we had a scream command we might send a
@@ -119,4 +114,42 @@ OMIT:
 	}
 
 	return
+}
+
+// Process implements the command.Interface to handle playerList specific
+// commands.
+func (l *playerList) Process(cmd *command.Command) (handled bool) {
+
+	switch cmd.Verb {
+	case "WHO":
+		handled = l.who(cmd)
+	}
+
+	return
+}
+
+// who implements the 'WHO' command. This lists all the players currently on
+// the server.
+func (l *playerList) who(cmd *command.Command) (handled bool) {
+
+	b := new(bytes.Buffer)
+
+	if l.Length() < 2 {
+		b.WriteString("You are all alone in this world.")
+	} else {
+
+		cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s concentrate.", cmd.Issuer.Name())
+
+		for _, p := range PlayerList.nonLockingList(cmd.Issuer) {
+			b.WriteString("  ")
+			b.WriteString(p.Name())
+			b.WriteString("\n")
+		}
+		b.WriteString("\nTOTAL PLAYERS: ")
+		b.WriteString(strconv.Itoa(l.Length()))
+
+	}
+	cmd.Respond(b.String())
+
+	return true
 }
