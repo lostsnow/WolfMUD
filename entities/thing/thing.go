@@ -42,7 +42,7 @@ type Thing struct {
 	description string
 	aliases     []string
 	uniqueId    UID
-	lock        chan bool
+	mutex       chan bool
 }
 
 // New allocates a new Thing, returning a pointer reference to it. A unique ID
@@ -59,7 +59,7 @@ func New(name string, aliases []string, description string) *Thing {
 		aliases:     aliases,
 		description: description,
 		uniqueId:    <-Next,
-		lock:        make(chan bool, 1),
+		mutex:       make(chan bool, 1),
 	}
 
 	log.Printf("Thing %d created: %s\n", t.uniqueId, t.name)
@@ -133,12 +133,12 @@ func (t *Thing) IsAlso(thing Interface) bool {
 // reason for the method instead of making the lock in the struct public - you
 // cannot access struct properties directly through the Interface.
 func (t *Thing) Lock() {
-	t.lock <- true
+	t.mutex <- true
 }
 
 // Unlock unlocks a locked Thing. See Lock method for details.
 func (t *Thing) Unlock() {
-	<-t.lock
+	<-t.mutex
 }
 
 // Name returns the name given to a Thing.
