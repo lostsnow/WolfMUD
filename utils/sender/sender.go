@@ -19,4 +19,7 @@ type Interface interface {
 	// Send should format the message, add any required prompt to the end and
 	// then send the message over the network to the connecting client.
 	Send(format string, any ...interface{})
+
+	// Sets the currently used prompt
+	Prompt(prompt string) (previousPrompt string)
 }

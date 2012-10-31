@@ -226,12 +226,20 @@ func (c *Client) receiver() {
 	// Connection idle and we ran out of retries?
 	if idleRetrys == 0 {
 		c.prompt = PROMPT_NONE
+		c.Send(" ")
 		c.parser.Parse("QUIT")
-		c.Send("\n\n[RED]Idle connection terminated by server.[WHITE]\n\n")
+		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
 		log.Printf("Closing idle connection for: %s\n", c.name)
 	}
 
 	log.Printf("receiver ending for %s\n", c.name)
+}
+
+// Prompt sets a new prompt and returns the old prompt. It is implemented as
+// part of the Sender interface.
+func (c *Client) Prompt(newPrompt string) (oldPrompt string) {
+	oldPrompt, c.prompt = c.prompt, newPrompt
+	return
 }
 
 // Send takes a message with parameters, adds a prompt and sends the message on
