@@ -68,10 +68,15 @@ func (i *Inventory) find(thing thing.Interface) (index int) {
 	return NOT_FOUND
 }
 
-// Remove takes an object implementing thing.Interface from the Inventory.
+// Remove takes an object implementing thing.Interface from the Inventory. If
+// the inventory is now empty we trim the contents slice to set the length and
+// capacity to zero to reclaim a little storage.
 func (i *Inventory) Remove(thing thing.Interface) {
 	if index := i.find(thing); index != NOT_FOUND {
 		i.contents = append(i.contents[:index], i.contents[index+1:]...)
+		if len(i.contents) == 0 {
+			i.contents = nil
+		}
 	}
 }
 
