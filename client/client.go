@@ -226,7 +226,8 @@ func (c *Client) receiver() {
 	// Connection idle and we ran out of retries?
 	if idleRetrys == 0 {
 		c.prompt = PROMPT_NONE
-		c.Send("\n\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
+		c.parser.Parse("QUIT")
+		c.Send("\n\n[RED]Idle connection terminated by server.[WHITE]\n\n")
 		log.Printf("Closing idle connection for: %s\n", c.name)
 	}
 
