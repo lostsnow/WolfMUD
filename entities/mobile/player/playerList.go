@@ -51,16 +51,14 @@ func (l *playerList) Add(player *Player) {
 func (l *playerList) Remove(player *Player) {
 	l.lock()
 	defer l.unlock()
-	found := false
 	for index, p := range l.players {
 		if player.IsAlso(p) {
 			l.players = append(l.players[:index], l.players[index+1:]...)
-			found = true
+			if len(l.players) == 0 {
+				l.players = nil
+			}
 			break
 		}
-	}
-	if !found {
-		log.Printf("EEP!!! %s Not found to remove", player.Name())
 	}
 }
 
