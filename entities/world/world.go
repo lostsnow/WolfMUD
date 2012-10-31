@@ -48,19 +48,18 @@ func Create() *World {
 // Genesis starts the world - what else? :)
 func (w *World) Genesis() {
 
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile);
-
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.Println("Starting WolfMUD server...")
 
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:4001")
 	if err != nil {
-		log.Printf("Error resolving TCP address, %s\nServer will now exit.\n", err)
+		log.Printf("Error resolving TCP address, %s. Server will now exit.\n", err)
 		return
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Printf("Error setting up listener, %s\nServer will now exit.\n", err)
+		log.Printf("Error setting up listener, %s. Server will now exit.\n", err)
 		return
 	}
 
@@ -70,7 +69,7 @@ func (w *World) Genesis() {
 
 	for {
 		if conn, err := listener.AcceptTCP(); err != nil {
-			log.Printf("Error accepting connection: %s\nServer will now exit.\n", err)
+			log.Printf("Error accepting connection: %s. Server will now exit.\n", err)
 			return
 		} else {
 			log.Printf("Connection from %s.\n", conn.RemoteAddr().String())
@@ -90,7 +89,12 @@ func (w *World) startPlayer(conn *net.TCPConn) {
 	p.Parse("LOOK")
 	w.locations[0].Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
 
-	log.Printf("Connection %s allocated %s, %d players online.\n", conn.RemoteAddr().String(), p.Name(), player.PlayerList.Length())
+	log.Printf(
+		"Connection %s allocated %s, %d players online.\n",
+		conn.RemoteAddr().String(),
+		p.Name(),
+		player.PlayerList.Length(),
+	)
 
 	go c.Start()
 }
