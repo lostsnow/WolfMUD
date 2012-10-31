@@ -65,16 +65,14 @@ func New(sender sender.Interface, l location.Interface) (p *Player) {
 
 	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
 
-	// Create name for finalizer as p will be gone and p.Name() will panic ;)
-	name := p.Name()
-	runtime.SetFinalizer(&name, final)
+	runtime.SetFinalizer(p, final)
 
 	return
 }
 
 // final is used for debugging to make sure the GC is cleaning up
-func final(name *string) {
-	log.Printf("+++ %s finalized +++\n", *name)
+func final(p *Player) {
+	log.Printf("+++ finalized +++\n")
 }
 
 // IsQuitting returns true if the player is trying to quit otherwise false. It
