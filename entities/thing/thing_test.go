@@ -6,7 +6,7 @@
 package thing
 
 import (
-	. "code.wolfmud.org/WolfMUD.git/utils/uid"
+	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 	"testing"
 	"time"
@@ -120,28 +120,9 @@ func TestAliases(t *testing.T) {
 	}
 }
 
-func TestIsAlso(t *testing.T) {
-
-	subjects := make([]*Thing, len(testSubjects))
-	for i, s := range testSubjects {
-		subjects[i] = New(s.name, s.aliases, s.description)
-	}
-
-	// Match each thing with every other thing - should only be itself
-	for i1, subject1 := range subjects {
-		for i2, subject2 := range subjects {
-			have := subject1.IsAlso(subject2)
-			want := i1 == i2
-			if have != want {
-				t.Errorf("Corrupt IsAlso: Case %d, have %t wanted %t", i1, have, want)
-			}
-		}
-	}
-}
-
 func TestIsAlias(t *testing.T) {
 
-	allAliases := make(map[string](map[UID]bool))
+	allAliases := make(map[string](map[uid.UID]bool))
 	subjects := make([]*Thing, len(testSubjects))
 
 	// Go through the testSubjects and create subjects and a map of aliases that
@@ -150,9 +131,9 @@ func TestIsAlias(t *testing.T) {
 		subjects[i] = New(s.name, s.aliases, s.description)
 		for _, a := range s.aliases {
 			if _, ok := allAliases[a]; !ok {
-				allAliases[a] = make(map[UID]bool)
+				allAliases[a] = make(map[uid.UID]bool)
 			}
-			allAliases[a][subjects[i].uniqueId] = true
+			allAliases[a][subjects[i].UniqueId()] = true
 		}
 	}
 
@@ -161,22 +142,10 @@ func TestIsAlias(t *testing.T) {
 	for i, s := range subjects {
 		for a := range allAliases {
 			have := s.IsAlias(a)
-			want := allAliases[a][s.uniqueId]
+			want := allAliases[a][s.UniqueId()]
 			if have != want {
 				t.Errorf("Corrupt IsAlias %q: Case %d, have %t wanted %t", a, i, have, want)
 			}
-		}
-	}
-}
-
-func TestUniqueId(t *testing.T) {
-	for i, s := range testSubjects {
-		thing := New(s.name, s.aliases, s.description)
-
-		have := thing.UniqueId()
-		want := thing.uniqueId
-		if have != want {
-			t.Errorf("Corrupt UniqueId: Case %d, have %d wanted %d", i, have, want)
 		}
 	}
 }

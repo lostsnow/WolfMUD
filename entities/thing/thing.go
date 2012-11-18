@@ -17,7 +17,7 @@
 package thing
 
 import (
-	. "code.wolfmud.org/WolfMUD.git/utils/uid"
+	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 )
 
@@ -27,11 +27,10 @@ type Interface interface {
 	Description() string
 	IsAlias(alias string) bool
 	Aliases() []string
-	IsAlso(thing Interface) bool
 	Lock()
 	Name() string
-	UniqueId() UID
 	Unlock()
+	uid.Interface
 }
 
 // Thing type is a default implementation of the thing.Interface
@@ -39,8 +38,8 @@ type Thing struct {
 	name        string
 	description string
 	aliases     []string
-	uniqueId    UID
 	mutex       chan bool
+	uid.UID
 }
 
 // New allocates a new Thing, returning a pointer reference to it. A unique ID
@@ -52,7 +51,7 @@ func New(name string, aliases []string, description string) *Thing {
 		name:        name,
 		aliases:     make([]string, len(aliases)),
 		description: description,
-		uniqueId:    <-Next,
+		UID:         <-uid.Next,
 		mutex:       make(chan bool, 1),
 	}
 
@@ -98,26 +97,6 @@ func (t *Thing) Aliases() (a []string) {
 	return
 }
 
-// IsAlso tests two Things to see if one of them 'is also' the other - hence the
-// function's name.
-//
-// WolfMUD uses a lot of Interfaces and embedded types. So we may be comparing,
-// for example, a Player with a Mobile. However this causes issues:
-//
-//	- Mobile and Player are not the same types
-//	- They can have different interfaces
-//	- Pointers to a Mobile embedded in a Player will be different (of course)
-//
-// So to make things easy we have the unique ID and can use either of:
-//
-//	thisPlayer.IsAlso(thisMobile)
-//	thisPlayer.UniqueId() == thisMobile.UniqueId()
-//
-// The first example using IsAlso tends to make the code easier to read.
-func (t *Thing) IsAlso(thing Interface) bool {
-	return t.uniqueId == thing.UniqueId()
-}
-
 // Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
 // should only be called when the lock is held via a successful Lock call. The
 // reason for the method instead of making the lock in the struct public - you
@@ -134,9 +113,4 @@ func (t *Thing) Unlock() {
 // Name returns the name given to a Thing.
 func (t *Thing) Name() string {
 	return t.name
-}
-
-// UniqueId returns the unique ID of a Thing.
-func (t *Thing) UniqueId() UID {
-	return t.uniqueId
 }

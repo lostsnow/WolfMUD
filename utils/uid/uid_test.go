@@ -56,3 +56,37 @@ func TestConcurrency(t *testing.T) {
 		}
 	}
 }
+
+func TestIsAlso(t *testing.T) {
+
+	testSubjects := [COUNT_PER_LOOP]UID{}
+	for i := range testSubjects {
+		testSubjects[i] = <-Next
+	}
+
+	// Match each test subject with every other - should only match itself
+	for i1, subject1 := range testSubjects {
+		for i2, subject2 := range testSubjects {
+			have := subject1.IsAlso(subject2)
+			want := i1 == i2
+			if have != want {
+				t.Errorf("Corrupt IsAlso: Case %d, have %t wanted %t", i1, have, want)
+			}
+		}
+	}
+}
+
+func TestUniqueId(t *testing.T) {
+	testSubjects := [COUNT_PER_LOOP]UID{}
+	for i := range testSubjects {
+		testSubjects[i] = <-Next
+	}
+
+	for i, s := range testSubjects {
+		have := s.UniqueId()
+		want := s
+		if have != want {
+			t.Errorf("Corrupt UniqueId: Case %d, have %d wanted %d", i, have, want)
+		}
+	}
+}
