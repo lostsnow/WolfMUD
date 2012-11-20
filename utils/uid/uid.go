@@ -10,6 +10,10 @@
 //
 package uid
 
+import (
+	"sync"
+)
+
 // UID is currently implemented as a uint64 giving IDs from 1 to
 // 18,446,744,073,709,551,615 or 0x1 to 0xFFFFFFFFFFFFFFFF or 18 Quintillion
 // IDs also known as 18 exaids. If this is not enough then the type for UID can
@@ -20,6 +24,11 @@ type UID uint64
 type Interface interface {
 	IsAlso(Interface) bool
 	UniqueId() UID
+}
+
+type UIDLocker interface {
+	Interface
+	sync.Locker
 }
 
 // Next is a read only channel used to retrieve the next ID number.
