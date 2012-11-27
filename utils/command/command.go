@@ -10,6 +10,7 @@ package command
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
+	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 )
 
@@ -40,12 +41,12 @@ type Interface interface {
 // Command is also used to pass around locking information as the command is
 // processed.
 type Command struct {
-	Issuer        thing.Interface   // What is issuing the command
-	Verb          string            // 1st word (verb): GET, DROP, EXAMINE etc
-	Nouns         []string          // 2nd...nth words
-	Target        string            // Alias for 2nd word - normally the verb's target
-	Locks         []thing.Interface // Locks we want to hold
-	locksModified bool              // Locks modified since last LocksModified() call?
+	Issuer        thing.Interface // What is issuing the command
+	Verb          string          // 1st word (verb): GET, DROP, EXAMINE etc
+	Nouns         []string        // 2nd...nth words
+	Target        string          // Alias for 2nd word - normally the verb's target
+	Locks         []uid.UIDLocker // Locks we want to hold
+	locksModified bool            // Locks modified since last LocksModified() call?
 	response      responseBuffer
 	broadcast     broadcastBuffer
 }
@@ -156,13 +157,13 @@ func (c *Command) Broadcast(omit []thing.Interface, format string, any ...interf
 	}
 }
 
-// CanLock checks if the command has the thing in it's locks list. This only
-// determines if the thing is in the Locks slice - not if it is or is not
-// actually locked. This is because we may have just added the lock and have
-// not actually tried locking or relocking yet.
-func (c *Command) CanLock(thing thing.Interface) bool {
+// CanLock checks if the command has the UID in it's locks list. This only
+// determines if the UID is in the Locks slice - not if it is or is not actually
+// locked. This is because we may have just added the lock and have not actually
+// tried locking or relocking yet.
+func (c *Command) CanLock(uid uid.UIDLocker) bool {
 	for _, l := range c.Locks {
-		if thing.IsAlso(l) {
+		if uid.IsAlso(l) {
 			return true
 		}
 	}
@@ -178,23 +179,23 @@ func (c *Command) LocksModified() (modified bool) {
 	return modified
 }
 
-// AddLock takes a reference to a thing and adds it to the Locks slice in the
-// correct position. Locks should always be acquired in unique Id sequence
-// lowest to highest to avoid deadlocks. By using this method the Locks property
-// can easily be iterated via a range and in the correct sequence required.
+// AddLock takes a UID and adds it to the Locks slice in the correct position.
+// Locks should always be acquired in unique Id sequence lowest to highest to
+// avoid deadlocks. By using this method the Locks can easily be iterated via a
+// range and in the correct sequence required.
 //
-// NOTE: We cannot add the same Lock twice otherwise we would deadlock ourself
+// NOTE: We cannot add the same Lock twice otherwise we would deadlock ourselves
 // when locking - currently we silently drop duplicate locks.
 //
 // This routine is a little cute and avoids doing any 'real' sorting to keep the
-// elements in unique ID sequence. We add our lock to our slice. If we have one
+// elements in unique ID sequence. We add our UID to our slice. If we have one
 // element only it's what we just added so we bail.
 //
 // If we have multiple elements we have the appended element on the end and need
-// to check where it goes, shift the trailing element up by one then write our
+// to check where it goes, shift the trailing elements up by one then write our
 // new element in:
 //
-//	3 7 9 4 <- append new element to end
+//	3 7 9 4 <- append new element 4 to end
 //	3 7 9 4 <- correct place: 4 goes between 3 and 7
 //	3 7 7 9 <- shift 7,9 up one overwriting our appended element
 //	3 4 7 9 <- we now write our new element into our 'hole'
@@ -202,30 +203,30 @@ func (c *Command) LocksModified() (modified bool) {
 // What if we can't find an element with a unique Id greater than the one we are
 // inserting?
 //
-//	3 7 9 10 <- append new element to end
-//	3 7 9 10 <- correct place: 10 goes after 9, not insert point found
+//	3 7 9 10 <- append new element 10 to end
+//	3 7 9 10 <- correct place: 10 goes after 9, no insert point found
 //	3 7 9 10 <- No shifting is done, appended element not over-written
 //	3 4 7 10 <- new element already in correct place, nothing else to do
 //
-// This function could be more efficient with large numbers of elements by
-// using a binary search to find the insertion point for the new element.
-// However this would make the code more complex and we don't expect to handle
-// huge numbers of locks with this function.
-func (c *Command) AddLock(t thing.Interface) {
+// This function could be more efficient with large numbers of elements by using
+// a binary search to find the insertion point for the new element. However this
+// would make the code more complex and we don't expect to handle huge numbers
+// of locks with this function.
+func (c *Command) AddLock(uid uid.UIDLocker) {
 
-	if t == nil || c.CanLock(t) {
+	if uid == nil || c.CanLock(uid) {
 		return
 	}
 
 	c.locksModified = true
-	c.Locks = append(c.Locks, t)
+	c.Locks = append(c.Locks, uid)
 
 	if l := len(c.Locks); l > 1 {
-		uid := t.UniqueId()
+		u := uid.UniqueId()
 		for i := 0; i < l; i++ {
-			if uid > c.Locks[i].UniqueId() {
+			if u > c.Locks[i].UniqueId() {
 				copy(c.Locks[i+1:l], c.Locks[i:l-1])
-				c.Locks[i] = t
+				c.Locks[i] = uid
 				break
 			}
 		}

@@ -7,6 +7,7 @@ package command
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"fmt"
 	"strings"
 	"testing"
@@ -183,25 +184,40 @@ func TestBroadcastOmit(t *testing.T) {
 	}
 }
 
+// Simplest implementation of uid.UIDLocker
+type locker struct {
+	uid.UID
+}
+
+func (locker) Lock()   {}
+func (locker) Unlock() {}
+
 // The main locking functions are: AddLock,	LocksModified and CanLock which are
 // difficult to test on their own. So TestLocking tests all of them together.
 func TestLocking(t *testing.T) {
 
-	things := make([]thing.Interface, 10, 10)
-	for x, _ := range things {
-		things[x] = newMock()
+	// Setup array to range over. Cleaner to range rather than count in for loops
+	tries := [1]bool{}
+
+	// Create a set of test lockers
+	lockers := [10]locker{}
+	for x := range lockers {
+		lockers[x] = locker{<-uid.Next}
 	}
 
 	// Try tests twice. 1st time with things slice as created. 2nd time with
 	// things slice reversed. This tests the AddLock ordering.
-	for try := 1; try < 3; try++ {
-		c := New(things[0], "")
+	for _ = range tries {
 
-		for i, thing := range things {
+		// Create a command to manipulate the lockers with
+		cmd := New(thing.New("Issuer", []string{"Issuer"}, "Issuer"), "")
+
+		// Range over lockers adding one at a time and checking results
+		for i, locker := range lockers {
 
 			// Check we have right number of locks
 			{
-				have := len(c.Locks)
+				have := len(cmd.Locks)
 				want := i
 				if have != want {
 					t.Errorf("Locks corrupted: Case %d, have %d wanted %d", i, have, want)
@@ -209,45 +225,49 @@ func TestLocking(t *testing.T) {
 			}
 
 			// Check twice as LocksModified() resets when called
-			for try := 1; try < 3; try++ {
-				have := c.LocksModified()
+			for try := range tries {
+				have := cmd.LocksModified()
 				want := false
 				if have != want {
 					t.Errorf("Locks modified before add: Try %d, Case %d, have %t wanted %t", try, i, have, want)
 				}
 			}
 
-			// Check what can / can't be locked before adding new lock
-			for y, h := range things {
-				have := c.CanLock(h)
-				want := y < i
+			// Check what can / can't be locked before adding new lock. We should be
+			// able to lock all lockers before the current one as the current one has
+			// not been added yet.
+			for j, l := range lockers {
+				have := cmd.CanLock(l)
+				want := j < i
 				if have != want {
-					t.Errorf("Invalid locking before add: Lock %d, Case %d, have %t wanted %t", y, i, have, want)
+					t.Errorf("Invalid locking before add: Lock %d, Case %d, have %t wanted %t", j, i, have, want)
 				}
 			}
 
 			// Add lock and check it was added
 			{
-				c.AddLock(thing)
+				cmd.AddLock(locker)
 				want := i + 1
-				have := len(c.Locks)
+				have := len(cmd.Locks)
 				if have != want {
 					t.Errorf("Lock add failed: Case %d, have %d wanted %d", i, have, want)
 				}
 			}
 
 			// Check twice as LocksModified() resets when called
-			for try := 1; try < 3; try++ {
-				have := c.LocksModified()
-				want := try == 1
+			for try := range tries {
+				have := cmd.LocksModified()
+				want := try == 0
 				if have != want {
-					t.Errorf("Locks modified after add: Try %d, Case %d, have %t wanted %t", try+2, i, have, want)
+					t.Errorf("Locks modified after add: Try %d, Case %d, have %t wanted %t", try+1, i, have, want)
 				}
 			}
 
-			// Check what can / can't be locked after adding new lock
-			for y, h := range things {
-				have := c.CanLock(h)
+			// Check what can / can't be locked after adding new lock We should be
+			// able to lock all lockers upto the current one which has just been
+			// added.
+			for y, h := range lockers {
+				have := cmd.CanLock(h)
 				want := y <= i
 				if have != want {
 					t.Errorf("Invalid locking after add: Lock %d, Case %d, have %t wanted %t", y, i, have, want)
@@ -257,9 +277,9 @@ func TestLocking(t *testing.T) {
 		}
 
 		// Reverse things slice for 2nd try - inplace without new allocations
-		l := len(things) - 1
+		l := len(lockers) - 1
 		for i := l / 2; i >= 0; i-- {
-			things[i], things[l-i] = things[l-i], things[i]
+			lockers[i], lockers[l-i] = lockers[l-i], lockers[i]
 		}
 	}
 }
