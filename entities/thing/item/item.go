@@ -75,6 +75,10 @@ func (i *Item) drop(cmd *command.Command) (handled bool) {
 				handled = true
 			}
 		}
+	} else {
+		cmd.Respond("You don't see anywhere to drop %s.", i.Name())
+		cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s try and drop %s.", cmd.Issuer.Name(), i.Name())
+		handled = true
 	}
 	return
 }
