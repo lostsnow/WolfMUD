@@ -27,9 +27,7 @@ type Interface interface {
 	Description() string
 	IsAlias(alias string) bool
 	Aliases() []string
-	Lock()
 	Name() string
-	Unlock()
 	uid.Interface
 }
 
@@ -38,7 +36,6 @@ type Thing struct {
 	name        string
 	description string
 	aliases     []string
-	mutex       chan bool
 	uid.UID
 }
 
@@ -52,7 +49,6 @@ func New(name string, aliases []string, description string) *Thing {
 		aliases:     make([]string, len(aliases)),
 		description: description,
 		UID:         <-uid.Next,
-		mutex:       make(chan bool, 1),
 	}
 
 	for i, a := range aliases {
@@ -95,19 +91,6 @@ func (t *Thing) Aliases() (a []string) {
 	a = make([]string, len(t.aliases))
 	copy(a, t.aliases)
 	return
-}
-
-// Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
-// should only be called when the lock is held via a successful Lock call. The
-// reason for the method instead of making the lock in the struct public - you
-// cannot access struct properties directly through the Interface.
-func (t *Thing) Lock() {
-	t.mutex <- true
-}
-
-// Unlock unlocks a locked Thing. See Lock method for details.
-func (t *Thing) Unlock() {
-	<-t.mutex
 }
 
 // Name returns the name given to a Thing.

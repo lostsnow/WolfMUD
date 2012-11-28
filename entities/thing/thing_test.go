@@ -9,7 +9,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 	"testing"
-	"time"
 )
 
 var testSubjects = []struct {
@@ -147,50 +146,5 @@ func TestIsAlias(t *testing.T) {
 				t.Errorf("Corrupt IsAlias %q: Case %d, have %t wanted %t", a, i, have, want)
 			}
 		}
-	}
-}
-
-func TestLockUnlock(t *testing.T) {
-	thing := New("", nil, "")
-
-	// Check size of mutex channel when locking and unlocking
-	{
-		thing.Lock()
-		have := len(thing.mutex)
-		want := 1
-		if have != want {
-			t.Errorf("Corrupt mutex length when locking: have %d wanted %d", have, want)
-		}
-
-		thing.Unlock()
-		have = len(thing.mutex)
-		want = 0
-		if have != want {
-			t.Errorf("Corrupt mutex length when unlocking: have %d wanted %d", have, want)
-		}
-	}
-
-	// Get start time, lock subject and unlock after 1 second via the goroutine
-	start := time.Now()
-	thing.Lock()
-	go func() {
-		defer thing.Unlock()
-		time.Sleep(1 * time.Second)
-	}()
-
-	// While the goroutine is running try and lock a second time which should
-	// block for at least a second until the goroutine unlocks
-	thing.Lock()
-	thing.Unlock()
-
-	// Now get end time and workout how long we blocked for. If it's not at least
-	// a second something is wrong.
-	delay := time.Now().Sub(start).Seconds()
-
-	have := delay
-	want := 1.0
-
-	if have < want {
-		t.Errorf("Locks not blocking: have %f wanted less than %f", have, want)
 	}
 }

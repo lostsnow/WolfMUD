@@ -6,13 +6,13 @@
 package location
 
 import (
-	"fmt"
-	"strings"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+	"fmt"
+	"strings"
 )
 
 // Basic provides a default location implementation
@@ -20,6 +20,7 @@ type Basic struct {
 	thing.Thing
 	inventory.Inventory
 	directionalExits
+	mutex chan bool
 }
 
 // NewBasic creates a new Basic location and returns a reference to it.
@@ -33,6 +34,7 @@ func NewBasic(name string, aliases []string, description string) *Basic {
 	return &Basic{
 		Thing:     *thing.New(name, aliases, description),
 		Inventory: *inventory.New(),
+		mutex:     make(chan bool, 1),
 	}
 }
 
@@ -172,4 +174,17 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 		cmd.Respond("You can't go %s from here!", directionNames[d])
 	}
 	return true
+}
+
+// Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
+// should only be called when the lock is held via a successful Lock call. The
+// reason for the method instead of making the lock in the struct public - you
+// cannot access struct properties directly through the Interface.
+func (b *Basic) Lock() {
+	b.mutex <- true
+}
+
+// Unlock unlocks a locked Thing. See Lock method for details.
+func (b *Basic) Unlock() {
+	<-b.mutex
 }

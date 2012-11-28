@@ -12,11 +12,11 @@
 package location
 
 import (
-	"strings"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
-	"code.wolfmud.org/WolfMUD.git/utils/messaging"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/utils/messaging"
+	"strings"
 )
 
 // direction type that can be easily change if needed
@@ -95,6 +95,8 @@ type Interface interface {
 	messaging.Broadcaster
 	LinkExit(d direction, to Interface)
 	look(cmd *command.Command) (handled bool)
+	Lock()
+	Unlock()
 }
 
 // Locateable defines the interface for something that has a location or can be
