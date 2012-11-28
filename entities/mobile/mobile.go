@@ -13,7 +13,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
-	"log"
 )
 
 // Mobile provides a default basic implementation of a mobile.
@@ -25,14 +24,10 @@ type Mobile struct {
 
 // New creates a new Mobile and returns a reference to it.
 func New(name string, alias []string, description string) *Mobile {
-	m := &Mobile{
+	return &Mobile{
 		Thing:     *thing.New(name, alias, description),
 		Inventory: *inventory.New(),
 	}
-
-	log.Printf("Mobile %d created: %s\n", m.UniqueId(), m.Name())
-
-	return m
 }
 
 // Relocate sets a mobile's internal location reference. It implements part of

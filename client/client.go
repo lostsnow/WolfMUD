@@ -27,15 +27,14 @@ package client
 // UPDATE: Will work if KLUDGE set to true which enables a nasty kludge :(
 
 import (
-	"fmt"
-	"log"
-	"net"
-	"runtime"
-	"strings"
-	"time"
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+	"fmt"
+	"log"
+	"net"
+	"strings"
+	"time"
 )
 
 // TODO: When we have sorted out global settings some of these need moving
@@ -85,11 +84,6 @@ type Client struct {
 	prompt string
 }
 
-// final is used for debugging to make sure the GC is cleaning up
-func final(c *Client) {
-	log.Printf("+++ Client %s finalized +++\n", c.name)
-}
-
 // Spawn manages the main client Goroutine. It creates the client, starts the
 // receiver, waits for it to finish and then cleans up. So it's not called New
 // because it does more than create the client. It not called Run or Start
@@ -114,7 +108,6 @@ func Spawn(conn *net.TCPConn) {
 	c.name = c.parser.Name()
 
 	log.Printf("Client created: %s\n", c.name)
-	runtime.SetFinalizer(c, final)
 
 	c.receiver()
 

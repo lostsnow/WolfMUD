@@ -56,7 +56,6 @@ func loadPlayer(sender sender.Interface) (player *Player) {
 func New(sender sender.Interface) (p *Player) {
 	p = loadPlayer(sender)
 	p.add(location.GetStart())
-	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
 	return p
 }
 
@@ -73,8 +72,6 @@ func (p *Player) Destroy() {
 	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
-
-	log.Printf("Destroyed: %s\n", p.Name())
 
 	p.sender = nil
 }
