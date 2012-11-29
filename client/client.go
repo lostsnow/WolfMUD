@@ -40,7 +40,7 @@ import (
 // TODO: When we have sorted out global settings some of these need moving
 // there.
 const (
-	MAX_RETRIES = 60 // Each retry is 10 seconds
+	MAX_TIMEOUT = 10 // Idle connection timeout in minutes
 	TERM_WIDTH  = 80 // fold wrapping length - see fold function
 
 	// Set to true if using Windows telnet or some other nasty client that
@@ -153,12 +153,10 @@ func (c *Client) bailing(err error) {
 	}
 }
 
-// receiver is run as a Goroutine to receive data from the user's TELNET
-// client. receive waits on a connection for 10 seconds before timing out.
-// At this point it decrements the idleRetrys counter. If idleRetrys reaches
-// zero the connection will be closed and the inactive user disconnected. Any
-// received data resets the idleRetrys to the value of MAX_RETRIES. This means
-// that and idle session will be disconnected after MAX_RETRIES * 10 seconds.
+// receiver is run as a Goroutine to receive data from the user's TELNET client.
+// receive waits on a connection for MAX_TIMEOUT minutes before timing out.
+// If the read times out the connection will be closed and the inactive user
+// disconnected.
 func (c *Client) receiver() {
 
 	var inBuffer [255]byte
@@ -167,19 +165,19 @@ func (c *Client) receiver() {
 	var tempBuff [255]byte
 	tempOff := 0
 
-	c.conn.SetKeepAlive(false)
+	c.conn.SetKeepAlive(true)
 	c.conn.SetLinger(0)
-	idleRetrys := MAX_RETRIES
+	c.conn.SetNoDelay(false)
 
-	// Loop on connection until we bail out or run out of retries
-	for ; !c.isBailing() && !c.parser.IsQuitting() && idleRetrys > 0; idleRetrys-- {
-		c.conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	// Loop on connection until we bail out or timeout
+	for !c.isBailing() && !c.parser.IsQuitting() {
+		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT * time.Minute))
 
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
 				c.bailing(err)
-				break
 			}
+			break
 		} else {
 
 			// KLUDGE enables a temporary buffer to be built up until we see an LF at
@@ -209,12 +207,11 @@ func (c *Client) receiver() {
 			} else {
 				c.parser.Parse(input)
 			}
-			idleRetrys = MAX_RETRIES + 1
 		}
 	}
 
-	// Connection idle and we ran out of retries?
-	if idleRetrys == 0 {
+	// If we are not quitting we timed out
+	if !c.parser.IsQuitting() {
 		c.prompt = PROMPT_NONE
 		c.Send(" ")
 		c.parser.Parse("QUIT")
