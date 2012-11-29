@@ -64,17 +64,7 @@ const (
 	PROMPT_DEFAULT = text.COLOR_MAGENTA + ">"
 )
 
-// Client is the default client implementation.
-//
-// The Client type implements the sender interface.
-//
-// The send channel acts as a demultiplexer serialising and queuing responses
-// back to the TELNET client comming from multiple Goroutines.
-//
-// The senderWakeup channel is used by the receiver Goroutine to wakeup - or
-// timeout - the send channel. The receiver times out reading from the network
-// connection automatically. If the receiver detects we are bailing it wakes up
-// the sender so it too can bail.
+// Client represents a TELNET client connection to the server.
 type Client struct {
 	parser parser.Interface // Currently attached parser
 	name   string           // Current name allocated by attached parser
@@ -84,11 +74,11 @@ type Client struct {
 	prompt string
 }
 
-// Spawn manages the main client Goroutine. It creates the client, starts the
-// receiver, waits for it to finish and then cleans up. So it's not called New
-// because it does more than create the client. It not called Run or Start
-// because it does more than that. Spawn seemed like a good name as it spawns a
-// new client and Goroutine :)
+// Spawn manages the client Goroutine which is normally launched by the World.
+// It creates the client, starts the receiver, waits for it to finish and then
+// cleans up. So it's not called New because it does more than create the
+// client. It not called Run or Start because it does more than that. Spawn
+// seemed like a good name as it spawns a new client :)
 //
 // TODO: Move display of greeting to login parser.
 //
@@ -153,10 +143,9 @@ func (c *Client) bailing(err error) {
 	}
 }
 
-// receiver is run as a Goroutine to receive data from the user's TELNET client.
-// receive waits on a connection for MAX_TIMEOUT minutes before timing out.
-// If the read times out the connection will be closed and the inactive user
-// disconnected.
+// receiver receives data from the user's TELNET client. receive waits on a
+// connection for MAX_TIMEOUT minutes before timing out. If the read times out
+// the connection will be closed and the inactive user disconnected.
 func (c *Client) receiver() {
 
 	var inBuffer [255]byte
