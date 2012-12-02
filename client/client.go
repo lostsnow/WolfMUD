@@ -22,11 +22,13 @@
 // parser and 'puppet' them leading to some interesting possibilities ;)
 package client
 
-// BUG(Diddymus): Currently the client package expects TELNET to be in line
-// mode - won't work with windows TELNET currently.
-// UPDATE: Will work if KLUDGE set to true which enables a nasty kludge :(
+// BUG(Diddymus): Currently we don't try to put the client into line mode. If
+// the client is in character at a time mode it will work but be inefficient.
+// This should be sorted out when RFC1184 is implemented along with a *lot* of
+// other TELNET related RFCs.
 
 import (
+	"bytes"
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
@@ -42,10 +44,6 @@ import (
 const (
 	MAX_TIMEOUT = 10 // Idle connection timeout in minutes
 	TERM_WIDTH  = 80 // fold wrapping length - see fold function
-
-	// Set to true if using Windows telnet or some other nasty client that
-	// defaults to character-at-a-time mode and not linemode.
-	KLUDGE = false
 
 	GREETING = `
 
@@ -150,9 +148,12 @@ func (c *Client) receiver() {
 
 	var inBuffer [255]byte
 
-	// Only needed if KLUDGE = true :(
-	var tempBuff [255]byte
-	tempOff := 0
+	lineBuffer := []byte{}
+
+	// Short & simple function to simplify for loop
+	nextLF := func() int {
+		return bytes.IndexByte(lineBuffer, 0x0A)
+	}
 
 	c.conn.SetKeepAlive(true)
 	c.conn.SetLinger(0)
@@ -169,38 +170,33 @@ func (c *Client) receiver() {
 			break
 		} else {
 
-			// KLUDGE enables a temporary buffer to be built up until we see an LF at
-			// which point we swap our temporary buffer for the partial buffer and
-			// pretend nothing weird happened...
-			//
-			// THIS IS NOT NICE, NOT SAFE, NOT FUNNY, NOT CHEESE! USE AT OWN RISK -
-			// MAY DESTROY YOUR COMPUTER, COFFEE MAKER AND THE UNIVERSE - not
-			// necessarily in that order or any other order.
-			//
-			// This should not be needed when RFC1184 is implemented along with a
-			// *lot* of other TELNET related RFCs
-			if KLUDGE {
-				copy(tempBuff[tempOff:tempOff+b], inBuffer[0:b])
-				tempOff += b
-				if tempBuff[tempOff-1] != 0x0A {
-					continue
+			lineBuffer = append(lineBuffer, inBuffer[0:b]...)
+
+			for LF := nextLF(); LF != -1; LF = nextLF() {
+
+				// NOTE: This could be lineBuffer[0:LF-1] to save TrimSpaceing the CR
+				// before the LF as Telnet is supposed to send CR+LF. However if we
+				// just get sent an LF - might be malicious or a badly written /
+				// configured client - then [0:LF-1] causes a 'slice bounds out of
+				// range' panic. Trimming an extra character is simpler than adding
+				// checking specifically for the corner case.
+
+				cmd := bytes.TrimSpace(lineBuffer[0:LF])
+
+				if len(cmd) == 0 {
+					c.Send("")
 				} else {
-					copy(inBuffer[0:tempOff], tempBuff[0:tempOff])
-					b, tempOff = tempOff, 0
+					c.parser.Parse(string(cmd))
 				}
+
+				lineBuffer = lineBuffer[LF+1:]
 			}
 
-			input := strings.TrimSpace(string(inBuffer[0:b]))
-			if input == "" {
-				c.Send("")
-			} else {
-				c.parser.Parse(input)
-			}
 		}
 	}
 
 	// If we are not quitting we timed out
-	if !c.parser.IsQuitting() {
+	if !c.parser.IsQuitting() && !c.isBailing() {
 		c.prompt = PROMPT_NONE
 		c.Send(" ")
 		c.parser.Parse("QUIT")
