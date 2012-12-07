@@ -42,8 +42,8 @@ import (
 // TODO: When we have sorted out global settings some of these need moving
 // there.
 const (
-	MAX_TIMEOUT = 10 // Idle connection timeout in minutes
-	TERM_WIDTH  = 80 // fold wrapping length - see fold function
+	MAX_TIMEOUT = 10 * time.Minute // Idle connection timeout
+	TERM_WIDTH  = 80               // fold wrapping length - see fold function
 
 	GREETING = `
 
@@ -142,7 +142,7 @@ func (c *Client) bailing(err error) {
 }
 
 // receiver receives data from the user's TELNET client. receive waits on a
-// connection for MAX_TIMEOUT minutes before timing out. If the read times out
+// connection for MAX_TIMEOUT before timing out. If the read times out
 // the connection will be closed and the inactive user disconnected.
 func (c *Client) receiver() {
 
@@ -161,7 +161,7 @@ func (c *Client) receiver() {
 
 	// Loop on connection until we bail out or timeout
 	for !c.isBailing() && !c.parser.IsQuitting() {
-		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT * time.Minute))
+		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT))
 
 		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
 			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
