@@ -22,10 +22,10 @@
 package stats
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"log"
 	"runtime"
 	"time"
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 )
 
 // Interval can be changed before calling Start to set a different collection
@@ -33,7 +33,7 @@ import (
 //
 // TODO: When we have sorted out global settings Interval needs moving there.
 var (
-	Interval    = 10 * time.Second // Time  between collections
+	Interval    = 5 * time.Minute // Time  between collections
 	unitPrefixs = [...]string{
 		"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb",
 	}
@@ -53,6 +53,8 @@ type stats struct {
 func Start() {
 	c := time.Tick(Interval)
 	s := &stats{}
+
+	log.Printf("Stats collection started, frequency: %s", Interval)
 
 	go func() {
 		for _ = range c {
