@@ -58,8 +58,8 @@ const (
 
 // Prompt definitions
 const (
-	PROMPT_NONE    = ""
-	PROMPT_DEFAULT = text.COLOR_MAGENTA + ">"
+	PROMPT_NONE    = "\n"
+	PROMPT_DEFAULT = text.COLOR_MAGENTA + "\n>"
 )
 
 // Client represents a TELNET client connection to the server.
@@ -229,12 +229,7 @@ func (c *Client) Send(format string, any ...interface{}) {
 		return
 	}
 
-	if len(format) > 0 {
-		format += "\n"
-	}
-
-	any = append(any, c.prompt)
-	data := text.COLOR_WHITE + format + "%s"
+	data := text.COLOR_WHITE + format + c.prompt
 
 	if len(any) > 0 {
 		data = fmt.Sprintf(data, any...)
