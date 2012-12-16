@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net"
 	"runtime"
@@ -17,18 +18,17 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Printf("Launching %d bots for %d minutes\n", *nbr, *mins)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	log.Printf("Launching %d bots for %d minutes\n", *nbr, *mins)
 
 	// Initialise random number generator with random seed
 	rand.Seed(time.Now().UnixNano())
 
-	launched := make(chan bool, 1)
-
 	for i := 0; i < *nbr; i++ {
-		go NewBot(launched)
+		go NewBot(i)
 		runtime.Gosched()
-		<-launched
-		fmt.Print(".")
+		time.Sleep(10000 * time.Microsecond)
 	}
 
 	fmt.Print("\nRunning...\n")
@@ -38,10 +38,9 @@ func main() {
 
 }
 
-func NewBot(launched chan bool) {
+func NewBot(bot int) {
 	// Set base speed so we can have slow and fast bots
 
-	launched <- true
 	var buffer [255]byte
 
 	for {
@@ -49,13 +48,21 @@ func NewBot(launched chan bool) {
 		steps := 250 + rand.Intn(250)
 
 		// Connect to server
-		conn, _ := net.Dial("tcp", "localhost:4001")
+		conn, err := net.DialTimeout("tcp", "127.0.0.1:4001", time.Minute)
+		if conn == nil {
+			log.Printf("[%d] Connect error: %s\n", bot, err)
+			time.Sleep(time.Second)
+			continue
+		}
 
 		// Start a reader to absorb data we get back from server
 		go func() {
 			for {
 				runtime.Gosched()
+				conn.SetReadDeadline(time.Now().Add(time.Minute))
 				if _, err := conn.Read(buffer[0:254]); err != nil {
+					log.Printf("[%d] Read error: %s\n", bot, err)
+					conn.Close()
 					return
 				}
 			}
@@ -73,8 +80,12 @@ func NewBot(launched chan bool) {
 				}
 				runtime.Gosched()
 				time.Sleep(time.Duration((rand.Intn(10)*1000)+baseSpeed) * time.Millisecond)
-				io.WriteString(conn, string(cmd))
-				io.WriteString(conn, "\r\n")
+				conn.SetWriteDeadline(time.Now().Add(time.Minute))
+				if _, err := conn.Write([]byte(string(cmd) + "\r\n")); err != nil {
+					log.Printf("[%d] Write error: %s\n", bot, err)
+					conn.Close()
+					continue
+				}
 			}
 		}
 		if rand.Intn(100) < 95 {
