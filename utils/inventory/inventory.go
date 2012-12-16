@@ -136,3 +136,8 @@ func (i *Inventory) Delegate(cmd *command.Command) (handled bool) {
 	}
 	return false
 }
+
+// Length returns the number of things curently in the specified inventory.
+func (i *Inventory) Length() int {
+	return len(i.contents)
+}

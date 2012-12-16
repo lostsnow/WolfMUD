@@ -294,3 +294,18 @@ func TestDelegate(t *testing.T) {
 		}
 	}
 }
+
+func TestLength(t *testing.T) {
+	things := createTestThings()
+	inv := New()
+
+	// Add things and check expected length of the inventory
+	for i, thing := range things {
+		inv.Add(thing)
+		have := inv.Length()
+		want := i + 1
+		if have != want {
+			t.Errorf("Invalid length: have %t wanted %t", have, want)
+		}
+	}
+}
