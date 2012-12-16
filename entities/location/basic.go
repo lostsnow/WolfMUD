@@ -15,6 +15,10 @@ import (
 	"strings"
 )
 
+const (
+	CROWD_SIZE = 10 // How many mobiles make a crowd
+)
+
 // Basic provides a default location implementation
 type Basic struct {
 	thing.Thing
@@ -128,15 +132,19 @@ func (b *Basic) Process(cmd *command.Command) (handled bool) {
 // distance.
 func (b *Basic) look(cmd *command.Command) (handled bool) {
 
-	list := b.Inventory.List(cmd.Issuer)
-	thingsHere := make([]string, 0, len(list))
-	for _, o := range list {
-		thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
-	}
-
 	things := ""
-	if len(thingsHere) > 0 {
-		things = strings.Join(thingsHere, "\n") + "\n"
+
+	if b.Crowded() {
+		things = "You can see a crowd here."
+	} else {
+		list := b.List(cmd.Issuer)
+		thingsHere := make([]string, 0, len(list))
+		for _, o := range list {
+			thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
+		}
+		if len(thingsHere) > 0 {
+			things = strings.Join(thingsHere, "\n") + "\n"
+		}
 	}
 
 	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", b.Name(), b.Description(), things, b.directionalExits)
@@ -164,10 +172,18 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 		}
 
 		b.Remove(cmd.Issuer)
-		b.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
+
+		// If the location is crowded you are not going to notice someone leaving
+		if !b.Crowded() {
+			b.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
+		}
 
 		to.Add(cmd.Issuer)
-		to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.", cmd.Issuer.Name())
+
+		// If the location is crowded you are not going to notice someone entering
+		if !to.Crowded() {
+			to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.", cmd.Issuer.Name())
+		}
 
 		to.look(cmd)
 	} else {
@@ -187,4 +203,13 @@ func (b *Basic) Lock() {
 // Unlock unlocks a locked Thing. See Lock method for details.
 func (b *Basic) Unlock() {
 	<-b.mutex
+}
+
+// BUG(Diddymus): The Crowded method currently counts everything in a location.
+// Really it should probably only count mobiles.
+
+// Crowded returns wether a locatioin is crowded or not based on CROWD_SIZE and
+// the number of things in the location.
+func (b *Basic) Crowded() bool {
+	return b.Inventory.Length() >= CROWD_SIZE
 }
