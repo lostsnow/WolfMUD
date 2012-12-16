@@ -90,7 +90,9 @@ func (p *Player) add(l location.Interface) {
 	cmd := command.New(p, "LOOK")
 	p.Process(cmd)
 
-	cmd.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	if !l.Crowded() {
+		cmd.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	}
 
 	cmd.Flush()
 }
