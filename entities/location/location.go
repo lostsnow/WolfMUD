@@ -97,6 +97,7 @@ type Interface interface {
 	look(cmd *command.Command) (handled bool)
 	Lock()
 	Unlock()
+	Crowded() bool
 }
 
 // Locateable defines the interface for something that has a location or can be

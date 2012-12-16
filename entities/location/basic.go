@@ -15,6 +15,10 @@ import (
 	"strings"
 )
 
+const (
+	CROWD_SIZE = 10 // How many mobiles make a crowd
+)
+
 // Basic provides a default location implementation
 type Basic struct {
 	thing.Thing
@@ -187,4 +191,13 @@ func (b *Basic) Lock() {
 // Unlock unlocks a locked Thing. See Lock method for details.
 func (b *Basic) Unlock() {
 	<-b.mutex
+}
+
+// BUG(Diddymus): The Crowded method currently counts everything in a location.
+// Really it should probably only count mobiles.
+
+// Crowded returns wether a locatioin is crowded or not based on CROWD_SIZE and
+// the number of things in the location.
+func (b *Basic) Crowded() bool {
+	return b.Inventory.Length() >= CROWD_SIZE
 }
