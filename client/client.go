@@ -146,7 +146,9 @@ func (c *Client) bailing(err error) {
 // the connection will be closed and the inactive user disconnected.
 func (c *Client) receiver() {
 
-	var inBuffer [255]byte
+	const inBuffLen = 32
+
+	var inBuffer [inBuffLen]byte
 
 	lineBuffer := []byte{}
 
@@ -161,15 +163,11 @@ func (c *Client) receiver() {
 
 	// Loop on connection until we bail out or timeout
 	for !c.isBailing() && !c.parser.IsQuitting() {
+
 		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT))
+		b, err := c.conn.Read(inBuffer[0 : inBuffLen-1])
 
-		if b, err := c.conn.Read(inBuffer[0:254]); err != nil {
-			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
-				c.bailing(err)
-			}
-			break
-		} else {
-
+		if b > 0 {
 			lineBuffer = append(lineBuffer, inBuffer[0:b]...)
 
 			for LF := nextLF(); LF != -1; LF = nextLF() {
@@ -189,10 +187,19 @@ func (c *Client) receiver() {
 					c.parser.Parse(string(cmd))
 				}
 
+				// Remove the part of the buffer we just processed
 				lineBuffer = lineBuffer[LF+1:]
 			}
-
 		}
+
+		// Check for errors reading data (see io.Reader for details)
+		if err != nil {
+			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
+				c.bailing(err)
+			}
+			break
+		}
+
 	}
 
 	// If we are not quitting we timed out
