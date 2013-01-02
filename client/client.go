@@ -161,16 +161,21 @@ func (c *Client) receiver() {
 	c.conn.SetLinger(0)
 	c.conn.SetNoDelay(false)
 
+	var b int      // bytes read from network
+	var err error  // any comms error
+	var LF int     // next linefeed position
+	var cmd []byte // extracted command to be processed
+
 	// Loop on connection until we bail out or timeout
 	for !c.isBailing() && !c.parser.IsQuitting() {
 
 		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT))
-		b, err := c.conn.Read(inBuffer[0 : inBuffLen-1])
+		b, err = c.conn.Read(inBuffer[0 : inBuffLen-1])
 
 		if b > 0 {
 			lineBuffer = append(lineBuffer, inBuffer[0:b]...)
 
-			for LF := nextLF(); LF != -1; LF = nextLF() {
+			for LF = nextLF(); LF != -1; LF = nextLF() {
 
 				// NOTE: This could be lineBuffer[0:LF-1] to save TrimSpaceing the CR
 				// before the LF as Telnet is supposed to send CR+LF. However if we
@@ -179,7 +184,7 @@ func (c *Client) receiver() {
 				// range' panic. Trimming an extra character is simpler than adding
 				// checking specifically for the corner case.
 
-				cmd := bytes.TrimSpace(lineBuffer[0:LF])
+				cmd = bytes.TrimSpace(lineBuffer[0:LF])
 
 				if len(cmd) == 0 {
 					c.Send("")
