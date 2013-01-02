@@ -207,7 +207,7 @@ func (c *Client) receiver() {
 
 	}
 
-	// If we are not quitting we timed out
+	// If we are not quitting or bailing we timed out
 	if !c.parser.IsQuitting() && !c.isBailing() {
 		c.prompt = PROMPT_NONE
 		c.Send(" ")
