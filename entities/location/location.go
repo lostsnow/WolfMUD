@@ -76,14 +76,21 @@ type directionalExits [len(directionNames)]Interface
 // TODO: Implement 'blocked' exits which are not described. For example if
 // there is a door to the west and the exit 'west' should not be described
 // unless the door is opened.
-func (e directionalExits) String() string {
+func (e directionalExits) String() (text string) {
 	validExits := make([]string, 0, len(directionNames))
 	for d, l := range e {
 		if l != nil {
 			validExits = append(validExits, directionNames[d])
 		}
 	}
-	return strings.Join(validExits, ", ")
+
+	if len(validExits) == 0 {
+		text = "[CYAN]You can see no immediate exits from here."
+	} else {
+		text = "[CYAN]You can see exits: [YELLOW]" + strings.Join(validExits, ", ")
+	}
+
+	return text
 }
 
 // Interface defines the methods for a basic location that all derived location

@@ -147,7 +147,7 @@ func (b *Basic) look(cmd *command.Command) (handled bool) {
 		}
 	}
 
-	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", b.Name(), b.Description(), things, b.directionalExits)
+	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n%s", b.Name(), b.Description(), things, b.directionalExits)
 
 	return true
 }
