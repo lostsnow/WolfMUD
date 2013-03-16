@@ -9,7 +9,7 @@ import (
 	"math/rand"
 )
 
-// Start contains pointer to all of the available starting locations.
+// Start contains pointers to all of the available starting locations.
 var start []*Start
 
 // GetStart return a random starting location.
