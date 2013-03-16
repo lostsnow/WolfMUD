@@ -25,10 +25,12 @@ type Start struct {
 
 // NewStart creates a new Start location and returns a reference to it. It also
 // adds a reference to the created location into the Start slice.
-func NewStart(name string, aliases []string, description string) *Start {
-	l := &Start{
+func NewStart(name string, aliases []string, description string) (s *Start) {
+	defer func() {
+		start = append(start, s)
+	}()
+
+	return &Start{
 		Basic: *NewBasic(name, aliases, description),
 	}
-	start = append(start, l)
-	return l
 }
