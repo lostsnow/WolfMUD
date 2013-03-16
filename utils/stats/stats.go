@@ -51,18 +51,16 @@ type stats struct {
 // updates is controlled via the stats.Interval variable and can be set before
 // calling Start.
 func Start() {
-	c := time.Tick(Interval)
 	s := &stats{}
-
-	log.Printf("Stats collection started, frequency: %s", Interval)
+	s.collect() // 1st time initialisation
 
 	go func() {
-		for _ = range c {
+		for _ = range time.Tick(Interval) {
 			s.collect()
 		}
 	}()
 
-	s.collect() // 1st time initialisation
+	log.Printf("Stats collection started, frequency: %s", Interval)
 }
 
 // collect runs periodically to collect, process and report statistics.
