@@ -91,6 +91,14 @@ func (b *Basic) Process(cmd *command.Command) (handled bool) {
 		return
 	}
 
+	// The following commands can only be processed at the issuer's location. So
+	// we need to check if this location is where the issuer is.
+	if l, ok := cmd.Issuer.(Locateable); ok {
+		if !l.Locate().IsAlso(b) {
+			return
+		}
+	}
+
 	switch cmd.Verb {
 	case "LOOK", "L":
 		handled = b.look(cmd)
