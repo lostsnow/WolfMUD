@@ -23,17 +23,13 @@ package stats
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"log"
 	"runtime"
 	"time"
 )
 
-// Interval can be changed before calling Start to set a different collection
-// interval.
-//
-// TODO: When we have sorted out global settings Interval needs moving there.
 var (
-	Interval    = 5 * time.Minute // Time  between collections
 	unitPrefixs = [...]string{
 		"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb",
 	}
@@ -48,19 +44,27 @@ type stats struct {
 }
 
 // Start begins collection and reporting of statistics. The interval between
-// updates is controlled via the stats.Interval variable and can be set before
-// calling Start.
+// updates is controlled via config.StatsRate which if set to zero disables
+// collection and reporting.
 func Start() {
+
+	rate := config.StatsRate
+
+	if rate == 0 {
+		log.Printf("Stats collection disabled")
+		return
+	}
+
 	s := &stats{}
 	s.collect() // 1st time initialisation
 
 	go func() {
-		for _ = range time.Tick(Interval) {
+		for _ = range time.Tick(rate) {
 			s.collect()
 		}
 	}()
 
-	log.Printf("Stats collection started, frequency: %s", Interval)
+	log.Printf("Stats collection started, frequency: %s", rate)
 }
 
 // collect runs periodically to collect, process and report statistics.
