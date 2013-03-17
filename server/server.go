@@ -9,6 +9,7 @@ package main
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/world"
+	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/stats"
 	"log"
@@ -17,16 +18,15 @@ import (
 
 func main() {
 
-	runtime.MemProfileRate = int(0)
+	runtime.MemProfileRate = config.MemProfileRate
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.Println("Starting WolfMUD server...")
 
 	stats.Start()
-
 	loader.Load()
 
-	world.New("127.0.0.1", "4001").Genesis()
+	world.New(config.ListenAddress, config.ListenPort).Genesis()
 
 	log.Println("WolfMUD server ending")
 
