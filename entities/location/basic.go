@@ -151,11 +151,11 @@ func (b *Basic) look(cmd *command.Command) (handled bool) {
 			thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
 		}
 		if len(thingsHere) > 0 {
-			things = strings.Join(thingsHere, "\n") + "\n"
+			things = "[GREEN]" + strings.Join(thingsHere, "\n") + "\n"
 		}
 	}
 
-	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n%s", b.Name(), b.Description(), things, b.directionalExits)
+	cmd.Respond("[CYAN]%s\n[WHITE]%s\n%s\n%s", b.Name(), b.Description(), things, b.directionalExits)
 
 	return true
 }
