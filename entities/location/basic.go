@@ -163,7 +163,7 @@ func (b *Basic) look(cmd *command.Command) (handled bool) {
 // exits implements the 'EXITS' command. It displays the currently available
 // directional exits from the location.
 func (b *Basic) exits(cmd *command.Command) (handled bool) {
-	cmd.Respond("[CYAN]You can see exits: [YELLOW]%s", b.directionalExits)
+	cmd.Respond("%s", b.directionalExits)
 	return true
 }
 
