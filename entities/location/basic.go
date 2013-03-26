@@ -143,7 +143,7 @@ func (b *Basic) look(cmd *command.Command) (handled bool) {
 	things := ""
 
 	if b.Crowded() {
-		things = "You can see a crowd here."
+		things = "[GREEN]You can see a crowd here.\n"
 	} else {
 		list := b.List(cmd.Issuer)
 		thingsHere := make([]string, 0, len(list))
