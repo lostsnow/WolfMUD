@@ -97,7 +97,7 @@ func New(issuer thing.Interface, input string) *Command {
 //	cmd.New("DROP "+o.Aliases()[0])
 //
 func (c *Command) New(input string) {
-	words := strings.Split(strings.ToUpper(input), ` `)
+	words := strings.Fields(strings.ToUpper(input))
 	c.Verb, c.Nouns = words[0], words[1:]
 	if len(words) > 1 {
 		c.Target = words[1]
