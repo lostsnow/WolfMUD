@@ -17,6 +17,7 @@
 package thing
 
 import (
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 )
@@ -29,6 +30,8 @@ type Interface interface {
 	Aliases() []string
 	Name() string
 	uid.Interface
+	Init(ref recordjar.Record, refs map[string]Interface)
+	recordjar.Unmarshaler
 }
 
 // Thing type is a default implementation of the thing.Interface
@@ -58,6 +61,17 @@ func New(name string, aliases []string, description string) *Thing {
 	return t
 }
 
+// Unmarshal takes a recordjar.Record and allocates the data in it to the passed
+// Thing type. A unique ID is allocated automatically.
+func (t *Thing) Unmarshal(r recordjar.Record) {
+	t.name = r.String("name")
+	t.description = r.String(":data:")
+	t.aliases = r.KeywordList("aliases")
+	t.UID = <-uid.Next
+}
+
+func (t *Thing) Init(ref recordjar.Record, refs map[string]Interface) {}
+
 // Description returns the description for a Thing.
 func (t *Thing) Description() string {
 	return t.description
@@ -77,7 +91,7 @@ func (t *Thing) Description() string {
 // found.
 func (t *Thing) IsAlias(alias string) bool {
 
-	alias = strings.ToUpper(strings.TrimSpace(alias))
+	alias = strings.ToUpper(alias)
 
 	for _, a := range t.aliases {
 		if a == alias {
