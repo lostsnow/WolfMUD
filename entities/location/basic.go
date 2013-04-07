@@ -183,7 +183,7 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 
 		// If the location is crowded you are not going to notice someone leaving
 		if !b.Crowded() {
-			b.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
+			b.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionLongNames[d])
 		}
 
 		to.Add(cmd.Issuer)
@@ -195,7 +195,7 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 
 		to.look(cmd)
 	} else {
-		cmd.Respond("You can't go %s from here!", directionNames[d])
+		cmd.Respond("You can't go %s from here!", directionLongNames[d])
 	}
 	return true
 }
