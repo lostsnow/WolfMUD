@@ -10,9 +10,12 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
 	"fmt"
+	"log"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -20,6 +23,12 @@ const (
 )
 
 // Basic provides a default location implementation
+//
+// NOTE: We could save memory at the cost of performance by using an Inventory
+// pointer and not allocating it until something is added - via Add. We could
+// also set it to nil when the last Thing is removed - via Remove. Performance
+// wise would incur a penality creating the Inventory and also create more for
+// the GC to handle... worth investigation? Maybe a pool of inventories?
 type Basic struct {
 	thing.Thing
 	inventory.Inventory
@@ -28,12 +37,6 @@ type Basic struct {
 }
 
 // NewBasic creates a new Basic location and returns a reference to it.
-//
-// NOTE: We could save memory at the cost of performance by not allocating the
-// Inventory until something is added - via Add. We could also set it to nil
-// when the last Thing is removed - via Remove. Performance wise we would incur
-// a penality creating the Inventory and also create a lot more for the GC to
-// handle?
 func NewBasic(name string, aliases []string, description string) *Basic {
 	return &Basic{
 		Thing:     *thing.New(name, aliases, description),
@@ -42,8 +45,50 @@ func NewBasic(name string, aliases []string, description string) *Basic {
 	}
 }
 
+// Unmarshal takes a recordjar.Record and allocates the data in it to the passed
+// Basic type.
+func (b *Basic) Unmarshal(r recordjar.Record) {
+	b.Thing.Unmarshal(r)
+	b.mutex = make(chan bool, 1)
+}
+
+// splitter is a function that returns true if passed rune is not a digit or
+// letter, otherwise returns false. This lets exit pairs have any non-digit or
+// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
+// This should make specifying exits user friendly.
+func splitter(r rune) bool {
+	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
+}
+
+func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
+	b.Thing.Init(ref, refs)
+
+	var pair []string
+	var d, l *string
+
+	for _, v := range strings.Fields(ref["exits"]) {
+		pair = strings.FieldsFunc(v, splitter)
+
+		if len(pair) != 2 {
+			log.Printf("Cannot parse exits for (%s) %s: %s", ref.String("ref"), b.Name(), pair)
+			continue
+		}
+
+		d = &pair[0] // Direction
+		l = &pair[1] // To location
+
+		if l, ok := refs[*l].(Interface); ok {
+			for i, v := range directionShortNames {
+				if *d == v {
+					b.LinkExit((direction)(i), l)
+				}
+			}
+		}
+	}
+}
+
 // LinkExit links one location to another in the direction given. This is
-// normally only done at setup time when the world is initially loaded.
+// normally only done at setup time when the locations are initilized.
 //
 // NOTE: The Java version had softlinking - is it still needed?
 func (b *Basic) LinkExit(d direction, to Interface) {
