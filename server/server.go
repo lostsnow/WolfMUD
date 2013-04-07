@@ -13,16 +13,14 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/stats"
 	"log"
-	"runtime"
 )
 
 func main() {
 
-	runtime.MemProfileRate = config.MemProfileRate
-
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.Println("Starting WolfMUD server...")
 
+	config.Read()
 	stats.Start()
 	loader.Load()
 

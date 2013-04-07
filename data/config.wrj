@@ -1,0 +1,22 @@
+// Copyright 2013 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included with
+// the source code.
+//
+// config.wrj - Main configuration file
+//
+// Address and port for server to listen on. Address can be a hostname or
+// literal IP address.  Port can be a raw port number or a service name.
+listen.address:	127.0.0.1
+   listen.port: 4001
+//
+// Location of the data directory
+data.dir:	.
+//
+// Memory profiling rate. Set to 0 - zero - to disable.
+mem.profile.rate: 1
+//
+// Stats reporting rate. Can be any duration time.ParseDuration can handle.
+// Usually using units of h=hours, m=minutes and s=seconds.
+// For example: 10s, 1m, 1m30s. Set to 0 - zero - to disable.
+stats.rate: 10s
