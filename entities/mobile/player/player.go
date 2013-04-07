@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"log"
 	"os"
@@ -37,18 +38,24 @@ type Player struct {
 
 // TODO: loadPlayer currently just generates a player instead of actually
 // loading one.
-func loadPlayer(sender sender.Interface) (player *Player) {
+func loadPlayer(sender sender.Interface) (p *Player) {
 	playerCount++
 	postfix := strconv.Itoa(playerCount)
 
-	name := "Player " + postfix
-	alias := []string{"PLAYER" + postfix}
-	description := "This is Player " + postfix + "."
-
-	return &Player{
-		Mobile: *mobile.New(name, alias, description),
-		sender: sender,
+	r := map[string]string{
+		"name":    "Player " + postfix,
+		":data:":  "This is player " + postfix,
+		"aliases": "Player " + postfix,
 	}
+
+	p = &Player{sender: sender}
+	p.Unmarshal(r)
+
+	return p
+}
+
+func (p *Player) Unmarshal(r recordjar.Record) {
+	p.Mobile.Unmarshal(r)
 }
 
 // New creates a new Player and returns a reference to it. The player is put
