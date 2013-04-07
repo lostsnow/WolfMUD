@@ -42,25 +42,6 @@ type Thing struct {
 	uid.UID
 }
 
-// New allocates a new Thing, returning a pointer reference to it. A unique ID
-// will be allocated automatically. The aliases will all be stripped of leading
-// and trailing whitespace then converted to uppercase.
-func New(name string, aliases []string, description string) *Thing {
-
-	t := &Thing{
-		name:        name,
-		aliases:     make([]string, len(aliases)),
-		description: description,
-		UID:         <-uid.Next,
-	}
-
-	for i, a := range aliases {
-		t.aliases[i] = strings.ToUpper(strings.TrimSpace(a))
-	}
-
-	return t
-}
-
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Thing type. A unique ID is allocated automatically.
 func (t *Thing) Unmarshal(r recordjar.Record) {

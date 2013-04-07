@@ -36,15 +36,6 @@ type Basic struct {
 	mutex chan bool
 }
 
-// NewBasic creates a new Basic location and returns a reference to it.
-func NewBasic(name string, aliases []string, description string) *Basic {
-	return &Basic{
-		Thing:     *thing.New(name, aliases, description),
-		Inventory: *inventory.New(),
-		mutex:     make(chan bool, 1),
-	}
-}
-
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Basic type.
 func (b *Basic) Unmarshal(r recordjar.Record) {

@@ -23,14 +23,6 @@ type Item struct {
 	weight units.Weight
 }
 
-// New allocates a new Item and returns a pointer reference to it.
-func New(name string, aliases []string, description string, weight units.Weight) *Item {
-	return &Item{
-		Thing:  *thing.New(name, aliases, description),
-		weight: weight,
-	}
-}
-
 func (i *Item) Unmarshal(r recordjar.Record) {
 	i.weight = units.Weight(r.Int("weight"))
 	i.Thing.Unmarshal(r)

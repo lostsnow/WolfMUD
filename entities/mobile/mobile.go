@@ -22,14 +22,6 @@ type Mobile struct {
 	location location.Interface
 }
 
-// New creates a new Mobile and returns a reference to it.
-func New(name string, alias []string, description string) *Mobile {
-	return &Mobile{
-		Thing:     *thing.New(name, alias, description),
-		Inventory: *inventory.New(),
-	}
-}
-
 // Relocate sets a mobile's internal location reference. It implements part of
 // the location.Locateable interface.
 func (m *Mobile) Relocate(l location.Interface) {

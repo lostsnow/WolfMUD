@@ -24,18 +24,6 @@ type Start struct {
 	Basic
 }
 
-// NewStart creates a new Start location and returns a reference to it. It also
-// adds a reference to the created location into the Start slice.
-func NewStart(name string, aliases []string, description string) (s *Start) {
-	defer func() {
-		start = append(start, s)
-	}()
-
-	return &Start{
-		Basic: *NewBasic(name, aliases, description),
-	}
-}
-
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Start struct. It also adds a reference to the created location into the
 // package scoped start slice.

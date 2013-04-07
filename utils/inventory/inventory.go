@@ -33,11 +33,6 @@ type Inventory struct {
 	contents []thing.Interface
 }
 
-// New creates a new Inventory and returns a pointer reference to it.
-func New() *Inventory {
-	return &Inventory{}
-}
-
 // Add puts an object implementing thing.Interface into the Inventory.
 func (i *Inventory) Add(thing thing.Interface) {
 	if i.find(thing) == NOT_FOUND {
