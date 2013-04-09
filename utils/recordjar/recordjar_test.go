@@ -244,8 +244,8 @@ func TestRead(t *testing.T) {
 
 			// ... do we have any unexpected headers ...
 			for header, data := range r {
-				want := data
-				have, ok := s.output[j][header]
+				have := data
+				want, ok := s.output[j][header]
 				if !ok {
 					t.Errorf("Unexpected header: Case %d, have %q", i, header)
 				}
