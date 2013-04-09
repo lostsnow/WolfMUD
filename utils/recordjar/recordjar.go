@@ -140,7 +140,7 @@ RECORDS:
 				if err != io.EOF {
 					return nil, err
 				}
-				break RECORDS
+				continue RECORDS
 			}
 		}
 
@@ -158,7 +158,7 @@ RECORDS:
 				if err != io.EOF {
 					return nil, err
 				}
-				break RECORDS
+				continue RECORDS
 			}
 		}
 	}
