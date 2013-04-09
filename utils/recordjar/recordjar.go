@@ -55,6 +55,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 // Record represents a section read from a record jar file. A Record is a map of
@@ -144,15 +145,24 @@ RECORDS:
 			}
 		}
 
-		// Process free data lines - between header separator and record separator / EOF
+		// Process free format data lines - between header separator (HS) and
+		// record separator / EOF (RS).
+		joiner := ""
 		for {
 			line, err = b.ReadString('\n')
+			line = strings.TrimRightFunc(line, unicode.IsSpace)
 
-			if line == RS+"\n" || line == "" && err == io.EOF {
+			if line == RS || line == "" && err == io.EOF {
 				continue RECORDS
 			}
 
-			r[":data:"] += line
+			if line == "" {
+				r[":data:"] += "\n"
+				joiner = "\n"
+			} else {
+				r[":data:"] += joiner + line
+				joiner = " "
+			}
 
 			if err != nil {
 				if err != io.EOF {
