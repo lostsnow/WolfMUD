@@ -73,6 +73,11 @@ func init() {
 		searchPaths = append(searchPaths, selfBin+"/../src/code.wolfmud.org/WolfMUD.git/data")
 	}
 
+	// Make sure paths are in native format for OS
+	for i, path := range searchPaths {
+		searchPaths[i] = filepath.FromSlash(path)
+	}
+
 }
 
 // BUG(Diddymus): A missing configuration value currently causes the default
@@ -85,16 +90,18 @@ func init() {
 // TODO: Need to add more error checking of values coming in.
 func Read() {
 
+	ps := string(os.PathSeparator)
+
 	for _, path := range searchPaths {
 		log.Printf("Checking for %s in: %s", configName, path)
-		if dir, err := os.Open(path + "/" + configName); err != nil {
+		if dir, err := os.Open(path + ps + configName); err != nil {
 			if !os.IsNotExist(err) {
 				log.Printf("Error checking for %s: %s", configName, err)
 				continue
 			}
 		} else {
 			defer dir.Close()
-			log.Printf("Using: %s/%s", path, configName)
+			log.Printf("Using: %s%s%s", path, ps, configName)
 			rj, _ := recordjar.Read(dir)
 			c := rj[0]
 
@@ -103,8 +110,8 @@ func Read() {
 			runtime.MemProfileRate = c.Int("mem.profile.rate")
 			StatsRate = c.Duration("stats.rate")
 
-			DataDir, _ = filepath.Abs(path + "/" + c["data.dir"])
-			DataDir += "/"
+			DataDir, _ = filepath.Abs(path + ps + c["data.dir"])
+			DataDir += ps
 
 			log.Printf("listen.address: %s", ListenAddress)
 			log.Printf("listen.port: %s", ListenPort)
