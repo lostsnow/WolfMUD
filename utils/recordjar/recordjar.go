@@ -73,9 +73,9 @@ type Unmarshaler interface {
 
 // Constants for header line types
 const (
-	headerSeparator = ""
-	recordSeparator = "%%"
-	comment         = "//"
+	HS  = ""   // Header separator
+	RS  = "%%" // Record separator
+	REM = "//" // Remark / comment
 )
 
 // splitHeader is a regexp to split the header prefix from a line
@@ -116,11 +116,11 @@ RECORDS:
 			line = strings.TrimSpace(line)
 
 			switch {
-			case line == headerSeparator:
+			case line == HS:
 				break HEADERS
-			case line == recordSeparator:
+			case line == RS:
 				continue RECORDS
-			case len(line) > 1 && line[0:2] == comment:
+			case len(line) > 1 && line[0:2] == REM:
 				continue HEADERS
 			}
 
@@ -148,7 +148,7 @@ RECORDS:
 		for {
 			line, err = b.ReadString('\n')
 
-			if line == recordSeparator+"\n" || (line == "" && err == io.EOF) {
+			if line == RS+"\n" || line == "" && err == io.EOF {
 				continue RECORDS
 			}
 
