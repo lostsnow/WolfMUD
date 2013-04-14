@@ -54,6 +54,8 @@ var colorTable = map[string]string{
 	"[WHITE]":   COLOR_WHITE,
 }
 
+const NOT_FOUND = -1
+
 // BUG(Diddymus): Fold assumes control sequences are 5 bytes long. When we add
 // more control sequences they probably won't be 5 bytes long. To fix this the
 // two += 5 lines should be a table lookup.
@@ -71,40 +73,53 @@ var colorTable = map[string]string{
 // Leading spaces and original linefeeds should remain untouched.
 func Fold(in string, width int) string {
 
-	// Shortcut
+	// Can we take a shortcut?
 	if len(in) <= width {
 		return in
 	}
 
-	// We can have a space or newline at the end of a line, spaces then become
-	// newlines and everything works out.
-	width++
-
-	lastNL := 0 // Last new line position
-	lastSP := 0 // Last space position
-	zeroNL := 0 // Zero width runes since last new line
-	zeroSP := 0 // Zero width runes since last space
+	lastNL := NOT_FOUND // Last new line position
+	lastSP := NOT_FOUND // Last space position
+	zeroNL := 0         // Zero width runes since last new line
+	zeroSP := 0         // Zero width runes since last space
+	cw := 0             // Currently calculated width
 
 	output := []rune(in)
 
 	for i, r := range output {
+
 		switch r {
 
-		// A space in the input text
+		// A space in the input text?
 		case ' ':
-			if (i - lastNL - zeroNL) > width {
-				output[lastSP] = '\n'
-				lastNL, zeroNL = lastSP, zeroSP
+			cw = i - lastNL - zeroNL
+			if cw == width+1 {
+				output[i] = '\n'
+				lastNL, zeroNL = i, 0
+			} else {
+				if cw > width {
+					if lastSP != NOT_FOUND {
+						output[lastSP] = '\n'
+					}
+					lastNL, zeroNL = lastSP, zeroSP
+				}
 			}
 			lastSP, zeroSP = i, 0
 
-		// Am original newline in the input text
+		// An original newline in the input text?
 		case '\n':
-			if (i - lastNL - zeroNL) > width {
-				output[lastSP] = '\n'
+			cw = i - lastNL - zeroNL
+			if cw == width+1 {
+				output[i] = '\n'
+			} else {
+				if cw > width {
+					if lastSP != NOT_FOUND {
+						output[lastSP] = '\n'
+					}
+				}
 			}
-			zeroNL, zeroSP = 0, 0
-			lastNL, lastSP = i, i
+			lastNL, zeroNL = i, 0
+			lastSP, zeroSP = i, 0
 
 		// Start of a control code?
 		case '\033':
@@ -115,7 +130,8 @@ func Fold(in string, width int) string {
 	}
 
 	// Process remaining runes when loop ends
-	if (len(output) - lastNL - zeroNL) > width {
+	cw = len(output) - lastNL - zeroNL
+	if cw != width+1 && cw > width {
 		output[lastSP] = '\n'
 	}
 
