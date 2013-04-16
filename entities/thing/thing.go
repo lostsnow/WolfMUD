@@ -82,6 +82,7 @@ func (t *Thing) IsAlias(alias string) bool {
 	return false
 }
 
+// Aliases returns all of the aliases for a Thing as a string slice.
 func (t *Thing) Aliases() (a []string) {
 	a = make([]string, len(t.aliases))
 	copy(a, t.aliases)
