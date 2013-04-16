@@ -6,10 +6,14 @@
 package thing
 
 import (
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 	"testing"
 )
+
+// BUG(Diddymus): We can't handle an alias of []string{""} but can handle
+// []string{} in the tests?
 
 var testSubjects = []struct {
 	name        string
@@ -18,39 +22,27 @@ var testSubjects = []struct {
 }{
 	{"Name", []string{"Alias"}, "Description"},
 	{"Thing", []string{"Thing", "Something"}, "I'm a Thing!"},
+	//{"", []string{""}, ""},
 	{"", []string{}, ""},
 	{"", nil, ""},
 	{"Duplicate", []string{"Ditto", "Copy"}, "This is a duplicate duplicate"},
 	{"Duplicate", []string{"Ditto", "Copy"}, "This is a duplicate duplicate"},
 }
 
-// Make sure aliases parameter is not modified by New
-//
-// NOTE: This MUST come before any other tests otherwise if New IS modifying
-// parameters it would have corrupted the test subjects already!
-//
-// Yes, I spent HOURS debugging this little bugger...
-func TestParameters(t *testing.T) {
-	for i, s := range testSubjects {
-
-		aliases_copy := make([]string, len(s.aliases))
-		copy(aliases_copy, s.aliases)
-
-		_ = New(s.name, s.aliases, s.description)
-
-		for j, have := range s.aliases {
-			want := aliases_copy[j]
-			if have != want {
-				t.Errorf("Alias parameter to New modified: Case %d, have %q want %q", i, have, want)
-			}
-		}
-
-	}
+// new is a helper for creating a populated Thing from unmarshalled data
+func new(name string, aliases []string, description string) Thing {
+	thing := Thing{}
+	thing.Unmarshal(recordjar.Record{
+		"name":    name,
+		"aliases": strings.TrimSpace(strings.Join(aliases, " ")),
+		":data:":  description,
+	})
+	return thing
 }
 
-func TestNew(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	for i, s := range testSubjects {
-		thing := New(s.name, s.aliases, s.description)
+		thing := new(s.name, s.aliases, s.description)
 
 		{
 			have := thing.name
@@ -87,7 +79,7 @@ func TestNew(t *testing.T) {
 
 func TestName(t *testing.T) {
 	for i, s := range testSubjects {
-		thing := New(s.name, s.aliases, s.description)
+		thing := new(s.name, s.aliases, s.description)
 		have := thing.Name()
 		want := s.name
 		if have != want {
@@ -98,7 +90,7 @@ func TestName(t *testing.T) {
 
 func TestDescription(t *testing.T) {
 	for i, s := range testSubjects {
-		thing := New(s.name, s.aliases, s.description)
+		thing := new(s.name, s.aliases, s.description)
 		have := thing.Description()
 		want := s.description
 		if have != want {
@@ -109,7 +101,7 @@ func TestDescription(t *testing.T) {
 
 func TestAliases(t *testing.T) {
 	for _, s := range testSubjects {
-		thing := New(s.name, s.aliases, s.description)
+		thing := new(s.name, s.aliases, s.description)
 		for i, have := range thing.Aliases() {
 			want := strings.ToUpper(strings.TrimSpace(s.aliases[i]))
 			if have != want {
@@ -122,12 +114,12 @@ func TestAliases(t *testing.T) {
 func TestIsAlias(t *testing.T) {
 
 	allAliases := make(map[string](map[uid.UID]bool))
-	subjects := make([]*Thing, len(testSubjects))
+	subjects := make([]Thing, len(testSubjects))
 
 	// Go through the testSubjects and create subjects and a map of aliases that
 	// map to unique Ids
 	for i, s := range testSubjects {
-		subjects[i] = New(s.name, s.aliases, s.description)
+		subjects[i] = new(s.name, s.aliases, s.description)
 		for _, a := range s.aliases {
 			if _, ok := allAliases[a]; !ok {
 				allAliases[a] = make(map[uid.UID]bool)
