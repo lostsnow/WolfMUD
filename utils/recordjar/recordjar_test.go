@@ -43,6 +43,7 @@ var testSubjects = []struct {
 		},
 	},
 
+	// Test with one header split over two lines
 	{`header: A longer
 						continuation line test`,
 		[]Record{
@@ -67,26 +68,36 @@ var testSubjects = []struct {
 		[]Record{},
 	},
 
+	// Multiple separators only
+	{
+		`%%
+%%
+%%`,
+		[]Record{},
+	},
+
 	// Comment and separator only
 	{
 		"// Comment only!\n%%",
 		[]Record{},
 	},
 
+	// Test with one record, multiple + split headers
 	{`Abstract: longer test
 		Description: A longer test with a data segment
 
-The is the data segment for the longer test. We
+This is the data segment for the longer test. We
 should expect this to pass!`,
 		[]Record{
 			{
 				"abstract":    "longer test",
 				"description": "A longer test with a data segment",
-				":data:":      "The is the data segment for the longer test. We\nshould expect this to pass!",
+				":data:":      "This is the data segment for the longer test. We should expect this to pass!",
 			},
 		},
 	},
 
+	// Multiple records with one header the same
 	{`header: record one
 %%
 header: record two`,
@@ -100,6 +111,7 @@ header: record two`,
 		},
 	},
 
+	// Multiple records with multiple separators, one header the same per record
 	{`header: record one
 %%
 %%
@@ -115,6 +127,7 @@ header: record two`,
 		},
 	},
 
+	// Typical sample of multiple location records
 	{`Ref: L1
 	 Type: Start
 	 Name: Fireplace
@@ -145,7 +158,7 @@ away.`,
 				"name":    "Fireplace",
 				"aliases": "TAVERN FIREPLACE",
 				"exits":   "E→L3 SE→L4 S→L2",
-				":data:":  "You are in the corner of a common room in the Dragon's Breath tavern.\nThere is a fire burning away merrily in an ornate fireplace giving\ncomfort to weary travellers. Shadows flicker around the room, changing\nlight to darkness and back again. To the south the common room extends\nand east the common room leads to the tavern entrance.\n",
+				":data:":  "You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. To the south the common room extends and east the common room leads to the tavern entrance.",
 			},
 			{
 				"ref":     "L2",
@@ -153,7 +166,7 @@ away.`,
 				"name":    "Common Room",
 				"aliases": "TAVERN COMMON",
 				"exits":   "N→L1 NE→L3 E→L4",
-				":data:":  "You are in a small, cosy common room in the Dragon's Breath tavern.\nLooking around you see a few chairs and tables for patrons. To the east\nthere is a bar and to the north you can see a merry fireplace burning\naway.",
+				":data:":  "You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away.",
 			},
 		},
 	},
@@ -208,6 +221,17 @@ away.`,
 				"평화":       "Korean",
 				"ﺺﻠﺣ":      "Urdu",
 				"สันติภาพ": "Thai",
+			},
+		},
+	},
+
+	// Test with one record and two headers + DOS line endings
+	{"header1: Two header test - header 1.\r\nheader2: Two header test - header 2.\r\n\r\nThis is the description\r\nwith a line break.",
+		[]Record{
+			{
+				"header1": "Two header test - header 1.",
+				"header2": "Two header test - header 2.",
+				":data:":  "This is the description with a line break.",
 			},
 		},
 	},
