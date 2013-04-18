@@ -7,6 +7,7 @@ package command
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"fmt"
 	"strings"
@@ -20,7 +21,19 @@ type mock struct {
 	BroadcastBuf string
 }
 
-func newMock() *mock { return &mock{*thing.New("Mock", []string{"MOCK"}, "A mock"), "", ""} }
+func newMock() (m *mock) {
+	m = &mock{
+		thing.Thing{},
+		"",
+		"",
+	}
+	m.Thing.Unmarshal(recordjar.Record{
+		"name":    "Mock",
+		"aliases": "MOCK",
+		":data:":  "A mock",
+	})
+	return m
+}
 
 func (m *mock) Reset() { m.ResponseBuf, m.BroadcastBuf = "", "" }
 
@@ -210,7 +223,7 @@ func TestLocking(t *testing.T) {
 	for _ = range tries {
 
 		// Create a command to manipulate the lockers with
-		cmd := New(thing.New("Issuer", []string{"Issuer"}, "Issuer"), "")
+		cmd := New(newMock(), "")
 
 		// Range over lockers adding one at a time and checking results
 		for i, locker := range lockers {
