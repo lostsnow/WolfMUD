@@ -86,7 +86,7 @@ func New(issuer thing.Interface, input string) *Command {
 // New. The input string is broken into words using whitespace as the separator.
 // The first word is usually the verb - get, drop, examine - and the second word
 // the target noun to act on - get ball, drop ball, examine ball. As this is a
-// common case the second word cam also referenced via the alias Target.
+// common case the second word can also be referenced via the alias Target.
 //
 // Assigning a new input string is useful when you want to issue multiple
 // commands but keep the same locks and buffers. For example assume you have
@@ -96,13 +96,18 @@ func New(issuer thing.Interface, input string) *Command {
 //
 //	cmd.New("DROP "+o.Aliases()[0])
 //
+// For such an example see dropInventory in the player package.
 func (c *Command) New(input string) {
 	words := strings.Fields(strings.ToUpper(input))
-	c.Verb, c.Nouns = words[0], words[1:]
-	if len(words) > 1 {
-		c.Target = words[1]
+	if l := len(words); l > 0 {
+		c.Verb, c.Nouns = words[0], words[1:]
+		if l > 1 {
+			c.Target = words[1]
+		} else {
+			c.Target = ""
+		}
 	} else {
-		c.Target = ""
+		c.Verb, c.Nouns, c.Target = "", []string{}, ""
 	}
 }
 
