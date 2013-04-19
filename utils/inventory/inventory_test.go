@@ -8,6 +8,7 @@ package inventory
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"strconv"
 	"testing"
 )
@@ -25,29 +26,20 @@ func createTestThings() (things []thing.Interface) {
 
 		a := strconv.Itoa(x)
 
-		things[x] = thing.New(
-			"Thing "+a, []string{"test", "thing" + a}, "Test thing "+a+".",
-		)
+		things[x] = &thing.Thing{}
+		things[x].Unmarshal(recordjar.Record{
+			"name":    "Thing " + a,
+			"aliases": "test thing" + a,
+			":data:":  "Test thing " + a + ".",
+		})
 
 	}
 	return
 }
 
-func TestNew(t *testing.T) {
-	inv := New()
-
-	if inv == nil {
-		t.Errorf("New inventory not created!")
-	}
-
-	if len(inv.contents) != 0 {
-		t.Errorf("New inventory not empty!")
-	}
-}
-
 func TestAdd(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	// Make sure Things added ok
 	for i, thing := range things {
@@ -92,7 +84,7 @@ FOUND_THING:
 
 func TestRemoveNotExist(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	inv.Add(things[0])
 	want := len(inv.contents)
@@ -106,7 +98,7 @@ func TestRemoveNotExist(t *testing.T) {
 // When inventory emptied length and capacity should be zero
 func TestRemoveEmpty(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	// Add all things
 	for _, thing := range things {
@@ -139,7 +131,7 @@ func TestRemoveEmpty(t *testing.T) {
 
 func TestFind(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	// Add odd things
 	for i, thing := range things {
@@ -163,7 +155,7 @@ func TestFind(t *testing.T) {
 
 func TestContains(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	// Add odd things
 	for i, thing := range things {
@@ -184,7 +176,7 @@ func TestContains(t *testing.T) {
 
 func TestList(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	for _, thing := range things {
 		inv.Add(thing)
@@ -232,62 +224,71 @@ func TestList(t *testing.T) {
 	}
 }
 
-// Define test harness that CAN process commands
-type thingHarness1 struct{ *thing.Thing }
+// Define two test harnesses
+type willProcess struct{ *thing.Thing }
+type wontProcess struct{ *thing.Thing }
 
-func (*thingHarness1) Process(cmd *command.Command) (handled bool) { return true }
-
-// Define test harness that CANNOT process commands
-type thingHarness2 struct{ *thing.Thing }
+// Implement command.Interface on willProcess so that only it CAN process
+// commands wontProcess will NOT have a Process method and CANNOT process
+// commands.
+func (*willProcess) Process(cmd *command.Command) (handled bool) { return true }
 
 func TestDelegate(t *testing.T) {
 
-	h1 := &thingHarness1{
-		Thing: thing.New("Harness 1", []string{"HARNESS1"}, "This is test harness 1"),
-	}
+	// Setup 'will' process
+	will := &willProcess{&thing.Thing{}}
+	will.Thing.Unmarshal(recordjar.Record{
+		"name":    "Harness 1",
+		"aliases": "HARNESS1",
+		":data:":  "This is test harness 1.",
+	})
 
-	h2 := &thingHarness2{
-		Thing: thing.New("Harness 2", []string{"HARNESS2"}, "This is test harness 2"),
-	}
+	// Setup 'wont' process
+	wont := &wontProcess{&thing.Thing{}}
+	wont.Thing.Unmarshal(recordjar.Record{
+		"name":    "Harness 2",
+		"aliases": "HARNESS2",
+		":data:":  "This is test harness 2.",
+	})
 
-	// Test with h1 which can process commands
-	inv := New()
-	inv.Add(h1)
+	// Test with 'will' which can process commands
+	inv := Inventory{}
+	inv.Add(will)
 
-	// Check recursion. h1 should not be delegated to when also issuing command
+	// Check recursion. 'will' should not be delegated to when also issuing command
 	{
-		have := inv.Delegate(command.New(h1, "TEST"))
+		have := inv.Delegate(command.New(will, "TEST"))
 		want := false
 		if have != want {
 			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
 		}
 	}
 
-	// h1 should handle command from h2
+	// 'will' should handle command from 'wont'
 	{
-		have := inv.Delegate(command.New(h2, "TEST"))
+		have := inv.Delegate(command.New(wont, "TEST"))
 		want := true
 		if have != want {
 			t.Errorf("Delegation not handled: have %t wanted %t", have, want)
 		}
 	}
 
-	// Test with h2 which cannot process commands
-	inv.Remove(h1)
-	inv.Add(h2)
+	// Test with 'wont' which cannot process commands
+	inv.Remove(will)
+	inv.Add(wont)
 
-	// h2 cannot handle command from h1
+	// 'wont' cannot handle command from 'will'
 	{
-		have := inv.Delegate(command.New(h1, "TEST"))
+		have := inv.Delegate(command.New(will, "TEST"))
 		want := false
 		if have != want {
 			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
 		}
 	}
 
-	// h2 cannot handle command from self
+	// 'wont' cannot handle command from self
 	{
-		have := inv.Delegate(command.New(h2, "TEST"))
+		have := inv.Delegate(command.New(wont, "TEST"))
 		want := false
 		if have != want {
 			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
@@ -297,7 +298,7 @@ func TestDelegate(t *testing.T) {
 
 func TestLength(t *testing.T) {
 	things := createTestThings()
-	inv := New()
+	inv := Inventory{}
 
 	// Add things and check expected length of the inventory
 	for i, thing := range things {
