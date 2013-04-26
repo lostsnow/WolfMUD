@@ -233,7 +233,7 @@ type wontProcess struct{ *thing.Thing }
 // commands.
 func (*willProcess) Process(cmd *command.Command) (handled bool) { return true }
 
-func TestDelegate(t *testing.T) {
+func TestProcess(t *testing.T) {
 
 	// Setup 'will' process
 	will := &willProcess{&thing.Thing{}}
@@ -257,19 +257,19 @@ func TestDelegate(t *testing.T) {
 
 	// Check recursion. 'will' should not be delegated to when also issuing command
 	{
-		have := inv.Delegate(command.New(will, "TEST"))
+		have := inv.Process(command.New(will, "TEST"))
 		want := false
 		if have != want {
-			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
+			t.Errorf("Process mis-handled: have %t wanted %t", have, want)
 		}
 	}
 
 	// 'will' should handle command from 'wont'
 	{
-		have := inv.Delegate(command.New(wont, "TEST"))
+		have := inv.Process(command.New(wont, "TEST"))
 		want := true
 		if have != want {
-			t.Errorf("Delegation not handled: have %t wanted %t", have, want)
+			t.Errorf("Process not handled: have %t wanted %t", have, want)
 		}
 	}
 
@@ -279,19 +279,19 @@ func TestDelegate(t *testing.T) {
 
 	// 'wont' cannot handle command from 'will'
 	{
-		have := inv.Delegate(command.New(will, "TEST"))
+		have := inv.Process(command.New(will, "TEST"))
 		want := false
 		if have != want {
-			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
+			t.Errorf("Process mis-handled: have %t wanted %t", have, want)
 		}
 	}
 
 	// 'wont' cannot handle command from self
 	{
-		have := inv.Delegate(command.New(wont, "TEST"))
+		have := inv.Process(command.New(wont, "TEST"))
 		want := false
 		if have != want {
-			t.Errorf("Delegation mis-handled: have %t wanted %t", have, want)
+			t.Errorf("Process mis-handled: have %t wanted %t", have, want)
 		}
 	}
 }

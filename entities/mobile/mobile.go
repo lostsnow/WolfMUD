@@ -34,8 +34,7 @@ func (m *Mobile) Locate() location.Interface {
 	return m.location
 }
 
-// Process implements the command.Interface to handle location specific
-// commands.
+// Process implements the command.Interface to handle mobile specific commands.
 func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 
 	switch cmd.Verb {
@@ -45,7 +44,7 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 
 	if m.IsAlso(cmd.Issuer) {
 		if !handled {
-			handled = m.Inventory.Delegate(cmd)
+			handled = m.Inventory.Process(cmd)
 		}
 
 		if !handled {

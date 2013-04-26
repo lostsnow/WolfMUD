@@ -123,7 +123,7 @@ func (b *Basic) Broadcast(omit []thing.Interface, format string, any ...interfac
 // a location: doors, barriers, guards, etc - can effect movement easily.
 func (b *Basic) Process(cmd *command.Command) (handled bool) {
 
-	if handled = b.Inventory.Delegate(cmd); handled {
+	if handled = b.Inventory.Process(cmd); handled {
 		return
 	}
 
