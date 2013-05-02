@@ -251,8 +251,16 @@ func (c *Client) Send(format string, any ...interface{}) {
 	data = text.Fold(text.Colorize(data), TERM_WIDTH)
 	data = strings.Replace(data, "\n", "\r\n", -1)
 
-	if _, err := c.conn.Write([]byte(data)); err != nil {
-		c.bailing(err)
+	c.conn.SetWriteDeadline(time.Now().Add(1 * time.Minute))
+
+	dat := []byte(data)
+	for len(dat) > 0 {
+		if w, err := c.conn.Write(dat); err != nil {
+			c.bailing(err)
+			return
+		} else {
+			dat = dat[w:]
+		}
 	}
 
 	return
