@@ -89,6 +89,10 @@ func Spawn(conn *net.TCPConn) {
 
 	c.bail <- nil
 
+	c.conn.SetKeepAlive(true)
+	c.conn.SetLinger(0)
+	c.conn.SetNoDelay(false)
+
 	c.prompt = PROMPT_NONE
 	c.Send(GREETING)
 	c.prompt = PROMPT_DEFAULT
@@ -155,10 +159,6 @@ func (c *Client) receiver() {
 	nextLF := func() int {
 		return bytes.IndexByte(lineBuffer, 0x0A)
 	}
-
-	c.conn.SetKeepAlive(true)
-	c.conn.SetLinger(0)
-	c.conn.SetNoDelay(false)
 
 	var b int      // bytes read from network
 	var err error  // any comms error
