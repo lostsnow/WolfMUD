@@ -67,8 +67,7 @@ type Client struct {
 	parser parser.Interface // Currently attached parser
 	name   string           // Current name allocated by attached parser
 	conn   *net.TCPConn     // The TELNET network connection
-	bail   error
-	mutex  chan bool
+	bail   chan error
 	prompt string
 }
 
@@ -84,9 +83,11 @@ type Client struct {
 func Spawn(conn *net.TCPConn) {
 
 	c := &Client{
-		conn:  conn,
-		mutex: make(chan bool, 1),
+		conn: conn,
+		bail: make(chan error, 1),
 	}
+
+	c.bail <- nil
 
 	c.prompt = PROMPT_NONE
 	c.Send(GREETING)
@@ -102,8 +103,8 @@ func Spawn(conn *net.TCPConn) {
 	c.parser.Destroy()
 	c.parser = nil
 
-	if c.bail != nil {
-		log.Printf("Comms error for: %s, %s\n", c.name, c.bail)
+	if err := c.bailed(); err != nil {
+		log.Printf("Comms error for: %s, %s\n", c.name, err)
 	}
 
 	if err := c.conn.Close(); err != nil {
@@ -113,32 +114,30 @@ func Spawn(conn *net.TCPConn) {
 	log.Printf("Spawn ending for %s\n", c.name)
 }
 
-// Lock takes the lock on the client
-func (c *Client) lock() {
-	c.mutex <- true
-}
-
-// Unlock releases the lock on the client
-func (c *Client) unlock() {
-	<-c.mutex
-}
-
 // isBailing checks to see if the client is currently bailing.
 func (c *Client) isBailing() bool {
-	c.lock()
-	defer c.unlock()
-	return c.bail != nil
+	bailing := <-c.bail
+	c.bail <- bailing
+	return bailing != nil
 }
 
 // bailing records the fact there has been an error and we want to bail. If we
 // are already bailing the current error is not overwritten so we always get the
 // error that initially caused the client to bail.
 func (c *Client) bailing(err error) {
-	c.lock()
-	defer c.unlock()
-	if c.bail == nil {
-		c.bail = err
+	bailing := <-c.bail
+	if bailing == nil {
+		bailing = err
 	}
+	c.bail <- bailing
+}
+
+// bailed returns the error that caused the client to be bailing or nil if the
+// client is not currently bailing.
+func (c *Client) bailed() error {
+	bailing := <-c.bail
+	c.bail <- bailing
+	return bailing
 }
 
 // receiver receives data from the user's TELNET client. receive waits on a
@@ -208,7 +207,7 @@ func (c *Client) receiver() {
 	}
 
 	// If we are not quitting or bailing we timed out
-	if !c.parser.IsQuitting() && !c.isBailing() {
+	if !c.isBailing() && !c.parser.IsQuitting() {
 		c.prompt = PROMPT_NONE
 		c.Send(" ")
 		c.parser.Parse("QUIT")
