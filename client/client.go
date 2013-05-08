@@ -37,6 +37,7 @@ import (
 	"net"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // TODO: When we have sorted out global settings some of these need moving
@@ -190,14 +191,14 @@ func (c *Client) receiver() {
 			// notes on the garbage.
 			for LF = nextLF(); LF != -1 && LF < bCursor; LF = nextLF() {
 
-				// NOTE: This could be lineBuffer[0:LF-1] to save TrimSpaceing the CR
-				// before the LF as Telnet is supposed to send CR+LF. However if we
-				// just get sent an LF - might be malicious or a badly written /
-				// configured client - then [0:LF-1] causes a 'slice bounds out of
-				// range' panic. Trimming an extra character is simpler than adding
-				// checking specifically for the corner case.
+				// NOTE: This could be buffer[0:LF-1] to save trimming the CR before
+				// the LF as Telnet is supposed to send CR+LF. However if we just get
+				// sent an LF - might be malicious or a badly written / configured
+				// client - then [0:LF-1] causes a 'slice bounds out of range' panic.
+				// Trimming extra characters is simpler than adding checking
+				// specifically for the corner case.
 
-				cmd = bytes.TrimSpace(lineBuffer[0:LF])
+				cmd = bytes.TrimRightFunc(buffer[0:LF], unicode.IsSpace)
 
 				if len(cmd) == 0 {
 					c.Send("")
