@@ -44,6 +44,7 @@ import (
 const (
 	MAX_TIMEOUT = 10 * time.Minute // Idle connection timeout
 	TERM_WIDTH  = 80               // fold wrapping length - see fold function
+	BUFFER_SIZE = 256              // Comms input buffer length in bytes
 
 	GREETING = `
 
@@ -150,15 +151,17 @@ func (c *Client) bailed() error {
 // the connection will be closed and the inactive user disconnected.
 func (c *Client) receiver() {
 
-	const inBuffLen = 32
-
-	var inBuffer [inBuffLen]byte
-
-	lineBuffer := []byte{}
+	// buffer is the input buffer which may be drip fed data from a client. This
+	// caters for input being read in multiple reads, multiple inputs being read
+	// in a single read and byte-at-a-time reads - currently from Windows telnet
+	// clients.  It has a fixed length and capacity to avoid re-allocations.
+	// bCursor points to the *next* byte in the buffer to be filled.
+	buffer := make([]byte, BUFFER_SIZE, BUFFER_SIZE)
+	bCursor := 0
 
 	// Short & simple function to simplify for loop
 	nextLF := func() int {
-		return bytes.IndexByte(lineBuffer, 0x0A)
+		return bytes.IndexByte(buffer, 0x0A)
 	}
 
 	var b int      // bytes read from network
@@ -170,12 +173,22 @@ func (c *Client) receiver() {
 	for !c.isBailing() && !c.parser.IsQuitting() {
 
 		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT))
-		b, err = c.conn.Read(inBuffer[0 : inBuffLen-1])
+		b, err = c.conn.Read(buffer[bCursor:])
 
 		if b > 0 {
-			lineBuffer = append(lineBuffer, inBuffer[0:b]...)
 
-			for LF = nextLF(); LF != -1; LF = nextLF() {
+			// If buffer would overflow discard current buffer by
+			// setting the buffer length back to zero
+			if bCursor+b >= BUFFER_SIZE {
+				bCursor = 0
+				continue
+			}
+			bCursor += b
+
+			// NOTE: The LF < bCursor stops us accidently reading an LF in the
+			// garbage portion of the buffer after the cursor. See next TODO for
+			// notes on the garbage.
+			for LF = nextLF(); LF != -1 && LF < bCursor; LF = nextLF() {
 
 				// NOTE: This could be lineBuffer[0:LF-1] to save TrimSpaceing the CR
 				// before the LF as Telnet is supposed to send CR+LF. However if we
@@ -192,8 +205,15 @@ func (c *Client) receiver() {
 					c.parser.Parse(string(cmd))
 				}
 
-				// Remove the part of the buffer we just processed
-				lineBuffer = lineBuffer[LF+1:]
+				// Remove the part of the buffer we just processed by copying the bytes
+				// after the bCursor to the front of the buffer.
+				//
+				// TODO: This has the side effect of being quick and simple but leaves
+				// input garbage from the bCursor to the end of the buffer. Will this
+				// be an issue? A security issue? We could setup a zero buffer and copy
+				// enough to overwrite the garbage? See previous NOTE on garbage check.
+				copy(buffer, buffer[LF+1:])
+				bCursor -= LF + 1
 			}
 		}
 
