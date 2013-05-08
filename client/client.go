@@ -87,6 +87,7 @@ func Spawn(conn *net.TCPConn) {
 		bail: make(chan error, 1),
 	}
 
+	// Initialise bail channel with a nil error
 	c.bail <- nil
 
 	c.conn.SetKeepAlive(true)
