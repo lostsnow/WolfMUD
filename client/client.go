@@ -161,8 +161,12 @@ func (c *Client) receiver() {
 	bCursor := 0
 
 	// Short & simple function to simplify for loop
+	//
+	// NOTE: Slicing the buffer with buffer[0:bCursor] stops us accidently
+	// reading an LF in the garbage portion of the buffer after the cursor.
+	// See next TODO for notes on the garbage.
 	nextLF := func() int {
-		return bytes.IndexByte(buffer, 0x0A)
+		return bytes.IndexByte(buffer[0:bCursor], 0x0A)
 	}
 
 	var b int      // bytes read from network
@@ -186,10 +190,7 @@ func (c *Client) receiver() {
 			}
 			bCursor += b
 
-			// NOTE: The LF < bCursor stops us accidently reading an LF in the
-			// garbage portion of the buffer after the cursor. See next TODO for
-			// notes on the garbage.
-			for LF = nextLF(); LF != -1 && LF < bCursor; LF = nextLF() {
+			for LF = nextLF(); LF != -1; LF = nextLF() {
 
 				// NOTE: This could be buffer[0:LF-1] to save trimming the CR before
 				// the LF as Telnet is supposed to send CR+LF. However if we just get
