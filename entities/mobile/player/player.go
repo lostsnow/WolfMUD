@@ -104,28 +104,28 @@ func (p *Player) add(l location.Interface) {
 	cmd.Flush()
 }
 
-// remove extracts a player from the world cleanly and announces their
-// departure.
+// remove extracts a player from the world cleanly. If the player's location is
+// not crowded it also announces their departure - in a crowded location their
+// departure will go unnoticed.
 func (p *Player) remove() (removed bool) {
 	l := p.Locate()
 	l.Lock()
 	defer l.Unlock()
 
-	if l.IsAlso(p.Locate()) {
-
-		// Quitting or involuntary disconnection?
-		if p.IsQuitting() {
-			p.Locate().Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
-		} else {
-			PlayerList.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", p.Name())
-		}
-
-		l.Remove(p)
-		PlayerList.Remove(p)
-		removed = true
+	// Make sure player didn't move between getting the player's location and
+	// locking the location.
+	if !l.IsAlso(p.Locate()) {
+		return false
 	}
 
-	return
+	if !l.Crowded() {
+		l.Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
+	}
+
+	l.Remove(p)
+	PlayerList.Remove(p)
+
+	return true
 }
 
 // dropInventory drops everything the player is carrying.
