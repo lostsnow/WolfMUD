@@ -30,8 +30,8 @@ var testSubjects = []struct {
 }
 
 // new is a helper for creating a populated Thing from unmarshalled data
-func new(name string, aliases []string, description string) Thing {
-	thing := Thing{}
+func new(name string, aliases []string, description string) *Thing {
+	thing := &Thing{}
 	thing.Unmarshal(recordjar.Record{
 		"name":    name,
 		"aliases": strings.TrimSpace(strings.Join(aliases, " ")),
@@ -114,7 +114,7 @@ func TestAliases(t *testing.T) {
 func TestIsAlias(t *testing.T) {
 
 	allAliases := make(map[string](map[uid.UID]bool))
-	subjects := make([]Thing, len(testSubjects))
+	subjects := make([]*Thing, len(testSubjects))
 
 	// Go through the testSubjects and create subjects and a map of aliases that
 	// map to unique Ids
