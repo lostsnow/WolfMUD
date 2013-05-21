@@ -41,6 +41,7 @@ type Basic struct {
 func (b *Basic) Unmarshal(r recordjar.Record) {
 	b.Thing.Unmarshal(r)
 	b.mutex = make(chan bool, 1)
+	b.mutex <- true
 }
 
 // splitter is a function that returns true if passed rune is not a digit or
@@ -241,12 +242,12 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 // reason for the method instead of making the lock in the struct public - you
 // cannot access struct properties directly through the Interface.
 func (b *Basic) Lock() {
-	b.mutex <- true
+	<-b.mutex
 }
 
 // Unlock unlocks a locked Thing. See Lock method for details.
 func (b *Basic) Unlock() {
-	<-b.mutex
+	b.mutex <- true
 }
 
 // BUG(Diddymus): The Crowded method currently counts everything in a location.
