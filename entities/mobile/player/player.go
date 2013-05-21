@@ -24,7 +24,7 @@ import (
 //
 // TODO: Drop playerCount once we have proper logins.
 var (
-	playerCount = 0
+	playerCount = make(chan int, 1)
 )
 
 // Player is the implementation of a player. Most of the functionallity comes
@@ -36,11 +36,21 @@ type Player struct {
 	quitting bool
 }
 
+func init() {
+	// Initialise channel before anything can use it
+	playerCount <- 0
+}
+
 // TODO: loadPlayer currently just generates a player instead of actually
 // loading one.
 func loadPlayer(sender sender.Interface) (p *Player) {
-	playerCount++
-	postfix := strconv.Itoa(playerCount)
+
+	// Grab the current player count, increment it and put it back again
+	pc := <-playerCount
+	pc++
+	playerCount <- pc
+
+	postfix := strconv.Itoa(pc)
 
 	r := map[string]string{
 		"name":    "Player " + postfix,
