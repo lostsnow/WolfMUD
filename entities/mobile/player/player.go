@@ -185,8 +185,6 @@ func (p *Player) Parse(input string) {
 	// Another funky looking for loop :)
 	for p.parseStage2(cmd) {
 	}
-
-	cmd.Flush()
 }
 
 // parseStage2 is called by Parse to take advantage of defer unwinding. By
@@ -208,6 +206,10 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 
 	if !handled && !retry {
 		cmd.Respond("Eh?")
+	}
+
+	if !retry {
+		cmd.Flush()
 	}
 
 	return
