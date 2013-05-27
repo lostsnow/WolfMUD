@@ -113,6 +113,17 @@ func checkCommandStruct(t *testing.T, m *mock, s testSubject, c *Command) {
 			t.Errorf("Invalid target: have %q wanted %q", have, want)
 		}
 	}
+
+	// Check original input
+	{
+		have := c.Input
+		want := strings.Fields(s.cmd)
+		for i := range want {
+			if have[i] != want[i] {
+				t.Errorf("Invalid original input: word #%d, have %q wanted %q", i, have[i], want[i])
+			}
+		}
+	}
 }
 
 func TestFuncNew(t *testing.T) {

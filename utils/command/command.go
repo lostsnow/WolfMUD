@@ -42,6 +42,7 @@ type Interface interface {
 // processed.
 type Command struct {
 	Issuer        thing.Interface // What is issuing the command
+	Input         []string        // Original input as words
 	Verb          string          // 1st word (verb): GET, DROP, EXAMINE etc
 	Nouns         []string        // 2nd...nth words
 	Target        string          // Alias for 2nd word - normally the verb's target
@@ -98,6 +99,7 @@ func New(issuer thing.Interface, input string) *Command {
 //
 // For such an example see dropInventory in the player package.
 func (c *Command) New(input string) {
+	c.Input = strings.Fields(input)
 	words := strings.Fields(strings.ToUpper(input))
 	if l := len(words); l > 0 {
 		c.Verb, c.Nouns = words[0], words[1:]
