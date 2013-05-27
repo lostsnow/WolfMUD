@@ -100,11 +100,11 @@ func New(issuer thing.Interface, input string) *Command {
 // For such an example see dropInventory in the player package.
 func (c *Command) New(input string) {
 	c.Input = strings.Fields(input)
-	words := strings.Fields(strings.ToUpper(input))
-	if l := len(words); l > 0 {
-		c.Verb, c.Nouns = words[0], words[1:]
+	if l := len(c.Input); l > 0 {
+		c.Nouns = strings.Fields(strings.ToUpper(input))
+		c.Verb, c.Nouns = c.Nouns[0], c.Nouns[1:]
 		if l > 1 {
-			c.Target = words[1]
+			c.Target = c.Nouns[0]
 		} else {
 			c.Target = ""
 		}
