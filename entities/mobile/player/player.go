@@ -205,7 +205,7 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 	retry = cmd.LocksModified()
 
 	if !handled && !retry {
-		cmd.Respond("Eh?")
+		cmd.Respond("[RED]Eh?")
 	}
 
 	if !retry {

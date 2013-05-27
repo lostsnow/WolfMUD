@@ -232,7 +232,7 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 
 		to.look(cmd)
 	} else {
-		cmd.Respond("You can't go %s from here!", directionLongNames[d])
+		cmd.Respond("[RED]You can't go %s from here!", directionLongNames[d])
 	}
 	return true
 }
