@@ -17,6 +17,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"strconv"
+	"strings"
 )
 
 // playerCount increments with each player created so we can have unique
@@ -244,6 +245,8 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 		handled = p.memprof(cmd)
 	case "QUIT":
 		handled = p.quit(cmd)
+	case "SAY", "'":
+		handled = p.say(cmd)
 	case "SNEEZE":
 		handled = p.sneeze(cmd)
 	}
@@ -321,5 +324,21 @@ func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
 	cmd.Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
 	PlayerList.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
+	return true
+}
+
+// say implements the 'SAY' command, alias "'". Say sends a message to all
+// other responders at the current location.
+func (p *Player) say(cmd *command.Command) (handled bool) {
+
+	if len(cmd.Nouns) == 0 {
+		cmd.Respond("[RED]Was there anything in particular you wanted to say?")
+	} else {
+		message := strings.Join(cmd.Input[1:], ` `)
+
+		cmd.Broadcast([]thing.Interface{cmd.Issuer}, "[CYAN]%s says: %s", cmd.Issuer.Name(), message)
+		cmd.Respond("[YELLOW]You say: %s", message)
+	}
+
 	return true
 }
