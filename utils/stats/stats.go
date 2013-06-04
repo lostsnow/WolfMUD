@@ -93,7 +93,7 @@ func (s *stats) collect() {
 	an, ap := uscale(m.Alloc)
 	Δan, Δap := scale(Δa)
 
-	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d\n",
+	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d",
 		an, ap, Δan, Δap, m.HeapObjects, Δh, g, Δg, p, maxPlayers,
 	)
 

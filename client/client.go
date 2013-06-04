@@ -103,7 +103,7 @@ func Spawn(conn *net.TCPConn) {
 	c.parser = player.New(c)
 	c.name = c.parser.Name()
 
-	log.Printf("Client created: %s\n", c.name)
+	log.Printf("Client created: %s", c.name)
 
 	c.receiver()
 
@@ -111,14 +111,14 @@ func Spawn(conn *net.TCPConn) {
 	c.parser = nil
 
 	if err := c.bailed(); err != nil {
-		log.Printf("Comms error for: %s, %s\n", c.name, err)
+		log.Printf("Comms error for: %s, %s", c.name, err)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		log.Printf("Error closing socket for %s, %s\n", c.name, err)
+		log.Printf("Error closing socket for %s, %s", c.name, err)
 	}
 
-	log.Printf("Spawn ending for %s\n", c.name)
+	log.Printf("Spawn ending for %s", c.name)
 }
 
 // isBailing checks to see if the client is currently bailing.
@@ -235,10 +235,10 @@ func (c *Client) receiver() {
 		c.Send(" ")
 		c.parser.Parse("QUIT")
 		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
-		log.Printf("Closing idle connection for: %s\n", c.name)
+		log.Printf("Closing idle connection for: %s", c.name)
 	}
 
-	log.Printf("receiver ending for %s\n", c.name)
+	log.Printf("receiver ending for %s", c.name)
 }
 
 // Prompt sets a new prompt and returns the old prompt. It is implemented as

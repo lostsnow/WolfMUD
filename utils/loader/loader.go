@@ -76,7 +76,7 @@ func load(filename string) {
 			refs[r] = i
 			log.Printf("Loaded: %s (%s)", refs[r].Name(), t)
 		} else {
-			log.Printf("Unknown type: %#v\n", t)
+			log.Printf("Unknown type: %#v", t)
 		}
 	}
 
