@@ -6,10 +6,11 @@
 package location
 
 import (
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"math/rand"
 )
 
-// Start contains pointer to all of the available starting locations.
+// Start contains pointers to all of the available starting locations.
 var start []*Start
 
 // GetStart return a random starting location.
@@ -23,12 +24,13 @@ type Start struct {
 	Basic
 }
 
-// NewStart creates a new Start location and returns a reference to it. It also
-// adds a reference to the created location into the Start slice.
-func NewStart(name string, aliases []string, description string) *Start {
-	l := &Start{
-		Basic: *NewBasic(name, aliases, description),
-	}
-	start = append(start, l)
-	return l
+// Unmarshal takes a recordjar.Record and allocates the data in it to the passed
+// Start struct. It also adds a reference to the created location into the
+// package scoped start slice.
+func (s *Start) Unmarshal(r recordjar.Record) {
+	defer func() {
+		start = append(start, s)
+	}()
+
+	s.Basic.Unmarshal(r)
 }

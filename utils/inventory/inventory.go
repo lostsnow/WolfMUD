@@ -33,11 +33,6 @@ type Inventory struct {
 	contents []thing.Interface
 }
 
-// New creates a new Inventory and returns a pointer reference to it.
-func New() *Inventory {
-	return &Inventory{}
-}
-
 // Add puts an object implementing thing.Interface into the Inventory.
 func (i *Inventory) Add(thing thing.Interface) {
 	if i.find(thing) == NOT_FOUND {
@@ -116,10 +111,10 @@ OMIT:
 	return
 }
 
-// Delegate delegates commands to an inventory's items. This is most useful
+// Process delegates commands to an inventory's items. This is most useful
 // when processing commands for a location and the location cannot process the
 // command it passes it on to something else that might be able to.
-func (i *Inventory) Delegate(cmd *command.Command) (handled bool) {
+func (i *Inventory) Process(cmd *command.Command) (handled bool) {
 	for _, thing := range i.contents {
 
 		// Don't process the command issuer - gets very recursive!
@@ -135,4 +130,9 @@ func (i *Inventory) Delegate(cmd *command.Command) (handled bool) {
 		}
 	}
 	return false
+}
+
+// Length returns the number of things curently in the specified inventory.
+func (i *Inventory) Length() int {
+	return len(i.contents)
 }

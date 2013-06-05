@@ -13,7 +13,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
-	"log"
 )
 
 // Mobile provides a default basic implementation of a mobile.
@@ -21,18 +20,6 @@ type Mobile struct {
 	thing.Thing
 	inventory.Inventory
 	location location.Interface
-}
-
-// New creates a new Mobile and returns a reference to it.
-func New(name string, alias []string, description string) *Mobile {
-	m := &Mobile{
-		Thing:     *thing.New(name, alias, description),
-		Inventory: *inventory.New(),
-	}
-
-	log.Printf("Mobile %d created: %s\n", m.UniqueId(), m.Name())
-
-	return m
 }
 
 // Relocate sets a mobile's internal location reference. It implements part of
@@ -47,8 +34,7 @@ func (m *Mobile) Locate() location.Interface {
 	return m.location
 }
 
-// Process implements the command.Interface to handle location specific
-// commands.
+// Process implements the command.Interface to handle mobile specific commands.
 func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 
 	switch cmd.Verb {
@@ -58,7 +44,7 @@ func (m *Mobile) Process(cmd *command.Command) (handled bool) {
 
 	if m.IsAlso(cmd.Issuer) {
 		if !handled {
-			handled = m.Inventory.Delegate(cmd)
+			handled = m.Inventory.Process(cmd)
 		}
 
 		if !handled {

@@ -6,38 +6,81 @@
 package location
 
 import (
-	"fmt"
-	"strings"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+	"fmt"
+	"log"
+	"strings"
+	"unicode"
+)
+
+const (
+	CROWD_SIZE = 10 // How many mobiles make a crowd
 )
 
 // Basic provides a default location implementation
+//
+// NOTE: We could save memory at the cost of performance by using an Inventory
+// pointer and not allocating it until something is added - via Add. We could
+// also set it to nil when the last Thing is removed - via Remove. Performance
+// wise would incur a penality creating the Inventory and also create more for
+// the GC to handle... worth investigation? Maybe a pool of inventories?
 type Basic struct {
 	thing.Thing
 	inventory.Inventory
 	directionalExits
+	mutex chan bool
 }
 
-// NewBasic creates a new Basic location and returns a reference to it.
-//
-// NOTE: We could save memory at the cost of performance by not allocating the
-// Inventory until something is added - via Add. We could also set it to nil
-// when the last Thing is removed - via Remove. Performance wise we would incur
-// a penality creating the Inventory and also create a lot more for the GC to
-// handle?
-func NewBasic(name string, aliases []string, description string) *Basic {
-	return &Basic{
-		Thing:     *thing.New(name, aliases, description),
-		Inventory: *inventory.New(),
+// Unmarshal takes a recordjar.Record and allocates the data in it to the passed
+// Basic type.
+func (b *Basic) Unmarshal(r recordjar.Record) {
+	b.Thing.Unmarshal(r)
+	b.mutex = make(chan bool, 1)
+	b.mutex <- true
+}
+
+// splitter is a function that returns true if passed rune is not a digit or
+// letter, otherwise returns false. This lets exit pairs have any non-digit or
+// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
+// This should make specifying exits user friendly.
+func splitter(r rune) bool {
+	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
+}
+
+func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
+	b.Thing.Init(ref, refs)
+
+	var pair []string
+	var d, l *string
+
+	for _, v := range strings.Fields(ref["exits"]) {
+		pair = strings.FieldsFunc(v, splitter)
+
+		if len(pair) != 2 {
+			log.Printf("Cannot parse exits for (%s) %s: %s", ref.String("ref"), b.Name(), pair)
+			continue
+		}
+
+		d = &pair[0] // Direction
+		l = &pair[1] // To location
+
+		if l, ok := refs[*l].(Interface); ok {
+			for i, v := range directionShortNames {
+				if *d == v {
+					b.LinkExit((direction)(i), l)
+				}
+			}
+		}
 	}
 }
 
 // LinkExit links one location to another in the direction given. This is
-// normally only done at setup time when the world is initially loaded.
+// normally only done at setup time when the locations are initilized.
 //
 // NOTE: The Java version had softlinking - is it still needed?
 func (b *Basic) LinkExit(d direction, to Interface) {
@@ -81,8 +124,16 @@ func (b *Basic) Broadcast(omit []thing.Interface, format string, any ...interfac
 // a location: doors, barriers, guards, etc - can effect movement easily.
 func (b *Basic) Process(cmd *command.Command) (handled bool) {
 
-	if handled = b.Inventory.Delegate(cmd); handled {
+	if handled = b.Inventory.Process(cmd); handled {
 		return
+	}
+
+	// The following commands can only be processed at the issuer's location. So
+	// we need to check if this location is where the issuer is.
+	if l, ok := cmd.Issuer.(Locateable); ok {
+		if !l.Locate().IsAlso(b) {
+			return
+		}
 	}
 
 	switch cmd.Verb {
@@ -126,18 +177,22 @@ func (b *Basic) Process(cmd *command.Command) (handled bool) {
 // distance.
 func (b *Basic) look(cmd *command.Command) (handled bool) {
 
-	list := b.Inventory.List(cmd.Issuer)
-	thingsHere := make([]string, 0, len(list))
-	for _, o := range list {
-		thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
-	}
-
 	things := ""
-	if len(thingsHere) > 0 {
-		things = strings.Join(thingsHere, "\n") + "\n"
+
+	if b.Crowded() {
+		things = "[GREEN]You can see a crowd here.\n"
+	} else {
+		list := b.List(cmd.Issuer)
+		thingsHere := make([]string, 0, len(list))
+		for _, o := range list {
+			thingsHere = append(thingsHere, "You can see "+o.Name()+" here.")
+		}
+		if len(thingsHere) > 0 {
+			things = "[GREEN]" + strings.Join(thingsHere, "\n") + "\n"
+		}
 	}
 
-	cmd.Respond("[CYAN]%s[WHITE]\n%s\n[GREEN]%s\n[CYAN]You can see exits: [YELLOW]%s", b.Name(), b.Description(), things, b.directionalExits)
+	cmd.Respond("[CYAN]%s\n[WHITE]%s\n%s\n%s", b.Name(), b.Description(), things, b.directionalExits)
 
 	return true
 }
@@ -145,7 +200,7 @@ func (b *Basic) look(cmd *command.Command) (handled bool) {
 // exits implements the 'EXITS' command. It displays the currently available
 // directional exits from the location.
 func (b *Basic) exits(cmd *command.Command) (handled bool) {
-	cmd.Respond("[CYAN]You can see exits: [YELLOW]%s", b.directionalExits)
+	cmd.Respond("%s", b.directionalExits)
 	return true
 }
 
@@ -162,14 +217,44 @@ func (b *Basic) move(cmd *command.Command, d direction) (handled bool) {
 		}
 
 		b.Remove(cmd.Issuer)
-		b.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionNames[d])
+
+		// If the location is crowded you are not going to notice someone leaving
+		if !b.Crowded() {
+			b.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s go %s.", cmd.Issuer.Name(), directionLongNames[d])
+		}
 
 		to.Add(cmd.Issuer)
-		to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.", cmd.Issuer.Name())
+
+		// If the location is crowded you are not going to notice someone entering
+		if !to.Crowded() {
+			to.Broadcast([]thing.Interface{cmd.Issuer}, "[YELLOW]You see %s walk in.", cmd.Issuer.Name())
+		}
 
 		to.look(cmd)
 	} else {
-		cmd.Respond("You can't go %s from here!", directionNames[d])
+		cmd.Respond("[RED]You can't go %s from here!", directionLongNames[d])
 	}
 	return true
+}
+
+// Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
+// should only be called when the lock is held via a successful Lock call. The
+// reason for the method instead of making the lock in the struct public - you
+// cannot access struct properties directly through the Interface.
+func (b *Basic) Lock() {
+	<-b.mutex
+}
+
+// Unlock unlocks a locked Thing. See Lock method for details.
+func (b *Basic) Unlock() {
+	b.mutex <- true
+}
+
+// BUG(Diddymus): The Crowded method currently counts everything in a location.
+// Really it should probably only count mobiles.
+
+// Crowded returns wether a locatioin is crowded or not based on CROWD_SIZE and
+// the number of things in the location.
+func (b *Basic) Crowded() bool {
+	return b.Inventory.Length() >= CROWD_SIZE
 }

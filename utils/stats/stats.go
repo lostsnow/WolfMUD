@@ -1,4 +1,4 @@
-// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights resolved.
+// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
@@ -22,18 +22,14 @@
 package stats
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"log"
 	"runtime"
 	"time"
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 )
 
-// Interval can be changed before calling Start to set a different collection
-// interval.
-//
-// TODO: When we have sorted out global settings Interval needs moving there.
 var (
-	Interval    = 10 * time.Second // Time  between collections
 	unitPrefixs = [...]string{
 		"b", "kb", "Mb", "Gb", "Tb", "Pb", "Eb",
 	}
@@ -48,19 +44,27 @@ type stats struct {
 }
 
 // Start begins collection and reporting of statistics. The interval between
-// updates is controlled via the stats.Interval variable and can be set before
-// calling Start.
+// updates is controlled via config.StatsRate which if set to zero disables
+// collection and reporting.
 func Start() {
-	c := time.Tick(Interval)
+
+	rate := config.StatsRate
+
+	if rate == 0 {
+		log.Printf("Stats collection disabled")
+		return
+	}
+
 	s := &stats{}
+	s.collect() // 1st time initialisation
 
 	go func() {
-		for _ = range c {
+		for _ = range time.Tick(rate) {
 			s.collect()
 		}
 	}()
 
-	s.collect() // 1st time initialisation
+	log.Printf("Stats collection started, frequency: %s", rate)
 }
 
 // collect runs periodically to collect, process and report statistics.
@@ -89,7 +93,7 @@ func (s *stats) collect() {
 	an, ap := uscale(m.Alloc)
 	Δan, Δap := scale(Δa)
 
-	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d\n",
+	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d",
 		an, ap, Δan, Δap, m.HeapObjects, Δh, g, Δg, p, maxPlayers,
 	)
 

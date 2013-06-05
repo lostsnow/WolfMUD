@@ -11,11 +11,13 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"log"
 	"os"
 	"runtime/pprof"
 	"strconv"
+	"strings"
 )
 
 // playerCount increments with each player created so we can have unique
@@ -23,7 +25,7 @@ import (
 //
 // TODO: Drop playerCount once we have proper logins.
 var (
-	playerCount = 0
+	playerCount = make(chan int, 1)
 )
 
 // Player is the implementation of a player. Most of the functionallity comes
@@ -35,20 +37,36 @@ type Player struct {
 	quitting bool
 }
 
+func init() {
+	// Initialise channel before anything can use it
+	playerCount <- 0
+}
+
 // TODO: loadPlayer currently just generates a player instead of actually
 // loading one.
-func loadPlayer(sender sender.Interface) (player *Player) {
-	playerCount++
-	postfix := strconv.Itoa(playerCount)
+func loadPlayer(sender sender.Interface) (p *Player) {
 
-	name := "Player " + postfix
-	alias := []string{"PLAYER" + postfix}
-	description := "This is Player " + postfix + "."
+	// Grab the current player count, increment it and put it back again
+	pc := <-playerCount
+	pc++
+	playerCount <- pc
 
-	return &Player{
-		Mobile: *mobile.New(name, alias, description),
-		sender: sender,
+	postfix := strconv.Itoa(pc)
+
+	r := map[string]string{
+		"name":    "Player " + postfix,
+		":data:":  "This is player " + postfix,
+		"aliases": "Player " + postfix,
 	}
+
+	p = &Player{sender: sender}
+	p.Unmarshal(r)
+
+	return p
+}
+
+func (p *Player) Unmarshal(r recordjar.Record) {
+	p.Mobile.Unmarshal(r)
 }
 
 // New creates a new Player and returns a reference to it. The player is put
@@ -56,7 +74,6 @@ func loadPlayer(sender sender.Interface) (player *Player) {
 func New(sender sender.Interface) (p *Player) {
 	p = loadPlayer(sender)
 	p.add(location.GetStart())
-	log.Printf("Player %d created: %s\n", p.UniqueId(), p.Name())
 	return p
 }
 
@@ -73,8 +90,6 @@ func (p *Player) Destroy() {
 	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
-
-	log.Printf("Destroyed: %s\n", p.Name())
 
 	p.sender = nil
 }
@@ -93,33 +108,35 @@ func (p *Player) add(l location.Interface) {
 	cmd := command.New(p, "LOOK")
 	p.Process(cmd)
 
-	cmd.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	if !l.Crowded() {
+		cmd.Broadcast([]thing.Interface{p}, "There is a puff of smoke and %s appears spluttering and coughing.", p.Name())
+	}
 
 	cmd.Flush()
 }
 
-// remove extracts a player from the world cleanly and announces their
-// departure.
+// remove extracts a player from the world cleanly. If the player's location is
+// not crowded it also announces their departure - in a crowded location their
+// departure will go unnoticed.
 func (p *Player) remove() (removed bool) {
 	l := p.Locate()
 	l.Lock()
 	defer l.Unlock()
 
-	if l.IsAlso(p.Locate()) {
-
-		// Quitting or involuntary disconnection?
-		if p.IsQuitting() {
-			p.Locate().Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
-		} else {
-			PlayerList.Broadcast(nil, "AAAaaarrrggghhh!!!\nA scream is heard across the land as %s is unceremoniously extracted from the world.", p.Name())
-		}
-
-		l.Remove(p)
-		PlayerList.Remove(p)
-		removed = true
+	// Make sure player didn't move between getting the player's location and
+	// locking the location.
+	if !l.IsAlso(p.Locate()) {
+		return false
 	}
 
-	return
+	if !l.Crowded() {
+		l.Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
+	}
+
+	l.Remove(p)
+	PlayerList.Remove(p)
+
+	return true
 }
 
 // dropInventory drops everything the player is carrying.
@@ -169,8 +186,6 @@ func (p *Player) Parse(input string) {
 	// Another funky looking for loop :)
 	for p.parseStage2(cmd) {
 	}
-
-	cmd.Flush()
 }
 
 // parseStage2 is called by Parse to take advantage of defer unwinding. By
@@ -191,7 +206,11 @@ func (p *Player) parseStage2(cmd *command.Command) (retry bool) {
 	retry = cmd.LocksModified()
 
 	if !handled && !retry {
-		cmd.Respond("Eh?")
+		cmd.Respond("[RED]Eh?")
+	}
+
+	if !retry {
+		cmd.Flush()
 	}
 
 	return
@@ -226,6 +245,8 @@ func (p *Player) Process(cmd *command.Command) (handled bool) {
 		handled = p.memprof(cmd)
 	case "QUIT":
 		handled = p.quit(cmd)
+	case "SAY", "'":
+		handled = p.say(cmd)
 	case "SNEEZE":
 		handled = p.sneeze(cmd)
 	}
@@ -303,5 +324,21 @@ func (p *Player) sneeze(cmd *command.Command) (handled bool) {
 	cmd.Respond("You sneeze. Aaahhhccchhhooo!")
 	cmd.Broadcast([]thing.Interface{p}, "You see %s sneeze.", cmd.Issuer.Name())
 	PlayerList.Broadcast(p.Locate().List(), "You hear a loud sneeze.")
+	return true
+}
+
+// say implements the 'SAY' command, alias "'". Say sends a message to all
+// other responders at the current location.
+func (p *Player) say(cmd *command.Command) (handled bool) {
+
+	if len(cmd.Nouns) == 0 {
+		cmd.Respond("[RED]Was there anything in particular you wanted to say?")
+	} else {
+		message := strings.Join(cmd.Input[1:], ` `)
+
+		cmd.Broadcast([]thing.Interface{cmd.Issuer}, "[CYAN]%s says: %s", cmd.Issuer.Name(), message)
+		cmd.Respond("[YELLOW]You say: %s", message)
+	}
+
 	return true
 }

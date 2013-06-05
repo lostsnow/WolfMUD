@@ -7,11 +7,11 @@ package player
 
 import (
 	"bytes"
-	"fmt"
-	"strconv"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+	"fmt"
+	"strconv"
 )
 
 // playerList type records the current players on the server.
@@ -28,16 +28,17 @@ var (
 // Function init makes the mutex channel for locking.
 func init() {
 	PlayerList.mutex = make(chan bool, 1)
+	PlayerList.mutex <- true
 }
 
 // lock acquires a lock on a playerList reference.
 func (l *playerList) lock() {
-	l.mutex <- true
+	<-l.mutex
 }
 
 // unlock releases a lock on a playerList reference.
 func (l *playerList) unlock() {
-	<-l.mutex
+	l.mutex <- true
 }
 
 // Add adds a player to the playerList

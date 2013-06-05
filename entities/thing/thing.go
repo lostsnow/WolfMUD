@@ -17,7 +17,8 @@
 package thing
 
 import (
-	. "code.wolfmud.org/WolfMUD.git/utils/uid"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
+	"code.wolfmud.org/WolfMUD.git/utils/uid"
 	"strings"
 )
 
@@ -27,11 +28,10 @@ type Interface interface {
 	Description() string
 	IsAlias(alias string) bool
 	Aliases() []string
-	IsAlso(thing Interface) bool
-	Lock()
 	Name() string
-	UniqueId() UID
-	Unlock()
+	uid.Interface
+	Init(ref recordjar.Record, refs map[string]Interface)
+	recordjar.Unmarshaler
 }
 
 // Thing type is a default implementation of the thing.Interface
@@ -39,29 +39,19 @@ type Thing struct {
 	name        string
 	description string
 	aliases     []string
-	uniqueId    UID
-	mutex       chan bool
+	uid.UID
 }
 
-// New allocates a new Thing, returning a pointer reference to it. A unique ID
-// will be allocated automatically. The aliases will all be stripped of leading
-// and trailing whitespace then converted to uppercase.
-func New(name string, aliases []string, description string) *Thing {
-
-	t := &Thing{
-		name:        name,
-		aliases:     make([]string, len(aliases)),
-		description: description,
-		uniqueId:    <-Next,
-		mutex:       make(chan bool, 1),
-	}
-
-	for i, a := range aliases {
-		t.aliases[i] = strings.ToUpper(strings.TrimSpace(a))
-	}
-
-	return t
+// Unmarshal takes a recordjar.Record and allocates the data in it to the passed
+// Thing type. A unique ID is allocated automatically.
+func (t *Thing) Unmarshal(r recordjar.Record) {
+	t.name = r.String("name")
+	t.description = r.String(":data:")
+	t.aliases = r.KeywordList("aliases")
+	t.UID = <-uid.Next
 }
+
+func (t *Thing) Init(ref recordjar.Record, refs map[string]Interface) {}
 
 // Description returns the description for a Thing.
 func (t *Thing) Description() string {
@@ -82,7 +72,7 @@ func (t *Thing) Description() string {
 // found.
 func (t *Thing) IsAlias(alias string) bool {
 
-	alias = strings.ToUpper(strings.TrimSpace(alias))
+	alias = strings.ToUpper(alias)
 
 	for _, a := range t.aliases {
 		if a == alias {
@@ -92,51 +82,14 @@ func (t *Thing) IsAlias(alias string) bool {
 	return false
 }
 
+// Aliases returns all of the aliases for a Thing as a string slice.
 func (t *Thing) Aliases() (a []string) {
 	a = make([]string, len(t.aliases))
 	copy(a, t.aliases)
 	return
 }
 
-// IsAlso tests two Things to see if one of them 'is also' the other - hence the
-// function's name.
-//
-// WolfMUD uses a lot of Interfaces and embedded types. So we may be comparing,
-// for example, a Player with a Mobile. However this causes issues:
-//
-//	- Mobile and Player are not the same types
-//	- They can have different interfaces
-//	- Pointers to a Mobile embedded in a Player will be different (of course)
-//
-// So to make things easy we have the unique ID and can use either of:
-//
-//	thisPlayer.IsAlso(thisMobile)
-//	thisPlayer.UniqueId() == thisMobile.UniqueId()
-//
-// The first example using IsAlso tends to make the code easier to read.
-func (t *Thing) IsAlso(thing Interface) bool {
-	return t.uniqueId == thing.UniqueId()
-}
-
-// Lock is a blocking channel lock. It is unlocked by calling Unlock. Unlock
-// should only be called when the lock is held via a successful Lock call. The
-// reason for the method instead of making the lock in the struct public - you
-// cannot access struct properties directly through the Interface.
-func (t *Thing) Lock() {
-	t.mutex <- true
-}
-
-// Unlock unlocks a locked Thing. See Lock method for details.
-func (t *Thing) Unlock() {
-	<-t.mutex
-}
-
 // Name returns the name given to a Thing.
 func (t *Thing) Name() string {
 	return t.name
-}
-
-// UniqueId returns the unique ID of a Thing.
-func (t *Thing) UniqueId() UID {
-	return t.uniqueId
 }
