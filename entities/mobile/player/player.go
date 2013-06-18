@@ -179,6 +179,12 @@ func (p *Player) dropInventory(cmd *command.Command) {
 // location lock!
 func (p *Player) Parse(input string) {
 
+	// If no input respond with nothing so the prompt is redisplayed
+	if input == "" {
+		p.Respond("")
+		return
+	}
+
 	cmd := command.New(p, input)
 	cmd.AddLock(p.Locate())
 	cmd.LocksModified()

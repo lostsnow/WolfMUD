@@ -196,11 +196,7 @@ func (c *Client) receiver() {
 
 				cmd = bytes.TrimRightFunc(buffer[0:LF], unicode.IsSpace)
 
-				if len(cmd) == 0 {
-					c.Send("")
-				} else {
-					c.parser.Parse(string(cmd))
-				}
+				c.parser.Parse(string(cmd))
 
 				// Remove the part of the buffer we just processed by copying the bytes
 				// after the bCursor to the front of the buffer.
