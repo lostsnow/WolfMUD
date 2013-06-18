@@ -31,6 +31,7 @@ import (
 	"bytes"
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"code.wolfmud.org/WolfMUD.git/utils/parser"
+	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
 	"fmt"
 	"log"
@@ -56,12 +57,6 @@ const (
     [GREEN]L[WHITE]iving
     [GREEN]F[WHITE]antasy
 `
-)
-
-// Prompt definitions
-const (
-	PROMPT_NONE    = "\n"
-	PROMPT_DEFAULT = text.COLOR_MAGENTA + "\n>"
 )
 
 // Client represents a TELNET client connection to the server.
@@ -96,9 +91,9 @@ func Spawn(conn *net.TCPConn) {
 	c.conn.SetLinger(0)
 	c.conn.SetNoDelay(false)
 
-	c.prompt = PROMPT_NONE
+	c.prompt = sender.PROMPT_NONE
 	c.Send(GREETING)
-	c.prompt = PROMPT_DEFAULT
+	c.prompt = sender.PROMPT_DEFAULT
 
 	c.parser = player.New(c)
 	c.name = c.parser.Name()
@@ -231,7 +226,7 @@ func (c *Client) receiver() {
 
 	// If we are not quitting or bailing we timed out
 	if !c.isBailing() && !c.parser.IsQuitting() {
-		c.prompt = PROMPT_NONE
+		c.prompt = sender.PROMPT_NONE
 		c.Send(" ")
 		c.parser.Parse("QUIT")
 		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
