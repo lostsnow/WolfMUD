@@ -107,6 +107,8 @@ func Spawn(conn *net.TCPConn) {
 
 	if err := c.bailed(); err != nil {
 		log.Printf("Comms error for: %s, %s", c.name, err)
+	} else {
+		c.Send("\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 	}
 
 	if err := c.conn.Close(); err != nil {

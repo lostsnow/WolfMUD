@@ -316,7 +316,6 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 // up/possibly removed.
 func (p *Player) quit(cmd *command.Command) (handled bool) {
 	p.dropInventory(cmd)
-	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
 	p.quitting = true
 	log.Printf("%s is quitting", p.Name())
 	p.sender.Prompt("")
