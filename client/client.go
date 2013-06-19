@@ -102,14 +102,24 @@ func Spawn(conn *net.TCPConn) {
 
 	c.parser.Destroy()
 
-	if err := c.bailed(); err != nil {
-		log.Printf("Comms error for: %s, %s", c, err)
-	} else {
+	// Check for a network errors BUT ignore timeouts - timeouts are handled in
+	// the receive method when they occur.
+	err := c.bailed()
+	if err != nil {
+		if e, ok := err.(*net.OpError); !ok || !e.Timeout() {
+			log.Printf("Comms error for: %s, %s", c, err)
+		}
+	}
+
+	// If no errors say "Bye Bye" :)
+	if err == nil {
 		c.Send("\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 	}
 
 	if err := c.conn.Close(); err != nil {
-		log.Printf("Error closing socket for %s, %s", c, err)
+		log.Printf("Error closing socket for: %s, %s", c, err)
+	} else {
+		log.Printf("Socket closed for: %s", c)
 	}
 
 	c.parser = nil
@@ -228,24 +238,19 @@ func (c *Client) receiver() {
 
 		// Check for errors reading data (see io.Reader for details)
 		if err != nil {
-			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
-				c.bailing(err)
+			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
+				c.prompt = sender.PROMPT_NONE
+				c.Send(" ")
+				c.parser.Parse("QUIT")
+				c.Send("\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
+				log.Printf("Closing idle connection for: %s", c)
 			}
+			c.bailing(err)
 			break
 		}
 
 	}
 
-	// If we are not quitting or bailing we timed out
-	if !c.isBailing() && !c.parser.IsQuitting() {
-		c.prompt = sender.PROMPT_NONE
-		c.Send(" ")
-		c.parser.Parse("QUIT")
-		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
-		log.Printf("Closing idle connection for: %s", c)
-	}
-
-	log.Printf("receiver ending for %s", c)
 }
 
 // Prompt sets a new prompt and returns the old prompt. It is implemented as
