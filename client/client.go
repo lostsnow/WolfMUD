@@ -92,14 +92,11 @@ func Spawn(conn *net.TCPConn) {
 
 	c.prompt = sender.PROMPT_NONE
 	c.Send(GREETING)
+
+	// Setup and run main player parser
 	c.prompt = sender.PROMPT_DEFAULT
-
 	c.parser = player.New(c)
-
-	log.Printf("Client created: %s", c)
-
 	c.receiver()
-
 	c.parser.Destroy()
 
 	// Check for a network errors BUT ignore timeouts - timeouts are handled in
