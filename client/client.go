@@ -62,7 +62,6 @@ const (
 // Client represents a TELNET client connection to the server.
 type Client struct {
 	parser parser.Interface // Currently attached parser
-	name   string           // Current name allocated by attached parser
 	conn   *net.TCPConn     // The TELNET network connection
 	bail   chan error
 	prompt string
@@ -96,26 +95,41 @@ func Spawn(conn *net.TCPConn) {
 	c.prompt = sender.PROMPT_DEFAULT
 
 	c.parser = player.New(c)
-	c.name = c.parser.Name()
 
-	log.Printf("Client created: %s", c.name)
+	log.Printf("Client created: %s", c)
 
 	c.receiver()
 
 	c.parser.Destroy()
-	c.parser = nil
 
 	if err := c.bailed(); err != nil {
-		log.Printf("Comms error for: %s, %s", c.name, err)
+		log.Printf("Comms error for: %s, %s", c, err)
 	} else {
 		c.Send("\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 	}
 
 	if err := c.conn.Close(); err != nil {
-		log.Printf("Error closing socket for %s, %s", c.name, err)
+		log.Printf("Error closing socket for %s, %s", c, err)
 	}
 
-	log.Printf("Spawn ending for %s", c.name)
+	c.parser = nil
+}
+
+// String returns the client identifier. Currently this has the format of:
+//
+//	name@remote_address:remote_port
+//
+// Having it as a function here makes it easy to change later on if we want to.
+func (c *Client) String() string {
+	var b bytes.Buffer
+	if c.parser != nil {
+		b.WriteString(c.parser.Name())
+	} else {
+		b.WriteString("unknown")
+	}
+	b.WriteByte('@')
+	b.WriteString(c.conn.RemoteAddr().String())
+	return b.String()
 }
 
 // isBailing checks to see if the client is currently bailing.
@@ -228,10 +242,10 @@ func (c *Client) receiver() {
 		c.Send(" ")
 		c.parser.Parse("QUIT")
 		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
-		log.Printf("Closing idle connection for: %s", c.name)
+		log.Printf("Closing idle connection for: %s", c)
 	}
 
-	log.Printf("receiver ending for %s", c.name)
+	log.Printf("receiver ending for %s", c)
 }
 
 // Prompt sets a new prompt and returns the old prompt. It is implemented as
