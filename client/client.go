@@ -47,16 +47,6 @@ const (
 	MAX_TIMEOUT = 10 * time.Minute // Idle connection timeout
 	TERM_WIDTH  = 80               // fold wrapping length - see fold function
 	BUFFER_SIZE = 256              // Comms input buffer length in bytes
-
-	GREETING = `
-
-[GREEN]Wolf[WHITE]MUD Copyright 2012 Andrew 'Diddymus' Rolfe
-
-    [GREEN]W[WHITE]orld
-    [GREEN]O[WHITE]f
-    [GREEN]L[WHITE]iving
-    [GREEN]F[WHITE]antasy
-`
 )
 
 // Client represents a TELNET client connection to the server.
@@ -90,14 +80,14 @@ func Spawn(conn *net.TCPConn) {
 	c.conn.SetLinger(0)
 	c.conn.SetNoDelay(false)
 
-	c.prompt = sender.PROMPT_NONE
-	c.Send(GREETING)
-
-	// Setup and run main player parser
-	c.prompt = sender.PROMPT_DEFAULT
-	c.parser = player.New(c)
-	c.receiver()
-	c.parser.Destroy()
+	// Run parsers until there are no more or we bail
+	for c.parser = player.New(c); c.parser != nil && !c.isBailing(); {
+		c.receiver()
+		c.parser.Destroy()
+		if !c.isBailing() {
+			c.parser = c.parser.Next()
+		}
+	}
 
 	// Check for a network errors BUT ignore timeouts - timeouts are handled in
 	// the receive method when they occur.
