@@ -69,8 +69,9 @@ type Client struct {
 func Spawn(conn *net.TCPConn) {
 
 	c := &Client{
-		conn: conn,
-		bail: make(chan error, 1),
+		conn:   conn,
+		bail:   make(chan error, 1),
+		prompt: sender.PROMPT_DEFAULT,
 	}
 
 	// Initialise bail channel with a nil error
