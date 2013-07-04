@@ -45,7 +45,7 @@ func init() {
 
 // TODO: loadPlayer currently just generates a player instead of actually
 // loading one.
-func loadPlayer(sender sender.Interface) (p *Player) {
+func loadPlayer(s sender.Interface) (p *Player) {
 
 	// Grab the current player count, increment it and put it back again
 	pc := <-playerCount
@@ -60,8 +60,10 @@ func loadPlayer(sender sender.Interface) (p *Player) {
 		"aliases": "Player " + postfix,
 	}
 
-	p = &Player{sender: sender}
+	p = &Player{sender: s}
 	p.Unmarshal(r)
+
+	p.sender.Prompt(sender.PROMPT_DEFAULT)
 
 	return p
 }
