@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"log"
@@ -90,8 +91,6 @@ func (p *Player) Destroy() {
 	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
-
-	p.sender = nil
 }
 
 // add places a player in the world safely and announces their arrival.  We
@@ -346,4 +345,9 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 	}
 
 	return true
+}
+
+// TODO: Temporary stub so we implement the parser interface still.
+func (p *Player) Next() parser.Interface {
+	return nil
 }

@@ -34,4 +34,9 @@ type Interface interface {
 	// If the parser is quitting - exit selected in a menu, player issues quit
 	// command - this should return true otherwise false.
 	IsQuitting() bool
+
+	// Next returns the next parser to be used. This allows us to transfer
+	// control from one parser to another. For example from login→player→login ad
+	// infinitum. It also allows for modular parsers.
+	Next() Interface
 }
