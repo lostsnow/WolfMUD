@@ -89,8 +89,8 @@ func Spawn(conn *net.TCPConn) {
 		}
 	}
 
-	// Check for a network errors BUT ignore timeouts - timeouts are handled in
-	// the receive method when they occur.
+	// Check to see if we bailed because of a network error BUT ignore timeouts.
+	// Timeouts are handled by the receive method as they occur.
 	err := c.bailed()
 	if err != nil {
 		if e, ok := err.(*net.OpError); !ok || !e.Timeout() {
