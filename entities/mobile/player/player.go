@@ -11,21 +11,13 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"log"
 	"os"
 	"runtime/pprof"
-	"strconv"
 	"strings"
-)
-
-// playerCount increments with each player created so we can have unique
-// players - created as 'Player n' until we have proper logins.
-//
-// TODO: Drop playerCount once we have proper logins.
-var (
-	playerCount = make(chan int, 1)
 )
 
 // Player is the implementation of a player. Most of the functionallity comes
@@ -37,48 +29,25 @@ type Player struct {
 	quitting bool
 }
 
-func init() {
-	// Initialise channel before anything can use it
-	playerCount <- 0
-}
-
-// TODO: loadPlayer currently just generates a player instead of actually
-// loading one.
-func loadPlayer(sender sender.Interface) (p *Player) {
-
-	// Grab the current player count, increment it and put it back again
-	pc := <-playerCount
-	pc++
-	playerCount <- pc
-
-	postfix := strconv.Itoa(pc)
-
-	r := map[string]string{
-		"name":    "Player " + postfix,
-		":data:":  "This is player " + postfix,
-		"aliases": "Player " + postfix,
-	}
-
-	p = &Player{sender: sender}
-	p.Unmarshal(r)
-
-	return p
-}
-
 func (p *Player) Unmarshal(r recordjar.Record) {
 	p.Mobile.Unmarshal(r)
 }
 
 // New creates a new Player and returns a reference to it. The player is put
 // into the world at a random starting location and the location is described.
-func New(sender sender.Interface) (p *Player) {
-	p = loadPlayer(sender)
+func New(s sender.Interface, r *recordjar.RecordJar) (p *Player) {
+
+	s.Prompt(sender.PROMPT_DEFAULT)
+
+	p = &Player{sender: s}
+	p.Unmarshal((*r)[0])
 	p.add(location.GetStart())
+
 	return p
 }
 
-// IsQuitting returns true if the player is trying to quit otherwise false. It
-// implements part of the parser.Interface.
+// IsQuitting returns true if the player psrser is trying to quit otherwise
+// false. It implements part of the parser.Interface.
 func (p *Player) IsQuitting() bool {
 	return p.quitting
 }
@@ -90,8 +59,6 @@ func (p *Player) Destroy() {
 	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
-
-	p.sender = nil
 }
 
 // add places a player in the world safely and announces their arrival.  We
@@ -178,6 +145,12 @@ func (p *Player) dropInventory(cmd *command.Command) {
 // with the initial connection and multiple clients all trying to grab the start
 // location lock!
 func (p *Player) Parse(input string) {
+
+	// If no input respond with nothing so the prompt is redisplayed
+	if input == "" {
+		p.Respond("")
+		return
+	}
 
 	cmd := command.New(p, input)
 	cmd.AddLock(p.Locate())
@@ -310,7 +283,6 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 // up/possibly removed.
 func (p *Player) quit(cmd *command.Command) (handled bool) {
 	p.dropInventory(cmd)
-	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
 	p.quitting = true
 	log.Printf("%s is quitting", p.Name())
 	p.sender.Prompt("")
@@ -341,4 +313,9 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 	}
 
 	return true
+}
+
+// Next returns a Login parser for the next parser.
+func (p *Player) Next() parser.Interface {
+	return Login(p.sender)
 }

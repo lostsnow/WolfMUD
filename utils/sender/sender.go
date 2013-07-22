@@ -10,6 +10,16 @@
 // (parser) and outgoing (sender) data over a network connection.
 package sender
 
+import (
+	"code.wolfmud.org/WolfMUD.git/utils/text"
+)
+
+// Standard prompt definitions
+const (
+	PROMPT_NONE    = "\n"
+	PROMPT_DEFAULT = text.COLOR_MAGENTA + "\n>"
+)
+
 // Interface should be implemented by anything that wants to send data. This
 // is typically anything a user will see such as responses to input, menus and
 // messages.

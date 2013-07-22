@@ -31,6 +31,7 @@ import (
 	"bytes"
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"code.wolfmud.org/WolfMUD.git/utils/parser"
+	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
 	"fmt"
 	"log"
@@ -46,28 +47,11 @@ const (
 	MAX_TIMEOUT = 10 * time.Minute // Idle connection timeout
 	TERM_WIDTH  = 80               // fold wrapping length - see fold function
 	BUFFER_SIZE = 256              // Comms input buffer length in bytes
-
-	GREETING = `
-
-[GREEN]Wolf[WHITE]MUD Copyright 2012 Andrew 'Diddymus' Rolfe
-
-    [GREEN]W[WHITE]orld
-    [GREEN]O[WHITE]f
-    [GREEN]L[WHITE]iving
-    [GREEN]F[WHITE]antasy
-`
-)
-
-// Prompt definitions
-const (
-	PROMPT_NONE    = "\n"
-	PROMPT_DEFAULT = text.COLOR_MAGENTA + "\n>"
 )
 
 // Client represents a TELNET client connection to the server.
 type Client struct {
 	parser parser.Interface // Currently attached parser
-	name   string           // Current name allocated by attached parser
 	conn   *net.TCPConn     // The TELNET network connection
 	bail   chan error
 	prompt string
@@ -85,8 +69,9 @@ type Client struct {
 func Spawn(conn *net.TCPConn) {
 
 	c := &Client{
-		conn: conn,
-		bail: make(chan error, 1),
+		conn:   conn,
+		bail:   make(chan error, 1),
+		prompt: sender.PROMPT_DEFAULT,
 	}
 
 	// Initialise bail channel with a nil error
@@ -96,29 +81,51 @@ func Spawn(conn *net.TCPConn) {
 	c.conn.SetLinger(0)
 	c.conn.SetNoDelay(false)
 
-	c.prompt = PROMPT_NONE
-	c.Send(GREETING)
-	c.prompt = PROMPT_DEFAULT
+	// Run parsers until there are no more or we bail
+	for c.parser = player.Login(c); c.parser != nil && !c.isBailing(); {
+		c.receiver()
+		c.parser.Destroy()
+		if !c.isBailing() {
+			c.parser = c.parser.Next()
+		}
+	}
 
-	c.parser = player.New(c)
-	c.name = c.parser.Name()
+	// Check to see if we bailed because of a network error BUT ignore timeouts.
+	// Timeouts are handled by the receive method as they occur.
+	err := c.bailed()
+	if err != nil {
+		if e, ok := err.(*net.OpError); !ok || !e.Timeout() {
+			log.Printf("Comms error for: %s, %s", c, err)
+		}
+	}
 
-	log.Printf("Client created: %s", c.name)
-
-	c.receiver()
-
-	c.parser.Destroy()
-	c.parser = nil
-
-	if err := c.bailed(); err != nil {
-		log.Printf("Comms error for: %s, %s", c.name, err)
+	// If no errors say "Bye Bye" :)
+	if err == nil {
+		c.Send("\n\n[YELLOW]Bye Bye[WHITE]\n\n")
 	}
 
 	if err := c.conn.Close(); err != nil {
-		log.Printf("Error closing socket for %s, %s", c.name, err)
+		log.Printf("Error closing socket for: %s, %s", c, err)
+	} else {
+		log.Printf("Socket closed for: %s", c)
 	}
+}
 
-	log.Printf("Spawn ending for %s", c.name)
+// String returns the client identifier. Currently this has the format of:
+//
+//	name@remote_address:remote_port
+//
+// Having it as a function here makes it easy to change later on if we want to.
+func (c *Client) String() string {
+	var b bytes.Buffer
+	if c.parser != nil {
+		b.WriteString(c.parser.Name())
+	} else {
+		b.WriteString("unknown")
+	}
+	b.WriteByte('@')
+	b.WriteString(c.conn.RemoteAddr().String())
+	return b.String()
 }
 
 // isBailing checks to see if the client is currently bailing.
@@ -201,11 +208,7 @@ func (c *Client) receiver() {
 
 				cmd = bytes.TrimRightFunc(buffer[0:LF], unicode.IsSpace)
 
-				if len(cmd) == 0 {
-					c.Send("")
-				} else {
-					c.parser.Parse(string(cmd))
-				}
+				c.parser.Parse(string(cmd))
 
 				// Remove the part of the buffer we just processed by copying the bytes
 				// after the bCursor to the front of the buffer.
@@ -221,24 +224,19 @@ func (c *Client) receiver() {
 
 		// Check for errors reading data (see io.Reader for details)
 		if err != nil {
-			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
-				c.bailing(err)
+			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
+				c.prompt = sender.PROMPT_NONE
+				c.Send(" ")
+				c.parser.Parse("QUIT")
+				c.Send("\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
+				log.Printf("Closing idle connection for: %s", c)
 			}
+			c.bailing(err)
 			break
 		}
 
 	}
 
-	// If we are not quitting or bailing we timed out
-	if !c.isBailing() && !c.parser.IsQuitting() {
-		c.prompt = PROMPT_NONE
-		c.Send(" ")
-		c.parser.Parse("QUIT")
-		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
-		log.Printf("Closing idle connection for: %s", c.name)
-	}
-
-	log.Printf("receiver ending for %s", c.name)
 }
 
 // Prompt sets a new prompt and returns the old prompt. It is implemented as

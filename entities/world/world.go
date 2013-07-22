@@ -30,13 +30,13 @@ func (w *World) Genesis() {
 
 	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(w.host, w.port))
 	if err != nil {
-		log.Printf("Error resolving TCP address, %s. World is ending.", err)
+		log.Printf("Error resolving local address: %s", err)
 		return
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Printf("Error setting up listener, %s. World is ending.", err)
+		log.Printf("Error setting up listener: %s", err)
 		return
 	}
 
@@ -44,10 +44,10 @@ func (w *World) Genesis() {
 
 	for {
 		if conn, err := listener.AcceptTCP(); err != nil {
-			log.Printf("Error accepting connection: %s. World is ending.", err)
+			log.Printf("Error accepting connection: %s", err)
 			return
 		} else {
-			log.Printf("Connection from %s.", conn.RemoteAddr().String())
+			log.Printf("Connection from: %s", conn.RemoteAddr().String())
 			go client.Spawn(conn)
 		}
 	}
