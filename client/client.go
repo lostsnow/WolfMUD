@@ -82,7 +82,7 @@ func Spawn(conn *net.TCPConn) {
 	c.conn.SetNoDelay(false)
 
 	// Run parsers until there are no more or we bail
-	for c.parser = player.New(c); c.parser != nil && !c.isBailing(); {
+	for c.parser = player.Login(c); c.parser != nil && !c.isBailing(); {
 		c.receiver()
 		c.parser.Destroy()
 		if !c.isBailing() {
@@ -109,8 +109,6 @@ func Spawn(conn *net.TCPConn) {
 	} else {
 		log.Printf("Socket closed for: %s", c)
 	}
-
-	c.parser = nil
 }
 
 // String returns the client identifier. Currently this has the format of:
