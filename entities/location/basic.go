@@ -44,14 +44,6 @@ func (b *Basic) Unmarshal(r recordjar.Record) {
 	b.mutex <- true
 }
 
-// splitter is a function that returns true if passed rune is not a digit or
-// letter, otherwise returns false. This lets exit pairs have any non-digit or
-// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
-// This should make specifying exits user friendly.
-func splitter(r rune) bool {
-	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
-}
-
 func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
 	b.Thing.Init(ref, refs)
 
@@ -77,6 +69,14 @@ func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
 			}
 		}
 	}
+}
+
+// splitter is a function that returns true if passed rune is not a digit or
+// letter, otherwise returns false. This lets exit pairs have any non-digit or
+// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
+// This should make specifying exits user friendly.
+func splitter(r rune) bool {
+	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
 }
 
 // LinkExit links one location to another in the direction given. This is
