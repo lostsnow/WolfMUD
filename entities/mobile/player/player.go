@@ -46,8 +46,15 @@ func New(s sender.Interface, r *recordjar.RecordJar) (p *Player) {
 
 	s.Prompt(sender.PROMPT_DEFAULT)
 
-	p = &Player{sender: s}
-	p.Unmarshal((*r)[0])
+	data := loader.Unmarshal(r)
+	if data["PLAYER"] == nil {
+		log.Printf("Error loading player: %#v", r)
+		s.Send("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.'")
+		return nil
+	}
+
+	p = data["PLAYER"].(*Player)
+	p.sender = s
 	p.add(location.GetStart())
 
 	return p
