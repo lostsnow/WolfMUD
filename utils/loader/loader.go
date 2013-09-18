@@ -21,8 +21,23 @@ import (
 )
 
 var (
-	refs map[string]thing.Interface
+	refs    map[string]thing.Interface
+	loaders map[string]recordjar.Unmarshaler
 )
+
+func init() {
+	loaders = make(map[string]recordjar.Unmarshaler)
+}
+
+func Register(name string, u recordjar.Unmarshaler) {
+	name = strings.ToUpper(name)
+	if _, ok := loaders[name]; !ok {
+		loaders[name] = u
+	} else {
+		panic("Duplicate loader registering: " + name)
+	}
+	log.Printf("Registered loader: %s", name)
+}
 
 func Load() {
 	refs = make(map[string]thing.Interface)
