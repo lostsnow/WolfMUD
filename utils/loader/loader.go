@@ -9,11 +9,13 @@
 package loader
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities/is"
 	"code.wolfmud.org/WolfMUD.git/entities/location"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/entities/thing/item"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
+
 	"log"
 	"os"
 	"path/filepath"
@@ -62,10 +64,10 @@ func load(filename string) {
 
 	log.Printf("Loading data file: %s", filepath.Base(filename))
 
-	refs := make(map[string]thing.Interface)
+	refs := make(map[string]recordjar.Unmarshaler)
 	rj, _ := recordjar.Read(f)
 	var i thing.Interface
-	var r, t string
+	var r, t, name string
 
 	for _, rec := range rj {
 
@@ -86,7 +88,14 @@ func load(filename string) {
 		if i != nil {
 			i.Unmarshal(rec)
 			refs[r] = i
-			log.Printf("Loaded: %s (%s)", refs[r].Name(), t)
+
+			if n, ok := i.(is.Nameable); ok {
+				name = n.Name()
+			} else {
+				name = "Unnamed"
+			}
+
+			log.Printf("Loaded: %s (%s)", name, t)
 		} else {
 			log.Printf("Unknown type: %#v", t)
 		}

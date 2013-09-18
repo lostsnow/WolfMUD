@@ -44,7 +44,7 @@ func (b *Basic) Unmarshal(r recordjar.Record) {
 	b.mutex <- true
 }
 
-func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
+func (b *Basic) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
 	b.Thing.Init(ref, refs)
 
 	var pair []string

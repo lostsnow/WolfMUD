@@ -30,7 +30,7 @@ func (i *Item) Unmarshal(r recordjar.Record) {
 
 // TODO: Instead of calling Unmarshal within Init we should be calling a
 // Copy/Clone function instead.
-func (i *Item) Init(ref recordjar.Record, refs map[string]thing.Interface) {
+func (i *Item) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
 	for x, location := range ref.KeywordList("location") {
 		if l, ok := refs[location]; ok {
 			if l, ok := l.(inventory.Interface); ok {

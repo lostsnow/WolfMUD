@@ -70,6 +70,7 @@ type RecordJar []Record
 // by a Record and parse / decode it.
 type Unmarshaler interface {
 	Unmarshal(Record)
+	Init(ref Record, refs map[string]Unmarshaler)
 }
 
 // Constants for header line types

@@ -30,7 +30,6 @@ type Interface interface {
 	Aliases() []string
 	Name() string
 	uid.Interface
-	Init(ref recordjar.Record, refs map[string]Interface)
 	recordjar.Unmarshaler
 }
 
@@ -51,7 +50,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 	t.UID = <-uid.Next
 }
 
-func (t *Thing) Init(ref recordjar.Record, refs map[string]Interface) {}
+func (t *Thing) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {}
 
 // Description returns the description for a Thing.
 func (t *Thing) Description() string {
