@@ -17,8 +17,10 @@
 package thing
 
 import (
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/uid"
+
 	"strings"
 )
 
@@ -30,7 +32,6 @@ type Interface interface {
 	Aliases() []string
 	Name() string
 	uid.Interface
-	recordjar.Unmarshaler
 }
 
 // Thing type is a default implementation of the thing.Interface
@@ -39,6 +40,11 @@ type Thing struct {
 	description string
 	aliases     []string
 	uid.UID
+}
+
+// Register zero value instance of Thing with the loader.
+func init() {
+	loader.Register("thing", &Thing{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

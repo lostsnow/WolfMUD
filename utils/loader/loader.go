@@ -10,15 +10,13 @@ package loader
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/is"
-	"code.wolfmud.org/WolfMUD.git/entities/location"
-	"code.wolfmud.org/WolfMUD.git/entities/thing"
-	"code.wolfmud.org/WolfMUD.git/entities/thing/item"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -57,53 +55,81 @@ func load(filename string) {
 
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Printf("Failed to load data file: %s", err)
+		log.Printf("Failed to open data file: %s", err)
 		return
 	}
 	defer f.Close()
 
 	log.Printf("Loading data file: %s", filepath.Base(filename))
 
+	rj, err := recordjar.Read(f)
+	if err != nil {
+		log.Printf("Failed to load data file: %s", err)
+		return
+	}
+
+	Unmarshal(&rj)
+
+}
+
+func Unmarshal(rj *recordjar.RecordJar) map[string]recordjar.Unmarshaler {
+
 	refs := make(map[string]recordjar.Unmarshaler)
-	rj, _ := recordjar.Read(f)
-	var i thing.Interface
 	var r, t, name string
+	var zc recordjar.Unmarshaler
 
-	for _, rec := range rj {
+	for _, rec := range *rj {
 
-		r = rec.String("ref")
-		t = rec.String("type")
+		r = rec.Keyword("ref")
+		t = rec.Keyword("type")
 
-		switch strings.ToLower(t) {
-		case "item":
-			i = &item.Item{}
-		case "basic":
-			i = &location.Basic{}
-		case "start":
-			i = &location.Start{}
-		default:
-			i = nil
+		if t == "" {
+			log.Printf("No type given: %#v", rec)
+			continue
 		}
 
-		if i != nil {
-			i.Unmarshal(rec)
-			refs[r] = i
+		if i, ok := loaders[t]; ok {
 
-			if n, ok := i.(is.Nameable); ok {
+			// Create an empty, zero value copy of registered type and unmarshal the
+			// current record into it. Then store it in refs so Init functions can
+			// refer to it if needed.
+			zc = reflect.New(reflect.ValueOf(i).Elem().Type()).Interface().(recordjar.Unmarshaler)
+			zc.Unmarshal(rec)
+
+			if n, ok := zc.(is.Nameable); ok {
 				name = n.Name()
 			} else {
 				name = "Unnamed"
 			}
 
-			log.Printf("Loaded: %s (%s)", name, t)
+			if r == "" {
+				log.Printf("Loaded: %s (%s, not referable)", name, t)
+				log.Printf("Init: %s (%s)", name, t)
+				zc.Init(rec, refs)
+			} else {
+				refs[r] = zc
+				log.Printf("Loaded: %s (%s, %s)", name, t, r)
+			}
 		} else {
-			log.Printf("Unknown type: %#v", t)
+			log.Printf("Unknown type: %s", t)
 		}
 	}
 
-	for _, rec := range rj {
-		if r, ok := refs[rec.String("ref")]; ok {
-			r.Init(rec, refs)
+	for _, rec := range *rj {
+		r = rec.Keyword("ref")
+
+		if zc, ok := refs[r]; ok {
+
+			if zc, ok := zc.(is.Nameable); ok {
+				name = zc.Name()
+			} else {
+				name = "Unnamed"
+			}
+
+			log.Printf("Init: %s (%s, %s)", name, t, r)
+			zc.Init(rec, refs)
 		}
 	}
+
+	return refs
 }

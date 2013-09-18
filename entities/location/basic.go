@@ -9,9 +9,11 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+
 	"fmt"
 	"log"
 	"strings"
@@ -34,6 +36,11 @@ type Basic struct {
 	inventory.Inventory
 	directionalExits
 	mutex chan bool
+}
+
+// Register zero value instance of Basic with the loader.
+func init() {
+	loader.Register("basic", &Basic{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

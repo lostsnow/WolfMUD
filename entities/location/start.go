@@ -6,7 +6,9 @@
 package location
 
 import (
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
+
 	"math/rand"
 )
 
@@ -17,6 +19,11 @@ var start []*Start
 // enter the world. It is simply a new type wrapping a Basic location.
 type Start struct {
 	Basic
+}
+
+// Register zero value instance of Start with the loader.
+func init() {
+	loader.Register("start", &Start{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

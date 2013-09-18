@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 )
 
 // Mobile provides a default basic implementation of a mobile.
@@ -20,6 +21,11 @@ type Mobile struct {
 	thing.Thing
 	inventory.Inventory
 	location location.Interface
+}
+
+// Register zero value instance of Mobile with the loader.
+func init() {
+	loader.Register("mobile", &Mobile{})
 }
 
 // Relocate sets a mobile's internal location reference. It implements part of
