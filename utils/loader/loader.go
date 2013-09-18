@@ -21,7 +21,6 @@ import (
 )
 
 var (
-	refs    map[string]thing.Interface
 	loaders map[string]recordjar.Unmarshaler
 )
 
@@ -40,9 +39,6 @@ func Register(name string, u recordjar.Unmarshaler) {
 }
 
 func Load() {
-	refs = make(map[string]thing.Interface)
-	defer func() { refs = nil }()
-
 	if files, err := filepath.Glob(config.DataDir + "*.wrj"); err != nil {
 		log.Printf("Failed to find data files: %s", err)
 	} else {
@@ -66,6 +62,7 @@ func load(filename string) {
 
 	log.Printf("Loading data file: %s", filepath.Base(filename))
 
+	refs := make(map[string]thing.Interface)
 	rj, _ := recordjar.Read(f)
 	var i thing.Interface
 	var r, t string
