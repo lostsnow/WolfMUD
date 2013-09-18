@@ -12,6 +12,9 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/stats"
+
+	_ "code.wolfmud.org/WolfMUD.git/entities/thing/item"
+
 	"log"
 )
 

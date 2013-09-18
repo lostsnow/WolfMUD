@@ -11,9 +11,11 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
+
 	"log"
 	"os"
 	"runtime/pprof"
@@ -29,6 +31,11 @@ type Player struct {
 	quitting bool
 }
 
+// Register zero value instance of Player with the loader.
+func init() {
+	loader.Register("player", &Player{})
+}
+
 func (p *Player) Unmarshal(r recordjar.Record) {
 	p.Mobile.Unmarshal(r)
 }
@@ -39,8 +46,15 @@ func New(s sender.Interface, r *recordjar.RecordJar) (p *Player) {
 
 	s.Prompt(sender.PROMPT_DEFAULT)
 
-	p = &Player{sender: s}
-	p.Unmarshal((*r)[0])
+	data := loader.Unmarshal(r)
+	if data["PLAYER"] == nil {
+		log.Printf("Error loading player: %#v", r)
+		s.Send("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.'")
+		return nil
+	}
+
+	p = data["PLAYER"].(*Player)
+	p.sender = s
 	p.add(location.GetStart())
 
 	return p

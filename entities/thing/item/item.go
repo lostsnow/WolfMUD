@@ -12,8 +12,10 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/units"
+
 	"log"
 )
 
@@ -23,6 +25,11 @@ type Item struct {
 	weight units.Weight
 }
 
+// Register zero value instance of Item with the loader.
+func init() {
+	loader.Register("item", &Item{})
+}
+
 func (i *Item) Unmarshal(r recordjar.Record) {
 	i.weight = units.Weight(r.Int("weight"))
 	i.Thing.Unmarshal(r)
@@ -30,7 +37,7 @@ func (i *Item) Unmarshal(r recordjar.Record) {
 
 // TODO: Instead of calling Unmarshal within Init we should be calling a
 // Copy/Clone function instead.
-func (i *Item) Init(ref recordjar.Record, refs map[string]thing.Interface) {
+func (i *Item) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
 	for x, location := range ref.KeywordList("location") {
 		if l, ok := refs[location]; ok {
 			if l, ok := l.(inventory.Interface); ok {

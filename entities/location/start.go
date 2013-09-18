@@ -6,22 +6,24 @@
 package location
 
 import (
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
+
 	"math/rand"
 )
 
 // Start contains pointers to all of the available starting locations.
 var start []*Start
 
-// GetStart return a random starting location.
-func GetStart() *Start {
-	return start[rand.Intn(len(start))]
-}
-
 // Start implements a starting location. That is a location where players can
 // enter the world. It is simply a new type wrapping a Basic location.
 type Start struct {
 	Basic
+}
+
+// Register zero value instance of Start with the loader.
+func init() {
+	loader.Register("start", &Start{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
@@ -33,4 +35,9 @@ func (s *Start) Unmarshal(r recordjar.Record) {
 	}()
 
 	s.Basic.Unmarshal(r)
+}
+
+// GetStart return a random starting location.
+func GetStart() *Start {
+	return start[rand.Intn(len(start))]
 }

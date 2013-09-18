@@ -9,9 +9,11 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
+	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/messaging"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+
 	"fmt"
 	"log"
 	"strings"
@@ -36,6 +38,11 @@ type Basic struct {
 	mutex chan bool
 }
 
+// Register zero value instance of Basic with the loader.
+func init() {
+	loader.Register("basic", &Basic{})
+}
+
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Basic type.
 func (b *Basic) Unmarshal(r recordjar.Record) {
@@ -44,15 +51,7 @@ func (b *Basic) Unmarshal(r recordjar.Record) {
 	b.mutex <- true
 }
 
-// splitter is a function that returns true if passed rune is not a digit or
-// letter, otherwise returns false. This lets exit pairs have any non-digit or
-// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
-// This should make specifying exits user friendly.
-func splitter(r rune) bool {
-	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
-}
-
-func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
+func (b *Basic) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
 	b.Thing.Init(ref, refs)
 
 	var pair []string
@@ -77,6 +76,14 @@ func (b *Basic) Init(ref recordjar.Record, refs map[string]thing.Interface) {
 			}
 		}
 	}
+}
+
+// splitter is a function that returns true if passed rune is not a digit or
+// letter, otherwise returns false. This lets exit pairs have any non-digit or
+// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
+// This should make specifying exits user friendly.
+func splitter(r rune) bool {
+	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
 }
 
 // LinkExit links one location to another in the direction given. This is
