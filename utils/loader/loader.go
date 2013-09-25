@@ -10,7 +10,6 @@ package loader
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/is"
-	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 
 	"log"
@@ -38,8 +37,8 @@ func Register(name string, u recordjar.Unmarshaler) {
 	log.Printf("Registered loader: %s", name)
 }
 
-func Load() {
-	if files, err := filepath.Glob(config.DataDir + "*.wrj"); err != nil {
+func Load(dir string) {
+	if files, err := filepath.Glob(dir + "*.wrj"); err != nil {
 		log.Printf("Failed to find data files: %s", err)
 	} else {
 		for _, file := range files {

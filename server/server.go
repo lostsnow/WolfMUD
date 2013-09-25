@@ -25,7 +25,7 @@ func main() {
 
 	config.Read()
 	stats.Start()
-	loader.Load()
+	loader.Load(config.DataDir)
 
 	world.New(config.ListenAddress, config.ListenPort).Genesis()
 
