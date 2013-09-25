@@ -6,11 +6,10 @@
 // TODO: The loader should read text files and parse them creating entities
 // that are then loaded into the world. At the moment the file parser has not
 // been written and the loader is hardcoded.
-package loader
+package recordjar
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/is"
-	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 
 	"log"
 	"os"
@@ -20,14 +19,14 @@ import (
 )
 
 var (
-	loaders map[string]recordjar.Unmarshaler
+	loaders map[string]Unmarshaler
 )
 
 func init() {
-	loaders = make(map[string]recordjar.Unmarshaler)
+	loaders = make(map[string]Unmarshaler)
 }
 
-func Register(name string, u recordjar.Unmarshaler) {
+func Register(name string, u Unmarshaler) {
 	name = strings.ToUpper(name)
 	if _, ok := loaders[name]; !ok {
 		loaders[name] = u
@@ -61,7 +60,7 @@ func load(filename string) {
 
 	log.Printf("Loading data file: %s", filepath.Base(filename))
 
-	rj, err := recordjar.Read(f)
+	rj, err := Read(f)
 	if err != nil {
 		log.Printf("Failed to load data file: %s", err)
 		return
@@ -71,11 +70,11 @@ func load(filename string) {
 
 }
 
-func Unmarshal(rj *recordjar.RecordJar) map[string]recordjar.Unmarshaler {
+func Unmarshal(rj *RecordJar) map[string]Unmarshaler {
 
-	refs := make(map[string]recordjar.Unmarshaler)
+	refs := make(map[string]Unmarshaler)
 	var r, t, name string
-	var zc recordjar.Unmarshaler
+	var zc Unmarshaler
 
 	for _, rec := range *rj {
 
@@ -92,7 +91,7 @@ func Unmarshal(rj *recordjar.RecordJar) map[string]recordjar.Unmarshaler {
 			// Create an empty, zero value copy of registered type and unmarshal the
 			// current record into it. Then store it in refs so Init functions can
 			// refer to it if needed.
-			zc = reflect.New(reflect.ValueOf(i).Elem().Type()).Interface().(recordjar.Unmarshaler)
+			zc = reflect.New(reflect.ValueOf(i).Elem().Type()).Interface().(Unmarshaler)
 			zc.Unmarshal(rec)
 
 			if n, ok := zc.(is.Nameable); ok {
