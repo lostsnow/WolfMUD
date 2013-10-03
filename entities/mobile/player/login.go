@@ -47,15 +47,16 @@ const (
 	needPassword
 	badCredentials
 	goodCredentials
+	badPlayerFile
 )
 
 // login is the implementation of a parser for logging into the server :)
 type login struct {
 	state
-	sender    sender.Interface
-	name      string
-	recordjar *recordjar.RecordJar
-	quitting  bool
+	sender   sender.Interface
+	name     string
+	player   *Player
+	quitting bool
 }
 
 // Login creates and returns a new login parser.
@@ -112,6 +113,9 @@ func (l *login) Parse(input string) {
 	case goodCredentials:
 		// THIS CASE INTENTIONALLY LEFT BLANK...
 
+	case badPlayerFile:
+		// THIS CASE INTENTIONALLY LEFT BLANK...
+
 	}
 
 	// (mostly) OUTPUT PROCESSING
@@ -139,7 +143,7 @@ func (l *login) Parse(input string) {
 			msg += "Enter character's password or just press [CYAN]ENTER[WHITE] to abort."
 
 		case badCredentials:
-			msg += "[RED]Name or password is incorrect. Please try again.[WHITE]\n"
+			msg += "[RED]Name or password is incorrect. Please try again.[WHITE]\n\n"
 			l.state = needName
 			again = true
 
@@ -147,6 +151,12 @@ func (l *login) Parse(input string) {
 			l.sender.Prompt(sender.PROMPT_NONE)
 			msg += "[GREEN]A loud voice booms 'You have been brought back " + l.name + "'.[WHITE]\n\n"
 			l.quitting = true
+
+		case badPlayerFile:
+			l.sender.Prompt(sender.PROMPT_NONE)
+			msg += "[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.[WHITE]\n\n"
+			l.state = needName
+			again = true
 
 		}
 
@@ -187,7 +197,17 @@ func (l *login) checkName(input string) state {
 // return a state of goodCredentials. Otherwise we return a state of
 // badCredentials.
 //
-// TODO: Most of this processing should be moved to player.go
+// If the credentials are good but the player's file cannot be loaded we return
+// a state of badPlayerFile.
+//
+// Note that we are manually opening the player's file, reading it as a
+// recordjar, peeking inside it, then unmarshaling it. This is so that we can
+// abort at any point - player not found, incorrect password, corrupt player
+// file - having done as little work as possible. In this way we are not
+// unmarshaling players which may have a lot of dependant stuff (inventory) to
+// unmarshal just to validate the login - someone could hit the server and tie
+// up processing with invalid logins otherwise if the unmarshaling took a
+// significant amount of time.
 //
 // NOTE: The 88 character filename + 4 character extension (.wrj) will break
 // some file systems such as HFS on Mac OS (Not OS X), Joliet for CD-ROMs and
@@ -231,15 +251,22 @@ func (l *login) checkPassword(input string) state {
 	io.WriteString(h, s+input)
 
 	// Million dollar question: does the salt+input password hash match the
-	// salt+file password hash?
-	if base64.URLEncoding.EncodeToString(h.Sum(nil)) == p {
-		l.name = r.String("name")
-		l.recordjar = &rj
-		log.Printf("Successful login: %s", l.name)
-		return goodCredentials
+	// salt+file password hash? If so unmarshal the player's file.
+	if base64.URLEncoding.EncodeToString(h.Sum(nil)) != p {
+		return badCredentials
 	}
 
-	return badCredentials
+	l.name = r.String("name")
+	data := recordjar.Unmarshal(&rj)
+
+	if data["PLAYER"] == nil {
+		log.Printf("Error loading player: %#v", rj)
+		return badPlayerFile
+	}
+
+	l.player = data["PLAYER"].(*Player)
+	log.Printf("Successful login: %s", l.name)
+	return goodCredentials
 }
 
 func (l *login) Name() string {
@@ -259,8 +286,9 @@ func (l *login) IsQuitting() bool {
 // Next returns either a new player parser or if we are wanting the client to
 // quit we just return nil for the next parser to use.
 func (l *login) Next() parser.Interface {
-	if l.recordjar == nil {
+	if l.player == nil {
 		return nil
 	}
-	return New(l.sender, l.recordjar)
+	l.player.Start(l.sender)
+	return l.player
 }
