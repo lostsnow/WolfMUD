@@ -257,7 +257,7 @@ func (l *login) checkPassword(input string) state {
 	}
 
 	l.name = r.String("name")
-	data := recordjar.Unmarshal(&rj)
+	data := recordjar.UnmarshalJar(&rj)
 
 	if data["PLAYER"] == nil {
 		log.Printf("Error loading player: %#v", rj)

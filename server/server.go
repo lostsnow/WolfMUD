@@ -26,7 +26,7 @@ func main() {
 	config.Read()
 	stats.Start()
 
-	recordjar.Load(config.DataDir)
+	recordjar.LoadDir(config.DataDir)
 
 	world.New(config.ListenAddress, config.ListenPort).Genesis()
 
