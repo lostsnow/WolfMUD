@@ -12,7 +12,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
-	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/units"
 
@@ -27,7 +26,7 @@ type Item struct {
 
 // Register zero value instance of Item with the loader.
 func init() {
-	loader.Register("item", &Item{})
+	recordjar.Register("item", &Item{})
 }
 
 func (i *Item) Unmarshal(r recordjar.Record) {

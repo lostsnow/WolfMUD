@@ -17,7 +17,6 @@
 package thing
 
 import (
-	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/uid"
 
@@ -44,7 +43,7 @@ type Thing struct {
 
 // Register zero value instance of Thing with the loader.
 func init() {
-	loader.Register("thing", &Thing{})
+	recordjar.Register("thing", &Thing{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

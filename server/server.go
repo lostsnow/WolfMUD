@@ -10,7 +10,7 @@ package main
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/world"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
-	"code.wolfmud.org/WolfMUD.git/utils/loader"
+	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/stats"
 
 	_ "code.wolfmud.org/WolfMUD.git/entities/thing/item"
@@ -25,7 +25,8 @@ func main() {
 
 	config.Read()
 	stats.Start()
-	loader.Load()
+
+	recordjar.LoadDir(config.DataDir)
 
 	world.New(config.ListenAddress, config.ListenPort).Genesis()
 

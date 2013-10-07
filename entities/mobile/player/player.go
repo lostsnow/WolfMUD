@@ -11,7 +11,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
-	"code.wolfmud.org/WolfMUD.git/utils/loader"
 	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
@@ -33,31 +32,19 @@ type Player struct {
 
 // Register zero value instance of Player with the loader.
 func init() {
-	loader.Register("player", &Player{})
+	recordjar.Register("player", &Player{})
 }
 
 func (p *Player) Unmarshal(r recordjar.Record) {
 	p.Mobile.Unmarshal(r)
 }
 
-// New creates a new Player and returns a reference to it. The player is put
-// into the world at a random starting location and the location is described.
-func New(s sender.Interface, r *recordjar.RecordJar) (p *Player) {
-
+// Start starts a Player off in the world. The player is put into the world at
+// a random starting location and the location is described to them.
+func (p *Player) Start(s sender.Interface) {
 	s.Prompt(sender.PROMPT_DEFAULT)
-
-	data := loader.Unmarshal(r)
-	if data["PLAYER"] == nil {
-		log.Printf("Error loading player: %#v", r)
-		s.Send("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.'")
-		return nil
-	}
-
-	p = data["PLAYER"].(*Player)
 	p.sender = s
 	p.add(location.GetStart())
-
-	return p
 }
 
 // IsQuitting returns true if the player psrser is trying to quit otherwise
