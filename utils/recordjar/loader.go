@@ -155,6 +155,8 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 // registered Unmarshaler as the 'template'. Unmarshal is then called on the new
 // Unmarshaler passing it the Record. Values from the Record are then used to
 // fill in the 'template'.
+//
+// If there is an error it will be *NoTypeError or *UnknownTypeError.
 func UnmarshalRecord(r Record) (u Unmarshaler, err error) {
 
 	// Without a type we cannot find the correct unmarshaler
