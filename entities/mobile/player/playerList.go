@@ -1,4 +1,4 @@
-// Copyright 2012 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2013 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
@@ -6,10 +6,11 @@
 package player
 
 import (
-	"bytes"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+
+	"bytes"
 	"fmt"
 	"strconv"
 )
@@ -32,9 +33,7 @@ type playerList struct {
 }
 
 // PlayerList exports the playerList type
-var (
-	PlayerList playerList
-)
+var PlayerList playerList
 
 // init makes the mutex channel for locking and sets up the players map.
 func init() {
@@ -44,12 +43,12 @@ func init() {
 	PlayerList.players = make(map[string]*Player)
 }
 
-// lock acquires a lock on a playerList reference.
+// lock acquires a lock on the package level playerList instance.
 func (l *playerList) lock() {
 	<-l.mutex
 }
 
-// unlock releases a lock on a playerList reference.
+// unlock releases a lock on the package level playerList instance.
 func (l *playerList) unlock() {
 	l.mutex <- true
 }
