@@ -14,9 +14,20 @@ import (
 	"strconv"
 )
 
-// playerList type records the current players on the server.
+// DuplicateLoginError is raised when a player is already in the PlayerList and
+// tries to get added a second time.
+type DuplicateLoginError struct {
+	player *Player
+}
+
+func (e DuplicateLoginError) Error() string {
+	return fmt.Sprintf("Player already logged in: %s", e.player.Name())
+}
+
+// playerList type records the current players on the server. Nothing is
+// exported as access should be through the package level PlayerList.
 type playerList struct {
-	players []*Player
+	players map[string]*Player
 	mutex   chan bool
 }
 
@@ -25,10 +36,12 @@ var (
 	PlayerList playerList
 )
 
-// Function init makes the mutex channel for locking.
+// init makes the mutex channel for locking and sets up the players map.
 func init() {
 	PlayerList.mutex = make(chan bool, 1)
 	PlayerList.mutex <- true
+
+	PlayerList.players = make(map[string]*Player)
 }
 
 // lock acquires a lock on a playerList reference.
@@ -41,26 +54,24 @@ func (l *playerList) unlock() {
 	l.mutex <- true
 }
 
-// Add adds a player to the playerList
-func (l *playerList) Add(player *Player) {
+// Add adds a player to the playerList. If the player is already in the
+// playerList DuplicateLoginError will be returned.
+func (l *playerList) Add(player *Player) error {
 	l.lock()
 	defer l.unlock()
-	l.players = append(l.players, player)
+	if _, found := l.players[player.Name()]; !found {
+		l.players[player.Name()] = player
+		return nil
+	}
+	return &DuplicateLoginError{player}
 }
 
-// Remove removes a player from the playerList
+// Remove removes a player from the playerList. If the player is not in the
+// playerList no error is raised and the method completes normally.
 func (l *playerList) Remove(player *Player) {
 	l.lock()
 	defer l.unlock()
-	for index, p := range l.players {
-		if player.IsAlso(p) {
-			l.players = append(l.players[:index], l.players[index+1:]...)
-			if len(l.players) == 0 {
-				l.players = nil
-			}
-			break
-		}
-	}
+	delete(l.players, player.Name())
 }
 
 // Length returns the number of players in the playerList
