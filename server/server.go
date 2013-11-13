@@ -18,10 +18,30 @@ import (
 	"log"
 )
 
+// version is set at compile time by passing in e.g:
+//
+//		-ldflags "-X main.version $(git describe --dirty)"
+//
+// this will set version to something like:
+//
+//		PROTOTYPE1-110-g233321a
+//
+// If there are uncomitted changes '-dirty' will be appended to the end of the
+// version string. This is a very handy reference when debugging other people
+// issues.
+//
+// Not sure how this will pan out so will have to wait and see...
+var version string
+
 func main() {
+
+	if version == "" {
+		version = "Unknown Build"
+	}
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	log.Println("Starting WolfMUD server...")
+	log.Printf("WolfMUD version: %s", version)
 
 	config.Read()
 	stats.Start()
