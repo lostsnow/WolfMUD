@@ -3,9 +3,11 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-package player
+package driver
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+
 	"log"
 )
 
@@ -87,14 +89,14 @@ func (l *login) checkPassword() {
 		return
 	}
 
-	p, err := Load(l.name, l.input)
+	p, err := player.Load(l.name, l.input)
 
 	switch err {
 
-	case BadCredentials:
+	case player.BadCredentials:
 		l.Respond("[RED]Name or password is incorrect. Please try again.")
 
-	case BadPlayerFile:
+	case player.BadPlayerFile:
 		l.Respond("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.")
 
 	}
@@ -104,7 +106,7 @@ func (l *login) checkPassword() {
 		return
 	}
 
-	if err := PlayerList.Add(p); err != nil {
+	if err := player.PlayerList.Add(p); err != nil {
 		log.Printf("Login error: %s", err)
 		l.Respond("[RED]That player is already logged in!")
 		l.needName()
@@ -112,7 +114,6 @@ func (l *login) checkPassword() {
 	}
 
 	l.player = p
-	l.player.sender = l.sender
 	l.Respond("[GREEN]A loud voice booms 'You have been brought back " + l.name + "'.")
 	l.next = l.newMenu()
 	log.Printf("Successful login: %s", l.name)

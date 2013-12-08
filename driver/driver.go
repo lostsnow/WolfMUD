@@ -3,9 +3,10 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-package player
+package driver
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 
 	"strings"
@@ -19,7 +20,7 @@ type driver struct {
 	input    string
 	name     string
 	next     func()
-	player   *Player
+	player   *player.Player
 	quitting bool
 	buff     buffer
 	sender   sender.Interface

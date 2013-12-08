@@ -3,7 +3,7 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-package player
+package driver
 
 // game is simple driver for when the player is actually in the game. It simply
 // passes input into the game to be handled.
