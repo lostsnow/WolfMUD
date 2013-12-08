@@ -11,7 +11,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
-	"code.wolfmud.org/WolfMUD.git/utils/parser"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 
@@ -313,9 +312,4 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 	}
 
 	return true
-}
-
-// Next returns a Login parser for the next parser.
-func (p *Player) Next() parser.Interface {
-	return Login(p.sender)
 }
