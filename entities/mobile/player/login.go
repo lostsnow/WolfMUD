@@ -289,6 +289,7 @@ func (l *login) Next() parser.Interface {
 	if l.player == nil {
 		return nil
 	}
+	l.sender.Prompt(sender.PROMPT_DEFAULT)
 	l.player.Start(l.sender)
 	return l.player
 }

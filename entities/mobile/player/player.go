@@ -42,7 +42,7 @@ func (p *Player) Unmarshal(r recordjar.Record) {
 // Start starts a Player off in the world. The player is put into the world at
 // a random starting location and the location is described to them.
 func (p *Player) Start(s sender.Interface) {
-	s.Prompt(sender.PROMPT_DEFAULT)
+	p.quitting = false
 	p.sender = s
 	p.add(location.GetStart())
 }
@@ -56,7 +56,6 @@ func (p *Player) IsQuitting() bool {
 // Destroy should cleanly shutdown the Parser when called. It implements part
 // of the parser.Interface.
 func (p *Player) Destroy() {
-
 	// execute p.remove until successful ... looks weird ;)
 	for !p.remove() {
 	}
@@ -283,10 +282,10 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 // TODO: Document exact effect when finalised and Destroy etc cleaned
 // up/possibly removed.
 func (p *Player) quit(cmd *command.Command) (handled bool) {
-	p.dropInventory(cmd)
+	log.Printf("%s wants to quit", p.Name())
 	p.quitting = true
-	log.Printf("%s is quitting", p.Name())
-	p.sender.Prompt("")
+	p.dropInventory(cmd)
+
 	return true
 }
 
