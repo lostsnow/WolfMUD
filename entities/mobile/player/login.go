@@ -35,6 +35,11 @@ const greeting = `
 
 `
 
+// Temporary stub for new driver implementation - this allows current code to compile.
+func (d *driver) newLogin() func() {
+	return nil
+}
+
 // state type lets us easily redefine the base type of states if needed and
 // using 'state' instead of 'uint8' is more descriptive. States are used to
 // record which state the parser is in such as asking for a name or password.
