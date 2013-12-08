@@ -117,7 +117,7 @@ func (c *Command) New(input string) {
 func (c *Command) Flush() {
 	if len(c.response.format) > 0 {
 		if r, ok := c.Issuer.(messaging.Responder); ok {
-			format := strings.Join(c.response.format, "\n")
+			format := strings.Join(c.response.format, "[WHITE]\n")
 			r.Respond(format, c.response.any...)
 		}
 		c.response.reset()
@@ -125,7 +125,7 @@ func (c *Command) Flush() {
 
 	if len(c.broadcast.format) > 0 {
 		if b, ok := c.Issuer.(messaging.Broadcaster); ok {
-			format := strings.Join(c.broadcast.format, "\n")
+			format := strings.Join(c.broadcast.format, "[WHITE]\n")
 			b.Broadcast(c.broadcast.omit, format, c.broadcast.any...)
 		}
 		c.broadcast.reset()
