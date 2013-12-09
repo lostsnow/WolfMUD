@@ -51,9 +51,9 @@ func (d *driver) Respond(format string, any ...interface{}) {
 	d.buff.any = append(d.buff.any, any...)
 }
 
-// NewDriver creates a frontend driver associated with the passed sender.
-// Initially it is setup as a login driver.
-func NewDriver(s sender.Interface) (d *driver) {
+// New creates a frontend driver associated with the passed sender.  Initially
+// it is setup as a login driver.
+func New(s sender.Interface) (d *driver) {
 	d = &driver{}
 	d.sender = s
 	d.next = d.newLogin()

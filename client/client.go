@@ -14,7 +14,7 @@ package client
 // other TELNET related RFCs.
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/driver"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
 
@@ -129,7 +129,7 @@ func (c *Client) bailed() error {
 func (c *Client) receiver() {
 
 	// Our initial login driver.
-	driver := player.NewDriver(c)
+	driver := driver.New(c)
 
 	// buffer is the input buffer which may be drip fed data from a client. This
 	// caters for input being read in multiple reads, multiple inputs being read
