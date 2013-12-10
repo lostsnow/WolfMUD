@@ -83,7 +83,7 @@ func (l *login) checkPassword() {
 		return
 	}
 
-	// TODO: Is this check still needed?
+	// Ignores processing if quit sent from client on timeout
 	if l.input == "QUIT" {
 		return
 	}
