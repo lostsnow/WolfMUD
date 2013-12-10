@@ -85,7 +85,6 @@ func (l *login) checkPassword() {
 
 	// TODO: Is this check still needed?
 	if l.input == "QUIT" {
-		l.quitting = true
 		return
 	}
 

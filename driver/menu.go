@@ -54,7 +54,6 @@ func (m *menu) checkOption() {
 
 	case 3:
 		m.next = nil
-		m.quitting = true
 
 	case 42:
 		m.Respond("[YELLOW]You have found a backdoor! Unfortunatly someone has locked it ;)")

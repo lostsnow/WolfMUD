@@ -17,13 +17,12 @@ import (
 //
 // TODO: Document writing drivers.
 type driver struct {
-	input    string
-	name     string
-	next     func()
-	player   *player.Player
-	quitting bool
-	buff     buffer
-	sender   sender.Interface
+	input  string
+	name   string
+	next   func()
+	player *player.Player
+	buff   buffer
+	sender sender.Interface
 }
 
 // buffer stores buffered messages sent by Respond. A call to flush flushes the
@@ -72,5 +71,5 @@ func (d *driver) Process(input string) {
 
 // IsQuitting returns true if the driver is trying to quit otherwise false.
 func (d *driver) IsQuitting() bool {
-	return d.quitting
+	return d.next == nil
 }
