@@ -9,8 +9,59 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 
+	"errors"
+	"log"
 	"strings"
 )
+
+// accounts is a channel that should buffer a single map of logged in accounts
+// keyed by the hash of the account name. The map then acts as both data and
+// lock. To access the accounts you take the lock by removing the map, use it,
+// then put the map back into the channel to release the lock. While the map is
+// in use other go routines will block until the map is put back and can be
+// read again. As maps are reference types only a reference should actually go
+// into the channel keeping things lightweight.
+var (
+	accounts chan map[string]struct{}
+)
+
+// Initialise accounts channel and map up front
+func init() {
+	accounts = make(chan map[string]struct{}, 1)
+	accounts <- make(map[string]struct{})
+}
+
+func (d *driver) login() error {
+	a := <-accounts
+	defer func() { accounts <- a }()
+
+	if _, found := a[d.name]; found {
+		log.Printf("Duplicate login: %s", d.name)
+		return errors.New("Duplicate login")
+	}
+
+	log.Printf("Successful login: %s", d.name)
+	a[d.name] = struct{}{}
+
+	return nil
+}
+
+func (d *driver) Logout() {
+	a := <-accounts
+	defer func() { accounts <- a }()
+
+	// Check if we are already logged out and save time...
+	if _, found := a[d.name]; !found {
+		return
+	}
+
+	if d.player != nil && d.player.Locate() != nil {
+		d.player.Parse("QUIT")
+	}
+
+	log.Printf("Logout: %s", d.name)
+	delete(a, d.name)
+}
 
 // driver is a very simple base type to handle login and menu type frontend
 // processing. See login.go and menu.go for examples of drivers.
