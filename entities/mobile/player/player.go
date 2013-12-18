@@ -90,7 +90,13 @@ func (p *Player) add(l location.Interface) {
 // not crowded it also announces their departure - in a crowded location their
 // departure will go unnoticed.
 func (p *Player) remove() (removed bool) {
+
 	l := p.Locate()
+
+	if l == nil {
+		return true
+	}
+
 	l.Lock()
 	defer l.Unlock()
 
