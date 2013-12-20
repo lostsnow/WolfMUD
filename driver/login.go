@@ -7,8 +7,6 @@ package driver
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
-
-	"log"
 )
 
 // greeting to display to player when they initially connect.
@@ -105,8 +103,7 @@ func (l *login) checkPassword() {
 		return
 	}
 
-	if err := player.PlayerList.Add(p); err != nil {
-		log.Printf("Login error: %s", err)
+	if err := l.login(); err != nil {
 		l.Respond("[RED]That player is already logged in!")
 		l.needName()
 		return
@@ -115,5 +112,4 @@ func (l *login) checkPassword() {
 	l.player = p
 	l.Respond("[GREEN]A loud voice booms 'You have been brought back " + l.name + "'.")
 	l.next = l.newMenu()
-	log.Printf("Successful login: %s", l.name)
 }
