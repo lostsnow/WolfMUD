@@ -66,17 +66,9 @@ func Spawn(conn *net.TCPConn) {
 
 	c.receiver()
 
-	// Check to see if we bailed because of a network error BUT ignore timeouts.
-	// Timeouts are handled by the receive method as they occur.
-	err := c.bailed()
-	if err != nil {
-		if e, ok := err.(*net.OpError); !ok || !e.Timeout() {
-			log.Printf("Comms error for: %s, %s", c, err)
-		}
-	}
-
-	// If no errors say "Bye Bye" :)
-	if err == nil {
+	if err := c.bailed(); err != nil {
+		log.Printf("Comms error for: %s, %s", c, err)
+	} else {
 		c.Prompt(sender.PROMPT_NONE)
 		c.Send("[YELLOW]Bye Bye[WHITE]\n")
 	}
@@ -198,13 +190,13 @@ func (c *Client) receiver() {
 		if err != nil {
 			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
 				c.prompt = sender.PROMPT_NONE
-				c.Send(" ")
+				c.Send("")
 				driver.Process("QUIT")
-				c.Send("\n[RED]Idle connection terminated by server.\n\n[YELLOW]Bye Bye[WHITE]\n\n")
+				c.Send("\n\n[RED]Idle connection terminated by server.")
 				log.Printf("Closing idle connection for: %s", c)
+				break
 			}
 			c.bailing(err)
-			break
 		}
 
 	}
