@@ -308,11 +308,11 @@ var (
 
 // Load loads a player file.
 //
-// First the SHA512 hash of the player's name is calculated and Base64 encoded.
-// This gives us a safe 88 character string to be used as the filename storing
-// the player's character details. If we just accepted the player's input as
-// the filename they could try something like '../config' or something equally
-// nasty.
+// First the SHA512 hash of the player's account is calculated and Base64
+// encoded. This gives us a safe 88 character string to be used as the filename
+// storing the player's character details. If we just accepted the player's
+// input as the filename they could try something like '../config' or something
+// equally nasty.
 //
 // If we cannot open the player's file we return an error of BadCredentials.
 //
@@ -342,13 +342,13 @@ var (
 //
 // BONUS TRIVIA: The Java version of WolfMUD would not compile on Mac OS at one
 // point due to a file with a name over 32 characters long... *sigh*
-func Load(name, password string) (*Player, error) {
+func Load(account, password string) (*Player, error) {
 
 	// Create a hash which can be reused by calling Reset().
 	h := sha512.New()
 
-	// Convert name into a 88 character Base64 encoded string.
-	io.WriteString(h, name)
+	// Convert account into a 88 character Base64 encoded string.
+	io.WriteString(h, account)
 	filename := base64.URLEncoding.EncodeToString(h.Sum(nil))
 
 	// Can we open the player's file to get the current salt and password hash?

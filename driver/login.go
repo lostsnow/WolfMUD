@@ -37,26 +37,27 @@ func (d *driver) newLogin() func() {
 	return l.welcome
 }
 
-// welcome displayes the greeting text and asks for the player's name beginning
-// the login sequence.
+// welcome displayes the greeting text and asks for the player's account
+// beginning the login sequence.
 func (l *login) welcome() {
 	l.Respond(greetingText)
-	l.needName()
+	l.needAccount()
 }
 
-// needName asks for the player's name and sets the next function to check the
-// name entered.
-func (l *login) needName() {
-	l.Respond("Please enter your character's name.")
-	l.next = l.checkName
+// needAccount asks for the player's account and sets the next function to
+// check the account entered.
+func (l *login) needAccount() {
+	l.Respond("Please enter your account:")
+	l.next = l.checkAccount
 }
 
-// checkName processes the current input as the player's name. If it is empty
-// we ask again for the name otherwise we move on to asking for the password.
-func (l *login) checkName() {
-	l.name = l.input
-	if l.name == "" {
-		l.needName()
+// checkAccount processes the current input as the player's account. If it is
+// empty we ask again for the account otherwise we move on to asking for the
+// password.
+func (l *login) checkAccount() {
+	l.account = l.input
+	if l.account == "" {
+		l.needAccount()
 	} else {
 		l.needPassword()
 	}
@@ -65,19 +66,20 @@ func (l *login) checkName() {
 // needPassword asks for the player's password and sets the next function to
 // check the password.
 func (l *login) needPassword() {
-	l.Respond("Enter character's password or just press [CYAN]ENTER[WHITE] to abort.")
+	l.Respond("Enter character's password or just press [CYAN]ENTER[WHITE] to abort:")
 	l.next = l.checkPassword
 }
 
 // checkPassword processes the current input as the player's password. If no
-// password is entered we go back to asking for the player's name. Otherwise we
-// try loading the player's data file and respond accordingly. If the player's
-// data file is loaded and everything is OK we switch to the menu driver.
+// password is entered we go back to asking for the player's account. Otherwise
+// we try loading the player's data file and respond accordingly. If the
+// player's data file is loaded and everything is OK we switch to the menu
+// driver.
 func (l *login) checkPassword() {
 
-	// If no password entered go back to asking for a name.
+	// If no password entered go back to asking for an account.
 	if l.input == "" {
-		l.needName()
+		l.needAccount()
 		return
 	}
 
@@ -86,12 +88,13 @@ func (l *login) checkPassword() {
 		return
 	}
 
-	p, err := player.Load(l.name, l.input)
+	var err error
+	l.player, err = player.Load(l.account, l.input)
 
 	switch err {
 
 	case player.BadCredentials:
-		l.Respond("[RED]Name or password is incorrect. Please try again.")
+		l.Respond("[RED]Account or password is incorrect. Please try again.")
 
 	case player.BadPlayerFile:
 		l.Respond("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.")
@@ -99,17 +102,17 @@ func (l *login) checkPassword() {
 	}
 
 	if err != nil {
-		l.needName()
+		l.needAccount()
 		return
 	}
 
 	if err := l.login(); err != nil {
-		l.Respond("[RED]That player is already logged in!")
-		l.needName()
+		l.Respond("[RED]That account is already logged in!")
+		l.player = nil
+		l.needAccount()
 		return
 	}
 
-	l.player = p
-	l.Respond("[GREEN]A loud voice booms 'You have been brought back " + l.name + "'.")
+	l.Respond("[GREEN]A loud voice booms 'You have been brought back " + l.player.Name() + "'.")
 	l.next = l.newMenu()
 }
