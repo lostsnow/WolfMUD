@@ -57,14 +57,6 @@ func (p *Player) IsQuitting() bool {
 	return p.quitting
 }
 
-// Destroy should cleanly shutdown the Parser when called. It implements part
-// of the parser.Interface.
-func (p *Player) Destroy() {
-	// execute p.remove until successful ... looks weird ;)
-	for !p.remove() {
-	}
-}
-
 // add places a player in the world safely and announces their arrival.  We
 // manually build and parse the 'LOOK' command to avoid deadlocking - adding
 // the player locks the location as does a normal p.Parse('LOOK'). We could add
@@ -84,36 +76,6 @@ func (p *Player) add(l location.Interface) {
 	}
 
 	cmd.Flush()
-}
-
-// remove extracts a player from the world cleanly. If the player's location is
-// not crowded it also announces their departure - in a crowded location their
-// departure will go unnoticed.
-func (p *Player) remove() (removed bool) {
-
-	l := p.Locate()
-
-	if l == nil {
-		return true
-	}
-
-	l.Lock()
-	defer l.Unlock()
-
-	// Make sure player didn't move between getting the player's location and
-	// locking the location.
-	if !l.IsAlso(p.Locate()) {
-		return false
-	}
-
-	if !l.Crowded() {
-		l.Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
-	}
-
-	l.Remove(p)
-	PlayerList.Remove(p)
-
-	return true
 }
 
 // dropInventory drops everything the player is carrying.
@@ -289,12 +251,24 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 
 // quit implements the 'QUIT' command.
 //
-// TODO: Document exact effect when finalised and Destroy etc cleaned
-// up/possibly removed.
+// quit extracts a player from the world cleanly. If the player's location is
+// not crowded it also announces their departure - in a crowded location their
+// departure will go unnoticed.
 func (p *Player) quit(cmd *command.Command) (handled bool) {
-	log.Printf("%s wants to quit", p.Name())
+	log.Printf("%s is quiting", p.Name())
 	p.quitting = true
 	p.dropInventory(cmd)
+
+	l := p.Locate()
+
+	if !l.Crowded() {
+		cmd.Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
+	}
+
+	cmd.Flush()
+
+	l.Remove(p)
+	PlayerList.Remove(p)
 
 	return true
 }

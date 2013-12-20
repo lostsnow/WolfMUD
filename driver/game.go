@@ -26,7 +26,6 @@ func (g *game) forward() {
 	g.player.Parse(g.input)
 
 	if g.player.IsQuitting() {
-		g.player.Destroy()
 		g.next = g.newMenu()
 	}
 }

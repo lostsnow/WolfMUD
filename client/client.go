@@ -191,7 +191,7 @@ func (c *Client) receiver() {
 			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
 				c.prompt = sender.PROMPT_NONE
 				c.Send("")
-				driver.Process("QUIT")
+				driver.Logout()
 				c.Send("\n\n[RED]Idle connection terminated by server.")
 				log.Printf("Closing idle connection for: %s", c)
 				break
@@ -201,6 +201,7 @@ func (c *Client) receiver() {
 
 	}
 
+	driver.Logout()
 }
 
 // Prompt sets a new prompt and returns the old prompt. It is implemented as
