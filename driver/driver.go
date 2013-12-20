@@ -36,11 +36,11 @@ func (d *driver) login() error {
 	defer func() { accounts <- a }()
 
 	if _, found := a[d.account]; found {
-		log.Printf("Duplicate login: %s", d.account)
+		log.Printf("Duplicate login: %s", d.sender)
 		return errors.New("Duplicate login")
 	}
 
-	log.Printf("Successful login: %s", d.account)
+	log.Printf("Successful login: %s", d.sender)
 	a[d.account] = struct{}{}
 
 	return nil
@@ -59,7 +59,7 @@ func (d *driver) Logout() {
 		d.player.Parse("QUIT")
 	}
 
-	log.Printf("Logout: %s", d.account)
+	log.Printf("Logout: %s", d.sender)
 	delete(a, d.account)
 }
 
