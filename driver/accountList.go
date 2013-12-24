@@ -6,25 +6,28 @@
 package driver
 
 import (
+	"crypto/sha512"
 	"errors"
 	"log"
 )
 
-// accounts is a channel that should buffer a single map of logged in accounts
-// keyed by the hash of the account. The map then acts as both data and lock.
-// To access the accounts you take the lock by removing the map, use it, then
-// put the map back into the channel to release the lock. While the map is in
-// use other go routines will block until the map is put back and can be read
-// again. As maps are reference types only a reference should actually go into
-// the channel keeping things lightweight.
-var (
-	accounts chan map[string]struct{}
-)
+// accountId is the byte array SHA512 hash of the account name string. This
+// prevents overly long account names from using more memory than necessary.
+type accountId [sha512.Size]byte
 
-// Initialise accounts channel and map up front
+// accounts is a channel that should buffer a single map of logged in accounts
+// keyed by accountId. The map then acts as both data and lock.  To access the
+// accounts you take the lock by removing the map, use it, then put the map
+// back into the channel to release the lock. While the map is in use other go
+// routines will block until the map is put back and can be read again. As maps
+// are reference types only a reference should actually go into the channel
+// keeping things lightweight.
+var accounts chan map[accountId]struct{}
+
+// init sets up the account tracking map and channel
 func init() {
-	accounts = make(chan map[string]struct{}, 1)
-	accounts <- make(map[string]struct{})
+	accounts = make(chan map[accountId]struct{}, 1)
+	accounts <- make(map[accountId]struct{})
 }
 
 func (d *driver) login() error {
