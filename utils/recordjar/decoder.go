@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 // String is a helper that returns the value of a header from a Record as a
@@ -42,6 +44,44 @@ func (r Record) KeywordList(property string) []string {
 		return []string{}
 	}
 	return strings.Fields(strings.ToUpper(r[property]))
+}
+
+// PairList is a helper that returns the value of a header from a Record
+// interpreted as whitespace separated pairs of values. The pairs are split
+// using the first non-digit and non-letter separator. For example exits could
+// be specified as one of:
+//
+//	Exits: E→L3 SE→L4 S→L2
+//	Exits: E=L3 SE=L4 S=L2
+//	Exits: E>L3 SE>L4 S>L2
+//	Exits: E.L3 SE.L4 S.L2
+//
+// In the case of multiple non-digits and/or non-letters only the first is used
+// as the seperator. For example:
+//
+//	Exits: E→L1.a // direction = 'E', Location reference = 'L1.a'
+//
+func (r Record) PairList(property string) (pairs [][2]string) {
+	if _, ok := r[property]; !ok {
+		log.Printf("Property %q not found. Defaulting to empty pair list", property)
+		return
+	}
+
+	splitter := func(r rune) bool {
+		return !unicode.IsDigit(r) && !unicode.IsLetter(r)
+	}
+
+	for _, pair := range strings.Fields(r[property]) {
+		//split := strings.FieldsFunc(pair, splitter)
+		split := strings.IndexFunc(pair, splitter)
+		if split == -1 {
+			log.Printf("Ignoring invalid pair: %s", pair)
+			continue
+		}
+		_, runeSize := utf8.DecodeRuneInString(pair[split:])
+		pairs = append(pairs, [2]string{pair[:split], pair[split+runeSize:]})
+	}
+	return
 }
 
 // Int is a helper that returns the value of a header from a Record interpreted

@@ -14,9 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/text"
 
 	"fmt"
-	"log"
 	"strings"
-	"unicode"
 )
 
 const (
@@ -53,36 +51,19 @@ func (b *Basic) Unmarshal(r recordjar.Record) {
 func (b *Basic) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
 	b.Thing.Init(ref, refs)
 
-	var pair []string
-	var d, l *string
+	// Link directional exits to locations via direction/location reference pairs
+	// e.g. Exits: E→L2 S→L3 NW→L4
+	for _, pair := range ref.PairList("exits") {
 
-	for _, v := range strings.Fields(ref["exits"]) {
-		pair = strings.FieldsFunc(v, splitter)
+		dir, loc := pair[0], pair[1]
 
-		if len(pair) != 2 {
-			log.Printf("Cannot parse exits for (%s) %s: %s", ref.String("ref"), b.Name(), pair)
-			continue
-		}
-
-		d = &pair[0] // Direction
-		l = &pair[1] // To location
-
-		if l, ok := refs[*l].(Interface); ok {
-			for i, v := range directionShortNames {
-				if *d == v {
-					b.LinkExit((direction)(i), l)
-				}
+		if l, ok := refs[loc].(Interface); ok {
+			if dirIndex, ok := directionShortIndex[dir]; ok {
+				b.LinkExit(dirIndex, l)
 			}
 		}
 	}
-}
 
-// splitter is a function that returns true if passed rune is not a digit or
-// letter, otherwise returns false. This lets exit pairs have any non-digit or
-// non-letter separator. Some examples are: E→L1 E:L1 E=L1 E>L1 E.L1
-// This should make specifying exits user friendly.
-func splitter(r rune) bool {
-	return !unicode.IsDigit(r) && !unicode.IsLetter(r)
 }
 
 // LinkExit links one location to another in the direction given. This is
