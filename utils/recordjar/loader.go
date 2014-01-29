@@ -98,15 +98,17 @@ func LoadFile(filename string) {
 // are unmarshaled by calling UnmarshalRecord. This instantiates a concrete
 // variable of the correct type for the Record. Second phase Init is called on
 // each unmarshaled Record. This two phase setup allows unmarshaled Record to
-// refer to each other. For example if items are to be put into a location the
-// location must exist before items can be put into it. Also the items must
-// exist before they can be placed in the location. The UnmarshalRecord creates
-// the locations and items and the Init on items puts the items in their defined
-// location.
+// refer to each other.
+//
+// For example if items are to be put into a location the location must exist
+// before items can be put into it. Also the items must exist before they can
+// be placed in the location. The UnmarshalRecord creates the locations and
+// items. Then the Init on items puts the items in their defined location.
 //
 // TODO: If an Unmarshaler has no reference one is generated of the form RECn
-// where n is the Record index within the RecordJar. This save having processing
-// for Unmarshalers with and without references. This probably need reviewing.
+// where n is the Record index within the RecordJar. This saves having to have
+// processing for Unmarshalers with and without references. This probably needs
+// reviewing.
 //
 // TODO: Really hate the way we are passing around refs - needs sorting out.
 func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
