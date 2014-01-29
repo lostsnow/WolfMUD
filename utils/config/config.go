@@ -70,6 +70,7 @@ func init() {
 			searchPaths = append(searchPaths, selfBin)
 		}
 		searchPaths = append(searchPaths, selfBin+"/data")
+		searchPaths = append(searchPaths, selfBin+"/../data")
 		searchPaths = append(searchPaths, selfBin+"/../src/code.wolfmud.org/WolfMUD.git/data")
 	}
 
