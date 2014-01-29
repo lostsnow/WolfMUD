@@ -29,22 +29,22 @@ func init() {
 	recordjar.Register("item", &Item{})
 }
 
-func (i *Item) Unmarshal(r recordjar.Record) {
-	i.weight = units.Weight(r.Int("weight"))
-	i.Thing.Unmarshal(r)
+func (i *Item) Unmarshal(d recordjar.Decoder) {
+	i.weight = units.Weight(d.Int("weight"))
+	i.Thing.Unmarshal(d)
 }
 
 // TODO: Instead of calling Unmarshal within Init we should be calling a
 // Copy/Clone function instead.
-func (i *Item) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
-	for x, location := range ref.KeywordList("location") {
+func (i *Item) Init(d recordjar.Decoder, refs map[string]recordjar.Unmarshaler) {
+	for x, location := range d.KeywordList("location") {
 		if l, ok := refs[location]; ok {
 			if l, ok := l.(inventory.Interface); ok {
 				if x == 0 {
 					l.Add(i)
 				} else {
 					tmp := &Item{}
-					tmp.Unmarshal(ref)
+					tmp.Unmarshal(d)
 					l.Add(tmp)
 				}
 				log.Printf("Added %s to %s", i.Name(), location)

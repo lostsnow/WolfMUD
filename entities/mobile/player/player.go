@@ -38,8 +38,8 @@ func init() {
 	recordjar.Register("player", &Player{})
 }
 
-func (p *Player) Unmarshal(r recordjar.Record) {
-	p.Mobile.Unmarshal(r)
+func (p *Player) Unmarshal(d recordjar.Decoder) {
+	p.Mobile.Unmarshal(d)
 }
 
 // Start starts a Player off in the world. The player is put into the world at
@@ -354,9 +354,9 @@ func Load(account [sha512.Size]byte, password string) (*Player, error) {
 
 	rj, _ := recordjar.Read(f)
 
-	r := rj[0]
-	s := r.String("salt")
-	p := r.String("password")
+	d := recordjar.Decoder(rj[0])
+	s := d.String("salt")
+	p := d.String("password")
 
 	// Password hash can be split over multiple lines in the file so try
 	// stitching it back together.

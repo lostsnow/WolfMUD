@@ -118,7 +118,7 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 		if ur, err := UnmarshalRecord(rec); err != nil {
 			log.Printf("Error unmarshaling: %s", err)
 		} else {
-			ref := rec.Keyword("ref")
+			ref := Decoder(rec).Keyword("ref")
 			if ref == "" {
 				ref = "REC" + strconv.Itoa(i)
 				rec["ref"] = ref
@@ -130,12 +130,15 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 		}
 	}
 
-	// Init all unmarshaled instances
+	// Init all unmarshaled instances - we range over *rj instead of refs[]
+	// because there may be additional data in the Record only used during Init.
 	for _, rec := range *rj {
-		r := rec.Keyword("ref")
+
+		d := Decoder(rec)
+		r := d.Keyword("ref")
 
 		if zc, ok := refs[r]; ok {
-			t := rec.Keyword("type")
+			t := d.Keyword("type")
 
 			name := "Unnamed"
 			if n, ok := zc.(is.Nameable); ok {
@@ -143,7 +146,7 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 			}
 
 			log.Printf("Init: %s (%s, %s)", name, t, r)
-			zc.Init(rec, refs)
+			zc.Init(d, refs)
 		}
 	}
 
@@ -159,8 +162,10 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 // If there is an error it will be *NoTypeError or *UnknownTypeError.
 func UnmarshalRecord(r Record) (u Unmarshaler, err error) {
 
+	d := Decoder(r)
+
 	// Without a type we cannot find the correct unmarshaler
-	t := r.Keyword("type")
+	t := d.Keyword("type")
 	if t == "" {
 		return nil, &NoTypeError{r}
 	}
@@ -174,9 +179,9 @@ func UnmarshalRecord(r Record) (u Unmarshaler, err error) {
 	// Create an empty, zero value copy of registered type and unmarshal the
 	// current record into it.
 	zc := reflect.New(reflect.ValueOf(u).Elem().Type()).Interface().(Unmarshaler)
-	zc.Unmarshal(r)
+	zc.Unmarshal(d)
 
-	log.Printf("Loaded: %s (%s)", t, r.Keyword("ref"))
+	log.Printf("Loaded: %s (%s)", t, d.Keyword("ref"))
 	return zc, nil
 }
 

@@ -69,8 +69,8 @@ type RecordJar []Record
 // Unmarshaler should be implemented by any type that can take data represented
 // by a Record and parse / decode it.
 type Unmarshaler interface {
-	Unmarshal(Record)
-	Init(ref Record, refs map[string]Unmarshaler)
+	Unmarshal(Decoder)
+	Init(ref Decoder, refs map[string]Unmarshaler)
 }
 
 // Constants for header line types

@@ -28,12 +28,12 @@ func init() {
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Start struct. It also adds a reference to the created location into the
 // package scoped start slice.
-func (s *Start) Unmarshal(r recordjar.Record) {
+func (s *Start) Unmarshal(d recordjar.Decoder) {
 	defer func() {
 		start = append(start, s)
 	}()
 
-	s.Basic.Unmarshal(r)
+	s.Basic.Unmarshal(d)
 }
 
 // GetStart return a random starting location.

@@ -104,14 +104,14 @@ func Read() {
 			defer dir.Close()
 			log.Printf("Using: %s%s%s", path, ps, configName)
 			rj, _ := recordjar.Read(dir)
-			c := rj[0]
+			d := recordjar.Decoder(rj[0])
 
-			ListenAddress = c.String("listen.address")
-			ListenPort = c.String("listen.port")
-			runtime.MemProfileRate = c.Int("mem.profile.rate")
-			StatsRate = c.Duration("stats.rate")
+			ListenAddress = d.String("listen.address")
+			ListenPort = d.String("listen.port")
+			runtime.MemProfileRate = d.Int("mem.profile.rate")
+			StatsRate = d.Duration("stats.rate")
 
-			DataDir, _ = filepath.Abs(path + ps + c["data.dir"])
+			DataDir, _ = filepath.Abs(path + ps + d["data.dir"])
 			DataDir += ps
 
 			log.Printf("listen.address: %s", ListenAddress)

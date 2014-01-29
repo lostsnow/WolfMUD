@@ -48,14 +48,14 @@ func init() {
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Thing type. A unique ID is allocated automatically.
-func (t *Thing) Unmarshal(r recordjar.Record) {
-	t.name = r.String("name")
-	t.description = r.String(":data:")
-	t.aliases = r.KeywordList("aliases")
+func (t *Thing) Unmarshal(d recordjar.Decoder) {
+	t.name = d.String("name")
+	t.description = d.String(":data:")
+	t.aliases = d.KeywordList("aliases")
 	t.UID = <-uid.Next
 }
 
-func (t *Thing) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {}
+func (t *Thing) Init(d recordjar.Decoder, refs map[string]recordjar.Unmarshaler) {}
 
 // Description returns the description for a Thing.
 func (t *Thing) Description() string {

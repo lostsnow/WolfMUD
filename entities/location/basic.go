@@ -42,18 +42,18 @@ func init() {
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed
 // Basic type.
-func (b *Basic) Unmarshal(r recordjar.Record) {
-	b.Thing.Unmarshal(r)
+func (b *Basic) Unmarshal(d recordjar.Decoder) {
+	b.Thing.Unmarshal(d)
 	b.mutex = make(chan bool, 1)
 	b.mutex <- true
 }
 
-func (b *Basic) Init(ref recordjar.Record, refs map[string]recordjar.Unmarshaler) {
-	b.Thing.Init(ref, refs)
+func (b *Basic) Init(d recordjar.Decoder, refs map[string]recordjar.Unmarshaler) {
+	b.Thing.Init(d, refs)
 
 	// Link directional exits to locations via direction/location reference pairs
 	// e.g. Exits: E→L2 S→L3 NW→L4
-	for _, pair := range ref.PairList("exits") {
+	for _, pair := range d.PairList("exits") {
 
 		dir, loc := pair[0], pair[1]
 

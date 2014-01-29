@@ -14,14 +14,16 @@ import (
 	"unicode/utf8"
 )
 
+type Decoder Record
+
 // String is a helper that returns the value of a header from a Record as a
 // string. If the header is not found in the Record an empty string is returned.
-func (r Record) String(property string) string {
-	if _, ok := r[property]; !ok {
+func (d Decoder) String(property string) string {
+	if _, ok := d[property]; !ok {
 		log.Printf("Property %q not found. Defaulting to empty string", property)
 		return ""
 	}
-	return strings.TrimSpace(r[property])
+	return strings.TrimSpace(d[property])
 }
 
 // Keyword is a helper that returns the value of a header from a Record as an
@@ -30,20 +32,20 @@ func (r Record) String(property string) string {
 //
 // This function is helpful for Ids and references which are case insensative
 // and for consistency when matching are usually uppercased.
-func (r Record) Keyword(property string) string {
-	return strings.ToUpper(r.String(property))
+func (d Decoder) Keyword(property string) string {
+	return strings.ToUpper(d.String(property))
 }
 
 // KeywordList is a helper that returns the value of a header from a Record
 // interpreted as whitespace separated keywords. It returns the keywords as a
 // slice of uppercased strings. If the header is not found in the Record an
 // empty string slice is returned.
-func (r Record) KeywordList(property string) []string {
-	if _, ok := r[property]; !ok {
+func (d Decoder) KeywordList(property string) []string {
+	if _, ok := d[property]; !ok {
 		log.Printf("Property %q not found. Defaulting to empty list", property)
 		return []string{}
 	}
-	return strings.Fields(strings.ToUpper(r[property]))
+	return strings.Fields(strings.ToUpper(d[property]))
 }
 
 // PairList is a helper that returns the value of a header from a Record
@@ -61,8 +63,8 @@ func (r Record) KeywordList(property string) []string {
 //
 //	Exits: E→L1.a // direction = 'E', Location reference = 'L1.a'
 //
-func (r Record) PairList(property string) (pairs [][2]string) {
-	if _, ok := r[property]; !ok {
+func (d Decoder) PairList(property string) (pairs [][2]string) {
+	if _, ok := d[property]; !ok {
 		log.Printf("Property %q not found. Defaulting to empty pair list", property)
 		return
 	}
@@ -71,7 +73,7 @@ func (r Record) PairList(property string) (pairs [][2]string) {
 		return !unicode.IsDigit(r) && !unicode.IsLetter(r)
 	}
 
-	for _, pair := range strings.Fields(r[property]) {
+	for _, pair := range strings.Fields(d[property]) {
 		//split := strings.FieldsFunc(pair, splitter)
 		split := strings.IndexFunc(pair, splitter)
 		if split == -1 {
@@ -88,14 +90,14 @@ func (r Record) PairList(property string) (pairs [][2]string) {
 // - as parsed by strconv.Atoi - as an integer. If the header is not found
 // in the Record or the value cannot be parsed as an integer integer zero is
 // returned.
-func (r Record) Int(property string) (i int) {
-	if _, ok := r[property]; !ok {
+func (d Decoder) Int(property string) (i int) {
+	if _, ok := d[property]; !ok {
 		log.Printf("Property %q not found. Defaulting to zero", property)
 		return 0
 	}
 	var err error
-	if i, err = strconv.Atoi(r[property]); err != nil {
-		log.Printf("Error retrieving %q as type int: %s. Defaulting to zero.", r[property], err)
+	if i, err = strconv.Atoi(d[property]); err != nil {
+		log.Printf("Error retrieving %q as type int: %s. Defaulting to zero.", d[property], err)
 		return 0
 	}
 	return i
@@ -105,15 +107,15 @@ func (r Record) Int(property string) (i int) {
 // interpreted - as parsed by time.ParseDuration - as a duration of time. If the
 // header is not found in the Record or the value cannot be parsed as a duration
 // a zero duration is returned.
-func (r Record) Duration(property string) (d time.Duration) {
-	if _, ok := r[property]; !ok {
+func (d Decoder) Duration(property string) (t time.Duration) {
+	if _, ok := d[property]; !ok {
 		log.Printf("Property %q not found. Defaulting to zero", property)
 		return 0
 	}
 	var err error
-	if d, err = time.ParseDuration(r[property]); err != nil {
-		log.Printf("Error parsing %q as type time.Duration: %s. Defaulting to zero.", r[property], err)
+	if t, err = time.ParseDuration(d[property]); err != nil {
+		log.Printf("Error parsing %q as type time.Duration: %s. Defaulting to zero.", d[property], err)
 		return 0
 	}
-	return d
+	return t
 }
