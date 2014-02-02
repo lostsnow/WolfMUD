@@ -47,7 +47,7 @@ func (l *login) welcome() {
 // needAccount asks for the player's account and sets the next function to
 // check the account entered.
 func (l *login) needAccount() {
-	l.Respond("Please enter your account:")
+	l.Respond("Please enter your account ID or just press [CYAN]ENTER[WHITE] to create a new account:")
 	l.next = l.checkAccount
 }
 
@@ -57,7 +57,7 @@ func (l *login) needAccount() {
 func (l *login) checkAccount() {
 
 	if l.input == "" {
-		l.needAccount()
+		l.next = l.newAccount()
 		return
 	}
 
