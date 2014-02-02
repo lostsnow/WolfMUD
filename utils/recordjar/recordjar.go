@@ -73,6 +73,10 @@ type Unmarshaler interface {
 	Init(ref Decoder, refs map[string]Unmarshaler)
 }
 
+type Marshaler interface {
+	Marshal(Encoder)
+}
+
 // Constants for header line types
 const (
 	HS  = ""   // Header separator
