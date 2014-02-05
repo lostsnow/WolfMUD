@@ -367,6 +367,28 @@ func Load(account string, password string) (*Player, error) {
 	return data["PLAYER"].(*Player), nil
 }
 
+func Save(e recordjar.Encoder) error {
+
+	d := recordjar.Decoder(e)
+
+	account := d.String("account")
+
+	fileFlags := os.O_CREATE | os.O_EXCL | os.O_WRONLY
+
+	f, err := os.OpenFile(config.DataDir+"players/"+account+".wrj", fileFlags, 0660)
+
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	rj := recordjar.RecordJar{}
+	rj = append(rj, recordjar.Record(e))
+	recordjar.Write(f, rj)
+
+	return nil
+}
+
 // HashAccount takes a plain account string and returns it's hash as a string.
 // The hash is synonymous with the name of a player's data file with .wrj
 // appended to it.
