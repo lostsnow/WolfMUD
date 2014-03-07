@@ -22,7 +22,7 @@ type Start struct {
 
 // Register zero value instance of Start with the loader.
 func init() {
-	recordjar.Register("start", &Start{})
+	recordjar.RegisterUnmarshaler("start", &Start{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

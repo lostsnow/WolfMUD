@@ -43,7 +43,7 @@ type Thing struct {
 
 // Register zero value instance of Thing with the loader.
 func init() {
-	recordjar.Register("thing", &Thing{})
+	recordjar.RegisterUnmarshaler("thing", &Thing{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

@@ -37,7 +37,7 @@ type Basic struct {
 
 // Register zero value instance of Basic with the loader.
 func init() {
-	recordjar.Register("basic", &Basic{})
+	recordjar.RegisterUnmarshaler("basic", &Basic{})
 }
 
 // Unmarshal takes a recordjar.Record and allocates the data in it to the passed

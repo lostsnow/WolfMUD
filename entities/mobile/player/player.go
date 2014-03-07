@@ -35,7 +35,7 @@ type Player struct {
 
 // Register zero value instance of Player with the loader.
 func init() {
-	recordjar.Register("player", &Player{})
+	recordjar.RegisterUnmarshaler("player", &Player{})
 }
 
 func (p *Player) Unmarshal(d recordjar.Decoder) {

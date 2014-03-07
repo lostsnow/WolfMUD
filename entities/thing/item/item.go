@@ -26,7 +26,7 @@ type Item struct {
 
 // Register zero value instance of Item with the loader.
 func init() {
-	recordjar.Register("item", &Item{})
+	recordjar.RegisterUnmarshaler("item", &Item{})
 }
 
 func (i *Item) Unmarshal(d recordjar.Decoder) {

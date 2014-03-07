@@ -25,7 +25,7 @@ type Mobile struct {
 
 // Register zero value instance of Mobile with the loader.
 func init() {
-	recordjar.Register("mobile", &Mobile{})
+	recordjar.RegisterUnmarshaler("mobile", &Mobile{})
 }
 
 // Relocate sets a mobile's internal location reference. It implements part of

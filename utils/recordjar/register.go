@@ -21,12 +21,12 @@ func init() {
 	unmarshalers = make(map[string]Unmarshaler)
 }
 
-// Register is used to register an unmarshaler for a type. When a Record is
-// unmarshaled it's type attribute is extracted. This is then used as the key
-// for looking up the registered umarshaler which is then passed the Record for
-// unmarshaling. The name used for the key is uppercased - in effect making it
-// case insensitive.
-func Register(name string, u Unmarshaler) {
+// RegisterUnmarshaler is used to register an unmarshaler for a type. When a
+// Record is unmarshaled it's type attribute is extracted. This is then used as
+// the key for looking up the registered umarshaler which is then passed the
+// Record for unmarshaling. The name used for the key is uppercased - in effect
+// making it case insensitive.
+func RegisterUnmarshaler(name string, u Unmarshaler) {
 	name = strings.ToUpper(name)
 	if _, ok := unmarshalers[name]; !ok {
 		unmarshalers[name] = u
