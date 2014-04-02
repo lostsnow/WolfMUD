@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-// Player is the implementation of a player. Most of the functionallity comes
+// Player is the implementation of a player. Most of the functionality comes
 // from the Mobile type and methods to implement the parser Interface. Apart
 // from the parser interface methods Player only contains Player specific code.
 type Player struct {
