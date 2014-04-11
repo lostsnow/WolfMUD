@@ -119,3 +119,25 @@ func (d Decoder) Duration(property string) (t time.Duration) {
 	}
 	return t
 }
+
+// Time is helper that returns the value of a header from a Record as a date
+// and time. The time should be in RFC1123 format. For example:
+//
+//	Created: Wed, 26 Mar 2014 20:09:01 GMT
+//
+// If the header is not found in the record or the value cannot be parsed as a
+// correct date/time the current date and time is returned.
+func (d Decoder) Time(property string) (t time.Time) {
+	if _, ok := d[property]; !ok {
+		t = time.Now().UTC()
+		log.Printf("Property %q not found. Defaulting to now: %s", property, t.Format(time.RFC1123))
+		return t
+	}
+	var err error
+	if t, err = time.Parse(time.RFC1123, d[property]); err != nil {
+		t = time.Now().UTC()
+		log.Printf("Error parsing %q as type time.Time: %s. Defaulting to now: %s", d[property], err, t.Format(time.RFC1123))
+		return t
+	}
+	return t.UTC()
+}
