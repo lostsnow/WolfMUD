@@ -46,13 +46,19 @@ func init() {
 	recordjar.RegisterUnmarshaler("thing", &Thing{})
 }
 
-// Unmarshal takes a recordjar.Record and allocates the data in it to the passed
-// Thing type. A unique ID is allocated automatically.
+// Unmarshal should decode the passed recordjar.Decoder into the current
+// receiver. A unique ID should be allocated automatically.
 func (t *Thing) Unmarshal(d recordjar.Decoder) {
 	t.name = d.String("name")
 	t.description = d.String(":data:")
 	t.aliases = d.KeywordList("aliases")
 	t.UID = <-uid.Next
+}
+
+// Marshal should encode the current receiver into the passed recordjar.Encoder.
+func (t *Thing) Marshal(e recordjar.Encoder) {
+	e.String("name", t.name)
+	e.String(":data:", t.description)
 }
 
 func (t *Thing) Init(d recordjar.Decoder, refs map[string]recordjar.Unmarshaler) {}
