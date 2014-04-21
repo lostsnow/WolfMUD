@@ -80,6 +80,7 @@ type Marshaler interface {
 // Constants for header line types
 const (
 	HS  = ""   // Header separator
+	PS  = ":"  // name / data pair separator
 	RS  = "%%" // Record separator
 	REM = "//" // Remark / comment
 )
