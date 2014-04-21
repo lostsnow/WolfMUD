@@ -25,6 +25,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"strings"
+	"time"
 )
 
 const (
@@ -37,6 +38,10 @@ const (
 type Player struct {
 	mobile.Mobile
 	sender   sender.Interface
+	account  string
+	password string
+	salt     string
+	created  time.Time
 	quitting bool
 }
 
@@ -45,7 +50,13 @@ func init() {
 	recordjar.RegisterUnmarshaler("player", &Player{})
 }
 
+// Unmarshal a recordjar record into a player
 func (p *Player) Unmarshal(d recordjar.Decoder) {
+	p.account = d.String("account")
+	p.password = d.String("password")
+	p.salt = d.String("salt")
+	p.created = d.Time("created")
+
 	p.Mobile.Unmarshal(d)
 }
 
