@@ -22,7 +22,7 @@ type DuplicateLoginError struct {
 }
 
 func (e DuplicateLoginError) Error() string {
-	return fmt.Sprintf("Player already logged in: %s", e.player.Name())
+	return fmt.Sprintf("Player already logged in: %s", e.player.account)
 }
 
 // playerList type records the current players on the server. Nothing is
@@ -58,8 +58,8 @@ func (l *playerList) unlock() {
 func (l *playerList) Add(player *Player) error {
 	l.lock()
 	defer l.unlock()
-	if _, found := l.players[player.Name()]; !found {
-		l.players[player.Name()] = player
+	if _, found := l.players[player.account]; !found {
+		l.players[player.account] = player
 		return nil
 	}
 	return &DuplicateLoginError{player}
@@ -70,7 +70,7 @@ func (l *playerList) Add(player *Player) error {
 func (l *playerList) Remove(player *Player) {
 	l.lock()
 	defer l.unlock()
-	delete(l.players, player.Name())
+	delete(l.players, player.account)
 }
 
 // Length returns the number of players in the playerList
