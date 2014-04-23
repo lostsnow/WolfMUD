@@ -7,8 +7,6 @@ package driver
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
-
-	"crypto/sha512"
 )
 
 // greeting to display to player when they initially connect.
@@ -63,8 +61,7 @@ func (l *login) checkAccount() {
 		return
 	}
 
-	l.account = sha512.Sum512([]byte(l.input))
-
+	l.account = player.HashAccount(l.input)
 	l.needPassword()
 }
 

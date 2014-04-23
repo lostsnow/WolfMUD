@@ -6,14 +6,9 @@
 package driver
 
 import (
-	"crypto/sha512"
 	"errors"
 	"log"
 )
-
-// accountId is the byte array SHA512 hash of the account name string. This
-// prevents overly long account names from using more memory than necessary.
-type accountId [sha512.Size]byte
 
 // accounts is a channel that should buffer a single map of logged in accounts
 // keyed by accountId. The map then acts as both data and lock.  To access the
@@ -22,12 +17,12 @@ type accountId [sha512.Size]byte
 // routines will block until the map is put back and can be read again. As maps
 // are reference types only a reference should actually go into the channel
 // keeping things lightweight.
-var accounts chan map[accountId]struct{}
+var accounts chan map[string]struct{}
 
 // init sets up the account tracking map and channel
 func init() {
-	accounts = make(chan map[accountId]struct{}, 1)
-	accounts <- make(map[accountId]struct{})
+	accounts = make(chan map[string]struct{}, 1)
+	accounts <- make(map[string]struct{})
 }
 
 func (d *driver) login() error {

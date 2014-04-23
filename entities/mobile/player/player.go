@@ -312,48 +312,32 @@ var (
 	DuplicateLogin = errors.New("Player already logged in")
 )
 
-// Load loads a player file.
+// Load loads a player .wrj data file. The passed account should be a hash
+// returned by HashAccount. The name of the data file will be the account hash
+// with .wrj appended to it.
 //
-// First the SHA512 hash of the player's account is Base64 encoded. This gives
-// us a safe 88 character string to be used as the filename storing the
-// player's character details. If we just accepted the player's input as the
-// filename they could try something like '../config' or something equally
-// nasty.
+// If an error is returned a nil *Player will always be returned.
 //
-// If we cannot open the player's file we return an error of BadCredentials.
+// If the data file cannot be opened a BadCredentials error is returned - the
+// account is incorrect if the file is not found.
 //
-// Then we take the salt value from the player's file and append the password
-// passed in. The SHA512 of the resulting string is calculated and Base64
-// encoded before being compared with the stored Base64 endcoded password hash.
+// If the data file is opened but the password is incorrect a BadCredentials
+// error is returned.
 //
-// If salt+password = password hash in the player's file we have a valid login.
-// Otherwise we return an error of BadCredentials.
+// If the data file cannot be unmarshaled a BadPlayerFile error is returned.
 //
-// If the credentials are good but the player's file cannot be loaded we return
-// an error of BadPlayerFile.
-//
-// Note that we are manually opening the player's file, reading it as a
-// recordjar, peeking inside it, then unmarshaling it. This is so that we can
-// abort at any point - player not found, incorrect password, corrupt player
-// file - having done as little work as possible. In this way we are not
-// unmarshaling players which may have a lot of dependant stuff (inventory) to
-// unmarshal just to validate the login - someone could hit the server and tie
-// up processing with invalid logins otherwise if the unmarshaling took a
-// significant amount of time.
-//
-// NOTE: The 88 character filename + 4 character extension (.wrj) will break
-// some file systems such as HFS on Mac OS (Not OS X), Joliet for CD-ROMs and
-// maybe others.
-//
-// BONUS TRIVIA: The Java version of WolfMUD would not compile on Mac OS at one
-// point due to a file with a name over 32 characters long... *sigh*
-func Load(account [sha512.Size]byte, password string) (*Player, error) {
-
-	// Convert account into a 88 character Base64 encoded string.
-	filename := base64.URLEncoding.EncodeToString(account[:])
+// NOTE: We are manually opening the player's file, reading it as a recordjar,
+// peeking inside it, then unmarshaling it. This is so that we can abort at any
+// point - player not found, incorrect password, corrupt player file - having
+// done as little work as possible. In this way we are not unmarshaling players
+// which may have a lot of dependant stuff (inventory) to unmarshal just to
+// validate the login - someone could hit the server and tie up processing with
+// invalid logins otherwise if the unmarshaling took a significant amount of
+// time.
+func Load(account string, password string) (*Player, error) {
 
 	// Can we open the player's file to get the current salt and password hash?
-	f, err := os.Open(config.DataDir + "players/" + filename + ".wrj")
+	f, err := os.Open(config.DataDir + "players/" + account + ".wrj")
 	if err != nil {
 		return nil, BadCredentials
 	}
@@ -362,19 +346,14 @@ func Load(account [sha512.Size]byte, password string) (*Player, error) {
 	rj, _ := recordjar.Read(f)
 
 	d := recordjar.Decoder(rj[0])
-	s := d.String("salt")
 	p := d.String("password")
+	s := d.String("salt")
 
-	// Password hash can be split over multiple lines in the file so try
-	// stitching it back together.
-	p = strings.Replace(p, " ", "", -1)
+	// Password hash may be split over multiple lines in the data file which when
+	// read will be concatenated together with spaces - which need removing.
+	h := strings.Replace(p, " ", "", -1)
 
-	// Create a hash of salt + password
-	h := sha512.Sum512([]byte(s + password))
-
-	// Million dollar question: does the salt+password hash match the hash stored
-	// in the player's file? If not we have bad credentials.
-	if base64.URLEncoding.EncodeToString(h[:]) != p {
+	if !PasswordValid(password, s, h) {
 		return nil, BadCredentials
 	}
 

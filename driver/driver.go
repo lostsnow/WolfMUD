@@ -18,7 +18,7 @@ import (
 // TODO: Document writing drivers.
 type driver struct {
 	input   string
-	account accountId
+	account string
 	next    func()
 	player  *player.Player
 	buff    buffer
