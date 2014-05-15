@@ -80,6 +80,25 @@ var directionShortNames = [...]string{
 	D:  "D",
 }
 
+// directionShortIndex are a map between a direction textual short name and a
+// direction type. This map can be indexed using the direction short name. For
+// example:
+//
+//	directionShortNames["S"] is location.S
+//
+var directionShortIndex = map[string]direction{
+	"N":  N,
+	"NE": NE,
+	"E":  E,
+	"SE": SE,
+	"S":  S,
+	"SW": SW,
+	"W":  W,
+	"NW": W,
+	"U":  U,
+	"D":  D,
+}
+
 // directionalExits hold the available directional exits from a location. There
 // may be other exits implemented by things such as chutes or portals but these
 // exits are not directional. The primary purpose of defining exits as a type is

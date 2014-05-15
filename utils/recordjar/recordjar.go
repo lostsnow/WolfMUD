@@ -69,12 +69,18 @@ type RecordJar []Record
 // Unmarshaler should be implemented by any type that can take data represented
 // by a Record and parse / decode it.
 type Unmarshaler interface {
-	Unmarshal(Record)
+	Unmarshal(Decoder)
+	Init(ref Decoder, refs map[string]Unmarshaler)
+}
+
+type Marshaler interface {
+	Marshal(Encoder)
 }
 
 // Constants for header line types
 const (
 	HS  = ""   // Header separator
+	PS  = ":"  // name / data pair separator
 	RS  = "%%" // Record separator
 	REM = "//" // Remark / comment
 )
@@ -174,4 +180,55 @@ RECORDS:
 	}
 
 	return rj, nil
+}
+
+// Write writes the passed RecordJar to the passed io.Writer.
+func Write(writer io.Writer, rj RecordJar) (err error) {
+
+	b := bufio.NewWriter(writer)
+
+	for _, rec := range rj {
+
+		// Find longest attribute name for pretty formatting
+		length, maxlength := 0, 0
+		for attr := range rec {
+			if attr == ":data:" {
+				continue
+			}
+			if length = len(attr); length > maxlength {
+				maxlength = length
+			}
+		}
+
+		// Write out name/data pairs with left padding on the name so
+		// everything aligns
+		spaces := strings.Repeat(" ", maxlength)
+		padding := ""
+
+		for attr, data := range rec {
+			if attr == ":data:" {
+				continue
+			}
+			padding = spaces[:maxlength-len(attr)]
+			b.WriteString(padding)
+			b.WriteString(strings.Title(attr))
+			b.WriteString(PS)
+			b.WriteByte(' ')
+			b.WriteString(data)
+			b.WriteByte('\n')
+		}
+
+		if data, found := rec[":data:"]; found {
+			b.WriteByte('\n')
+			b.WriteString(data)
+			b.WriteByte('\n')
+		}
+
+		b.WriteString(RS)
+		b.WriteByte('\n')
+	}
+
+	b.Flush()
+
+	return nil
 }

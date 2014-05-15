@@ -43,11 +43,13 @@ var (
 // All configuration values with initial sensible defaults. This allows the
 // values to be accessed simplay as config.<property>
 var (
-	DataDir            = "."
-	ListenAddress      = "127.0.0.1"
-	ListenPort         = "4001"
-	MemProfileRate int = 0
-	StatsRate          = 5 * time.Minute
+	DataDir                = "."
+	ListenAddress          = "127.0.0.1"
+	ListenPort             = "4001"
+	MemProfileRate     int = 0
+	StatsRate              = 5 * time.Minute
+	AccountIdMin           = 10
+	AccountPasswordMin     = 10
 )
 
 // init sets up the configuration search paths:
@@ -70,6 +72,7 @@ func init() {
 			searchPaths = append(searchPaths, selfBin)
 		}
 		searchPaths = append(searchPaths, selfBin+"/data")
+		searchPaths = append(searchPaths, selfBin+"/../data")
 		searchPaths = append(searchPaths, selfBin+"/../src/code.wolfmud.org/WolfMUD.git/data")
 	}
 
@@ -103,14 +106,16 @@ func Read() {
 			defer dir.Close()
 			log.Printf("Using: %s%s%s", path, ps, configName)
 			rj, _ := recordjar.Read(dir)
-			c := rj[0]
+			d := recordjar.Decoder(rj[0])
 
-			ListenAddress = c.String("listen.address")
-			ListenPort = c.String("listen.port")
-			runtime.MemProfileRate = c.Int("mem.profile.rate")
-			StatsRate = c.Duration("stats.rate")
+			ListenAddress = d.String("listen.address")
+			ListenPort = d.String("listen.port")
+			runtime.MemProfileRate = d.Int("mem.profile.rate")
+			StatsRate = d.Duration("stats.rate")
+			AccountIdMin = d.Int("account.id.min")
+			AccountPasswordMin = d.Int("account.password.min")
 
-			DataDir, _ = filepath.Abs(path + ps + c["data.dir"])
+			DataDir, _ = filepath.Abs(path + ps + d["data.dir"])
 			DataDir += ps
 
 			log.Printf("listen.address: %s", ListenAddress)
@@ -118,6 +123,8 @@ func Read() {
 			log.Printf("mem.profile.rate: %d", MemProfileRate)
 			log.Printf("stats.rate: %s", StatsRate)
 			log.Printf("data.dir: %s", DataDir)
+			log.Printf("account.id.min: %d", AccountIdMin)
+			log.Printf("account.password.min: %d", AccountPasswordMin)
 
 			break
 		}

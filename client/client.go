@@ -3,23 +3,9 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// Package client implements a client connecting to the WolfMUD server. It is
-// actually a mini TELNET server - any TELNET client should be able to connect
-// to and talk to client. It supports ANSI foreground color codes and wrapping
-// on whitespace.
-//
-// If you take the client package, write some code to accept a connection and
-// pass it to client.Spawn you practically have a simple TELNET server that can
-// be extended and used for a number of projects :)
-//
-// The idea here is to have a client that can talk to any parser. The parser
-// can be anything from a login, a menu system, a mini chat system or an actual
-// player session. A typical example usage might be connect and attach to a
-// login parser, once you get a successful login detach the login parser and
-// connect a player parser.
-//
-// You could also detach from your player's parser and attach to a mobile's
-// parser and 'puppet' them leading to some interesting possibilities ;)
+// Package client implements asynchronous network I/O for a client connecting
+// to the WolfMUD server. It will handle network errors and idle timeouts
+// gracefully.
 package client
 
 // BUG(Diddymus): Currently we don't try to put the client into line mode. If
@@ -28,10 +14,11 @@ package client
 // other TELNET related RFCs.
 
 import (
-	"bytes"
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
-	"code.wolfmud.org/WolfMUD.git/utils/parser"
+	"code.wolfmud.org/WolfMUD.git/driver"
+	"code.wolfmud.org/WolfMUD.git/utils/sender"
 	"code.wolfmud.org/WolfMUD.git/utils/text"
+
+	"bytes"
 	"fmt"
 	"log"
 	"net"
@@ -46,29 +33,13 @@ const (
 	MAX_TIMEOUT = 10 * time.Minute // Idle connection timeout
 	TERM_WIDTH  = 80               // fold wrapping length - see fold function
 	BUFFER_SIZE = 256              // Comms input buffer length in bytes
-
-	GREETING = `
-
-[GREEN]Wolf[WHITE]MUD Copyright 2012 Andrew 'Diddymus' Rolfe
-
-    [GREEN]W[WHITE]orld
-    [GREEN]O[WHITE]f
-    [GREEN]L[WHITE]iving
-    [GREEN]F[WHITE]antasy
-`
 )
 
-// Prompt definitions
-const (
-	PROMPT_NONE    = "\n"
-	PROMPT_DEFAULT = text.COLOR_MAGENTA + "\n>"
-)
-
-// Client represents a TELNET client connection to the server.
+// Client represents a client connection to the server. We could embed the
+// *net.TCPConn but do we really want to expose all of it's functionality via a
+// Client?
 type Client struct {
-	parser parser.Interface // Currently attached parser
-	name   string           // Current name allocated by attached parser
-	conn   *net.TCPConn     // The TELNET network connection
+	conn   *net.TCPConn
 	bail   chan error
 	prompt string
 }
@@ -78,15 +49,12 @@ type Client struct {
 // cleans up. So it's not called New because it does more than create the
 // client. It not called Run or Start because it does more than that. Spawn
 // seemed like a good name as it spawns a new client :)
-//
-// TODO: Move display of greeting to login parser.
-//
-// TODO: Modify to handle attaching/detatching multiple parsers
 func Spawn(conn *net.TCPConn) {
 
 	c := &Client{
-		conn: conn,
-		bail: make(chan error, 1),
+		conn:   conn,
+		bail:   make(chan error, 1),
+		prompt: sender.PROMPT_DEFAULT,
 	}
 
 	// Initialise bail channel with a nil error
@@ -96,29 +64,29 @@ func Spawn(conn *net.TCPConn) {
 	c.conn.SetLinger(0)
 	c.conn.SetNoDelay(false)
 
-	c.prompt = PROMPT_NONE
-	c.Send(GREETING)
-	c.prompt = PROMPT_DEFAULT
-
-	c.parser = player.New(c)
-	c.name = c.parser.Name()
-
-	log.Printf("Client created: %s", c.name)
-
 	c.receiver()
 
-	c.parser.Destroy()
-	c.parser = nil
-
 	if err := c.bailed(); err != nil {
-		log.Printf("Comms error for: %s, %s", c.name, err)
+		log.Printf("Comms error for: %s, %s", c, err)
+	} else {
+		c.Prompt(sender.PROMPT_NONE)
+		c.Send("[YELLOW]Bye Bye[WHITE]\n")
 	}
 
 	if err := c.conn.Close(); err != nil {
-		log.Printf("Error closing socket for %s, %s", c.name, err)
+		log.Printf("Error closing socket for: %s, %s", c, err)
+	} else {
+		log.Printf("Clean player exit, socket closed for: %s", c)
 	}
+}
 
-	log.Printf("Spawn ending for %s", c.name)
+// String returns a client identifier. Currently this has the format of:
+//
+//	remote_address:remote_port
+//
+// Having it as a function here makes it easy to change later on if we want to.
+func (c *Client) String() string {
+	return c.conn.RemoteAddr().String()
 }
 
 // isBailing checks to see if the client is currently bailing.
@@ -147,10 +115,13 @@ func (c *Client) bailed() error {
 	return bailing
 }
 
-// receiver receives data from the user's TELNET client. receive waits on a
-// connection for MAX_TIMEOUT before timing out. If the read times out
-// the connection will be closed and the inactive user disconnected.
+// receiver loops reading data from the client's network connection and writing
+// it to the current driver for processing. If the read times out the connection
+// will be closed and the inactive user disconnected.
 func (c *Client) receiver() {
+
+	// Our initial login driver.
+	driver := driver.New(c)
 
 	// buffer is the input buffer which may be drip fed data from a client. This
 	// caters for input being read in multiple reads, multiple inputs being read
@@ -175,7 +146,7 @@ func (c *Client) receiver() {
 	var cmd []byte // extracted command to be processed
 
 	// Loop on connection until we bail out or timeout
-	for !c.isBailing() && !c.parser.IsQuitting() {
+	for !c.isBailing() && !driver.IsQuitting() {
 
 		c.conn.SetReadDeadline(time.Now().Add(MAX_TIMEOUT))
 		b, err = c.conn.Read(buffer[bCursor:])
@@ -201,11 +172,7 @@ func (c *Client) receiver() {
 
 				cmd = bytes.TrimRightFunc(buffer[0:LF], unicode.IsSpace)
 
-				if len(cmd) == 0 {
-					c.Send("")
-				} else {
-					c.parser.Parse(string(cmd))
-				}
+				driver.Process(string(cmd))
 
 				// Remove the part of the buffer we just processed by copying the bytes
 				// after the bCursor to the front of the buffer.
@@ -221,24 +188,20 @@ func (c *Client) receiver() {
 
 		// Check for errors reading data (see io.Reader for details)
 		if err != nil {
-			if oe, ok := err.(*net.OpError); !ok || !oe.Timeout() {
-				c.bailing(err)
+			if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
+				c.prompt = sender.PROMPT_NONE
+				c.Send("")
+				driver.Logout()
+				c.Send("\n\n[RED]Idle connection terminated by server.")
+				log.Printf("Closing idle connection for: %s", c)
+				break
 			}
-			break
+			c.bailing(err)
 		}
 
 	}
 
-	// If we are not quitting or bailing we timed out
-	if !c.isBailing() && !c.parser.IsQuitting() {
-		c.prompt = PROMPT_NONE
-		c.Send(" ")
-		c.parser.Parse("QUIT")
-		c.Send("[RED]Idle connection terminated by server.[WHITE]\n")
-		log.Printf("Closing idle connection for: %s", c.name)
-	}
-
-	log.Printf("receiver ending for %s", c.name)
+	driver.Logout()
 }
 
 // Prompt sets a new prompt and returns the old prompt. It is implemented as

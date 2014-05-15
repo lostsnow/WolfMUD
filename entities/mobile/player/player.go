@@ -11,87 +11,67 @@ import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/entities/thing"
 	"code.wolfmud.org/WolfMUD.git/utils/command"
+	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
+
+	"crypto/md5"
+	"crypto/sha512"
+	"encoding/base64"
+	"encoding/hex"
+	"errors"
 	"log"
+	"math/rand"
 	"os"
 	"runtime/pprof"
-	"strconv"
 	"strings"
+	"time"
 )
 
-// playerCount increments with each player created so we can have unique
-// players - created as 'Player n' until we have proper logins.
-//
-// TODO: Drop playerCount once we have proper logins.
-var (
-	playerCount = make(chan int, 1)
+const (
+	saltLength = 10 // Length of salt to generate/use for passwords
 )
 
-// Player is the implementation of a player. Most of the functionallity comes
+// Player is the implementation of a player. Most of the functionality comes
 // from the Mobile type and methods to implement the parser Interface. Apart
 // from the parser interface methods Player only contains Player specific code.
 type Player struct {
 	mobile.Mobile
 	sender   sender.Interface
+	account  string
+	password string
+	salt     string
+	created  time.Time
 	quitting bool
 }
 
+// Register zero value instance of Player with the loader.
 func init() {
-	// Initialise channel before anything can use it
-	playerCount <- 0
+	recordjar.RegisterUnmarshaler("player", &Player{})
 }
 
-// TODO: loadPlayer currently just generates a player instead of actually
-// loading one.
-func loadPlayer(sender sender.Interface) (p *Player) {
+// Unmarshal a recordjar record into a player
+func (p *Player) Unmarshal(d recordjar.Decoder) {
+	p.account = d.String("account")
+	p.password = d.String("password")
+	p.salt = d.String("salt")
+	p.created = d.Time("created")
 
-	// Grab the current player count, increment it and put it back again
-	pc := <-playerCount
-	pc++
-	playerCount <- pc
-
-	postfix := strconv.Itoa(pc)
-
-	r := map[string]string{
-		"name":    "Player " + postfix,
-		":data:":  "This is player " + postfix,
-		"aliases": "Player " + postfix,
-	}
-
-	p = &Player{sender: sender}
-	p.Unmarshal(r)
-
-	return p
+	p.Mobile.Unmarshal(d)
 }
 
-func (p *Player) Unmarshal(r recordjar.Record) {
-	p.Mobile.Unmarshal(r)
-}
-
-// New creates a new Player and returns a reference to it. The player is put
-// into the world at a random starting location and the location is described.
-func New(sender sender.Interface) (p *Player) {
-	p = loadPlayer(sender)
+// Start starts a Player off in the world. The player is put into the world at
+// a random starting location and the location is described to them.
+func (p *Player) Start(s sender.Interface) {
+	p.quitting = false
+	p.sender = s
 	p.add(location.GetStart())
-	return p
 }
 
-// IsQuitting returns true if the player is trying to quit otherwise false. It
-// implements part of the parser.Interface.
+// IsQuitting returns true if the player psrser is trying to quit otherwise
+// false. It implements part of the parser.Interface.
 func (p *Player) IsQuitting() bool {
 	return p.quitting
-}
-
-// Destroy should cleanly shutdown the Parser when called. It implements part
-// of the parser.Interface.
-func (p *Player) Destroy() {
-
-	// execute p.remove until successful ... looks weird ;)
-	for !p.remove() {
-	}
-
-	p.sender = nil
 }
 
 // add places a player in the world safely and announces their arrival.  We
@@ -113,30 +93,6 @@ func (p *Player) add(l location.Interface) {
 	}
 
 	cmd.Flush()
-}
-
-// remove extracts a player from the world cleanly. If the player's location is
-// not crowded it also announces their departure - in a crowded location their
-// departure will go unnoticed.
-func (p *Player) remove() (removed bool) {
-	l := p.Locate()
-	l.Lock()
-	defer l.Unlock()
-
-	// Make sure player didn't move between getting the player's location and
-	// locking the location.
-	if !l.IsAlso(p.Locate()) {
-		return false
-	}
-
-	if !l.Crowded() {
-		l.Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
-	}
-
-	l.Remove(p)
-	PlayerList.Remove(p)
-
-	return true
 }
 
 // dropInventory drops everything the player is carrying.
@@ -178,6 +134,12 @@ func (p *Player) dropInventory(cmd *command.Command) {
 // with the initial connection and multiple clients all trying to grab the start
 // location lock!
 func (p *Player) Parse(input string) {
+
+	// If no input respond with nothing so the prompt is redisplayed
+	if input == "" {
+		p.Respond("")
+		return
+	}
 
 	cmd := command.New(p, input)
 	cmd.AddLock(p.Locate())
@@ -306,14 +268,25 @@ func (p *Player) memprof(cmd *command.Command) (handled bool) {
 
 // quit implements the 'QUIT' command.
 //
-// TODO: Document exact effect when finalised and Destroy etc cleaned
-// up/possibly removed.
+// quit extracts a player from the world cleanly. If the player's location is
+// not crowded it also announces their departure - in a crowded location their
+// departure will go unnoticed.
 func (p *Player) quit(cmd *command.Command) (handled bool) {
-	p.dropInventory(cmd)
-	cmd.Respond("\n[YELLOW]Bye Bye[WHITE]\n")
+	log.Printf("%s is quiting", p.Name())
 	p.quitting = true
-	log.Printf("%s is quitting", p.Name())
-	p.sender.Prompt("")
+	p.dropInventory(cmd)
+
+	l := p.Locate()
+
+	if !l.Crowded() {
+		cmd.Broadcast([]thing.Interface{p}, "%s gives a strangled cry of 'Bye Bye', and then slowly fades away and is gone.", p.Name())
+	}
+
+	cmd.Flush()
+
+	l.Remove(p)
+	PlayerList.Remove(p)
+
 	return true
 }
 
@@ -341,4 +314,143 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 	}
 
 	return true
+}
+
+// Errors that can be returned by Load.
+var (
+	BadCredentials = errors.New("Invalid credentals")
+	BadPlayerFile  = errors.New("Invalid player file")
+	DuplicateLogin = errors.New("Player already logged in")
+)
+
+// Load loads a player .wrj data file. The passed account should be a hash
+// returned by HashAccount. The name of the data file will be the account hash
+// with .wrj appended to it.
+//
+// If an error is returned a nil *Player will always be returned.
+//
+// If the data file cannot be opened a BadCredentials error is returned - the
+// account is incorrect if the file is not found.
+//
+// If the data file is opened but the password is incorrect a BadCredentials
+// error is returned.
+//
+// If the data file cannot be unmarshaled a BadPlayerFile error is returned.
+//
+// NOTE: We are manually opening the player's file, reading it as a recordjar,
+// peeking inside it, then unmarshaling it. This is so that we can abort at any
+// point - player not found, incorrect password, corrupt player file - having
+// done as little work as possible. In this way we are not unmarshaling players
+// which may have a lot of dependant stuff (inventory) to unmarshal just to
+// validate the login - someone could hit the server and tie up processing with
+// invalid logins otherwise if the unmarshaling took a significant amount of
+// time.
+func Load(account string, password string) (*Player, error) {
+
+	// Can we open the player's file to get the current salt and password hash?
+	f, err := os.Open(config.DataDir + "players/" + account + ".wrj")
+	if err != nil {
+		return nil, BadCredentials
+	}
+	defer f.Close()
+
+	rj, _ := recordjar.Read(f)
+
+	d := recordjar.Decoder(rj[0])
+	p := d.String("password")
+	s := d.String("salt")
+
+	// Password hash may be split over multiple lines in the data file which when
+	// read will be concatenated together with spaces - which need removing.
+	h := strings.Replace(p, " ", "", -1)
+
+	if !PasswordValid(password, s, h) {
+		return nil, BadCredentials
+	}
+
+	data := recordjar.UnmarshalJar(&rj)
+
+	if data["PLAYER"] == nil {
+		log.Printf("Error loading player: %#v", rj)
+		return nil, BadPlayerFile
+	}
+
+	return data["PLAYER"].(*Player), nil
+}
+
+func Save(e recordjar.Encoder) error {
+
+	d := recordjar.Decoder(e)
+
+	account := d.String("account")
+
+	fileFlags := os.O_CREATE | os.O_EXCL | os.O_WRONLY
+
+	f, err := os.OpenFile(config.DataDir+"players/"+account+".wrj", fileFlags, 0660)
+
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	rj := recordjar.RecordJar{}
+	rj = append(rj, recordjar.Record(e))
+	recordjar.Write(f, rj)
+
+	return nil
+}
+
+// HashAccount takes a plain account string and returns it's hash as a string.
+// The hash is synonymous with the name of a player's data file with .wrj
+// appended to it.
+//
+// Using a weak, fast hash here is not an issue. The hash is used to convert an
+// arbitrarily long, user supplied account name into a hexadecimal, fixed length
+// string of the hash. The only consequence of using a weak, fast hash is an
+// indication that an account already exists when in fact it's a collision.
+//
+// Even though the account name may contain characters other than letters and
+// digits using a hash results in a string only containing only characters 0-9
+// and a-f which are safe to use as the player's data file's name.
+func HashAccount(account string) string {
+	h := md5.Sum([]byte(account))
+	return hex.EncodeToString(h[:])
+}
+
+// HashPassword takes a plain string password and returns it's hash and salt as
+// strings. The salt is randomly generated for each password by selecting 10
+// random printable ASCII characters in the range 0x21 to 0x7E or '!' to '~'.
+//
+// The returned hash and salt can be passed to PasswordValid to subsequently
+// validate passwords.
+func HashPassword(password string) (hash, salt string) {
+	l := saltLength + len(password)
+	sp := make([]byte, l, l)
+
+	for i := 0; i < saltLength; i++ {
+		sp[i] = byte('!' + rand.Intn('~'-'!'))
+	}
+
+	copy(sp[saltLength:], password)
+
+	h := sha512.Sum512(sp)
+
+	hash = base64.URLEncoding.EncodeToString(h[:])
+	salt = string(sp[:saltLength])
+
+	return
+}
+
+// PasswordValid validates that a given password is correct for a given hash
+// and salt. The passed hash and salt should be generated by HashPassword.
+func PasswordValid(password, salt, hash string) bool {
+	l := saltLength + len(password)
+	sp := make([]byte, l, l)
+
+	copy(sp[:saltLength], salt)
+	copy(sp[saltLength:], password)
+
+	h := sha512.Sum512(sp)
+
+	return base64.URLEncoding.EncodeToString(h[:]) == hash
 }
