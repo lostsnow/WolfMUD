@@ -43,11 +43,13 @@ var (
 // All configuration values with initial sensible defaults. This allows the
 // values to be accessed simplay as config.<property>
 var (
-	DataDir            = "."
-	ListenAddress      = "127.0.0.1"
-	ListenPort         = "4001"
-	MemProfileRate int = 0
-	StatsRate          = 5 * time.Minute
+	DataDir                = "."
+	ListenAddress          = "127.0.0.1"
+	ListenPort             = "4001"
+	MemProfileRate     int = 0
+	StatsRate              = 5 * time.Minute
+	AccountIdMin           = 10
+	AccountPasswordMin     = 10
 )
 
 // init sets up the configuration search paths:
@@ -110,6 +112,8 @@ func Read() {
 			ListenPort = d.String("listen.port")
 			runtime.MemProfileRate = d.Int("mem.profile.rate")
 			StatsRate = d.Duration("stats.rate")
+			AccountIdMin = d.Int("account.id.min")
+			AccountPasswordMin = d.Int("account.password.min")
 
 			DataDir, _ = filepath.Abs(path + ps + d["data.dir"])
 			DataDir += ps
@@ -119,6 +123,8 @@ func Read() {
 			log.Printf("mem.profile.rate: %d", MemProfileRate)
 			log.Printf("stats.rate: %s", StatsRate)
 			log.Printf("data.dir: %s", DataDir)
+			log.Printf("account.id.min: %d", AccountIdMin)
+			log.Printf("account.password.min: %d", AccountPasswordMin)
 
 			break
 		}

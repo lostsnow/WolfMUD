@@ -15,30 +15,48 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 
+	"crypto/md5"
 	"crypto/sha512"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"log"
+	"math/rand"
 	"os"
 	"runtime/pprof"
 	"strings"
+	"time"
 )
 
-// Player is the implementation of a player. Most of the functionallity comes
+const (
+	saltLength = 10 // Length of salt to generate/use for passwords
+)
+
+// Player is the implementation of a player. Most of the functionality comes
 // from the Mobile type and methods to implement the parser Interface. Apart
 // from the parser interface methods Player only contains Player specific code.
 type Player struct {
 	mobile.Mobile
 	sender   sender.Interface
+	account  string
+	password string
+	salt     string
+	created  time.Time
 	quitting bool
 }
 
 // Register zero value instance of Player with the loader.
 func init() {
-	recordjar.Register("player", &Player{})
+	recordjar.RegisterUnmarshaler("player", &Player{})
 }
 
+// Unmarshal a recordjar record into a player
 func (p *Player) Unmarshal(d recordjar.Decoder) {
+	p.account = d.String("account")
+	p.password = d.String("password")
+	p.salt = d.String("salt")
+	p.created = d.Time("created")
+
 	p.Mobile.Unmarshal(d)
 }
 
@@ -305,48 +323,32 @@ var (
 	DuplicateLogin = errors.New("Player already logged in")
 )
 
-// Load loads a player file.
+// Load loads a player .wrj data file. The passed account should be a hash
+// returned by HashAccount. The name of the data file will be the account hash
+// with .wrj appended to it.
 //
-// First the SHA512 hash of the player's account is Base64 encoded. This gives
-// us a safe 88 character string to be used as the filename storing the
-// player's character details. If we just accepted the player's input as the
-// filename they could try something like '../config' or something equally
-// nasty.
+// If an error is returned a nil *Player will always be returned.
 //
-// If we cannot open the player's file we return an error of BadCredentials.
+// If the data file cannot be opened a BadCredentials error is returned - the
+// account is incorrect if the file is not found.
 //
-// Then we take the salt value from the player's file and append the password
-// passed in. The SHA512 of the resulting string is calculated and Base64
-// encoded before being compared with the stored Base64 endcoded password hash.
+// If the data file is opened but the password is incorrect a BadCredentials
+// error is returned.
 //
-// If salt+password = password hash in the player's file we have a valid login.
-// Otherwise we return an error of BadCredentials.
+// If the data file cannot be unmarshaled a BadPlayerFile error is returned.
 //
-// If the credentials are good but the player's file cannot be loaded we return
-// an error of BadPlayerFile.
-//
-// Note that we are manually opening the player's file, reading it as a
-// recordjar, peeking inside it, then unmarshaling it. This is so that we can
-// abort at any point - player not found, incorrect password, corrupt player
-// file - having done as little work as possible. In this way we are not
-// unmarshaling players which may have a lot of dependant stuff (inventory) to
-// unmarshal just to validate the login - someone could hit the server and tie
-// up processing with invalid logins otherwise if the unmarshaling took a
-// significant amount of time.
-//
-// NOTE: The 88 character filename + 4 character extension (.wrj) will break
-// some file systems such as HFS on Mac OS (Not OS X), Joliet for CD-ROMs and
-// maybe others.
-//
-// BONUS TRIVIA: The Java version of WolfMUD would not compile on Mac OS at one
-// point due to a file with a name over 32 characters long... *sigh*
-func Load(account [sha512.Size]byte, password string) (*Player, error) {
-
-	// Convert account into a 88 character Base64 encoded string.
-	filename := base64.URLEncoding.EncodeToString(account[:])
+// NOTE: We are manually opening the player's file, reading it as a recordjar,
+// peeking inside it, then unmarshaling it. This is so that we can abort at any
+// point - player not found, incorrect password, corrupt player file - having
+// done as little work as possible. In this way we are not unmarshaling players
+// which may have a lot of dependant stuff (inventory) to unmarshal just to
+// validate the login - someone could hit the server and tie up processing with
+// invalid logins otherwise if the unmarshaling took a significant amount of
+// time.
+func Load(account string, password string) (*Player, error) {
 
 	// Can we open the player's file to get the current salt and password hash?
-	f, err := os.Open(config.DataDir + "players/" + filename + ".wrj")
+	f, err := os.Open(config.DataDir + "players/" + account + ".wrj")
 	if err != nil {
 		return nil, BadCredentials
 	}
@@ -355,19 +357,14 @@ func Load(account [sha512.Size]byte, password string) (*Player, error) {
 	rj, _ := recordjar.Read(f)
 
 	d := recordjar.Decoder(rj[0])
-	s := d.String("salt")
 	p := d.String("password")
+	s := d.String("salt")
 
-	// Password hash can be split over multiple lines in the file so try
-	// stitching it back together.
-	p = strings.Replace(p, " ", "", -1)
+	// Password hash may be split over multiple lines in the data file which when
+	// read will be concatenated together with spaces - which need removing.
+	h := strings.Replace(p, " ", "", -1)
 
-	// Create a hash of salt + password
-	h := sha512.Sum512([]byte(s + password))
-
-	// Million dollar question: does the salt+password hash match the hash stored
-	// in the player's file? If not we have bad credentials.
-	if base64.URLEncoding.EncodeToString(h[:]) != p {
+	if !PasswordValid(password, s, h) {
 		return nil, BadCredentials
 	}
 
@@ -379,4 +376,81 @@ func Load(account [sha512.Size]byte, password string) (*Player, error) {
 	}
 
 	return data["PLAYER"].(*Player), nil
+}
+
+func Save(e recordjar.Encoder) error {
+
+	d := recordjar.Decoder(e)
+
+	account := d.String("account")
+
+	fileFlags := os.O_CREATE | os.O_EXCL | os.O_WRONLY
+
+	f, err := os.OpenFile(config.DataDir+"players/"+account+".wrj", fileFlags, 0660)
+
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	rj := recordjar.RecordJar{}
+	rj = append(rj, recordjar.Record(e))
+	recordjar.Write(f, rj)
+
+	return nil
+}
+
+// HashAccount takes a plain account string and returns it's hash as a string.
+// The hash is synonymous with the name of a player's data file with .wrj
+// appended to it.
+//
+// Using a weak, fast hash here is not an issue. The hash is used to convert an
+// arbitrarily long, user supplied account name into a hexadecimal, fixed length
+// string of the hash. The only consequence of using a weak, fast hash is an
+// indication that an account already exists when in fact it's a collision.
+//
+// Even though the account name may contain characters other than letters and
+// digits using a hash results in a string only containing only characters 0-9
+// and a-f which are safe to use as the player's data file's name.
+func HashAccount(account string) string {
+	h := md5.Sum([]byte(account))
+	return hex.EncodeToString(h[:])
+}
+
+// HashPassword takes a plain string password and returns it's hash and salt as
+// strings. The salt is randomly generated for each password by selecting 10
+// random printable ASCII characters in the range 0x21 to 0x7E or '!' to '~'.
+//
+// The returned hash and salt can be passed to PasswordValid to subsequently
+// validate passwords.
+func HashPassword(password string) (hash, salt string) {
+	l := saltLength + len(password)
+	sp := make([]byte, l, l)
+
+	for i := 0; i < saltLength; i++ {
+		sp[i] = byte('!' + rand.Intn('~'-'!'))
+	}
+
+	copy(sp[saltLength:], password)
+
+	h := sha512.Sum512(sp)
+
+	hash = base64.URLEncoding.EncodeToString(h[:])
+	salt = string(sp[:saltLength])
+
+	return
+}
+
+// PasswordValid validates that a given password is correct for a given hash
+// and salt. The passed hash and salt should be generated by HashPassword.
+func PasswordValid(password, salt, hash string) bool {
+	l := saltLength + len(password)
+	sp := make([]byte, l, l)
+
+	copy(sp[:saltLength], salt)
+	copy(sp[saltLength:], password)
+
+	h := sha512.Sum512(sp)
+
+	return base64.URLEncoding.EncodeToString(h[:]) == hash
 }

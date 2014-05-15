@@ -20,3 +20,7 @@ mem.profile.rate: 1
 // Usually using units of h=hours, m=minutes and s=seconds.
 // For example: 10s, 1m, 1m30s. Set to 0 - zero - to disable.
 stats.rate: 10s
+//
+// Minimum length of account Id and password
+account.id.min: 10
+account.password.min: 10

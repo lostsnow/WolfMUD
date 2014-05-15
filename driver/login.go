@@ -7,8 +7,6 @@ package driver
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
-
-	"crypto/sha512"
 )
 
 // greeting to display to player when they initially connect.
@@ -49,7 +47,7 @@ func (l *login) welcome() {
 // needAccount asks for the player's account and sets the next function to
 // check the account entered.
 func (l *login) needAccount() {
-	l.Respond("Please enter your account:")
+	l.Respond("Please enter your account ID or just press [CYAN]ENTER[WHITE] to create a new account:")
 	l.next = l.checkAccount
 }
 
@@ -59,12 +57,11 @@ func (l *login) needAccount() {
 func (l *login) checkAccount() {
 
 	if l.input == "" {
-		l.needAccount()
+		l.next = l.newAccount()
 		return
 	}
 
-	l.account = sha512.Sum512([]byte(l.input))
-
+	l.account = player.HashAccount(l.input)
 	l.needPassword()
 }
 
