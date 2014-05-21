@@ -28,8 +28,9 @@ func (e DuplicateLoginError) Error() string {
 // playerList type records the current players on the server. Nothing is
 // exported as access should be through the package level PlayerList.
 type playerList struct {
-	players map[string]*Player
-	mutex   chan bool
+	players    map[string]*Player
+	maxPlayers int
+	mutex      chan bool
 }
 
 // PlayerList exports the playerList type
@@ -60,6 +61,9 @@ func (l *playerList) Add(player *Player) error {
 	defer l.unlock()
 	if _, found := l.players[player.account]; !found {
 		l.players[player.account] = player
+		if n := len(l.players); n > l.maxPlayers {
+			l.maxPlayers = n
+		}
 		return nil
 	}
 	return &DuplicateLoginError{player}
@@ -73,11 +77,11 @@ func (l *playerList) Remove(player *Player) {
 	delete(l.players, player.account)
 }
 
-// Length returns the number of players in the playerList
-func (l *playerList) Length() int {
+// Stats returns statistics about the number of players.
+func (l *playerList) Stats() (activePlayers, maxPlayers int) {
 	l.lock()
 	defer l.unlock()
-	return len(l.players)
+	return len(l.players), l.maxPlayers
 }
 
 // Broadcast implements the broadcaster interface and sends a message to all
@@ -147,7 +151,7 @@ func (l *playerList) who(cmd *command.Command) (handled bool) {
 
 	b := new(bytes.Buffer)
 
-	if l.Length() < 2 {
+	if len(l.players) < 2 {
 		b.WriteString("You are all alone in this world.")
 	} else {
 
@@ -159,7 +163,7 @@ func (l *playerList) who(cmd *command.Command) (handled bool) {
 			b.WriteString("\n")
 		}
 		b.WriteString("\nTOTAL PLAYERS: ")
-		b.WriteString(strconv.Itoa(l.Length()))
+		b.WriteString(strconv.Itoa(len(l.players)))
 
 	}
 	cmd.Respond(b.String())

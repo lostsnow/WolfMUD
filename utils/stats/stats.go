@@ -40,7 +40,6 @@ type stats struct {
 	Alloc       uint64
 	HeapObjects uint64
 	Goroutines  int
-	MaxPlayers  int
 }
 
 // Start begins collection and reporting of statistics. The interval between
@@ -76,32 +75,26 @@ func (s *stats) collect() {
 	runtime.ReadMemStats(m)
 
 	g := runtime.NumGoroutine()
-	p := player.PlayerList.Length()
+
+	p, pMax := player.PlayerList.Stats()
 
 	// Calculate difference in resources since last run
 	Δa := int64(m.Alloc - s.Alloc)
 	Δh := int(m.HeapObjects - s.HeapObjects)
 	Δg := g - s.Goroutines
 
-	// Calculate max players
-	maxPlayers := s.MaxPlayers
-	if s.MaxPlayers < p {
-		maxPlayers = p
-	}
-
 	// Calculate scaled numeric and prefix parts of Alloc and Alloc difference
 	an, ap := uscale(m.Alloc)
 	Δan, Δap := scale(Δa)
 
 	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d",
-		an, ap, Δan, Δap, m.HeapObjects, Δh, g, Δg, p, maxPlayers,
+		an, ap, Δan, Δap, m.HeapObjects, Δh, g, Δg, p, pMax,
 	)
 
 	// Save current stats
 	s.Alloc = m.Alloc
 	s.HeapObjects = m.HeapObjects
 	s.Goroutines = g
-	s.MaxPlayers = maxPlayers
 }
 
 // uscale converts an unsigned number of bytes to a scaled unit of bytes with a
