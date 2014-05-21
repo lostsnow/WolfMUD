@@ -61,8 +61,6 @@ func Spawn(conn *net.TCPConn) {
 	c.bail <- nil
 
 	c.conn.SetKeepAlive(true)
-	c.conn.SetLinger(0)
-	c.conn.SetNoDelay(false)
 
 	c.receiver()
 
