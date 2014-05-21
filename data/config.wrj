@@ -6,8 +6,13 @@
 // config.wrj - Main configuration file
 //
 // Address and port for server to listen on. Address can be a hostname or
-// literal IP address.  Port can be a raw port number or a service name.
-listen.address:	127.0.0.1
+// literal IP address. If address is set, but left empty the server will listen
+// on all available interfaces. Port can be a raw port number or a service
+// name. For example: telnet and 23 are equivalent.
+//
+// NOTE: For ports less than 1024 you will probably need special privileges
+// which is why by default WolfMUD runs on port 4001.
+listen.address: 127.0.0.1
    listen.port: 4001
 //
 // Location of the data directory
