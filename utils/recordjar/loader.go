@@ -66,9 +66,9 @@ func LoadFile(filename string) {
 	UnmarshalJar(&rj)
 }
 
-// UnmarshalJar unmarshals all of the Record found in a passed RecordJar. Each
-// Record in a RecordJar is unmarshaled in two phases. First phase all Record
-// are unmarshaled by calling UnmarshalRecord. This instantiates a concrete
+// UnmarshalJar unmarshals all of the Record found in a passed Jar. Each Record
+// in a Jar is unmarshaled in two phases. First phase all Record are
+// unmarshaled by calling UnmarshalRecord. This instantiates a concrete
 // variable of the correct type for the Record. Second phase Init is called on
 // each unmarshaled Record. This two phase setup allows unmarshaled Record to
 // refer to each other.
@@ -79,24 +79,24 @@ func LoadFile(filename string) {
 // items. Then the Init on items puts the items in their defined location.
 //
 // TODO: If an Unmarshaler has no reference one is generated of the form RECn
-// where n is the Record index within the RecordJar. This saves having to have
+// where n is the Record index within the Jar. This saves having to have
 // processing for Unmarshalers with and without references. This probably needs
 // reviewing.
 //
 // TODO: Really hate the way we are passing around refs - needs sorting out.
-func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
+func UnmarshalJar(j *Jar) map[string]Unmarshaler {
 
 	refs := make(map[string]Unmarshaler)
 
-	// Unmarshal all Record in the RecordJar
-	for i, rec := range *rj {
-		if ur, err := UnmarshalRecord(rec); err != nil {
+	// Unmarshal all Record in the Jar
+	for i, r := range *j {
+		if ur, err := UnmarshalRecord(r); err != nil {
 			log.Printf("Error unmarshaling: %s", err)
 		} else {
-			ref := Decoder(rec).Keyword("ref")
+			ref := Decoder(r).Keyword("ref")
 			if ref == "" {
 				ref = "REC" + strconv.Itoa(i)
-				rec["ref"] = ref
+				r["ref"] = ref
 			}
 			if _, ok := refs[ref]; ok {
 				log.Printf("Warning, overwriting ref: %s", ref)
@@ -105,14 +105,14 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 		}
 	}
 
-	// Init all unmarshaled instances - we range over *rj instead of refs[]
+	// Init all unmarshaled instances - we range over *j instead of refs[]
 	// because there may be additional data in the Record only used during Init.
-	for _, rec := range *rj {
+	for _, r := range *j {
 
-		d := Decoder(rec)
-		r := d.Keyword("ref")
+		d := Decoder(r)
+		ref := d.Keyword("ref")
 
-		if zc, ok := refs[r]; ok {
+		if zc, ok := refs[ref]; ok {
 			t := d.Keyword("type")
 
 			name := "Unnamed"
@@ -120,7 +120,7 @@ func UnmarshalJar(rj *RecordJar) map[string]Unmarshaler {
 				name = n.Name()
 			}
 
-			log.Printf("Init: %s (%s, %s)", name, t, r)
+			log.Printf("Init: %s (%s, %s)", name, t, ref)
 			zc.Init(d, refs)
 		}
 	}

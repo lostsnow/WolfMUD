@@ -46,8 +46,8 @@
 //		away.
 //
 //
-// When this example is read you would have a RecordJar which is a slice of
-// Records - in this case two of them.
+// When this example is read you would have a Jar which is a slice of Record,
+// in this case two of them.
 package recordjar
 
 import (
@@ -62,9 +62,9 @@ import (
 // strings keyed by header strings.
 type Record map[string]string
 
-// RecordJar is a slice of Records. When a file is read a RecordJar contains all
-// of the Records from the file.
-type RecordJar []Record
+// Jar is a slice of Records. When a file is read a Jar contains all of the
+// Records from the file.
+type Jar []Record
 
 // Unmarshaler should be implemented by any type that can take data represented
 // by a Record and parse / decode it.
@@ -90,11 +90,11 @@ var (
 	splitHeader = regexp.MustCompile(`^(?:([^\s:]+):)?\s*(.*?)$`)
 )
 
-// Read reads data from the passed io.Reader and returns a RecordJar of Records.
-// If there is an error returns a nil RecordJar and the error.
+// Read reads data from the passed io.Reader and returns a Jar of Records. If
+// there is an error returns a nil Jar and the error.
 //
-// TODO: Need to detail specifics of RecordJar, Record and file format.
-func Read(reader io.Reader) (rj RecordJar, err error) {
+// TODO: Need to detail specifics of Jar, Record and file format.
+func Read(reader io.Reader) (j Jar, err error) {
 
 	b := bufio.NewReader(reader)
 	r := make(Record)
@@ -107,7 +107,7 @@ RECORDS:
 
 		// If we have a record on the go store it and allocate a new one
 		if len(r) != 0 {
-			rj = append(rj, r)
+			j = append(j, r)
 			r = make(Record)
 		}
 
@@ -179,19 +179,19 @@ RECORDS:
 		}
 	}
 
-	return rj, nil
+	return j, nil
 }
 
-// Write writes the passed RecordJar to the passed io.Writer.
-func Write(writer io.Writer, rj RecordJar) (err error) {
+// Write writes the passed Jar to the passed io.Writer.
+func Write(writer io.Writer, j Jar) (err error) {
 
 	b := bufio.NewWriter(writer)
 
-	for _, rec := range rj {
+	for _, r := range j {
 
 		// Find longest attribute name for pretty formatting
 		length, maxlength := 0, 0
-		for attr := range rec {
+		for attr := range r {
 			if attr == ":data:" {
 				continue
 			}
@@ -205,7 +205,7 @@ func Write(writer io.Writer, rj RecordJar) (err error) {
 		spaces := strings.Repeat(" ", maxlength)
 		padding := ""
 
-		for attr, data := range rec {
+		for attr, data := range r {
 			if attr == ":data:" {
 				continue
 			}
@@ -218,7 +218,7 @@ func Write(writer io.Writer, rj RecordJar) (err error) {
 			b.WriteByte('\n')
 		}
 
-		if data, found := rec[":data:"]; found {
+		if data, found := r[":data:"]; found {
 			b.WriteByte('\n')
 			b.WriteString(data)
 			b.WriteByte('\n')

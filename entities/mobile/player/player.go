@@ -393,9 +393,8 @@ func Save(e recordjar.Encoder) error {
 	}
 	defer f.Close()
 
-	rj := recordjar.RecordJar{}
-	rj = append(rj, recordjar.Record(e))
-	recordjar.Write(f, rj)
+	j := recordjar.Jar{recordjar.Record(e)}
+	recordjar.Write(f, j)
 
 	return nil
 }

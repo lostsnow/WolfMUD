@@ -11,9 +11,8 @@ import (
 
 // greeting to display to player when they initially connect.
 //
-// TODO: This needs moving into an easily editable text file. However RecordJar
-// has a 'minor feature' which will not let you encode newlines that are
-// preserved *sigh*
+// TODO: This needs moving into an easily editable text file. However Jar has a
+// 'minor feature' - it won't let you encode newlines that are preserved *sigh*
 const greetingText = `
 
 [GREEN]Wolf[WHITE]MUD Copyright 2013 Andrew 'Diddymus' Rolfe
