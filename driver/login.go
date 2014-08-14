@@ -6,7 +6,7 @@
 package driver
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/entities"
 )
 
 // greeting to display to player when they initially connect.
@@ -60,7 +60,7 @@ func (l *login) checkAccount() {
 		return
 	}
 
-	l.account = player.HashAccount(l.input)
+	l.account = entities.HashAccount(l.input)
 	l.needPassword()
 }
 
@@ -90,14 +90,14 @@ func (l *login) checkPassword() {
 	}
 
 	var err error
-	l.player, err = player.Load(l.account, l.input)
+	l.player, err = entities.Load(l.account, l.input)
 
 	switch err {
 
-	case player.BadCredentials:
+	case entities.BadCredentials:
 		l.Respond("[RED]Account or password is incorrect. Please try again.")
 
-	case player.BadPlayerFile:
+	case entities.BadPlayerFile:
 		l.Respond("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.")
 
 	}

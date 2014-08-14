@@ -6,7 +6,7 @@
 package driver
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/entities"
 	"code.wolfmud.org/WolfMUD.git/utils/sender"
 
 	"strings"
@@ -20,7 +20,7 @@ type driver struct {
 	input   string
 	account string
 	next    func()
-	player  *player.Player
+	player  *entities.Player
 	buff    buffer
 	sender  sender.Interface
 }

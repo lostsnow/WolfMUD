@@ -4,7 +4,7 @@
 // included with the source code.
 
 // Package player defines an actual human player in the game.
-package player
+package entities
 
 import (
 	"code.wolfmud.org/WolfMUD.git/entities/location"

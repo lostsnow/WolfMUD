@@ -6,7 +6,7 @@
 package driver
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/entities"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 
@@ -49,7 +49,7 @@ func (a *account) checkAccount() {
 		return
 	}
 
-	a.account = player.HashAccount(a.input)
+	a.account = entities.HashAccount(a.input)
 	a.explainPassword()
 }
 
@@ -142,7 +142,7 @@ func (a *account) checkGender() {
 
 func (a *account) create() {
 
-	password, salt := player.HashPassword(a.password)
+	password, salt := entities.HashPassword(a.password)
 
 	// Setup player
 	e := recordjar.Encoder{}
@@ -158,7 +158,7 @@ func (a *account) create() {
 	var err error
 
 	// Write out player file
-	if err = player.Save(e); err != nil {
+	if err = entities.Save(e); err != nil {
 		a.Respond("[RED]Oops, there was an error creating your account :(")
 		log.Printf("Error creating account: %s", err)
 		a.needName()
@@ -166,7 +166,7 @@ func (a *account) create() {
 	}
 
 	// Load player from written file
-	a.player, err = player.Load(a.account, a.password)
+	a.player, err = entities.Load(a.account, a.password)
 	if err != nil {
 		a.Respond("[RED]Oops, there was an error setting up your account :(")
 		log.Printf("Error setting up account: %s", err)
