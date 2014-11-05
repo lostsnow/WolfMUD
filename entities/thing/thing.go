@@ -103,3 +103,7 @@ func (t *Thing) Aliases() (a []string) {
 func (t *Thing) Name() string {
 	return t.name
 }
+
+func (t *Thing) SetName(n string) {
+	t.name = n
+}
