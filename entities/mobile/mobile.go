@@ -14,11 +14,14 @@ import (
 	"code.wolfmud.org/WolfMUD.git/utils/command"
 	"code.wolfmud.org/WolfMUD.git/utils/inventory"
 	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
+
+	"strings"
 )
 
 // Mobile provides a default basic implementation of a mobile.
 type Mobile struct {
 	thing.Thing
+	gender
 	inventory.Inventory
 	location location.Interface
 }
@@ -26,6 +29,25 @@ type Mobile struct {
 // Register zero value instance of Mobile with the loader.
 func init() {
 	recordjar.RegisterUnmarshaler("mobile", &Mobile{})
+}
+
+// Unmarshal a recordjar record into a mobile
+func (m *Mobile) Unmarshal(d recordjar.Decoder) {
+	m.SetGender(d.Keyword("gender"))
+	m.Thing.Unmarshal(d)
+}
+
+// SetGender parses the passed string as a gender specification. If the gender
+// cannot be parsed then 'It' is used.
+func (m *Mobile) SetGender(s string) {
+	switch strings.ToUpper(s) {
+	case "HE", "MALE", "M":
+		m.gender = GenderMale
+	case "SHE", "FEMALE", "F":
+		m.gender = GenderFemale
+	default:
+		m.gender = GenderIt
+	}
 }
 
 // Relocate sets a mobile's internal location reference. It implements part of
