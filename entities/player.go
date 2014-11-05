@@ -318,9 +318,9 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 
 // Errors that can be returned by Load.
 var (
-	BadCredentials = errors.New("Invalid credentals")
-	BadPlayerFile  = errors.New("Invalid player file")
-	DuplicateLogin = errors.New("Player already logged in")
+	ErrBadCredentials = errors.New("invalid credentals")
+	ErrBadPlayerFile  = errors.New("invalid player file")
+	ErrDuplicateLogin = errors.New("player already logged in")
 )
 
 // Load loads a player .wrj data file. The passed account should be a hash
@@ -329,13 +329,13 @@ var (
 //
 // If an error is returned a nil *Player will always be returned.
 //
-// If the data file cannot be opened a BadCredentials error is returned - the
-// account is incorrect if the file is not found.
+// If the data file is found but cannot be opened a ErrBadPlayerFile error is
+// returned.
 //
-// If the data file is opened but the password is incorrect a BadCredentials
+// If the data file is opened but the password is incorrect a ErrBadCredentials
 // error is returned.
 //
-// If the data file cannot be unmarshaled a BadPlayerFile error is returned.
+// If the data file cannot be unmarshaled a ErrBadPlayerFile error is returned.
 //
 // NOTE: We are manually opening the player's file, reading it as a recordjar,
 // peeking inside it, then unmarshaling it. This is so that we can abort at any
@@ -350,7 +350,7 @@ func Load(account string, password string) (*Player, error) {
 	// Can we open the player's file to get the current salt and password hash?
 	f, err := os.Open(config.DataDir + "players/" + account + ".wrj")
 	if err != nil {
-		return nil, BadCredentials
+		return nil, ErrBadCredentials
 	}
 	defer f.Close()
 
@@ -365,14 +365,14 @@ func Load(account string, password string) (*Player, error) {
 	h := strings.Replace(p, " ", "", -1)
 
 	if !PasswordValid(password, s, h) {
-		return nil, BadCredentials
+		return nil, ErrBadCredentials
 	}
 
 	data := recordjar.UnmarshalJar(&rj)
 
 	if data["PLAYER"] == nil {
 		log.Printf("Error loading player: %#v", rj)
-		return nil, BadPlayerFile
+		return nil, ErrBadPlayerFile
 	}
 
 	return data["PLAYER"].(*Player), nil

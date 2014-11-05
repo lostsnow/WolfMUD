@@ -94,10 +94,10 @@ func (l *login) checkPassword() {
 
 	switch err {
 
-	case entities.BadCredentials:
+	case entities.ErrBadCredentials:
 		l.Respond("[RED]Account or password is incorrect. Please try again.")
 
-	case entities.BadPlayerFile:
+	case entities.ErrBadPlayerFile:
 		l.Respond("[RED]An embarrassed sounding little voice squeaks 'Sorry... there seems to be a problem restoring you. Please contact the MUD Admin staff.")
 
 	}

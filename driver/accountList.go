@@ -31,7 +31,7 @@ func (d *driver) login() error {
 
 	if _, found := a[d.account]; found {
 		log.Printf("Duplicate login: %s", d.sender)
-		return errors.New("Duplicate login")
+		return errors.New("duplicate login")
 	}
 
 	log.Printf("Successful login: %s", d.sender)
