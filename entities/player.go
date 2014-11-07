@@ -51,9 +51,13 @@ func init() {
 }
 
 // Unmarshal a recordjar record into a player
+//
+// NOTE: Password hash may be split over multiple lines in the data file which
+// when read will be concatenated together with spaces - which need removing.
 func (p *Player) Unmarshal(d recordjar.Decoder) {
 	p.account = d.String("account")
 	p.password = d.String("password")
+	p.password = strings.Replace(d.String("password"), " ", "", -1)
 	p.salt = d.String("salt")
 	p.created = d.Time("created")
 
@@ -360,11 +364,7 @@ func Load(account string, password string) (*Player, error) {
 	p := d.String("password")
 	s := d.String("salt")
 
-	// Password hash may be split over multiple lines in the data file which when
-	// read will be concatenated together with spaces - which need removing.
-	h := strings.Replace(p, " ", "", -1)
-
-	if !PasswordValid(password, s, h) {
+	if !PasswordValid(password, s, p) {
 		return nil, ErrBadCredentials
 	}
 
