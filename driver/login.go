@@ -60,7 +60,7 @@ func (l *login) checkAccount() {
 		return
 	}
 
-	l.player.HashAccount(l.input)
+	l.player.SetAccount(l.input)
 	l.needPassword()
 }
 

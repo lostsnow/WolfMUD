@@ -43,7 +43,7 @@ func (a *account) checkAccount() {
 		return
 	}
 
-	a.player.HashAccount(a.input)
+	a.player.SetAccount(a.input)
 	a.explainPassword()
 }
 
@@ -67,7 +67,7 @@ func (a *account) checkPassword() {
 		return
 	}
 
-	a.player.HashPassword(a.input)
+	a.player.SetPassword(a.input)
 	a.needVerify()
 }
 
