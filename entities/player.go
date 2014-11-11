@@ -327,11 +327,13 @@ var (
 	ErrDuplicateLogin = errors.New("player already logged in")
 )
 
-// Load loads a player .wrj data file. The passed account should be a hash
-// returned by HashAccount. The name of the data file will be the account hash
-// with .wrj appended to it.
+// Load loads a player .wrj data file. HashAccount should be called before
+// calling Load. HashAccount will generate the account hash, this with .wrj
+// appended to it is the name of the data file to be loaded.
 //
-// If an error is returned a nil *Player will always be returned.
+// If the data file does not exist BadCredentials error will be returned.
+// If there is no account hash - HashAccount has not ben called maybe? - a
+// BadCredentials error will be returned.
 //
 // If the data file is found but cannot be opened a ErrBadPlayerFile error is
 // returned.
@@ -341,67 +343,110 @@ var (
 //
 // If the data file cannot be unmarshaled a ErrBadPlayerFile error is returned.
 //
-// NOTE: We are manually opening the player's file, reading it as a recordjar,
-// peeking inside it, then unmarshaling it. This is so that we can abort at any
-// point - player not found, incorrect password, corrupt player file - having
-// done as little work as possible. In this way we are not unmarshaling players
-// which may have a lot of dependant stuff (inventory) to unmarshal just to
-// validate the login - someone could hit the server and tie up processing with
-// invalid logins otherwise if the unmarshaling took a significant amount of
-// time.
-func Load(account string, password string) (*Player, error) {
+// TODO: We should be able to use the generic RecordJar.LoadFile at some point?
+func (p *Player) Load() (err error) {
 
-	// Can we open the player's file to get the current salt and password hash?
-	f, err := os.Open(config.DataDir + "players/" + account + ".wrj")
+	// Clear credentials if we exit with an error
+	defer func() {
+		if err != nil {
+			p.account = ""
+			p.password = ""
+			p.salt = ""
+		}
+	}()
+
+	// No account hash?
+	if p.account == "" {
+		return ErrBadCredentials
+	}
+
+	// Can we open the player's file?
+	f, err := os.Open(config.DataDir + "players/" + p.account + ".wrj")
 	if err != nil {
-		return nil, ErrBadCredentials
+		if os.IsNotExist(err) {
+			return ErrBadCredentials
+		} else {
+			log.Printf("Error opening player file: %s", err)
+			return ErrBadPlayerFile
+		}
 	}
 	defer f.Close()
 
-	rj, _ := recordjar.Read(f)
+	rj, err := recordjar.Read(f)
+
+	if err != nil {
+		log.Printf("Error reading player jar: %s", err)
+		return ErrBadPlayerFile
+	}
+
+	if len(rj) == 0 {
+		log.Printf("Error loading player file: no records in jar")
+		return ErrBadPlayerFile
+	}
 
 	d := recordjar.Decoder(rj[0])
-	p := d.String("password")
-	s := d.String("salt")
-
-	if !PasswordValid(password, s, p) {
-		return nil, ErrBadCredentials
-	}
-
-	data := recordjar.UnmarshalJar(&rj)
-
-	if data["PLAYER"] == nil {
-		log.Printf("Error loading player: %#v", rj)
-		return nil, ErrBadPlayerFile
-	}
-
-	return data["PLAYER"].(*Player), nil
-}
-
-func Save(e recordjar.Encoder) error {
-
-	d := recordjar.Decoder(e)
-
-	account := d.String("account")
-
-	fileFlags := os.O_CREATE | os.O_EXCL | os.O_WRONLY
-
-	f, err := os.OpenFile(config.DataDir+"players/"+account+".wrj", fileFlags, 0660)
-
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	j := recordjar.Jar{recordjar.Record(e)}
-	recordjar.Write(f, j)
+	p.Unmarshal(d)
 
 	return nil
 }
 
-// HashAccount takes a plain account string and returns it's hash as a string.
-// The hash is synonymous with the name of a player's data file with .wrj
-// appended to it.
+// Save writes out the current receiver to a *.wrj file. The filename is
+// the account hash with .wrj appended to it which can be set by calling
+// HashAccount.
+//
+// If an error occurs writing the file it will be returned.
+//
+// TODO: At the moment we manually build the jar using an Encoder. This is
+// temporary and needs to be replaced with a proper Marshaler.
+func (p *Player) Save() error {
+
+	// If creation date empty populate it now
+	if p.created.IsZero() {
+		p.created = time.Now()
+	}
+
+	e := recordjar.Encoder{}
+	e.Keyword("type", "player")
+	e.Keyword("ref", "player")
+	e.String("account", p.account)
+	e.String("password", p.password)
+	e.String("salt", p.salt)
+	e.String("name", p.Name())
+	e.Keyword("gender", p.ItMaleFemale())
+	e.Time("created", p.created)
+
+	j := recordjar.Jar{recordjar.Record(e)}
+
+	fileFlags := os.O_CREATE | os.O_EXCL | os.O_WRONLY
+	filename := config.DataDir + "players/" + p.account + ".wrj"
+
+	f, err := os.OpenFile(filename+".tmp", fileFlags, 0660)
+	if err != nil {
+		return err
+	}
+
+	recordjar.Write(f, j)
+
+	if err = f.Close(); err != nil {
+		return err
+	}
+
+	if err = os.Rename(filename+".tmp", filename); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Account returns the player's account hash. This hash maps directly to the
+// name of the player's data file.
+func (p *Player) Account() string {
+	return p.account
+}
+
+// HashAccount takes a plain account string and calculates it's hash as a
+// string. The hash is synonymous with the name of a player's data file with
+// .wrj appended to it. The hash can be retrieved by calling Account().
 //
 // Using a weak, fast hash here is not an issue. The hash is used to convert an
 // arbitrarily long, user supplied account name into a hexadecimal, fixed length
@@ -411,18 +456,18 @@ func Save(e recordjar.Encoder) error {
 // Even though the account name may contain characters other than letters and
 // digits using a hash results in a string only containing only characters 0-9
 // and a-f which are safe to use as the player's data file's name.
-func HashAccount(account string) string {
+func (p *Player) HashAccount(account string) {
 	h := md5.Sum([]byte(account))
-	return hex.EncodeToString(h[:])
+	p.account = hex.EncodeToString(h[:])
 }
 
-// HashPassword takes a plain string password and returns it's hash and salt as
-// strings. The salt is randomly generated for each password by selecting 10
+// HashPassword takes a plain string password and generates it's hash and salt
+// as strings. The salt is randomly generated for each password by selecting 10
 // random printable ASCII characters in the range 0x21 to 0x7E or '!' to '~'.
 //
 // The returned hash and salt can be passed to PasswordValid to subsequently
 // validate passwords.
-func HashPassword(password string) (hash, salt string) {
+func (p *Player) HashPassword(password string) {
 	l := saltLength + len(password)
 	sp := make([]byte, l, l)
 
@@ -434,22 +479,20 @@ func HashPassword(password string) (hash, salt string) {
 
 	h := sha512.Sum512(sp)
 
-	hash = base64.URLEncoding.EncodeToString(h[:])
-	salt = string(sp[:saltLength])
-
-	return
+	p.password = base64.URLEncoding.EncodeToString(h[:])
+	p.salt = string(sp[:saltLength])
 }
 
-// PasswordValid validates that a given password is correct for a given hash
-// and salt. The passed hash and salt should be generated by HashPassword.
-func PasswordValid(password, salt, hash string) bool {
+// PasswordValid validates that a given password is correct for a given hash and
+// salt. The passed hash and salt should be generated by HashPassword.
+func (p *Player) PasswordValid(password string) bool {
 	l := saltLength + len(password)
 	sp := make([]byte, l, l)
 
-	copy(sp[:saltLength], salt)
+	copy(sp[:saltLength], p.salt)
 	copy(sp[saltLength:], password)
 
 	h := sha512.Sum512(sp)
 
-	return base64.URLEncoding.EncodeToString(h[:]) == hash
+	return base64.URLEncoding.EncodeToString(h[:]) == p.password
 }

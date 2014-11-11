@@ -29,7 +29,7 @@ func (d *driver) login() error {
 	a := <-accounts
 	defer func() { accounts <- a }()
 
-	account := d.account
+	account := d.player.Account()
 
 	if _, found := a[account]; found {
 		log.Printf("Duplicate login: %s", d.sender)
@@ -46,7 +46,7 @@ func (d *driver) Logout() {
 	a := <-accounts
 	defer func() { accounts <- a }()
 
-	account := d.account
+	account := d.player.Account()
 
 	// Check if we are already logged out and save time...
 	if _, found := a[account]; !found {

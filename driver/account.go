@@ -6,13 +6,10 @@
 package driver
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities"
+	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
-	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 
 	"log"
-	"strings"
-	"time"
 	"unicode"
 	"unicode/utf8"
 )
@@ -20,9 +17,6 @@ import (
 // account is a driver for creating new accounts/players
 type account struct {
 	*driver
-	password string
-	name     string
-	gender   string
 }
 
 // newAccount creates a new account driver from the current driver.
@@ -49,7 +43,7 @@ func (a *account) checkAccount() {
 		return
 	}
 
-	a.account = entities.HashAccount(a.input)
+	a.player.HashAccount(a.input)
 	a.explainPassword()
 }
 
@@ -73,7 +67,7 @@ func (a *account) checkPassword() {
 		return
 	}
 
-	a.password = a.input
+	a.player.HashPassword(a.input)
 	a.needVerify()
 }
 
@@ -83,7 +77,7 @@ func (a *account) needVerify() {
 }
 
 func (a *account) checkVerify() {
-	if a.password != a.input {
+	if !a.player.PasswordValid(a.input) {
 		a.Respond("[RED]Passwords do not match. Please try again.")
 		a.needPassword()
 		return
@@ -116,7 +110,7 @@ func (a *account) checkName() {
 		}
 	}
 
-	a.name = a.input
+	a.player.SetName(a.input)
 	a.needGender()
 }
 
@@ -126,12 +120,9 @@ func (a *account) needGender() {
 }
 
 func (a *account) checkGender() {
-	switch strings.ToUpper(a.input) {
-	case "M", "MALE":
-		a.gender = "male"
-	case "F", "FEMALE":
-		a.gender = "female"
-	default:
+	a.player.SetGender(a.input)
+
+	if a.player.Gender() == mobile.GenderIt {
 		a.Respond("[RED]Please enter M, F, Male or Female.")
 		a.needGender()
 		return
@@ -141,24 +132,10 @@ func (a *account) checkGender() {
 }
 
 func (a *account) create() {
-
-	password, salt := entities.HashPassword(a.password)
-
-	// Setup player
-	e := recordjar.Encoder{}
-	e.Keyword("type", "player")
-	e.Keyword("ref", "player")
-	e.String("account", a.account)
-	e.String("password", string(password[:]))
-	e.String("salt", salt)
-	e.String("name", a.name)
-	e.Keyword("gender", a.gender)
-	e.Time("created", time.Now())
-
 	var err error
 
 	// Write out player file
-	if err = entities.Save(e); err != nil {
+	if err = a.player.Save(); err != nil {
 		a.Respond("[RED]Oops, there was an error creating your account :(")
 		log.Printf("Error creating account: %s", err)
 		a.needName()
@@ -166,7 +143,7 @@ func (a *account) create() {
 	}
 
 	// Load player from written file
-	a.player, err = entities.Load(a.account, a.password)
+	err = a.player.Load()
 	if err != nil {
 		a.Respond("[RED]Oops, there was an error setting up your account :(")
 		log.Printf("Error setting up account: %s", err)

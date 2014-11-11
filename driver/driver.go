@@ -17,12 +17,11 @@ import (
 //
 // TODO: Document writing drivers.
 type driver struct {
-	input   string
-	account string
-	next    func()
-	player  *entities.Player
-	buff    buffer
-	sender  sender.Interface
+	input  string
+	next   func()
+	player *entities.Player
+	buff   buffer
+	sender sender.Interface
 }
 
 // buffer stores buffered messages sent by Respond. A call to flush flushes the
@@ -54,6 +53,7 @@ func (d *driver) Respond(format string, any ...interface{}) {
 // it is setup as a login driver.
 func New(s sender.Interface) (d *driver) {
 	d = &driver{}
+	d.player = new(entities.Player)
 	d.sender = s
 	d.next = d.newLogin()
 	d.Process("")

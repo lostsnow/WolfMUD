@@ -60,7 +60,7 @@ func (l *login) checkAccount() {
 		return
 	}
 
-	l.account = entities.HashAccount(l.input)
+	l.player.HashAccount(l.input)
 	l.needPassword()
 }
 
@@ -90,7 +90,12 @@ func (l *login) checkPassword() {
 	}
 
 	var err error
-	l.player, err = entities.Load(l.account, l.input)
+	err = l.player.Load()
+	if err == nil {
+		if !l.player.PasswordValid(l.input) {
+			err = entities.ErrBadCredentials
+		}
+	}
 
 	switch err {
 
