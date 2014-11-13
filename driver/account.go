@@ -6,12 +6,11 @@
 package driver
 
 import (
+	"code.wolfmud.org/WolfMUD.git/entities"
 	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
 
 	"log"
-	"unicode"
-	"unicode/utf8"
 )
 
 // account is a driver for creating new accounts/players
@@ -34,16 +33,15 @@ func (a *account) needAccount() {
 }
 
 func (a *account) checkAccount() {
-	len := utf8.RuneCountInString(a.input)
-	min := config.AccountIdMin
 
-	if len < min {
-		a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", len, min)
+	if err := a.player.SetAccount(a.input); err != nil {
+		if err, ok := err.(*entities.RuneCountError); ok {
+			a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", err.Length, err.MinLength)
+		}
 		a.needAccount()
 		return
 	}
 
-	a.player.SetAccount(a.input)
 	a.explainPassword()
 }
 
@@ -58,16 +56,15 @@ func (a *account) needPassword() {
 }
 
 func (a *account) checkPassword() {
-	len := utf8.RuneCountInString(a.input)
-	min := config.AccountPasswordMin
 
-	if len < min {
-		a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", len, min)
+	if err := a.player.SetPassword(a.input); err != nil {
+		if err, ok := err.(*entities.RuneCountError); ok {
+			a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", err.Length, err.MinLength)
+		}
 		a.needPassword()
 		return
 	}
 
-	a.player.SetPassword(a.input)
 	a.needVerify()
 }
 
@@ -102,15 +99,12 @@ func (a *account) checkName() {
 		return
 	}
 
-	for _, r := range []rune(a.input) {
-		if !unicode.IsLetter(r) {
-			a.Respond("[RED]Names can only contain upper or lower cased letters in the range A to Z.")
-			a.needName()
-			return
-		}
+	if err := a.player.SetName(a.input); err != nil {
+		a.Respond("[RED]Names can only contain upper or lower cased letters in the range A to Z.")
+		a.needName()
+		return
 	}
 
-	a.player.SetName(a.input)
 	a.needGender()
 }
 

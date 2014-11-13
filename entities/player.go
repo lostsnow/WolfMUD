@@ -27,6 +27,8 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -470,9 +472,18 @@ func (e RuneCountError) Error() string {
 // Even though the account name may contain characters other than letters and
 // digits using a hash results in a string only containing only characters 0-9
 // and a-f which are safe to use as the player's data file's name.
-func (p *Player) SetAccount(account string) {
+func (p *Player) SetAccount(account string) error {
+	count := utf8.RuneCountInString(account)
+	min := config.AccountIdMin
+
+	if count < min {
+		return &RuneCountError{"account", count, min}
+	}
+
 	h := md5.Sum([]byte(account))
 	p.account = hex.EncodeToString(h[:])
+
+	return nil
 }
 
 // SetPassword takes a plain string password and generates it's hash and salt
@@ -481,8 +492,15 @@ func (p *Player) SetAccount(account string) {
 //
 // The returned hash and salt can be passed to PasswordValid to subsequently
 // validate passwords.
-func (p *Player) SetPassword(password string) {
-	l := saltLength + len(password)
+func (p *Player) SetPassword(password string) error {
+	count := utf8.RuneCountInString(password)
+	min := config.AccountIdMin
+
+	if count < min {
+		return &RuneCountError{"password", count, min}
+	}
+
+	l := saltLength + count
 	sp := make([]byte, l, l)
 
 	for i := 0; i < saltLength; i++ {
@@ -495,6 +513,8 @@ func (p *Player) SetPassword(password string) {
 
 	p.password = base64.URLEncoding.EncodeToString(h[:])
 	p.salt = string(sp[:saltLength])
+
+	return nil
 }
 
 // PasswordValid validates that a given password is correct for a given hash and
@@ -509,4 +529,18 @@ func (p *Player) PasswordValid(password string) bool {
 	h := sha512.Sum512(sp)
 
 	return base64.URLEncoding.EncodeToString(h[:]) == p.password
+}
+
+// SetName overrides the otherwise promoted Thing.SetName to add validation
+// checking. If validation fails a non-nil error will be returned.
+func (p *Player) SetName(name string) error {
+	for _, r := range []rune(name) {
+		if !unicode.IsLetter(r) {
+			return errors.New("name contains invlid characters")
+		}
+	}
+
+	p.Thing.SetName(name)
+
+	return nil
 }
