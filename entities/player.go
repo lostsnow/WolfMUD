@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -441,6 +442,20 @@ func (p *Player) Save() error {
 // name of the player's data file.
 func (p *Player) Account() string {
 	return p.account
+}
+
+// RuneCountError can be used to return the expected and actual number of runes
+// used. This is useful for things like account ID and password validation that
+// require a minimum number of characters.
+type RuneCountError struct {
+	Label     string // Descriptive string like 'account' or 'password'.
+	Length    int    // Actual length
+	MinLength int    // Minimum length
+}
+
+// Error provides a descriptive error message for RuneCountErrors.
+func (e RuneCountError) Error() string {
+	return fmt.Sprintf("%s too short. Wanted at least %d runes. Only got %d runes.", e.Label, e.MinLength, e.Length)
 }
 
 // SetAccount takes a plain account string and calculates it's hash as a string.
