@@ -6,23 +6,16 @@
 package driver
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/entities"
+	"code.wolfmud.org/WolfMUD.git/entities/mobile"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
-	"code.wolfmud.org/WolfMUD.git/utils/recordjar"
 
 	"log"
-	"strings"
-	"time"
-	"unicode"
-	"unicode/utf8"
 )
 
 // account is a driver for creating new accounts/players
 type account struct {
 	*driver
-	password string
-	name     string
-	gender   string
 }
 
 // newAccount creates a new account driver from the current driver.
@@ -40,16 +33,15 @@ func (a *account) needAccount() {
 }
 
 func (a *account) checkAccount() {
-	len := utf8.RuneCountInString(a.input)
-	min := config.AccountIdMin
 
-	if len < min {
-		a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", len, min)
+	if err := a.player.SetAccount(a.input); err != nil {
+		if err, ok := err.(*entities.RuneCountError); ok {
+			a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", err.Length, err.MinLength)
+		}
 		a.needAccount()
 		return
 	}
 
-	a.account = player.HashAccount(a.input)
 	a.explainPassword()
 }
 
@@ -64,16 +56,15 @@ func (a *account) needPassword() {
 }
 
 func (a *account) checkPassword() {
-	len := utf8.RuneCountInString(a.input)
-	min := config.AccountPasswordMin
 
-	if len < min {
-		a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", len, min)
+	if err := a.player.SetPassword(a.input); err != nil {
+		if err, ok := err.(*entities.RuneCountError); ok {
+			a.Respond("[RED]You only entered %d characters, minimum length is %d characters.", err.Length, err.MinLength)
+		}
 		a.needPassword()
 		return
 	}
 
-	a.password = a.input
 	a.needVerify()
 }
 
@@ -83,7 +74,7 @@ func (a *account) needVerify() {
 }
 
 func (a *account) checkVerify() {
-	if a.password != a.input {
+	if !a.player.PasswordValid(a.input) {
 		a.Respond("[RED]Passwords do not match. Please try again.")
 		a.needPassword()
 		return
@@ -108,15 +99,12 @@ func (a *account) checkName() {
 		return
 	}
 
-	for _, r := range []rune(a.input) {
-		if !unicode.IsLetter(r) {
-			a.Respond("[RED]Names can only contain upper or lower cased letters in the range A to Z.")
-			a.needName()
-			return
-		}
+	if err := a.player.SetName(a.input); err != nil {
+		a.Respond("[RED]Names can only contain upper or lower cased letters in the range A to Z.")
+		a.needName()
+		return
 	}
 
-	a.name = a.input
 	a.needGender()
 }
 
@@ -126,12 +114,9 @@ func (a *account) needGender() {
 }
 
 func (a *account) checkGender() {
-	switch strings.ToUpper(a.input) {
-	case "M", "MALE":
-		a.gender = "male"
-	case "F", "FEMALE":
-		a.gender = "female"
-	default:
+	a.player.SetGender(a.input)
+
+	if a.player.Gender() == mobile.GenderIt {
 		a.Respond("[RED]Please enter M, F, Male or Female.")
 		a.needGender()
 		return
@@ -141,24 +126,10 @@ func (a *account) checkGender() {
 }
 
 func (a *account) create() {
-
-	password, salt := player.HashPassword(a.password)
-
-	// Setup player
-	e := recordjar.Encoder{}
-	e.Keyword("type", "player")
-	e.Keyword("ref", "player")
-	e.String("account", a.account)
-	e.String("password", string(password[:]))
-	e.String("salt", salt)
-	e.String("name", a.name)
-	e.Keyword("gender", a.gender)
-	e.Time("created", time.Now())
-
 	var err error
 
 	// Write out player file
-	if err = player.Save(e); err != nil {
+	if err = a.player.Save(); err != nil {
 		a.Respond("[RED]Oops, there was an error creating your account :(")
 		log.Printf("Error creating account: %s", err)
 		a.needName()
@@ -166,7 +137,7 @@ func (a *account) create() {
 	}
 
 	// Load player from written file
-	a.player, err = player.Load(a.account, a.password)
+	err = a.player.Load()
 	if err != nil {
 		a.Respond("[RED]Oops, there was an error setting up your account :(")
 		log.Printf("Error setting up account: %s", err)

@@ -29,13 +29,15 @@ func (d *driver) login() error {
 	a := <-accounts
 	defer func() { accounts <- a }()
 
-	if _, found := a[d.account]; found {
+	account := d.player.Account()
+
+	if _, found := a[account]; found {
 		log.Printf("Duplicate login: %s", d.sender)
-		return errors.New("Duplicate login")
+		return errors.New("duplicate login")
 	}
 
 	log.Printf("Successful login: %s", d.sender)
-	a[d.account] = struct{}{}
+	a[account] = struct{}{}
 
 	return nil
 }
@@ -44,8 +46,10 @@ func (d *driver) Logout() {
 	a := <-accounts
 	defer func() { accounts <- a }()
 
+	account := d.player.Account()
+
 	// Check if we are already logged out and save time...
-	if _, found := a[d.account]; !found {
+	if _, found := a[account]; !found {
 		return
 	}
 
@@ -54,5 +58,5 @@ func (d *driver) Logout() {
 	}
 
 	log.Printf("Logout: %s", d.sender)
-	delete(a, d.account)
+	delete(a, account)
 }

@@ -22,7 +22,7 @@
 package stats
 
 import (
-	"code.wolfmud.org/WolfMUD.git/entities/mobile/player"
+	"code.wolfmud.org/WolfMUD.git/entities"
 	"code.wolfmud.org/WolfMUD.git/utils/config"
 	"log"
 	"runtime"
@@ -76,7 +76,7 @@ func (s *stats) collect() {
 
 	g := runtime.NumGoroutine()
 
-	p, pMax := player.PlayerList.Stats()
+	p, pMax := entities.PlayerList.Stats()
 
 	// Calculate difference in resources since last run
 	Δa := int64(m.Alloc - s.Alloc)
