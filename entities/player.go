@@ -500,7 +500,7 @@ func (p *Player) SetPassword(password string) error {
 		return &RuneCountError{"password", count, min}
 	}
 
-	l := saltLength + count
+	l := saltLength + len(password)
 	sp := make([]byte, l, l)
 
 	for i := 0; i < saltLength; i++ {
