@@ -46,7 +46,7 @@ func (a *account) checkAccount() {
 }
 
 func (a *account) explainPassword() {
-	a.Respond("Passwords must be at least [CYAN]%d[WHITE] charaters long and may contain upper and lower case letters, numbers and symbols. Please [CYAN]DO NOT[WHITE] reuse an existing password from your email, online banking or any other accounts!\n", config.AccountPasswordMin)
+	a.Respond("Passwords must be at least [CYAN]%d[WHITE] charaters long and may contain upper and lower case letters, numbers and symbols. It is probably a [CYAN]BAD IDEA[WHITE] to reuse an existing password from your email, online banking or any other account!\n", config.AccountPasswordMin)
 	a.needPassword()
 }
 
@@ -84,7 +84,7 @@ func (a *account) checkVerify() {
 }
 
 func (a *account) explainName() {
-	a.Respond("The name for you character must be a single word. It is prefferable that you use upper or lower cased characters in the range A to Z without diacritics as this could make it difficult for others to talk to and interact with you.\n")
+	a.Respond("The name for your character must be a single word. It is prefferable that you use upper or lower cased characters in the range A to Z without diacritics as this could make it difficult for others to talk to you and interact with you.\n")
 	a.needName()
 }
 
