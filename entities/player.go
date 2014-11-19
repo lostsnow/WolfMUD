@@ -326,7 +326,6 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 var (
 	ErrBadCredentials = errors.New("invalid credentals")
 	ErrBadPlayerFile  = errors.New("invalid player file")
-	ErrDuplicateLogin = errors.New("player already logged in")
 )
 
 // Load loads a player .wrj data file. SetAccount should be called before
