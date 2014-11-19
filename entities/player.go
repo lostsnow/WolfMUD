@@ -3,7 +3,6 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// Package player defines an actual human player in the game.
 package entities
 
 import (
