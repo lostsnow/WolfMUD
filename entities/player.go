@@ -3,7 +3,6 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// Package player defines an actual human player in the game.
 package entities
 
 import (
@@ -327,7 +326,6 @@ func (p *Player) say(cmd *command.Command) (handled bool) {
 var (
 	ErrBadCredentials = errors.New("invalid credentals")
 	ErrBadPlayerFile  = errors.New("invalid player file")
-	ErrDuplicateLogin = errors.New("player already logged in")
 )
 
 // Load loads a player .wrj data file. SetAccount should be called before
@@ -500,7 +498,7 @@ func (p *Player) SetPassword(password string) error {
 		return &RuneCountError{"password", count, min}
 	}
 
-	l := saltLength + count
+	l := saltLength + len(password)
 	sp := make([]byte, l, l)
 
 	for i := 0; i < saltLength; i++ {

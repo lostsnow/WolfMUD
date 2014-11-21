@@ -12,7 +12,6 @@ import (
 
 	"bytes"
 	"fmt"
-	"strconv"
 )
 
 // DuplicateLoginError is raised when a player is already in the PlayerList and
@@ -151,19 +150,20 @@ func (l *playerList) who(cmd *command.Command) (handled bool) {
 
 	b := new(bytes.Buffer)
 
-	if len(l.players) < 2 {
+	count := len(l.players)
+
+	if count < 2 {
 		b.WriteString("You are all alone in this world.")
 	} else {
 
 		cmd.Broadcast([]thing.Interface{cmd.Issuer}, "You see %s concentrate.", cmd.Issuer.Name())
+		b.WriteString(text.Format("There [is/are] currently %d other player[/s]:\n\n", count > 2, count-1))
 
 		for _, p := range PlayerList.nonLockingList(cmd.Issuer) {
 			b.WriteString("  ")
 			b.WriteString(p.Name())
 			b.WriteString("\n")
 		}
-		b.WriteString("\nTOTAL PLAYERS: ")
-		b.WriteString(strconv.Itoa(len(l.players)))
 
 	}
 	cmd.Respond(b.String())
