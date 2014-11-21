@@ -8,6 +8,8 @@
 package text
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -175,4 +177,55 @@ func Monochrome(in string) (out string) {
 		}
 	}
 	return in
+}
+
+// Regexp to identify [primary/secondary] replacements for use by Format.
+var r = regexp.MustCompile(`\Q[\E(.*?)/(.*?)\Q]\E`)
+
+// Format takes a text with alternatives and optional substitution parameters
+// and returns the formatted string. Text alternatives are identified as two
+// texts surrounded by square brackets and separated with a forward slash. As an
+// example, in [is/are] 'is' is the primary text and 'are' is the alternative
+// text. Either primary or alternative texts may be ommited: player[/s] -
+// 'player' is produced for the primary text and 'players' for the secondary
+// text.
+//
+// For example:
+//
+//	Format("There [is/are] currently %d other player[/s]:", count > 2, count-1))
+//
+// If count is 2 or less 'count > 2' is false and the following message would be
+// produced:
+//
+//	There is currently 1 other player.
+//
+// If count is more than 2 'count > 2' is true and the following message would
+// be produced:
+//
+//	There are currently 2 other players.
+//
+// Substitution values and format specifiers are handled as a convenience by
+// calling fmt.Sprintf if values are passed on the call.
+//
+// NOTE: While it is possible to place substitutions in alternative texts the
+// number of substitutions has to remain the same. For example [/%s] would cause
+// an error to be reported in the string for the primary text - in this case
+// '%!(EXTRA int=1)' because the primary text would be one parameter shorter.
+// The error actually comes from fmt.Sprintf. However '[%s before/after %s]'
+// would be valid.
+func Format(text string, alternative bool, a ...interface{}) string {
+
+	alt := []byte("$1")
+	if alternative {
+		alt = []byte("$2")
+	}
+
+	b := []byte(text)
+	b = r.ReplaceAll(b, alt)
+
+	if len(a) == 0 {
+		return string(b)
+	}
+
+	return fmt.Sprintf(string(b), a...)
 }
