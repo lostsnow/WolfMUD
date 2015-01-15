@@ -1,0 +1,104 @@
+// Copyright 2015 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
+
+package attr
+
+import (
+	"code.wolfmud.org/WolfMUD-mini.git/has"
+
+	"strings"
+)
+
+type inventory struct {
+	parent
+	contents []has.Thing
+}
+
+func NewInventory(t ...has.Thing) *inventory {
+	c := make([]has.Thing, len(t))
+	copy(c, t)
+	return &inventory{parent{}, c}
+}
+
+func FindInventory(t has.Thing) has.Inventory {
+
+	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Inventory); return }
+
+	if t := t.FindAttr(compare); t != nil {
+		return t.(has.Inventory)
+	}
+	return nil
+}
+
+func (i *inventory) Dump() (buff []string) {
+	buff = append(buff, DumpFmt("%p %[1]T %d items:", i, len(i.contents)))
+	for _, i := range i.contents {
+		for _, i := range i.Dump() {
+			buff = append(buff, DumpFmt("%s", i))
+		}
+	}
+	return buff
+}
+
+func (i *inventory) Add(t has.Thing) {
+	i.contents = append(i.contents, t)
+
+	// Is what was added interested in where it is?
+	if a := FindLocate(t); a != nil {
+		a.SetLocation(i.Parent())
+	}
+}
+
+func (i *inventory) Remove(t has.Thing) has.Thing {
+	for j, c := range i.contents {
+		if c == t {
+			i.contents = append(i.contents[:j], i.contents[j+1:]...)
+			return c
+		}
+	}
+	return nil
+}
+
+func (i *inventory) Find(alias string) has.Thing {
+	for _, c := range i.contents {
+		a := FindAlias(c)
+		if a != nil && a.HasAlias(alias) {
+			return c
+		}
+	}
+	return nil
+}
+
+func (i *inventory) Contains(t has.Thing) bool {
+	for _, c := range i.contents {
+		if c == t {
+			return true
+		}
+	}
+	return false
+}
+
+func (i *inventory) List() []has.Thing {
+	l := make([]has.Thing, len(i.contents))
+	copy(l, i.contents)
+	return l
+}
+
+func (i *inventory) Contents() string {
+	buff := []string{}
+	for _, c := range i.contents {
+		if a := FindName(c); a != nil {
+			buff = append(buff, a.Name())
+		}
+	}
+	switch len(i.contents) {
+	case 0:
+		return "It is empty."
+	case 1:
+		return "It contains " + buff[0] + "."
+	default:
+		return "It contains:\n  " + strings.Join(buff, "\n  ")
+	}
+}

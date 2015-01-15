@@ -1,0 +1,17 @@
+TODO list and ideas for WolfMUD-mini:
+
+* Decide how to handle duplicate/multiple attributes for a thing.
+
+* Veto is currently added to a specific thing. Need to be able to check for
+  vetoes from other things. For example a guard could stop an item from being
+  taken. Kill the guard and the item can then be taken.
+
+* Should vetoes be made up of multiple veto instead of [][2]strings? Might make
+	composition of them easier?
+
+* Should writing have a name/description? Then we could automatically append
+	'There is some writing on it.' to item descriptions unless a name/description
+	is specified. In which case we could have e.g. 'There are some runes on it.'
+	appended instead. This would also allow things to be written on, etched or
+	inscribed by players maybe? At some point it may be interesting to add
+	languages - can you actually read Elven, Dwarven or ancient mystic runes?

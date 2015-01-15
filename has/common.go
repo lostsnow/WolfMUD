@@ -1,0 +1,73 @@
+// Copyright 2015 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this source code is governed by the license in the LICENSE file
+// included with the source code.
+
+package has
+
+type IsAttributeFunc func(Attribute) bool
+
+type Thing interface {
+	Add(...Attribute)
+	Remove(...Attribute)
+	Attrs() []Attribute
+	FindAttr(IsAttributeFunc) Attribute
+	Dump() []string
+}
+
+type Attribute interface {
+	Parent() Thing
+	SetParent(Thing)
+	Dump() []string
+}
+
+type Name interface {
+	Name() string
+}
+
+type Description interface {
+	Description() string
+}
+
+type Writing interface {
+	Writing() string
+}
+
+type Veto interface {
+	Check(string) string
+}
+
+type Alias interface {
+	HasAlias(string) bool
+}
+
+type Inventory interface {
+	Add(Thing)
+	Remove(Thing) Thing
+	Find(string) Thing
+	Contains(Thing) bool
+	List() []Thing
+	Contents() string
+}
+
+type Narrative interface {
+	Add(Thing)
+	Remove(Thing) Thing
+	Find(string) Thing
+	Contains(Thing) bool
+	Contents() string
+	ImplementsNarrative()
+}
+
+type Exit interface {
+	Link(uint8, Thing)
+	Unlink(uint8)
+	Description() string
+	Place(Thing) string
+	Move(Thing, string) string
+}
+
+type Locate interface {
+	Location() Thing
+	SetLocation(Thing)
+}
