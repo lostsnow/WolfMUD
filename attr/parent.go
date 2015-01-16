@@ -11,22 +11,6 @@ import (
 	"fmt"
 )
 
-func DumpFmt(format string, args ...interface{}) string {
-	return "  " + fmt.Sprintf(format, args...)
-}
-
-type parent struct {
-	p has.Thing
-}
-
-func (p *parent) Parent() has.Thing {
-	return p.p
-}
-
-func (p *parent) SetParent(t has.Thing) {
-	p.p = t
-}
-
 type thing struct {
 	a []has.Attribute
 }
@@ -94,4 +78,21 @@ func (t *thing) Dump() (buff []string) {
 		}
 	}
 	return buff
+}
+
+func DumpFmt(format string, args ...interface{}) string {
+	return "  " + fmt.Sprintf(format, args...)
+}
+
+
+type parent struct {
+	p has.Thing
+}
+
+func (p *parent) Parent() has.Thing {
+	return p.p
+}
+
+func (p *parent) SetParent(t has.Thing) {
+	p.p = t
 }
