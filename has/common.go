@@ -30,8 +30,14 @@ type Writing interface {
 	Writing() string
 }
 
+type Vetoes interface {
+	Check(string) Veto
+}
+
 type Veto interface {
-	Check(string) string
+	Command() string
+	Message() string
+	Dump() []string
 }
 
 type Alias interface {

@@ -25,8 +25,8 @@ func Get(t has.Thing, aliases []string) string {
 	to := attr.FindInventory(t)
 	name := attr.FindName(what).Name()
 
-	if msg, vetoed := CheckVetoes("GET", what); vetoed {
-		return msg
+	if veto := CheckVetoes("GET", what); veto != nil {
+		return veto.Message()
 	}
 
 	if attr.FindInventory(where).Remove(what) == nil {

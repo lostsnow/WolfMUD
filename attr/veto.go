@@ -11,39 +11,62 @@ import (
 	"strings"
 )
 
-type veto struct {
+type vetoes struct {
 	parent
-	vetoes map[string]string
+	vetoes map[string]has.Veto
 }
 
-func NewVeto(vetos [][2]string) *veto {
-	v := make(map[string]string)
-	for _, vs := range vetos {
-		v[strings.ToUpper(vs[0])] = vs[1]
+func NewVetoes(veto ...has.Veto) *vetoes {
+	vetoes := &vetoes{parent{}, make(map[string]has.Veto)}
+	for _, v := range veto {
+		vetoes.vetoes[v.Command()] = v
 	}
-	return &veto{parent{}, v}
+	return vetoes
 }
 
-func FindVeto(t has.Thing) has.Veto {
+func FindVeto(t has.Thing) has.Vetoes {
 	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Veto); ok {
+		if a, ok := a.(has.Vetoes); ok {
 			return a
 		}
 	}
 	return nil
 }
 
-func (v *veto) Dump() (buff []string) {
+func (v *vetoes) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T %d vetoes:", v, len(v.vetoes)))
-	for cmd, msg := range v.vetoes {
-		buff = append(buff, DumpFmt("  %q: %q", cmd, msg))
+	for _, veto := range v.vetoes {
+		for _, line := range veto.Dump() {
+			buff = append(buff, DumpFmt("%s", line))
+		}
 	}
 	return buff
 }
 
-func (v *veto) Check(cmd string) string {
+func (v *vetoes) Check(cmd string) has.Veto {
 	if v, found := v.vetoes[cmd]; found {
 		return v
 	}
-	return ""
+	return nil
+}
+
+type veto struct {
+	cmd string
+	msg string
+}
+
+func NewVeto(cmd string, msg string) *veto {
+	return &veto{strings.ToUpper(cmd), msg}
+}
+
+func (v *veto) Dump() (buff []string) {
+	return append(buff, DumpFmt("%p %[1]T %q:%q", v, v.Command(), v.Message()))
+}
+
+func (v *veto) Command() string {
+	return v.cmd
+}
+
+func (v *veto) Message() string {
+	return v.msg
 }

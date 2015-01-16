@@ -52,12 +52,12 @@ func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 	return nil, nil
 }
 
-func CheckVetoes(cmd string, what has.Thing) (string, bool) {
-	if v := attr.FindVeto(what); v != nil {
-		if v := v.Check(cmd); v != "" {
-			return v, true
+func CheckVetoes(cmd string, what has.Thing) has.Veto {
+	if vetoes := attr.FindVeto(what); vetoes != nil {
+		if veto := vetoes.Check(cmd); veto != nil {
+			return veto
 		}
 	}
 
-	return "", false
+	return nil
 }

@@ -19,10 +19,8 @@ func setup() map[string]has.Thing {
 		attr.NewName("some cheese"),
 		attr.NewDescription("This is a blob of very soft, sticky, smelly cheese."),
 		attr.NewAlias("cheese"),
-		attr.NewVeto(
-			[][2]string{
-				{"drop", "You can't drop the sticky cheese!"},
-			},
+		attr.NewVetoes(
+			attr.NewVeto("drop", "You can't drop the sticky cheese!"),
 		),
 	)
 
@@ -69,11 +67,9 @@ func setup() map[string]has.Thing {
 		attr.NewDescription("This is a small wooden plaque with some writing on it."),
 		attr.NewAlias("plaque"),
 		attr.NewWriting("Please do not read the plaques!"),
-		attr.NewVeto(
-			[][2]string{
-				{"get", "You can't take the plaque. It's firmly nailed to the wall."},
-				{"examine", "You try to examine the plaque but it makes your head hurt."},
-			},
+		attr.NewVetoes(
+			attr.NewVeto("get", "You can't take the plaque. It's firmly nailed to the wall."),
+			attr.NewVeto("examine", "You try to examine the plaque but it makes your head hurt."),
 		),
 	)
 

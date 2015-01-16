@@ -50,8 +50,8 @@ func Drop(t has.Thing, aliases []string) string {
 		return "You cannot drop " + name + " here."
 	}
 
-	if msg, vetoed := CheckVetoes("DROP", what); vetoed {
-		return msg
+	if veto := CheckVetoes("DROP", what); veto != nil {
+		return veto.Message()
 	}
 
 	if from.Remove(what) == nil {

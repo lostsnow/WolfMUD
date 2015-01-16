@@ -21,8 +21,8 @@ func Examine(t has.Thing, aliases []string) string {
 		return "You see no '" + aliases[0] + "' to examine."
 	}
 
-	if msg, vetoed := CheckVetoes("EXAMINE", what); vetoed {
-		return msg
+	if veto := CheckVetoes("EXAMINE", what); veto != nil {
+		return veto.Message()
 	}
 
 	name := ""
