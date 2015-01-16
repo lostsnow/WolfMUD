@@ -19,11 +19,10 @@ func NewWriting(w string) *writing {
 }
 
 func FindWriting(t has.Thing) has.Writing {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Writing); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Writing)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Writing); ok {
+			return a
+		}
 	}
 	return nil
 }

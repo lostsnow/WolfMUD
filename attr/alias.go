@@ -26,11 +26,10 @@ func NewAlias(a ...string) *alias {
 }
 
 func FindAlias(t has.Thing) has.Alias {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Alias); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Alias)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Alias); ok {
+			return a
+		}
 	}
 	return nil
 }

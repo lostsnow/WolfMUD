@@ -20,11 +20,10 @@ func NewNarrative(t ...has.Thing) *narrative {
 func (n *narrative) ImplementsNarrative() {}
 
 func FindNarrative(t has.Thing) has.Narrative {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Narrative); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Narrative)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Narrative); ok {
+			return a
+		}
 	}
 	return nil
 }

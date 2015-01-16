@@ -25,11 +25,10 @@ func NewVeto(vetos [][2]string) *veto {
 }
 
 func FindVeto(t has.Thing) has.Veto {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Veto); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Veto)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Veto); ok {
+			return a
+		}
 	}
 	return nil
 }

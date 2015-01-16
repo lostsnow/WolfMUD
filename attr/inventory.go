@@ -23,11 +23,10 @@ func NewInventory(t ...has.Thing) *inventory {
 }
 
 func FindInventory(t has.Thing) has.Inventory {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Inventory); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Inventory)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Inventory); ok {
+			return a
+		}
 	}
 	return nil
 }

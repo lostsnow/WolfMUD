@@ -38,36 +38,8 @@ func (t *thing) Remove(a ...has.Attribute) {
 	}
 }
 
-// Attrs lets you manually sift through attributes. For example to find out if
-// a thing has a name attribute and to retrieve the name you could do something
-// like:
-//
-//	name := ""
-//	for _, a := range thing.Attrs() {
-//		if a, ok := a.(has.Name); ok {
-//			name = a.Name())
-//			break
-//		}
-//	}
-//
-// The alternative is to use a finder:
-//
-//	name := ""
-//	if n := attr.FindName(thing); n != nil {
-//		name = n.Name()
-//	}
-//
 func (t *thing) Attrs() []has.Attribute {
 	return t.a
-}
-
-func (t *thing) FindAttr(f has.IsAttributeFunc) has.Attribute {
-	for _, a := range t.a {
-		if f(a) == true {
-			return a
-		}
-	}
-	return nil
 }
 
 func (t *thing) Dump() (buff []string) {
@@ -83,7 +55,6 @@ func (t *thing) Dump() (buff []string) {
 func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
-
 
 type parent struct {
 	p has.Thing

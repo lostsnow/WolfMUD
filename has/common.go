@@ -5,13 +5,10 @@
 
 package has
 
-type IsAttributeFunc func(Attribute) bool
-
 type Thing interface {
 	Add(...Attribute)
 	Remove(...Attribute)
 	Attrs() []Attribute
-	FindAttr(IsAttributeFunc) Attribute
 	Dump() []string
 }
 

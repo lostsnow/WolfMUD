@@ -23,11 +23,10 @@ func (n *name) Dump() []string {
 }
 
 func FindName(t has.Thing) has.Name {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Name); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Name)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Name); ok {
+			return a
+		}
 	}
 	return nil
 }

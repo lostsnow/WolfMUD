@@ -23,11 +23,10 @@ func NewLocate(t has.Thing) *locate {
 }
 
 func FindLocate(t has.Thing) has.Locate {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Locate); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Locate)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Locate); ok {
+			return a
+		}
 	}
 	return nil
 }

@@ -19,11 +19,10 @@ func NewDescription(d string) *description {
 }
 
 func FindDescription(t has.Thing) has.Description {
-
-	compare := func(a has.Attribute) (ok bool) { _, ok = a.(has.Description); return }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Description)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Description); ok {
+			return a
+		}
 	}
 	return nil
 }

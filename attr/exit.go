@@ -77,11 +77,10 @@ func NewExits() *exits {
 }
 
 func FindExit(t has.Thing) has.Exit {
-
-	compare := func(a has.Attribute) bool { _, ok := a.(has.Exit); return ok }
-
-	if t := t.FindAttr(compare); t != nil {
-		return t.(has.Exit)
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Exit); ok {
+			return a
+		}
 	}
 	return nil
 }
