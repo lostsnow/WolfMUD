@@ -14,6 +14,10 @@ type name struct {
 	name string
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &name{}
+var _ has.Name = &name{}
+
 func NewName(n string) *name {
 	return &name{parent{}, n}
 }

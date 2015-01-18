@@ -72,6 +72,10 @@ type exits struct {
 	exits [len(directionLongNames)]has.Thing
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &exits{}
+var _ has.Exit = &exits{}
+
 func NewExits() *exits {
 	return &exits{parent{}, [len(directionLongNames)]has.Thing{}}
 }

@@ -14,6 +14,10 @@ type locate struct {
 	location has.Thing
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &locate{}
+var _ has.Locate = &locate{}
+
 func NewLocate(t has.Thing) *locate {
 	l := &locate{parent{}, nil}
 	if t != nil {

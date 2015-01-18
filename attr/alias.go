@@ -17,6 +17,10 @@ type alias struct {
 	aliases map[string]struct{}
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &alias{}
+var _ has.Alias = &alias{}
+
 func NewAlias(a ...string) *alias {
 	aliases := make(map[string]struct{}, len(a))
 	for _, v := range a {

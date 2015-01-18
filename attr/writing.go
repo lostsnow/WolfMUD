@@ -14,6 +14,10 @@ type writing struct {
 	writing string
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &writing{}
+var _ has.Writing = &writing{}
+
 func NewWriting(w string) *writing {
 	return &writing{parent{}, w}
 }

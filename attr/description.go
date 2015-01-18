@@ -14,6 +14,10 @@ type description struct {
 	description string
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &description{}
+var _ has.Description = &description{}
+
 func NewDescription(d string) *description {
 	return &description{parent{}, d}
 }

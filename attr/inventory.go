@@ -16,6 +16,10 @@ type inventory struct {
 	contents []has.Thing
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &inventory{}
+var _ has.Inventory = &inventory{}
+
 func NewInventory(t ...has.Thing) *inventory {
 	c := make([]has.Thing, len(t))
 	copy(c, t)

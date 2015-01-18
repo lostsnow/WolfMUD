@@ -16,6 +16,10 @@ type vetoes struct {
 	vetoes map[string]has.Veto
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &vetoes{}
+var _ has.Vetoes = &vetoes{}
+
 func NewVetoes(veto ...has.Veto) *vetoes {
 	vetoes := &vetoes{parent{}, make(map[string]has.Veto)}
 	for _, v := range veto {
@@ -54,6 +58,9 @@ type veto struct {
 	cmd string
 	msg string
 }
+
+// Some interfaces we want to make sure we implement
+var _ has.Veto = &veto{}
 
 func NewVeto(cmd string, msg string) *veto {
 	return &veto{strings.ToUpper(cmd), msg}

@@ -15,6 +15,12 @@ type thing struct {
 	a []has.Attribute
 }
 
+// Some interfaces we want to make sure we implement
+// TODO: Should thing implement the has.Attribute interface? Would it simplify
+// things if it did?
+var _ has.Thing = &thing{}
+//var _ has.Attribute = &thing{}
+
 func Thing(a ...has.Attribute) has.Thing {
 	t := &thing{}
 	t.Add(a...)
@@ -59,6 +65,11 @@ func DumpFmt(format string, args ...interface{}) string {
 type parent struct {
 	p has.Thing
 }
+
+// Some interfaces we want to make sure we implement
+// TODO: Is it odd parent does not implement has.Attribute even though it is
+// supposed to be the default implementation?
+//var _ has.Attribute = &parent{}
 
 func (p *parent) Parent() has.Thing {
 	return p.p

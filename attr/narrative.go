@@ -13,6 +13,11 @@ type narrative struct {
 	*inventory
 }
 
+// Some interfaces we want to make sure we implement
+var _ has.Attribute = &narrative{}
+var _ has.Inventory = &narrative{}
+var _ has.Narrative = &narrative{}
+
 func NewNarrative(t ...has.Thing) *narrative {
 	return &narrative{NewInventory(t...)}
 }
