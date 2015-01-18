@@ -65,7 +65,7 @@ type Narrative interface {
 type Exit interface {
 	Link(uint8, Thing)
 	Unlink(uint8)
-	Description() string
+	List() string
 	Place(Thing) string
 	Move(Thing, string) string
 }

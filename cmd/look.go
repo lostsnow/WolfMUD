@@ -48,7 +48,7 @@ func Look(t has.Thing) string {
 	}
 
 	if a := attr.FindExit(where); a != nil {
-		buff = append(buff, a.Description())
+		buff = append(buff, a.List())
 	} else {
 		buff = append(buff, "You can see no immediate exits from here.")
 	}

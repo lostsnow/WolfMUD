@@ -115,7 +115,7 @@ func (e *exits) Unlink(direction uint8) {
 	e.exits[direction] = nil
 }
 
-func (e *exits) Description() string {
+func (e *exits) List() string {
 	buff := make([]byte, 0, minLongNamesSize)
 
 	for i, e := range e.exits {
