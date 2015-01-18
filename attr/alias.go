@@ -23,8 +23,8 @@ var _ has.Alias = &alias{}
 
 func NewAlias(a ...string) *alias {
 	aliases := make(map[string]struct{}, len(a))
-	for _, v := range a {
-		aliases[strings.ToUpper(v)] = struct{}{}
+	for _, a := range a {
+		aliases[strings.ToUpper(a)] = struct{}{}
 	}
 	return &alias{parent{}, aliases}
 }

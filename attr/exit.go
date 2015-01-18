@@ -116,13 +116,13 @@ func (e *exits) List() string {
 		}
 	}
 
-	switch c := len(buff); {
-	case c == 0:
+	switch l := len(buff); {
+	case l == 0:
 		return "You can see no immediate exits from here."
-	case c == 1:
+	case l == 1:
 		return "The only exit you can see from here is " + buff[0] + "."
 	default:
-		return "You can see exits " + strings.Join(buff[:c-1], ", ") + " and " + buff[c-1] + "."
+		return "You can see exits " + strings.Join(buff[:l-1], ", ") + " and " + buff[l-1] + "."
 	}
 }
 
