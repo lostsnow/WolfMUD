@@ -7,6 +7,8 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
+
+	"strings"
 )
 
 const (
@@ -35,8 +37,6 @@ var directionLongNames = [...]string{
 	D:  "down",
 }
 
-var minLongNamesSize = 0
-
 var directionIndex = map[string]uint8{
 	"N":         N,
 	"NORTH":     N,
@@ -58,13 +58,6 @@ var directionIndex = map[string]uint8{
 	"UP":        U,
 	"D":         D,
 	"DOWN":      D,
-}
-
-func init() {
-	minLongNamesSize = 0
-	for _, d := range directionLongNames {
-		minLongNamesSize += len(d) + 1
-	}
 }
 
 type exits struct {
@@ -116,19 +109,21 @@ func (e *exits) Unlink(direction uint8) {
 }
 
 func (e *exits) List() string {
-	buff := make([]byte, 0, minLongNamesSize)
-
+	buff := []string{}
 	for i, e := range e.exits {
 		if e != nil {
-			buff = append(buff, directionLongNames[i]...)
-			buff = append(buff, ' ')
+			buff = append(buff, directionLongNames[i])
 		}
 	}
 
-	if len(buff) == 0 {
+	switch c := len(buff); {
+	case c == 0:
 		return "You can see no immediate exits from here."
+	case c == 1:
+		return "The only exit you can see from here is " + buff[0] + "."
+	default:
+		return "You can see exits " + strings.Join(buff[:c-1], ", ") + " and " + buff[c-1] + "."
 	}
-	return "You can see exits: " + string(buff)
 }
 
 func (e *exits) Place(t has.Thing) string {
