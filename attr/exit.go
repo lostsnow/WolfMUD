@@ -133,6 +133,11 @@ func (e *exits) Place(t has.Thing) string {
 	return ""
 }
 
+// TODO: Need to check if add to new room failes and put mover back where they
+// came from.
+// TODO: the check for exit available needs to be more robust otherwise we
+// might get index out of bounds errors.
+// TODO: Need better checking if from or to don't have inventories!
 func (e *exits) Move(t has.Thing, cmd string) string {
 
 	// Check exit available
