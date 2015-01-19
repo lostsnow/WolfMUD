@@ -16,6 +16,7 @@ type writing struct {
 
 // Some interfaces we want to make sure we implement
 var _ has.Attribute = &writing{}
+var _ has.Description = &writing{}
 var _ has.Writing = &writing{}
 
 func NewWriting(w string) *writing {
@@ -37,4 +38,8 @@ func (w *writing) Dump() []string {
 
 func (w *writing) Writing() string {
 	return w.writing
+}
+
+func (w *writing) Description() string {
+	return "It has something written on it."
 }

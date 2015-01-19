@@ -26,7 +26,7 @@ func setup() map[string]has.Thing {
 
 	world["mug"] = attr.Thing(
 		attr.NewName("a mug"),
-		attr.NewDescription("This is a large mug. It has some writing on it."),
+		attr.NewDescription("This is a large, white, chipped mug."),
 		attr.NewWriting("Stay calm and drink more coffee!"),
 		attr.NewAlias("mug"),
 		attr.NewInventory(
@@ -64,7 +64,7 @@ func setup() map[string]has.Thing {
 
 	world["plaque"] = attr.Thing(
 		attr.NewName("a wooden plaque"),
-		attr.NewDescription("This is a small wooden plaque with some writing on it."),
+		attr.NewDescription("This is a small wooden plaque."),
 		attr.NewAlias("plaque"),
 		attr.NewWriting("Please do not read the plaques!"),
 		attr.NewVetoes(

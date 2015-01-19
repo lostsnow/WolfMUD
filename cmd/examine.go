@@ -34,11 +34,11 @@ func Examine(t has.Thing, aliases []string) string {
 		case has.Name:
 			name = a.Name()
 		case has.Description:
-			description = a.Description()
+			description += " " + a.Description()
 		case has.Inventory:
 			contents = " " + a.Contents()
 		}
 	}
 
-	return "You examine " + name + ". " + description + contents
+	return "You examine " + name + "." + description + contents
 }
