@@ -35,10 +35,10 @@ func Drop(t has.Thing, aliases []string) string {
 		return "You have no '" + aliases[0] + "' to drop."
 	}
 
-	// Identify location of thing dropping something
+	// Identify where thing dropping something is
 	if a := attr.FindLocate(t); a != nil {
-		if l := a.Location(); l != nil {
-			if i := attr.FindInventory(l); i != nil {
+		if w := a.Where(); w != nil {
+			if i := attr.FindInventory(w); i != nil {
 				to = i
 			}
 		}

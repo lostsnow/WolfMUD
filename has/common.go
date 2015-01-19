@@ -71,6 +71,6 @@ type Exit interface {
 }
 
 type Locate interface {
-	Location() Thing
-	SetLocation(Thing)
+	Where() Thing
+	SetWhere(Thing)
 }

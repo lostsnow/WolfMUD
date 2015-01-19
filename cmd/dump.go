@@ -20,8 +20,8 @@ func Dump(t has.Thing, aliases []string) string {
 
 	what, _ := WhatWhere(aliases[0], t)
 
-	// As a last resort instead of looking IN the location look AT the location
-	// itself - WhatWhere does not check if the what is also the where.
+	// As a last resort instead of looking 'IN where we are' look 'AT where we
+	// are' - WhatWhere does not check if the what is also the where.
 	if what == nil {
 		if where := Where(t); where != nil {
 			if a := attr.FindAlias(where); a != nil {

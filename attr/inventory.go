@@ -50,7 +50,7 @@ func (i *inventory) Add(t has.Thing) {
 
 	// Is what was added interested in where it is?
 	if a := FindLocate(t); a != nil {
-		a.SetLocation(i.Parent())
+		a.SetWhere(i.Parent())
 	}
 }
 

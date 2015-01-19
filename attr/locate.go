@@ -11,7 +11,7 @@ import (
 
 type locate struct {
 	parent
-	location has.Thing
+	where has.Thing
 }
 
 // Some interfaces we want to make sure we implement
@@ -21,7 +21,7 @@ var _ has.Locate = &locate{}
 func NewLocate(t has.Thing) *locate {
 	l := &locate{parent{}, nil}
 	if t != nil {
-		l.SetLocation(t)
+		l.SetWhere(t)
 	}
 	return l
 }
@@ -37,18 +37,20 @@ func FindLocate(t has.Thing) has.Locate {
 
 func (l *locate) Dump() []string {
 	name := ""
-	if l := l.Location(); l != nil {
-		if a := FindName(l); a != nil {
+	if w := l.Where(); w != nil {
+		if a := FindName(w); a != nil {
 			name = a.Name()
 		}
 	}
-	return []string{DumpFmt("%p %[1]T -> %p %s", l, l.location, name)}
+	return []string{DumpFmt("%p %[1]T -> %p %s", l, l.where, name)}
 }
 
-func (l *locate) Location() has.Thing {
-	return l.location
+func (l *locate) Where() has.Thing {
+	return l.where
 }
 
-func (l *locate) SetLocation(to has.Thing) {
-	l.location = to
+// TODO: Should we be checking that w has an inventory if we are being placed
+// there?
+func (l *locate) SetWhere(w has.Thing) {
+	l.where = w
 }

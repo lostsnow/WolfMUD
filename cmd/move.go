@@ -14,12 +14,12 @@ func Move(t has.Thing, cmd string) string {
 
 	// A thing can only move itself if it knows where it is
 	from := attr.FindLocate(t)
-	if from == nil || from.Location() == nil {
+	if from == nil || from.Where() == nil {
 		return "You can't go anywhere. You don't know where you are!"
 	}
 
-	// Is current location exitable?
-	exits := attr.FindExit(from.Location())
+	// Is where we are exitable?
+	exits := attr.FindExit(from.Where())
 	if exits == nil {
 		return "You can't see anywhere to go from here."
 	}
@@ -28,6 +28,6 @@ func Move(t has.Thing, cmd string) string {
 		return text
 	}
 
-	// Describe the new location
+	// Describe where we now are
 	return Parse(t, "LOOK")
 }

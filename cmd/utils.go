@@ -15,8 +15,8 @@ func Where(t has.Thing) (where has.Thing) {
 		return nil
 	}
 
-	if l := attr.FindLocate(t); l != nil {
-		return l.Location()
+	if w := attr.FindLocate(t); w != nil {
+		return w.Where()
 	}
 
 	if where == nil && attr.FindExit(t) != nil {
