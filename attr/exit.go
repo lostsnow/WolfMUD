@@ -126,11 +126,10 @@ func (e *exits) List() string {
 	}
 }
 
-func (e *exits) Place(t has.Thing) string {
+func (e *exits) Place(t has.Thing) {
 	if a := FindInventory(e.Parent()); a != nil {
 		a.Add(t)
 	}
-	return ""
 }
 
 // TODO: Need to check if add to new room failes and put mover back where they

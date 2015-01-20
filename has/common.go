@@ -66,7 +66,7 @@ type Exit interface {
 	Link(uint8, Thing)
 	Unlink(uint8)
 	List() string
-	Place(Thing) string
+	Place(Thing)
 	Move(Thing, string) string
 }
 
