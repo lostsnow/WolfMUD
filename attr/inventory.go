@@ -57,6 +57,7 @@ func (i *inventory) Add(t has.Thing) {
 func (i *inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
+			i.contents[j] = nil
 			i.contents = append(i.contents[:j], i.contents[j+1:]...)
 			return c
 		}

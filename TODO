@@ -12,6 +12,3 @@ TODO list and ideas for WolfMUD-mini:
 	appended instead. This would also allow things to be written on, etched or
 	inscribed by players maybe? At some point it may be interesting to add
 	languages - can you actually read Elven, Dwarven or ancient mystic runes?
-
-* Where we remove items by slicing "s = append(s[:x], s[x+1:]...)" we need to
-	make sure the last element is set to nil for pointers to avoid memory leaks,

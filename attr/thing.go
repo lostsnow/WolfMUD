@@ -37,6 +37,7 @@ func (t *thing) Remove(a ...has.Attribute) {
 	for _, a := range a {
 		for k, v := range t.a {
 			if v == a {
+				t.a[k] = nil
 				t.a = append(t.a[:k], t.a[k+1:]...)
 			}
 		}
