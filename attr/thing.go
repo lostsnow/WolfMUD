@@ -19,7 +19,6 @@ type thing struct {
 // TODO: Should thing implement the has.Attribute interface? Would it simplify
 // things if it did?
 var _ has.Thing = &thing{}
-//var _ has.Attribute = &thing{}
 
 func Thing(a ...has.Attribute) has.Thing {
 	t := &thing{}
