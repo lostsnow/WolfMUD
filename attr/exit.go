@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	_              = iota
 	N, NORTH uint8 = iota, iota
 	NE, NORTHEAST
 	E, EAST
@@ -132,29 +133,33 @@ func (e *exits) Place(t has.Thing) {
 	}
 }
 
-// TODO: Need to check if add to new room failes and put mover back where they
-// came from.
-// TODO: the check for exit available needs to be more robust otherwise we
-// might get index out of bounds errors.
-// TODO: Need better checking if from or to don't have inventories!
 func (e *exits) Move(t has.Thing, cmd string) string {
 
-	// Check exit available
+	// Check direction is valid e.g. "N" or "NORTH"
 	d := directionIndex[cmd]
+	if d == 0 {
+		return "You wanted to go which way!?"
+	}
+
 	if e.exits[d] == nil {
 		return "You can't go " + directionLongNames[d] + " from here!"
 	}
 
-	// Remove mover from current exit's parent inventory
-	if a := FindInventory(e.Parent()); a != nil {
-		a.Remove(t)
+	from := FindInventory(e.Parent())
+	if from == nil {
+		return "You are not sure where you are, let alone where you are going."
 	}
 
-	// Add mover to new exit's parent inventory
-	// NOTE: The exit already points to the parent so we don't need to find it.
-	if a := FindInventory(e.exits[d]); a != nil {
-		a.Add(t)
+	to := FindInventory(e.exits[d])
+	if to == nil {
+		return "For some odd reason you can't go " + directionLongNames[d] + "."
 	}
+
+	if what := from.Remove(t); what == nil {
+		return "Something stops you from leaving here!"
+	}
+
+	to.Add(t)
 
 	return ""
 }
