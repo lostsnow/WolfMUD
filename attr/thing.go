@@ -12,12 +12,10 @@ import (
 )
 
 type thing struct {
-	a []has.Attribute
+	attrs []has.Attribute
 }
 
 // Some interfaces we want to make sure we implement
-// TODO: Should thing implement the has.Attribute interface? Would it simplify
-// things if it did?
 var _ has.Thing = &thing{}
 
 func Thing(a ...has.Attribute) has.Thing {
@@ -29,28 +27,30 @@ func Thing(a ...has.Attribute) has.Thing {
 func (t *thing) Add(a ...has.Attribute) {
 	for _, a := range a {
 		a.SetParent(t)
-		t.a = append(t.a, a)
+		t.attrs = append(t.attrs, a)
 	}
 }
 
 func (t *thing) Remove(a ...has.Attribute) {
 	for _, a := range a {
-		for k, v := range t.a {
+		for k, v := range t.attrs {
 			if v == a {
-				t.a[k] = nil
-				t.a = append(t.a[:k], t.a[k+1:]...)
+				t.attrs[k] = nil
+				a.SetParent(nil)
+				t.attrs = append(t.attrs[:k], t.attrs[k+1:]...)
+				break
 			}
 		}
 	}
 }
 
 func (t *thing) Attrs() []has.Attribute {
-	return t.a
+	return t.attrs
 }
 
 func (t *thing) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T %d attributes:", t, len(t.a)))
-	for _, a := range t.a {
+	buff = append(buff, DumpFmt("%p %[1]T %d attributes:", t, len(t.attrs)))
+	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
 		}
