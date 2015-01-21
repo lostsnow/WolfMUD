@@ -62,19 +62,19 @@ func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
 
-type parent struct {
-	p has.Thing
+type attribute struct {
+	parent has.Thing
 }
 
 // Some interfaces we want to make sure we implement
-// TODO: Is it odd parent does not implement has.Attribute even though it is
+// TODO: Is it odd attribute does not implement has.Attribute even though it is
 // supposed to be the default implementation?
-//var _ has.Attribute = &parent{}
+//var _ has.Attribute = &attribute{}
 
-func (p *parent) Parent() has.Thing {
-	return p.p
+func (a *attribute) Parent() has.Thing {
+	return a.parent
 }
 
-func (p *parent) SetParent(t has.Thing) {
-	p.p = t
+func (a *attribute) SetParent(t has.Thing) {
+	a.parent = t
 }

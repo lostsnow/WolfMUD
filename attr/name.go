@@ -10,7 +10,7 @@ import (
 )
 
 type name struct {
-	parent
+	attribute
 	name string
 }
 
@@ -19,7 +19,7 @@ var _ has.Attribute = &name{}
 var _ has.Name = &name{}
 
 func NewName(n string) *name {
-	return &name{parent{}, n}
+	return &name{attribute{}, n}
 }
 
 func (n *name) Dump() []string {

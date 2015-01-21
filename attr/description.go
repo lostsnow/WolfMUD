@@ -10,7 +10,7 @@ import (
 )
 
 type description struct {
-	parent
+	attribute
 	description string
 }
 
@@ -19,7 +19,7 @@ var _ has.Attribute = &description{}
 var _ has.Description = &description{}
 
 func NewDescription(d string) *description {
-	return &description{parent{}, d}
+	return &description{attribute{}, d}
 }
 
 func FindDescription(t has.Thing) has.Description {

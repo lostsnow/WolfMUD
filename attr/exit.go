@@ -62,7 +62,7 @@ var directionIndex = map[string]uint8{
 }
 
 type exits struct {
-	parent
+	attribute
 	exits [len(directionLongNames)]has.Thing
 }
 
@@ -71,7 +71,7 @@ var _ has.Attribute = &exits{}
 var _ has.Exit = &exits{}
 
 func NewExits() *exits {
-	return &exits{parent{}, [len(directionLongNames)]has.Thing{}}
+	return &exits{attribute{}, [len(directionLongNames)]has.Thing{}}
 }
 
 func FindExit(t has.Thing) has.Exit {

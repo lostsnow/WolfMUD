@@ -13,7 +13,7 @@ import (
 )
 
 type alias struct {
-	parent
+	attribute
 	aliases map[string]struct{}
 }
 
@@ -26,7 +26,7 @@ func NewAlias(a ...string) *alias {
 	for _, a := range a {
 		aliases[strings.ToUpper(a)] = struct{}{}
 	}
-	return &alias{parent{}, aliases}
+	return &alias{attribute{}, aliases}
 }
 
 func FindAlias(t has.Thing) has.Alias {

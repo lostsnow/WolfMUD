@@ -12,7 +12,7 @@ import (
 )
 
 type inventory struct {
-	parent
+	attribute
 	contents []has.Thing
 }
 
@@ -23,7 +23,7 @@ var _ has.Inventory = &inventory{}
 func NewInventory(t ...has.Thing) *inventory {
 	c := make([]has.Thing, len(t))
 	copy(c, t)
-	return &inventory{parent{}, c}
+	return &inventory{attribute{}, c}
 }
 
 func FindInventory(t has.Thing) has.Inventory {

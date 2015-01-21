@@ -10,7 +10,7 @@ import (
 )
 
 type writing struct {
-	parent
+	attribute
 	writing string
 }
 
@@ -20,7 +20,7 @@ var _ has.Description = &writing{}
 var _ has.Writing = &writing{}
 
 func NewWriting(w string) *writing {
-	return &writing{parent{}, w}
+	return &writing{attribute{}, w}
 }
 
 func FindWriting(t has.Thing) has.Writing {
