@@ -26,13 +26,9 @@ func (n *name) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", n, n.name)}
 }
 
-func FindName(t has.Thing) has.Name {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Name); ok {
-			return a
-		}
-	}
-	return nil
+func FindName(t has.Thing) (n has.Name) {
+	n, _ = t.Find(&n).(has.Name)
+	return
 }
 
 func (n *name) Name() string {

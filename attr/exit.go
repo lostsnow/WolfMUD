@@ -74,13 +74,9 @@ func NewExits() *exits {
 	return &exits{attribute{}, [len(directionLongNames)]has.Thing{}}
 }
 
-func FindExit(t has.Thing) has.Exit {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Exit); ok {
-			return a
-		}
-	}
-	return nil
+func FindExit(t has.Thing) (e has.Exit) {
+	e, _ = t.Find(&e).(has.Exit)
+	return
 }
 
 func (e *exits) Dump() []string {

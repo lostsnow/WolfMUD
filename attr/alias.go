@@ -29,13 +29,9 @@ func NewAlias(a ...string) *alias {
 	return &alias{attribute{}, aliases}
 }
 
-func FindAlias(t has.Thing) has.Alias {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Alias); ok {
-			return a
-		}
-	}
-	return nil
+func FindAlias(t has.Thing) (a has.Alias) {
+	a, _ = t.Find(&a).(has.Alias)
+	return
 }
 
 func (a *alias) Dump() []string {

@@ -24,13 +24,9 @@ func NewNarrative(t ...has.Thing) *narrative {
 
 func (n *narrative) ImplementsNarrative() {}
 
-func FindNarrative(t has.Thing) has.Narrative {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Narrative); ok {
-			return a
-		}
-	}
-	return nil
+func FindNarrative(t has.Thing) (n has.Narrative) {
+	n, _ = t.Find(&n).(has.Narrative)
+	return
 }
 
 func (n *narrative) Dump() (buff []string) {
