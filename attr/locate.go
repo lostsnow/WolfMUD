@@ -20,9 +20,7 @@ var _ has.Locate = &locate{}
 
 func NewLocate(t has.Thing) *locate {
 	l := &locate{attribute{}, nil}
-	if t != nil {
-		l.SetWhere(t)
-	}
+	l.SetWhere(t)
 	return l
 }
 
