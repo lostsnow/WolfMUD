@@ -16,10 +16,6 @@ func Drop(t has.Thing, aliases []string) string {
 		return "You go to drop... something?"
 	}
 
-	if t == nil {
-		return "You have no '" + aliases[0] + "' to drop."
-	}
-
 	var from has.Inventory
 	var to has.Inventory
 	var what has.Thing
