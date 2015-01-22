@@ -20,7 +20,7 @@ func Inventory(t has.Thing) string {
 		return "You are not carrying anything."
 	}
 
-	buff := []string{"You are currently carrying:"}
+	buff := []string{}
 
 	for _, i := range i.List() {
 		if n := attr.FindName(i); n != nil {
@@ -28,9 +28,9 @@ func Inventory(t has.Thing) string {
 		}
 	}
 
-	if len(buff) == 1 {
+	if len(buff) == 0 {
 		return "You are not carrying anything."
 	}
 
-	return strings.Join(buff, "\n  ")
+	return "You are currently carrying:\n  " + strings.Join(buff, "\n  ")
 }
