@@ -53,6 +53,11 @@ func (i *inventory) Add(t has.Thing) {
 func (i *inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
+			// Is what was removed interested in where it is?
+			if a := FindLocate(t); a != nil {
+				a.SetWhere(nil)
+			}
+
 			i.contents[j] = nil
 			i.contents = append(i.contents[:j], i.contents[j+1:]...)
 			return c
