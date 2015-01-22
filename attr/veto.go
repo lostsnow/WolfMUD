@@ -44,10 +44,8 @@ func (v *vetoes) Dump() (buff []string) {
 }
 
 func (v *vetoes) Check(cmd string) has.Veto {
-	if v, found := v.vetoes[cmd]; found {
-		return v
-	}
-	return nil
+	veto, _ := v.vetoes[cmd]
+	return veto
 }
 
 type veto struct {
