@@ -13,7 +13,7 @@ import (
 func Read(t has.Thing, aliases []string) string {
 
 	if len(aliases) == 0 {
-		return "Did you want to read anything specific?"
+		return "Did you want to read something specific?"
 	}
 
 	what, _ := WhatWhere(aliases[0], t)
