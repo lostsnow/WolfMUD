@@ -8,7 +8,7 @@ package main
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/cmd"
-	"code.wolfmud.org/WolfMUD-mini.git/utils"
+	"code.wolfmud.org/WolfMUD-mini.git/text"
 
 	"bufio"
 	"fmt"
@@ -33,14 +33,14 @@ func main() {
 	}
 
 	// Describe what they can see
-	fmt.Println(utils.Fold(cmd.Parse(p, "LOOK"), 80))
+	fmt.Println(text.Fold(cmd.Parse(p, "LOOK"), 80))
 
 	// Main processing loop
 	r := bufio.NewReader(os.Stdin)
 	fmt.Print(">")
 	for i, err := r.ReadString('\n'); err == nil; i, err = r.ReadString('\n') {
 		if o := cmd.Parse(p, i); len(o) > 0 {
-			fmt.Println(utils.Fold(o, 80))
+			fmt.Println(text.Fold(o, 80))
 		}
 		fmt.Print(">")
 	}
