@@ -62,7 +62,7 @@ func (t *thing) Find(i interface{}) interface{} {
 	r := reflect.TypeOf(i).Elem()
 	for _, a := range t.attrs {
 		if reflect.TypeOf(a).Implements(r) {
-			return reflect.ValueOf(a).Convert(r).Interface()
+			return a
 		}
 	}
 	return nil
