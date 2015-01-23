@@ -23,9 +23,13 @@ func Fold(in string, width int) string {
 	// becuase it will still be in the buffers - so we don't need to trim it off.
 	in += "\n"
 
-	bw := bytes.Buffer{} // Buffered current word
-	bl := bytes.Buffer{} // Buffered current line
-	bo := bytes.Buffer{} // Buffered output
+	bw := &bytes.Buffer{} // Buffered current word
+	bl := &bytes.Buffer{} // Buffered current line
+	bo := &bytes.Buffer{} // Buffered output
+
+	bw.Grow(32)           // word buffer initially up to 32 (arbitrary) characters
+	bl.Grow(width + 32)   // line buffer initially width + 1 word
+	bo.Grow(len(in) + 32) // output buffer initially string length + 32 (arbitrary) line breaks
 
 	lb := true // Only leading blanks have been written to a word
 
@@ -39,25 +43,22 @@ func Fold(in string, width int) string {
 
 		if bl.Len()+space+bw.Len() >= width {
 			if bo.Len() != 0 {
-				bo.WriteRune('\n')
+				bo.WriteByte('\n')
 			}
-			bo.WriteString(bl.String())
-			bl.Reset()
+			bl.WriteTo(bo)
 			lb = true
 		}
 
 		if bl.Len() != 0 {
-			bl.WriteRune(' ')
+			bl.WriteByte(' ')
 		}
-		bl.WriteString(bw.String())
-		bw.Reset()
+		bw.WriteTo(bl)
 
 		if r == '\n' {
 			if bo.Len() != 0 {
-				bo.WriteRune('\n')
+				bo.WriteByte('\n')
 			}
-			bo.WriteString(bl.String())
-			bl.Reset()
+			bl.WriteTo(bo)
 			lb = true
 		}
 
