@@ -27,8 +27,12 @@ func (n *name) Dump() []string {
 }
 
 func FindName(t has.Thing) (n has.Name) {
-	n, _ = t.Find(&n).(has.Name)
-	return
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Name); ok {
+			return a
+		}
+	}
+	return nil
 }
 
 func (n *name) Name() string {

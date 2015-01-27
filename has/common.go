@@ -9,7 +9,6 @@ type Thing interface {
 	Add(...Attribute)
 	Remove(...Attribute)
 	Attrs() []Attribute
-	Find(interface{}) interface{}
 	Dump() []string
 }
 

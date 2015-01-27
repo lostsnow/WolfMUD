@@ -29,8 +29,12 @@ func NewVetoes(veto ...has.Veto) *vetoes {
 }
 
 func FindVeto(t has.Thing) (v has.Vetoes) {
-	v, _ = t.Find(&v).(has.Vetoes)
-	return
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Vetoes); ok {
+			return a
+		}
+	}
+	return nil
 }
 
 func (v *vetoes) Dump() (buff []string) {

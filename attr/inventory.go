@@ -27,8 +27,12 @@ func NewInventory(t ...has.Thing) *inventory {
 }
 
 func FindInventory(t has.Thing) (i has.Inventory) {
-	i, _ = t.Find(&i).(has.Inventory)
-	return
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Inventory); ok {
+			return a
+		}
+	}
+	return nil
 }
 
 func (i *inventory) Dump() (buff []string) {

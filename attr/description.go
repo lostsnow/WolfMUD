@@ -23,8 +23,12 @@ func NewDescription(d string) *description {
 }
 
 func FindDescription(t has.Thing) (d has.Description) {
-	d, _ = t.Find(&d).(has.Description)
-	return
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Description); ok {
+			return a
+		}
+	}
+	return nil
 }
 
 func (d *description) Dump() []string {

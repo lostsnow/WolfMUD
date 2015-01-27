@@ -9,7 +9,6 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 
 	"fmt"
-	"reflect"
 )
 
 type thing struct {
@@ -47,25 +46,6 @@ func (t *thing) Remove(a ...has.Attribute) {
 
 func (t *thing) Attrs() []has.Attribute {
 	return t.attrs
-}
-
-// Find returns the first attribute matching the type of i or nil if there are
-// no matches. Typically this function is only called from attribute finders
-// such as the FindName function:
-//
-//	func FindName(t has.Thing) (n has.Name) {
-//		n, _ = t.Find(&n).(has.Name)
-//		return
-//	}
-//
-func (t *thing) Find(i interface{}) interface{} {
-	r := reflect.TypeOf(i).Elem()
-	for _, a := range t.attrs {
-		if reflect.TypeOf(a).Implements(r) {
-			return a
-		}
-	}
-	return nil
 }
 
 func (t *thing) Dump() (buff []string) {

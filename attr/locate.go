@@ -25,8 +25,12 @@ func NewLocate(t has.Thing) *locate {
 }
 
 func FindLocate(t has.Thing) (l has.Locate) {
-	l, _ = t.Find(&l).(has.Locate)
-	return
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Locate); ok {
+			return a
+		}
+	}
+	return nil
 }
 
 func (l *locate) Dump() []string {
