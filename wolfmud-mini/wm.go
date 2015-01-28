@@ -17,7 +17,7 @@ import (
 
 func main() {
 
-	world := setup()
+	world := attr.Setup()
 
 	// Setup test player
 	p := attr.Thing(
