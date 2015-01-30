@@ -47,7 +47,7 @@ type Alias interface {
 type Inventory interface {
 	Add(Thing)
 	Remove(Thing) Thing
-	Find(string) Thing
+	Search(string) Thing
 	Contains(Thing) bool
 	List() []Thing
 	Contents() string
@@ -56,7 +56,7 @@ type Inventory interface {
 type Narrative interface {
 	Add(Thing)
 	Remove(Thing) Thing
-	Find(string) Thing
+	Search(string) Thing
 	Contains(Thing) bool
 	Contents() string
 	ImplementsNarrative()

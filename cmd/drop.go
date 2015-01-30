@@ -24,7 +24,7 @@ func Drop(t has.Thing, aliases []string) string {
 	// the something
 	if a := attr.FindInventory(t); a != nil {
 		from = a
-		what = from.Find(aliases[0])
+		what = from.Search(aliases[0])
 	}
 
 	if from == nil || what == nil {

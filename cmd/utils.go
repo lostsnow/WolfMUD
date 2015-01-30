@@ -31,20 +31,20 @@ func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 
 	if where != nil {
 		if i := attr.FindInventory(where); i != nil {
-			if what = i.Find(alias); what != nil {
+			if what = i.Search(alias); what != nil {
 				return what, where
 			}
 		}
 
 		if n := attr.FindNarrative(where); n != nil {
-			if what = n.Find(alias); what != nil {
+			if what = n.Search(alias); what != nil {
 				return what, where
 			}
 		}
 	}
 
 	if i := attr.FindInventory(t); i != nil {
-		if what = i.Find(alias); what != nil {
+		if what = i.Search(alias); what != nil {
 			return what, t
 		}
 	}
