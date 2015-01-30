@@ -15,8 +15,10 @@ type name struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Name()
-var _ has.Name = Name()
+var (
+	_ has.Attribute = Name()
+	_ has.Name      = Name()
+)
 
 func Name() *name {
 	return nil

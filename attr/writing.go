@@ -15,9 +15,11 @@ type writing struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Writing()
-var _ has.Description = Writing()
-var _ has.Writing = Writing()
+var (
+	_ has.Attribute   = Writing()
+	_ has.Description = Writing()
+	_ has.Writing     = Writing()
+)
 
 func Writing() *writing {
 	return nil

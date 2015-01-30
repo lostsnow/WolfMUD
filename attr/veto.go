@@ -17,8 +17,10 @@ type vetoes struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Vetoes()
-var _ has.Vetoes = Vetoes()
+var (
+	_ has.Attribute = Vetoes()
+	_ has.Vetoes    = Vetoes()
+)
 
 func Vetoes() *vetoes {
 	return nil
@@ -62,7 +64,9 @@ type veto struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Veto = Veto()
+var (
+	_ has.Veto = Veto()
+)
 
 func Veto() *veto {
 	return nil

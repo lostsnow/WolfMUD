@@ -15,8 +15,10 @@ type description struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Description()
-var _ has.Description = Description()
+var (
+	_ has.Attribute   = Description()
+	_ has.Description = Description()
+)
 
 func Description() *description {
 	return nil

@@ -17,8 +17,10 @@ type inventory struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Inventory()
-var _ has.Inventory = Inventory()
+var (
+	_ has.Attribute = Inventory()
+	_ has.Inventory = Inventory()
+)
 
 func Inventory() *inventory {
 	return nil

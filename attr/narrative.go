@@ -14,9 +14,11 @@ type narrative struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Narrative()
-var _ has.Inventory = Narrative()
-var _ has.Narrative = Narrative()
+var (
+	_ has.Attribute = Narrative()
+	_ has.Inventory = Narrative()
+	_ has.Narrative = Narrative()
+)
 
 func Narrative() *narrative {
 	return nil

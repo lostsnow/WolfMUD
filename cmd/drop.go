@@ -16,9 +16,11 @@ func Drop(t has.Thing, aliases []string) string {
 		return "You go to drop... something?"
 	}
 
-	var from has.Inventory
-	var to has.Inventory
-	var what has.Thing
+	var (
+		from has.Inventory
+		to   has.Inventory
+		what has.Thing
+	)
 
 	// Identify inventory we want to drop something from then see if we can find
 	// the something

@@ -15,8 +15,10 @@ type locate struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Locate()
-var _ has.Locate = Locate()
+var (
+	_ has.Attribute = Locate()
+	_ has.Locate    = Locate()
+)
 
 func Locate() *locate {
 	return nil

@@ -16,7 +16,9 @@ type thing struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Thing = Thing()
+var (
+	_ has.Thing = Thing()
+)
 
 func Thing() *thing {
 	return nil

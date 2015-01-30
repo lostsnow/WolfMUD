@@ -18,8 +18,10 @@ type alias struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Alias()
-var _ has.Alias = Alias()
+var (
+	_ has.Attribute = Alias()
+	_ has.Alias     = Alias()
+)
 
 func Alias() *alias {
 	return nil

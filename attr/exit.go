@@ -67,8 +67,10 @@ type exits struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = Exit()
-var _ has.Exit = Exit()
+var (
+	_ has.Attribute = Exit()
+	_ has.Exit      = Exit()
+)
 
 func Exit() *exits {
 	return nil
