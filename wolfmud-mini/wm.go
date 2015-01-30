@@ -20,11 +20,11 @@ func main() {
 	world := attr.Setup()
 
 	// Setup test player
-	p := attr.Thing(
-		attr.NewName("a player"),
-		attr.NewAlias("player"),
-		attr.NewInventory(),
-		attr.NewLocate(nil),
+	p := attr.Thing().New(
+		attr.Name().New("a player"),
+		attr.Alias().New("player"),
+		attr.Inventory().New(),
+		attr.Locate().New(nil),
 	)
 
 	// Put player into the world

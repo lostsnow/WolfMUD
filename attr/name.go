@@ -15,10 +15,14 @@ type name struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &name{}
-var _ has.Name = &name{}
+var _ has.Attribute = Name()
+var _ has.Name = Name()
 
-func NewName(n string) *name {
+func Name() *name {
+	return nil
+}
+
+func (*name) New(n string) *name {
 	return &name{attribute{}, n}
 }
 

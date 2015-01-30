@@ -17,10 +17,14 @@ type vetoes struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &vetoes{}
-var _ has.Vetoes = &vetoes{}
+var _ has.Attribute = Vetoes()
+var _ has.Vetoes = Vetoes()
 
-func NewVetoes(veto ...has.Veto) *vetoes {
+func Vetoes() *vetoes {
+	return nil
+}
+
+func (*vetoes) New(veto ...has.Veto) *vetoes {
 	vetoes := &vetoes{attribute{}, make(map[string]has.Veto)}
 	for _, v := range veto {
 		vetoes.vetoes[v.Command()] = v
@@ -58,9 +62,13 @@ type veto struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Veto = &veto{}
+var _ has.Veto = Veto()
 
-func NewVeto(cmd string, msg string) *veto {
+func Veto() *veto {
+	return nil
+}
+
+func (*veto) New(cmd string, msg string) *veto {
 	return &veto{strings.ToUpper(cmd), msg}
 }
 

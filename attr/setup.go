@@ -14,110 +14,110 @@ func Setup() map[string]has.Thing {
 
 	world := map[string]has.Thing{}
 
-	world["cheese"] = Thing(
-		NewName("some cheese"),
-		NewDescription("This is a blob of very soft, sticky, smelly cheese."),
-		NewAlias("cheese"),
-		NewVetoes(
-			NewVeto("drop", "You can't drop the sticky cheese!"),
+	world["cheese"] = Thing().New(
+		Name().New("some cheese"),
+		Description().New("This is a blob of very soft, sticky, smelly cheese."),
+		Alias().New("cheese"),
+		Vetoes().New(
+			Veto().New("drop", "You can't drop the sticky cheese!"),
 		),
 	)
 
-	world["mug"] = Thing(
-		NewName("a mug"),
-		NewDescription("This is a large, white, chipped mug."),
-		NewWriting("Stay calm and drink more coffee!"),
-		NewAlias("mug"),
-		NewAlias("cup"),
-		NewInventory(
-			Thing(
-				NewName("some coffee"),
-				NewDescription("This is some hot, strong coffee."),
+	world["mug"] = Thing().New(
+		Name().New("a mug"),
+		Description().New("This is a large, white, chipped mug."),
+		Writing().New("Stay calm and drink more coffee!"),
+		Alias().New("mug"),
+		Alias().New("cup"),
+		Inventory().New(
+			Thing().New(
+				Name().New("some coffee"),
+				Description().New("This is some hot, strong coffee."),
 			),
 		),
 	)
 
-	world["box"] = Thing(
-		NewName("a box"),
-		NewDescription("This is a small, wooden box."),
-		NewInventory(),
-		NewAlias("box"),
+	world["box"] = Thing().New(
+		Name().New("a box"),
+		Description().New("This is a small, wooden box."),
+		Inventory().New(),
+		Alias().New("box"),
 	)
 
-	world["bag"] = Thing(
-		NewName("a bag"),
-		NewDescription("This is a small bag."),
-		NewAlias("bag"),
-		NewInventory(
-			Thing(
-				NewName("an apple"),
-				NewDescription("This is a juicy red apple."),
-				NewAlias("apple"),
+	world["bag"] = Thing().New(
+		Name().New("a bag"),
+		Description().New("This is a small bag."),
+		Alias().New("bag"),
+		Inventory().New(
+			Thing().New(
+				Name().New("an apple"),
+				Description().New("This is a juicy red apple."),
+				Alias().New("apple"),
 			),
-			Thing(
-				NewName("an orange"),
-				NewDescription("This is a large orange."),
-				NewAlias("orange"),
+			Thing().New(
+				Name().New("an orange"),
+				Description().New("This is a large orange."),
+				Alias().New("orange"),
 			),
 		),
 	)
 
-	world["plaque"] = Thing(
-		NewName("a wooden plaque"),
-		NewDescription("This is a small wooden plaque."),
-		NewAlias("plaque"),
-		NewWriting("Please do not read the plaques!"),
-		NewVetoes(
-			NewVeto("get", "You can't take the plaque. It's firmly nailed to the wall."),
-			NewVeto("examine", "You try to examine the plaque but it makes your head hurt."),
+	world["plaque"] = Thing().New(
+		Name().New("a wooden plaque"),
+		Description().New("This is a small wooden plaque."),
+		Alias().New("plaque"),
+		Writing().New("Please do not read the plaques!"),
+		Vetoes().New(
+			Veto().New("get", "You can't take the plaque. It's firmly nailed to the wall."),
+			Veto().New("examine", "You try to examine the plaque but it makes your head hurt."),
 		),
 	)
 
 	// Define some locations
 
-	world["loc1"] = Thing(
-		NewName("Fireplace"),
-		NewDescription("You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. There is a small plaque above the fireplace. To the south the common room extends and east the common room leads to the tavern entrance."),
-		NewAlias("tavern", "fireplace"),
-		NewInventory(
+	world["loc1"] = Thing().New(
+		Name().New("Fireplace"),
+		Description().New("You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. There is a small plaque above the fireplace. To the south the common room extends and east the common room leads to the tavern entrance."),
+		Alias().New("tavern", "fireplace"),
+		Inventory().New(
 			world["cheese"],
 			world["mug"],
 			world["box"],
 			world["bag"],
 		),
-		NewNarrative(
-			Thing(
-				NewName("an ornate fireplace"),
-				NewDescription("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
-				NewAlias("fireplace", "fire"),
+		Narrative().New(
+			Thing().New(
+				Name().New("an ornate fireplace"),
+				Description().New("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
+				Alias().New("fireplace", "fire"),
 			),
 			world["plaque"],
 		),
-		NewExits(),
+		Exit().New(),
 	)
 
-	world["loc2"] = Thing(
-		NewName("Common Room"),
-		NewDescription("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
-		NewAlias("tavern", "common"),
-		NewInventory(),
-		NewExits(),
+	world["loc2"] = Thing().New(
+		Name().New("Common Room"),
+		Description().New("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
+		Alias().New("tavern", "common"),
+		Inventory().New(),
+		Exit().New(),
 	)
 
-	world["loc3"] = Thing(
-		NewName("Tavern Entrance"),
-		NewDescription("You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street."),
-		NewAlias("tavern", "entrance"),
-		NewInventory(),
-		NewExits(),
+	world["loc3"] = Thing().New(
+		Name().New("Tavern Entrance"),
+		Description().New("You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street."),
+		Alias().New("tavern", "entrance"),
+		Inventory().New(),
+		Exit().New(),
 	)
 
-	world["loc4"] = Thing(
-		NewName("Tavern Bar"),
-		NewDescription("You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here."),
-		NewAlias("tavern", "bar"),
-		NewInventory(),
-		NewExits(),
+	world["loc4"] = Thing().New(
+		Name().New("Tavern Bar"),
+		Description().New("You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here."),
+		Alias().New("tavern", "bar"),
+		Inventory().New(),
+		Exit().New(),
 	)
 
 	// Link up room exits

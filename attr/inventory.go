@@ -17,10 +17,14 @@ type inventory struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &inventory{}
-var _ has.Inventory = &inventory{}
+var _ has.Attribute = Inventory()
+var _ has.Inventory = Inventory()
 
-func NewInventory(t ...has.Thing) *inventory {
+func Inventory() *inventory {
+	return nil
+}
+
+func (*inventory) New(t ...has.Thing) *inventory {
 	c := make([]has.Thing, len(t))
 	copy(c, t)
 	return &inventory{attribute{}, c}

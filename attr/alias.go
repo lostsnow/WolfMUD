@@ -18,10 +18,14 @@ type alias struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &alias{}
-var _ has.Alias = &alias{}
+var _ has.Attribute = Alias()
+var _ has.Alias = Alias()
 
-func NewAlias(a ...string) *alias {
+func Alias() *alias {
+	return nil
+}
+
+func (*alias) New(a ...string) *alias {
 	aliases := make(map[string]struct{}, len(a))
 	for _, a := range a {
 		aliases[strings.ToUpper(a)] = struct{}{}

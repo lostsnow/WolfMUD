@@ -15,10 +15,14 @@ type description struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &description{}
-var _ has.Description = &description{}
+var _ has.Attribute = Description()
+var _ has.Description = Description()
 
-func NewDescription(d string) *description {
+func Description() *description {
+	return nil
+}
+
+func (*description) New(d string) *description {
 	return &description{attribute{}, d}
 }
 

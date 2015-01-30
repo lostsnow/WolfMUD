@@ -67,10 +67,14 @@ type exits struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &exits{}
-var _ has.Exit = &exits{}
+var _ has.Attribute = Exit()
+var _ has.Exit = Exit()
 
-func NewExits() *exits {
+func Exit() *exits {
+	return nil
+}
+
+func (*exits) New() *exits {
 	return &exits{attribute{}, [len(directionLongNames)]has.Thing{}}
 }
 

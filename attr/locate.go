@@ -15,10 +15,14 @@ type locate struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Attribute = &locate{}
-var _ has.Locate = &locate{}
+var _ has.Attribute = Locate()
+var _ has.Locate = Locate()
 
-func NewLocate(t has.Thing) *locate {
+func Locate() *locate {
+	return nil
+}
+
+func (*locate) New(t has.Thing) *locate {
 	l := &locate{attribute{}, nil}
 	l.SetWhere(t)
 	return l

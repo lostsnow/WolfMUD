@@ -16,9 +16,13 @@ type thing struct {
 }
 
 // Some interfaces we want to make sure we implement
-var _ has.Thing = &thing{}
+var _ has.Thing = Thing()
 
-func Thing(a ...has.Attribute) has.Thing {
+func Thing() *thing {
+	return nil
+}
+
+func (*thing) New(a ...has.Attribute) has.Thing {
 	t := &thing{}
 	t.Add(a...)
 	return t
