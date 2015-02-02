@@ -24,7 +24,7 @@ func Drop(t has.Thing, aliases []string) string {
 
 	// Identify inventory we want to drop something from then see if we can find
 	// the something
-	if a := attr.FindInventory(t); a != nil {
+	if a := attr.Inventory().Find(t); a != nil {
 		from = a
 		what = from.Search(aliases[0])
 	}
@@ -36,7 +36,7 @@ func Drop(t has.Thing, aliases []string) string {
 	// Identify where thing dropping something is
 	if a := attr.FindLocate(t); a != nil {
 		if w := a.Where(); w != nil {
-			if i := attr.FindInventory(w); i != nil {
+			if i := attr.Inventory().Find(w); i != nil {
 				to = i
 			}
 		}

@@ -35,7 +35,7 @@ func Look(t has.Thing) string {
 
 	// Note: We don't want to include the looker in the list of things here which
 	// is what the l != t check is for
-	if a := attr.FindInventory(where); a != nil {
+	if a := attr.Inventory().Find(where); a != nil {
 		for _, l := range a.List() {
 			if n := attr.FindName(l); l != t && n != nil {
 				buff = append(buff, "You can see "+n.Name()+" here.")

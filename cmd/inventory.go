@@ -14,7 +14,7 @@ import (
 
 func Inventory(t has.Thing) string {
 
-	i := attr.FindInventory(t)
+	i := attr.Inventory().Find(t)
 
 	if i == nil {
 		return "You are not carrying anything."

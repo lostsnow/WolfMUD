@@ -32,7 +32,7 @@ func (*inventory) New(t ...has.Thing) *inventory {
 	return &inventory{attribute{}, c}
 }
 
-func FindInventory(t has.Thing) (i has.Inventory) {
+func (*inventory) Find(t has.Thing) has.Inventory {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Inventory); ok {
 			return a

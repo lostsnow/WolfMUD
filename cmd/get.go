@@ -22,14 +22,14 @@ func Get(t has.Thing, aliases []string) string {
 		return "You see no '" + aliases[0] + "' to get."
 	}
 
-	to := attr.FindInventory(t)
+	to := attr.Inventory().Find(t)
 	name := attr.FindName(what).Name()
 
 	if veto := CheckVetoes("GET", what); veto != nil {
 		return veto.Message()
 	}
 
-	if attr.FindInventory(where).Remove(what) == nil {
+	if attr.Inventory().Find(where).Remove(what) == nil {
 		return "You cannot get " + name + "."
 	}
 

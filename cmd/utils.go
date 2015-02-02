@@ -30,7 +30,7 @@ func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 	where = Where(t)
 
 	if where != nil {
-		if i := attr.FindInventory(where); i != nil {
+		if i := attr.Inventory().Find(where); i != nil {
 			if what = i.Search(alias); what != nil {
 				return what, where
 			}
@@ -43,7 +43,7 @@ func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 		}
 	}
 
-	if i := attr.FindInventory(t); i != nil {
+	if i := attr.Inventory().Find(t); i != nil {
 		if what = i.Search(alias); what != nil {
 			return what, t
 		}
