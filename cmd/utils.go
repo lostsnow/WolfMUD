@@ -36,7 +36,7 @@ func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 			}
 		}
 
-		if n := attr.FindNarrative(where); n != nil {
+		if n := attr.Narrative().Find(where); n != nil {
 			if what = n.Search(alias); what != nil {
 				return what, where
 			}

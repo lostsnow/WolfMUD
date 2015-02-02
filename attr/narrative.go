@@ -30,7 +30,7 @@ func (*narrative) New(t ...has.Thing) *narrative {
 
 func (n *narrative) ImplementsNarrative() {}
 
-func FindNarrative(t has.Thing) (n has.Narrative) {
+func (*narrative) Find(t has.Thing) has.Narrative {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Narrative); ok {
 			return a
