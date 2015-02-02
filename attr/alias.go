@@ -35,7 +35,7 @@ func (*alias) New(a ...string) *alias {
 	return &alias{attribute{}, aliases}
 }
 
-func FindAlias(t has.Thing) has.Alias {
+func (*alias) Find(t has.Thing) has.Alias {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Alias); ok {
 			return a

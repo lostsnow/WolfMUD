@@ -78,7 +78,7 @@ func (i *inventory) Remove(t has.Thing) has.Thing {
 
 func (i *inventory) Search(alias string) has.Thing {
 	for _, c := range i.contents {
-		a := FindAlias(c)
+		a := Alias().Find(c)
 		if a != nil && a.HasAlias(alias) {
 			return c
 		}

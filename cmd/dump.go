@@ -24,7 +24,7 @@ func Dump(t has.Thing, aliases []string) string {
 	// are' - WhatWhere does not check if the what is also the where.
 	if what == nil {
 		if where := Where(t); where != nil {
-			if a := attr.FindAlias(where); a != nil {
+			if a := attr.Alias().Find(where); a != nil {
 				if a.HasAlias(aliases[0]) {
 					what = where
 				}
