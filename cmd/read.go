@@ -27,7 +27,7 @@ func Read(t has.Thing, aliases []string) string {
 		name = n.Name()
 	}
 
-	if w := attr.FindWriting(what); w != nil {
+	if w := attr.Writing().Find(what); w != nil {
 		return "You read the writing on " + name + ". It says: " + w.Writing()
 	}
 

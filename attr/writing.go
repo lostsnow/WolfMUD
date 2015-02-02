@@ -29,7 +29,7 @@ func (*writing) New(w string) *writing {
 	return &writing{attribute{}, w}
 }
 
-func FindWriting(t has.Thing) (w has.Writing) {
+func (*writing) Find(t has.Thing) has.Writing {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Writing); ok {
 			return a
