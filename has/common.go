@@ -62,7 +62,7 @@ type Narrative interface {
 	ImplementsNarrative()
 }
 
-type Exit interface {
+type Exits interface {
 	Link(uint8, Thing)
 	Unlink(uint8)
 	List() string

@@ -19,7 +19,7 @@ func Where(t has.Thing) (where has.Thing) {
 		return w.Where()
 	}
 
-	if where == nil && attr.Exit().Find(t) != nil {
+	if where == nil && attr.Exits().Find(t) != nil {
 		return t
 	}
 

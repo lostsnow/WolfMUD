@@ -68,11 +68,11 @@ type exits struct {
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Exit()
-	_ has.Exit      = Exit()
+	_ has.Attribute = Exits()
+	_ has.Exits     = Exits()
 )
 
-func Exit() *exits {
+func Exits() *exits {
 	return nil
 }
 
@@ -80,9 +80,9 @@ func (*exits) New() *exits {
 	return &exits{attribute{}, [len(directionLongNames)]has.Thing{}}
 }
 
-func (*exits) Find(t has.Thing) has.Exit {
+func (*exits) Find(t has.Thing) has.Exits {
 	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Exit); ok {
+		if a, ok := a.(has.Exits); ok {
 			return a
 		}
 	}
