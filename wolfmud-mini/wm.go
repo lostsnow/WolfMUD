@@ -28,7 +28,7 @@ func main() {
 	)
 
 	// Put player into the world
-	if i := attr.FindExit(world["loc1"]); i != nil {
+	if i := attr.Exit().Find(world["loc1"]); i != nil {
 		i.Place(p)
 	}
 

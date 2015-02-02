@@ -80,7 +80,7 @@ func (*exits) New() *exits {
 	return &exits{attribute{}, [len(directionLongNames)]has.Thing{}}
 }
 
-func FindExit(t has.Thing) (e has.Exit) {
+func (*exits) Find(t has.Thing) has.Exit {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Exit); ok {
 			return a

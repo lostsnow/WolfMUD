@@ -122,25 +122,25 @@ func Setup() map[string]has.Thing {
 
 	// Link up room exits
 
-	if a := FindExit(world["loc1"]); a != nil {
+	if a := Exit().Find(world["loc1"]); a != nil {
 		a.Link(SOUTH, world["loc2"])
 		a.Link(EAST, world["loc3"])
 		a.Link(SOUTHEAST, world["loc4"])
 	}
 
-	if a := FindExit(world["loc2"]); a != nil {
+	if a := Exit().Find(world["loc2"]); a != nil {
 		a.Link(NORTH, world["loc1"])
 		a.Link(NORTHEAST, world["loc3"])
 		a.Link(EAST, world["loc4"])
 	}
 
-	if a := FindExit(world["loc3"]); a != nil {
+	if a := Exit().Find(world["loc3"]); a != nil {
 		a.Link(WEST, world["loc1"])
 		a.Link(SOUTHWEST, world["loc2"])
 		a.Link(SOUTH, world["loc4"])
 	}
 
-	if a := FindExit(world["loc4"]); a != nil {
+	if a := Exit().Find(world["loc4"]); a != nil {
 		a.Link(NORTH, world["loc3"])
 		a.Link(NORTHWEST, world["loc1"])
 		a.Link(WEST, world["loc2"])

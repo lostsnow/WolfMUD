@@ -19,7 +19,7 @@ func Move(t has.Thing, cmd string) string {
 	}
 
 	// Is where we are exitable?
-	exits := attr.FindExit(from.Where())
+	exits := attr.Exit().Find(from.Where())
 	if exits == nil {
 		return "You can't see anywhere to go from here."
 	}
