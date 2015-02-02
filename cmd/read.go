@@ -23,7 +23,7 @@ func Read(t has.Thing, aliases []string) string {
 	}
 
 	name := "something"
-	if n := attr.FindName(what); n != nil {
+	if n := attr.Name().Find(what); n != nil {
 		name = n.Name()
 	}
 

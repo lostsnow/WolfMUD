@@ -42,7 +42,7 @@ func (*locate) Find(t has.Thing) has.Locate {
 func (l *locate) Dump() []string {
 	name := ""
 	if w := l.Where(); w != nil {
-		if a := FindName(w); a != nil {
+		if a := Name().Find(w); a != nil {
 			name = a.Name()
 		}
 	}

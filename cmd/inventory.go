@@ -23,7 +23,7 @@ func Inventory(t has.Thing) string {
 	buff := []string{}
 
 	for _, i := range i.List() {
-		if n := attr.FindName(i); n != nil {
+		if n := attr.Name().Find(i); n != nil {
 			buff = append(buff, n.Name())
 		}
 	}

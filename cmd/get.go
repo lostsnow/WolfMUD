@@ -23,7 +23,7 @@ func Get(t has.Thing, aliases []string) string {
 	}
 
 	to := attr.Inventory().Find(t)
-	name := attr.FindName(what).Name()
+	name := attr.Name().Find(what).Name()
 
 	if veto := CheckVetoes("GET", what); veto != nil {
 		return veto.Message()

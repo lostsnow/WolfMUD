@@ -96,7 +96,7 @@ func (e *exits) Dump() []string {
 			buff = append(buff, ", "...)
 			buff = append(buff, directionLongNames[i]...)
 			buff = append(buff, ": "...)
-			if a := FindName(e); a != nil {
+			if a := Name().Find(e); a != nil {
 				buff = append(buff, a.Name()...)
 			}
 		}

@@ -22,7 +22,7 @@ func Look(t has.Thing) string {
 
 	buff := []string{}
 
-	if a := attr.FindName(where); a != nil {
+	if a := attr.Name().Find(where); a != nil {
 		buff = append(buff, "[ "+a.Name()+" ]")
 	}
 
@@ -37,7 +37,7 @@ func Look(t has.Thing) string {
 	// is what the l != t check is for
 	if a := attr.Inventory().Find(where); a != nil {
 		for _, l := range a.List() {
-			if n := attr.FindName(l); l != t && n != nil {
+			if n := attr.Name().Find(l); l != t && n != nil {
 				buff = append(buff, "You can see "+n.Name()+" here.")
 			}
 		}

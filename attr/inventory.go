@@ -104,7 +104,7 @@ func (i *inventory) List() []has.Thing {
 func (i *inventory) Contents() string {
 	buff := []string{}
 	for _, c := range i.contents {
-		if a := FindName(c); a != nil {
+		if a := Name().Find(c); a != nil {
 			buff = append(buff, a.Name())
 		}
 	}

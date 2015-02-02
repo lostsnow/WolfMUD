@@ -42,7 +42,7 @@ func Drop(t has.Thing, aliases []string) string {
 		}
 	}
 
-	name := attr.FindName(what).Name()
+	name := attr.Name().Find(what).Name()
 
 	if to == nil {
 		return "You cannot drop " + name + " here."
