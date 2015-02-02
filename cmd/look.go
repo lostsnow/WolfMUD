@@ -26,7 +26,7 @@ func Look(t has.Thing) string {
 		buff = append(buff, "[ "+a.Name()+" ]")
 	}
 
-	if a := attr.FindDescription(where); a != nil {
+	if a := attr.Description().Find(where); a != nil {
 		buff = append(buff, a.Description())
 	}
 

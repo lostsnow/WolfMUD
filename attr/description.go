@@ -28,7 +28,7 @@ func (*description) New(d string) *description {
 	return &description{attribute{}, d}
 }
 
-func FindDescription(t has.Thing) (d has.Description) {
+func (*description) Find(t has.Thing) has.Description {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Description); ok {
 			return a
