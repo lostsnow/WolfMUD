@@ -34,7 +34,7 @@ func Drop(t has.Thing, aliases []string) string {
 	}
 
 	// Identify where thing dropping something is
-	if a := attr.FindLocate(t); a != nil {
+	if a := attr.Locate().Find(t); a != nil {
 		if w := a.Where(); w != nil {
 			if i := attr.Inventory().Find(w); i != nil {
 				to = i

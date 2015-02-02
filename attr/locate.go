@@ -30,7 +30,7 @@ func (*locate) New(t has.Thing) *locate {
 	return l
 }
 
-func FindLocate(t has.Thing) (l has.Locate) {
+func (*locate) Find(t has.Thing) has.Locate {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Locate); ok {
 			return a

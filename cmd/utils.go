@@ -15,7 +15,7 @@ func Where(t has.Thing) (where has.Thing) {
 		return nil
 	}
 
-	if w := attr.FindLocate(t); w != nil {
+	if w := attr.Locate().Find(t); w != nil {
 		return w.Where()
 	}
 
