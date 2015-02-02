@@ -53,7 +53,7 @@ func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 }
 
 func CheckVetoes(cmd string, what has.Thing) has.Veto {
-	if vetoes := attr.FindVeto(what); vetoes != nil {
+	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
 		if veto := vetoes.Check(cmd); veto != nil {
 			return veto
 		}

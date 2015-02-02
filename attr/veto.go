@@ -34,7 +34,7 @@ func (*vetoes) New(veto ...has.Veto) *vetoes {
 	return vetoes
 }
 
-func FindVeto(t has.Thing) (v has.Vetoes) {
+func (*vetoes) Find(t has.Thing) has.Vetoes {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Vetoes); ok {
 			return a
