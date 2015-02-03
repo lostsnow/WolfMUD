@@ -26,7 +26,7 @@ func Examine(t has.Thing, aliases []string) string {
 		return veto.Message()
 	}
 
-	buff := []byte{}
+	buff := make([]byte, 0, 1024)
 
 	if n := attr.Name().Find(what); n != nil {
 		buff = append(buff, "You examine "...)
