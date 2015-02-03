@@ -27,9 +27,8 @@ func Where(t has.Thing) (where has.Thing) {
 }
 
 func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
-	where = Where(t)
 
-	if where != nil {
+	if where = Where(t); where != nil {
 		if i := attr.Inventory().Find(where); i != nil {
 			if what = i.Search(alias); what != nil {
 				return what, where
