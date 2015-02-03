@@ -6,6 +6,7 @@
 package cmd
 
 import (
+	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
@@ -25,20 +26,23 @@ func Examine(t has.Thing, aliases []string) string {
 		return veto.Message()
 	}
 
-	name := ""
-	description := ""
-	contents := ""
+	buff := []byte{}
 
-	for _, a := range what.Attrs() {
-		switch a := a.(type) {
-		case has.Name:
-			name = a.Name()
-		case has.Description:
-			description += " " + a.Description()
-		case has.Inventory:
-			contents = " " + a.Contents()
-		}
+	if n := attr.Name().Find(what); n != nil {
+		buff = append(buff, "You examine "...)
+		buff = append(buff, n.Name()...)
+		buff = append(buff, "."...)
 	}
 
-	return "You examine " + name + "." + description + contents
+	for _, d := range attr.Description().FindAll(what) {
+		buff = append(buff, " "...)
+		buff = append(buff, d.Description()...)
+	}
+
+	if i := attr.Inventory().Find(what); i != nil {
+		buff = append(buff, " "...)
+		buff = append(buff, i.Contents()...)
+	}
+
+	return string(buff)
 }
