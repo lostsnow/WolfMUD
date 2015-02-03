@@ -57,6 +57,6 @@ func (a *alias) Dump() []string {
 }
 
 func (a *alias) HasAlias(alias string) (found bool) {
-	_, found = a.aliases[strings.ToUpper(alias)]
+	_, found = a.aliases[alias]
 	return
 }
