@@ -7,8 +7,6 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
-
-	"strings"
 )
 
 const (
@@ -116,20 +114,33 @@ func (e *exits) Unlink(direction uint8) {
 }
 
 func (e *exits) List() string {
-	buff := []string{}
+
+	var (
+		buff = make([]byte, 0, 1024) // buffer for direction list
+		l    = 0                     // Last direction found
+		c    = 0                     // Count of directions processed
+	)
+
 	for i, e := range e.exits {
 		if e != nil {
-			buff = append(buff, directionLongNames[i])
+			if l > 0 {
+				if c > 1 {
+					buff = append(buff, ", "...)
+				}
+				buff = append(buff, directionLongNames[l]...)
+			}
+			c++
+			l = i
 		}
 	}
 
-	switch l := len(buff); {
-	case l == 0:
+	switch c {
+	case 0:
 		return "You can see no immediate exits from here."
-	case l == 1:
-		return "The only exit you can see from here is " + buff[0] + "."
+	case 1:
+		return "The only exit you can see from here is " + directionLongNames[l] + "."
 	default:
-		return "You can see exits " + strings.Join(buff[:l-1], ", ") + " and " + buff[l-1] + "."
+		return "You can see exits " + string(buff) + " and " + directionLongNames[l] + "."
 	}
 }
 
