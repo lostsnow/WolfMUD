@@ -8,8 +8,6 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/has"
-
-	"strings"
 )
 
 // Look can handle something with exits or something that is located somewhere.
@@ -20,17 +18,19 @@ func Look(t has.Thing) string {
 		return "You are in a dark void. Around you nothing. No stars, no light, no heat and no sound."
 	}
 
-	buff := []string{}
+	buff := make([]byte, 0, 1024)
 
 	if a := attr.Name().Find(where); a != nil {
-		buff = append(buff, "[ "+a.Name()+" ]")
+		buff = append(buff, "[ "...)
+		buff = append(buff, a.Name()...)
+		buff = append(buff, " ]\n"...)
 	}
 
 	if a := attr.Description().Find(where); a != nil {
-		buff = append(buff, a.Description())
+		buff = append(buff, a.Description()...)
 	}
 
-	buff = append(buff, "")
+	buff = append(buff, "\n\n"...)
 	mark := len(buff)
 
 	// Note: We don't want to include the looker in the list of things here which
@@ -38,20 +38,22 @@ func Look(t has.Thing) string {
 	if a := attr.Inventory().Find(where); a != nil {
 		for _, l := range a.List() {
 			if n := attr.Name().Find(l); l != t && n != nil {
-				buff = append(buff, "You can see "+n.Name()+" here.")
+				buff = append(buff, "You can see "...)
+				buff = append(buff, n.Name()...)
+				buff = append(buff, " here.\n"...)
 			}
 		}
 	}
 
 	if mark != len(buff) {
-		buff = append(buff, "")
+		buff = append(buff, "\n"...)
 	}
 
 	if a := attr.Exits().Find(where); a != nil {
-		buff = append(buff, a.List())
+		buff = append(buff, a.List()...)
 	} else {
-		buff = append(buff, "You can see no immediate exits from here.")
+		buff = append(buff, "You can see no immediate exits from here."...)
 	}
 
-	return strings.Join(buff, "\n")
+	return string(buff)
 }
