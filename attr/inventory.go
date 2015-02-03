@@ -7,8 +7,6 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
-
-	"strings"
 )
 
 type inventory struct {
@@ -103,18 +101,32 @@ func (i *inventory) List() []has.Thing {
 }
 
 func (i *inventory) Contents() string {
-	buff := []string{}
+	buff := make([]byte, 0, 1024)
+
+	switch len(i.contents) {
+	case 0: // Empty? Just return
+		return "It is empty."
+	case 1: // Single item? Use a sentance: "It contains XXX."
+		buff = append(buff, "It contains "...)
+	default: // For multiple items display a list of them.
+		buff = append(buff, "It contains:\n  "...)
+	}
+
+	mark := len(buff)
+
 	for _, c := range i.contents {
 		if a := Name().Find(c); a != nil {
-			buff = append(buff, a.Name())
+			if len(buff) > mark {
+				buff = append(buff, "\n  "...)
+			}
+			buff = append(buff, a.Name()...)
 		}
 	}
-	switch len(i.contents) {
-	case 0:
-		return "It is empty."
-	case 1:
-		return "It contains " + buff[0] + "."
-	default:
-		return "It contains:\n  " + strings.Join(buff, "\n  ")
+
+	// End single item sentance with a fullstop.
+	if len(i.contents) == 1 {
+		buff = append(buff, "."...)
 	}
+
+	return string(buff)
 }
