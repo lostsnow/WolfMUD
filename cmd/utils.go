@@ -10,44 +10,43 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Where(t has.Thing) (where has.Thing) {
-	if t == nil {
-		return nil
-	}
-
-	if w := attr.Locate().Find(t); w != nil {
-		return w.Where()
-	}
-
-	if where == nil && attr.Exits().Find(t) != nil {
-		return t
-	}
-
-	return nil
-}
-
 func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 
-	if where = Where(t); where != nil {
-		if i := attr.Inventory().Find(where); i != nil {
-			if what = i.Search(alias); what != nil {
+	// If thing locateable get where from there
+	if a := attr.Locate().Find(t); a != nil {
+		where = a.Where()
+	}
+
+	// If thing itself is exitable use that for where
+	if where == nil {
+		if attr.Exits().Find(t) != nil {
+			where = t
+		}
+	}
+
+	// If we know where we are check inventory and narratives
+	if where != nil {
+		if a := attr.Inventory().Find(where); a != nil {
+			if what = a.Search(alias); what != nil {
 				return what, where
 			}
 		}
 
-		if n := attr.Narrative().Find(where); n != nil {
-			if what = n.Search(alias); what != nil {
+		if a := attr.Narrative().Find(where); a != nil {
+			if what = a.Search(alias); what != nil {
 				return what, where
 			}
 		}
 	}
 
-	if i := attr.Inventory().Find(t); i != nil {
-		if what = i.Search(alias); what != nil {
+	// If we haven't found our what and where yet check our thing's inventory
+	if a := attr.Inventory().Find(t); a != nil {
+		if what = a.Search(alias); what != nil {
 			return what, t
 		}
 	}
 
+	// Not found...
 	return nil, nil
 }
 
