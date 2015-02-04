@@ -38,8 +38,12 @@ func Parse(t has.Thing, input string) string {
 		return Inventory(t)
 	case "LOOK", "L":
 		return Look(t)
+	case "PUT":
+		return Put(t, words[1:])
 	case "READ":
 		return Read(t, words[1:])
+	case "TAKE":
+		return Take(t, words[1:])
 	default:
 		return "Eh?"
 	}
