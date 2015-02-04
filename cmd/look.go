@@ -10,10 +10,23 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-// Look can handle something with exits or something that is located somewhere.
 func Look(t has.Thing) string {
 
-	where := Where(t)
+	var where has.Thing
+
+	// Do we know where we are?
+	if a := attr.Locate().Find(t); a != nil {
+		where = a.Where()
+	}
+
+	// Or are we the where?
+	if where == nil {
+		if a := attr.Exits().Find(t); a != nil {
+			where = t
+		}
+	}
+
+	// Still not anywhere?
 	if where == nil {
 		return "You are in a dark void. Around you nothing. No stars, no light, no heat and no sound."
 	}
