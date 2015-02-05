@@ -12,41 +12,35 @@ import (
 
 func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 
-	// If thing locateable get where from there
+	// If thing knows it's in an inventory try that inventory first
 	if a := attr.Locate().Find(t); a != nil {
-		where = a.Where()
-	}
-
-	// If thing itself is exitable use that for where
-	if where == nil {
-		if attr.Exits().Find(t) != nil {
-			where = t
-		}
-	}
-
-	// If we know where we are check inventory and narratives
-	if where != nil {
-		if a := attr.Inventory().Find(where); a != nil {
-			if what = a.Search(alias); what != nil {
-				return what, where
-			}
-		}
-
-		if a := attr.Narrative().Find(where); a != nil {
-			if what = a.Search(alias); what != nil {
-				return what, where
-			}
+		if what, where = search(alias, a.Where()); what != nil && where != nil {
+			return
 		}
 	}
 
 	// If we haven't found our what and where yet check our thing's inventory
+	if what, where = search(alias, t); what != nil && where != nil {
+		return
+	}
+
+	// 404 - Not found :(
+	return nil, nil
+}
+
+func search(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 	if a := attr.Inventory().Find(t); a != nil {
 		if what = a.Search(alias); what != nil {
 			return what, t
 		}
 	}
 
-	// Not found...
+	if a := attr.Narrative().Find(t); a != nil {
+		if what = a.Search(alias); what != nil {
+			return what, t
+		}
+	}
+
 	return nil, nil
 }
 
