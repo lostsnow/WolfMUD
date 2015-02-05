@@ -10,30 +10,35 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Get(t has.Thing, aliases []string) string {
+func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
-		return "You go to get... something?"
+		msg = "You go to get... something?"
+		return
 	}
 
 	what, where := WhatWhere(aliases[0], t)
 
 	if where == t || what == nil {
-		return "You see no '" + aliases[0] + "' to get."
+		msg = "You see no '" + aliases[0] + "' to get."
+		return
 	}
 
 	to := attr.Inventory().Find(t)
 	name := attr.Name().Find(what).Name()
 
 	if veto := CheckVetoes("GET", what); veto != nil {
-		return veto.Message()
+		msg = veto.Message()
+		return
 	}
 
 	if attr.Inventory().Find(where).Remove(what) == nil {
-		return "You cannot get " + name + "."
+		msg = "You cannot get " + name + "."
+		return
 	}
 
 	to.Add(what)
 
-	return "You get " + name + "."
+	msg = "You get " + name + "."
+	return msg, true
 }

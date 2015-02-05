@@ -12,10 +12,11 @@ import (
 	"strings"
 )
 
-func Dump(t has.Thing, aliases []string) string {
+func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
-		return "What do you want to dump?"
+		msg = "What do you want to dump?"
+		return
 	}
 
 	what, _ := WhatWhere(aliases[0], t)
@@ -35,8 +36,10 @@ func Dump(t has.Thing, aliases []string) string {
 	}
 
 	if what == nil {
-		return "Nothing with alias '" + aliases[0] + "' found to dump."
+		msg = "Nothing with alias '" + aliases[0] + "' found to dump."
+		return
 	}
 
-	return strings.Join(what.Dump(), "\n")
+	msg = strings.Join(what.Dump(), "\n")
+	return msg, true
 }

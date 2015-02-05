@@ -10,20 +10,23 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Examine(t has.Thing, aliases []string) string {
+func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
-		return "You examine this and that and find nothing special. Maybe if you examined something specific?"
+		msg = "You examine this and that and find nothing special. Maybe if you examined something specific?"
+		return
 	}
 
 	what, _ := WhatWhere(aliases[0], t)
 
 	if what == nil {
-		return "You see no '" + aliases[0] + "' to examine."
+		msg = "You see no '" + aliases[0] + "' to examine."
+		return
 	}
 
 	if veto := CheckVetoes("EXAMINE", what); veto != nil {
-		return veto.Message()
+		msg = veto.Message()
+		return
 	}
 
 	buff := make([]byte, 0, 1024)
@@ -44,5 +47,5 @@ func Examine(t has.Thing, aliases []string) string {
 		buff = append(buff, i.Contents()...)
 	}
 
-	return string(buff)
+	return string(buff), true
 }

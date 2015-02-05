@@ -10,7 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Take(t has.Thing, aliases []string) string {
+func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	var (
 		fWhat has.Thing
@@ -24,7 +24,8 @@ func Take(t has.Thing, aliases []string) string {
 
 	switch l := len(aliases); {
 	case l == 0:
-		return "You go to take something out of something else..."
+		msg = "You go to take something out of something else..."
+		return
 	case l > 1:
 		tWhat, _ = WhatWhere(aliases[1], t)
 		tName = aliases[1]
@@ -34,7 +35,8 @@ func Take(t has.Thing, aliases []string) string {
 	}
 
 	if tWhat == nil {
-		return "You don't see '" + tName + "' to take things out of."
+		msg = "You don't see '" + tName + "' to take things out of."
+		return
 	}
 
 	if n := attr.Name().Find(tWhat); n != nil {
@@ -44,13 +46,15 @@ func Take(t has.Thing, aliases []string) string {
 	tInv = attr.Inventory().Find(tWhat)
 
 	if tInv == nil {
-		return tName + " does not contain anything."
+		msg = tName + " does not contain anything."
+		return
 	}
 
 	fWhat = tInv.Search(aliases[0])
 
 	if fWhat == nil {
-		return "You see no '" + fName + "' in " + tName + "."
+		msg = "You see no '" + fName + "' in " + tName + "."
+		return
 	}
 
 	if n := attr.Name().Find(fWhat); n != nil {
@@ -62,5 +66,6 @@ func Take(t has.Thing, aliases []string) string {
 	tInv.Remove(fWhat)
 	fInv.Add(fWhat)
 
-	return "You take " + fName + " out of " + tName + "."
+	msg = "You take " + fName + " out of " + tName + "."
+	return msg, true
 }

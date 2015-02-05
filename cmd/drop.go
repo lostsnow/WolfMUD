@@ -10,10 +10,11 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Drop(t has.Thing, aliases []string) string {
+func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
-		return "You go to drop... something?"
+		msg = "You go to drop... something?"
+		return
 	}
 
 	var (
@@ -30,7 +31,8 @@ func Drop(t has.Thing, aliases []string) string {
 	}
 
 	if from == nil || what == nil {
-		return "You have no '" + aliases[0] + "' to drop."
+		msg = "You have no '" + aliases[0] + "' to drop."
+		return
 	}
 
 	// Identify where thing dropping something is
@@ -45,18 +47,22 @@ func Drop(t has.Thing, aliases []string) string {
 	name := attr.Name().Find(what).Name()
 
 	if to == nil {
-		return "You cannot drop " + name + " here."
+		msg = "You cannot drop " + name + " here."
+		return
 	}
 
 	if veto := CheckVetoes("DROP", what); veto != nil {
-		return veto.Message()
+		msg = veto.Message()
+		return
 	}
 
 	if from.Remove(what) == nil {
-		return "You cannot drop " + name + "."
+		msg = "You cannot drop " + name + "."
+		return
 	}
 
 	to.Add(what)
 
-	return "You drop " + name + "."
+	msg = "You drop " + name + "."
+	return msg, true
 }

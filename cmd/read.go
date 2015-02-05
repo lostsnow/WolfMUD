@@ -10,16 +10,18 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Read(t has.Thing, aliases []string) string {
+func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
-		return "Did you want to read something specific?"
+		msg = "Did you want to read something specific?"
+		return
 	}
 
 	what, _ := WhatWhere(aliases[0], t)
 
 	if what == nil {
-		return "You see no '" + aliases[0] + "' to read."
+		msg = "You see no '" + aliases[0] + "' to read."
+		return
 	}
 
 	name := "something"
@@ -28,8 +30,10 @@ func Read(t has.Thing, aliases []string) string {
 	}
 
 	if w := attr.Writing().Find(what); w != nil {
-		return "You read the writing on " + name + ". It says: " + w.Writing()
+		msg = "You read the writing on " + name + ". It says: " + w.Writing()
+		return msg, true
 	}
 
-	return "You see no writing on " + name + " to read."
+	msg = "You see no writing on " + name + " to read."
+	return
 }

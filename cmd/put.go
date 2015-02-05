@@ -10,7 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Put(t has.Thing, aliases []string) string {
+func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	var (
 		fWhat  has.Thing
@@ -26,7 +26,8 @@ func Put(t has.Thing, aliases []string) string {
 
 	switch l := len(aliases); {
 	case l == 0:
-		return "You go to put something into something..."
+		msg = "You go to put something into something..."
+		return
 	case l > 1:
 		tWhat, tWhere = WhatWhere(aliases[1], t)
 		tName = aliases[1]
@@ -37,7 +38,8 @@ func Put(t has.Thing, aliases []string) string {
 	}
 
 	if fWhat == nil {
-		return "You see no '" + fName + "' to put into anything."
+		msg = "You see no '" + fName + "' to put into anything."
+		return
 	}
 
 	if n := attr.Name().Find(fWhat); n != nil {
@@ -45,15 +47,18 @@ func Put(t has.Thing, aliases []string) string {
 	}
 
 	if fWhere != t {
-		return "You don't have " + fName + " to put into anything."
+		msg = "You don't have " + fName + " to put into anything."
+		return
 	}
 
 	if len(aliases) < 2 {
-		return "What did you want to put " + fName + " into?"
+		msg = "What did you want to put " + fName + " into?"
+		return
 	}
 
 	if tWhere == nil {
-		return "You see no '" + tName + "' to put " + fName + " into."
+		msg = "You see no '" + tName + "' to put " + fName + " into."
+		return
 	}
 
 	if n := attr.Name().Find(tWhat); n != nil {
@@ -61,18 +66,21 @@ func Put(t has.Thing, aliases []string) string {
 	}
 
 	if fWhat == tWhat {
-		return "You can't put " + fName + " inside itself!"
+		msg = "You can't put " + fName + " inside itself!"
+		return
 	}
 
 	fInv = attr.Inventory().Find(fWhere)
 	tInv = attr.Inventory().Find(tWhat)
 
 	if tInv == nil {
-		return "You cannot put " + fName + " into " + tName + "."
+		msg = "You cannot put " + fName + " into " + tName + "."
+		return
 	}
 
 	fInv.Remove(fWhat)
 	tInv.Add(fWhat)
 
-	return "You put " + fName + " into " + tName + "."
+	msg = "You put " + fName + " into " + tName + "."
+	return msg, true
 }

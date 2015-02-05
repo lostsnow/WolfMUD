@@ -12,12 +12,13 @@ import (
 	"strings"
 )
 
-func Inventory(t has.Thing) string {
+func Inventory(t has.Thing) (msg string, ok bool) {
 
 	i := attr.Inventory().Find(t)
 
 	if i == nil {
-		return "You are not carrying anything."
+		msg = "You are not carrying anything."
+		return
 	}
 
 	buff := []string{}
@@ -29,8 +30,10 @@ func Inventory(t has.Thing) string {
 	}
 
 	if len(buff) == 0 {
-		return "You are not carrying anything."
+		msg = "You are not carrying anything."
+		return
 	}
 
-	return "You are currently carrying:\n  " + strings.Join(buff, "\n  ")
+	msg = "You are currently carrying:\n  " + strings.Join(buff, "\n  ")
+	return msg, true
 }

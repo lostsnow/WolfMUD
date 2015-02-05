@@ -11,12 +11,12 @@ import (
 	"strings"
 )
 
-func Parse(t has.Thing, input string) string {
+func Parse(t has.Thing, input string) (msg string, ok bool) {
 	input = strings.ToUpper(input)
 	words := strings.Fields(input)
 
 	if len(words) == 0 {
-		return ""
+		return
 	}
 
 	cmd := words[0]
@@ -45,6 +45,6 @@ func Parse(t has.Thing, input string) string {
 	case "TAKE":
 		return Take(t, words[1:])
 	default:
-		return "Eh?"
+		return "Eh?", false
 	}
 }

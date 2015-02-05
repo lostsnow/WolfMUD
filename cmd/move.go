@@ -10,22 +10,24 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Move(t has.Thing, cmd string) string {
+func Move(t has.Thing, cmd string) (msg string, ok bool) {
 
 	// A thing can only move itself if it knows where it is
 	from := attr.Locate().Find(t)
 	if from == nil || from.Where() == nil {
-		return "You can't go anywhere. You don't know where you are!"
+		msg = "You can't go anywhere. You don't know where you are!"
+		return
 	}
 
 	// Is where we are exitable?
 	exits := attr.Exits().Find(from.Where())
 	if exits == nil {
-		return "You can't see anywhere to go from here."
+		msg = "You can't see anywhere to go from here."
+		return
 	}
 
-	if text := exits.Move(t, cmd); text != "" {
-		return text
+	if msg, ok = exits.Move(t, cmd); !ok {
+		return
 	}
 
 	// Describe where we now are

@@ -67,7 +67,7 @@ type Exits interface {
 	Unlink(uint8)
 	List() string
 	Place(Thing)
-	Move(Thing, string) string
+	Move(Thing, string) (string, bool)
 }
 
 type Locate interface {

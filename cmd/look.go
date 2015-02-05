@@ -10,7 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func Look(t has.Thing) string {
+func Look(t has.Thing) (msg string, ok bool) {
 
 	var where has.Thing
 
@@ -28,7 +28,8 @@ func Look(t has.Thing) string {
 
 	// Still not anywhere?
 	if where == nil {
-		return "You are in a dark void. Around you nothing. No stars, no light, no heat and no sound."
+		msg = "You are in a dark void. Around you nothing. No stars, no light, no heat and no sound."
+		return
 	}
 
 	buff := make([]byte, 0, 1024)
@@ -68,5 +69,5 @@ func Look(t has.Thing) string {
 		buff = append(buff, "You can see no immediate exits from here."...)
 	}
 
-	return string(buff)
+	return string(buff), true
 }

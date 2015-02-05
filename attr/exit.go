@@ -150,33 +150,38 @@ func (e *exits) Place(t has.Thing) {
 	}
 }
 
-func (e *exits) Move(t has.Thing, cmd string) string {
+func (e *exits) Move(t has.Thing, cmd string) (msg string, ok bool) {
 
 	// Check direction is valid e.g. "N" or "NORTH"
 	d := directionIndex[cmd]
 	if d == 0 {
-		return "You wanted to go which way!?"
+		msg = "You wanted to go which way!?"
+		return
 	}
 
 	if e.exits[d] == nil {
-		return "You can't go " + directionLongNames[d] + " from here!"
+		msg = "You can't go " + directionLongNames[d] + " from here!"
+		return
 	}
 
 	from := Inventory().Find(e.Parent())
 	if from == nil {
-		return "You are not sure where you are, let alone where you are going."
+		msg = "You are not sure where you are, let alone where you are going."
+		return
 	}
 
 	to := Inventory().Find(e.exits[d])
 	if to == nil {
-		return "For some odd reason you can't go " + directionLongNames[d] + "."
+		msg = "For some odd reason you can't go " + directionLongNames[d] + "."
+		return
 	}
 
 	if what := from.Remove(t); what == nil {
-		return "Something stops you from leaving here!"
+		msg = "Something stops you from leaving here!"
+		return
 	}
 
 	to.Add(t)
 
-	return ""
+	return "", true
 }
