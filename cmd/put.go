@@ -10,18 +10,18 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Syntax: PUT item container
 func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	var (
-		fWhat  has.Thing
-		fWhere has.Thing
-		fName  string
-		fInv   has.Inventory
-
-		tWhat  has.Thing
+		tWhat  has.Thing // Info for thing we are putting into something
 		tWhere has.Thing
 		tName  string
-		tInv   has.Inventory
+
+		cWhat  has.Thing // Info for container we want to put something into
+		cWhere has.Thing
+		cName  string
+		cInv   has.Inventory
 	)
 
 	switch l := len(aliases); {
@@ -29,35 +29,18 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		msg = "You go to put something into something..."
 		return
 	case l > 1:
-		tWhat, tWhere = WhatWhere(aliases[1], t)
-		tName = aliases[1]
+		// Try and identify container
+		cWhat, cWhere = WhatWhere(aliases[1], t)
+		cName = aliases[1]
 		fallthrough
 	case l == 1:
-		fWhat, fWhere = WhatWhere(aliases[0], t)
-		fName = aliases[0]
+		// Try and identify item
+		tWhat, tWhere = WhatWhere(aliases[0], t)
+		tName = aliases[0]
 	}
 
-	if fWhat == nil {
-		msg = "You see no '" + fName + "' to put into anything."
-		return
-	}
-
-	if n := attr.Name().Find(fWhat); n != nil {
-		fName = n.Name()
-	}
-
-	if fWhere != t {
-		msg = "You don't have " + fName + " to put into anything."
-		return
-	}
-
-	if len(aliases) < 2 {
-		msg = "What did you want to put " + fName + " into?"
-		return
-	}
-
-	if tWhere == nil {
-		msg = "You see no '" + tName + "' to put " + fName + " into."
+	if tWhat == nil {
+		msg = "You see no '" + tName + "' to put into anything."
 		return
 	}
 
@@ -65,40 +48,56 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		tName = n.Name()
 	}
 
-	if fWhat == tWhat {
-		msg = "You can't put " + fName + " inside itself!"
+	if tWhere != t {
+		msg = "You don't have " + tName + " to put into anything."
 		return
 	}
 
-	tInv = attr.Inventory().Find(tWhat)
+	if len(aliases) < 2 {
+		msg = "What did you want to put " + tName + " into?"
+		return
+	}
 
-	if tInv == nil {
-		msg = "You cannot put " + fName + " into " + tName + "."
+	if cWhere == nil {
+		msg = "You see no '" + cName + "' to put " + tName + " into."
+		return
+	}
+
+	if n := attr.Name().Find(cWhat); n != nil {
+		cName = n.Name()
+	}
+
+	if tWhat == cWhat {
+		msg = "You can't put " + tName + " inside itself!"
+		return
+	}
+
+	if cInv = attr.Inventory().Find(cWhat); cInv == nil {
+		msg = "You cannot put " + tName + " into " + cName + "."
 		return
 	}
 
 	// Check for veto on item being put into container
-	if veto := CheckVetoes("PUT", fWhat); veto != nil {
-		msg = veto.Message()
-		return
-	}
-
-	// Check for veto on container
 	if veto := CheckVetoes("PUT", tWhat); veto != nil {
 		msg = veto.Message()
 		return
 	}
 
-	if msg, ok = Drop(t, aliases[0:1]); !ok {
+	// Make sure nothing would stop us letting go of item
+	if veto := CheckVetoes("DROP", tWhat); veto != nil {
+		msg = veto.Message()
 		return
 	}
 
-	fWhat, fWhere = WhatWhere(aliases[0], t)
-	fInv = attr.Inventory().Find(fWhere)
+	// Check for veto on container
+	if veto := CheckVetoes("PUT", cWhat); veto != nil {
+		msg = veto.Message()
+		return
+	}
 
-	fInv.Remove(fWhat)
-	tInv.Add(fWhat)
+	attr.Inventory().Find(tWhere).Remove(tWhat)
+	cInv.Add(tWhat)
 
-	msg = "You put " + fName + " into " + tName + "."
+	msg = "You put " + tName + " into " + cName + "."
 	return msg, true
 }
