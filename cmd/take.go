@@ -57,6 +57,18 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
+	// Check for veto on item being taken
+	if veto := CheckVetoes("TAKE", fWhat); veto != nil {
+		msg = veto.Message()
+		return
+	}
+
+	// Check for veto on container
+	if veto := CheckVetoes("TAKE", tWhat); veto != nil {
+		msg = veto.Message()
+		return
+	}
+
 	if n := attr.Name().Find(fWhat); n != nil {
 		fName = n.Name()
 	}
