@@ -8,6 +8,8 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/has"
+
+	"strings"
 )
 
 func Take(t has.Thing, aliases []string) (msg string, ok bool) {
@@ -46,7 +48,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	tInv = attr.Inventory().Find(tWhat)
 
 	if tInv == nil {
-		msg = tName + " does not contain anything."
+		msg = strings.Title(tName[0:1]) + tName[1:] + " does not contain anything."
 		return
 	}
 
