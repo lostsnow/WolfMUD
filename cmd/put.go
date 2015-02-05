@@ -70,7 +70,6 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	fInv = attr.Inventory().Find(fWhere)
 	tInv = attr.Inventory().Find(tWhat)
 
 	if tInv == nil {
@@ -89,6 +88,13 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		msg = veto.Message()
 		return
 	}
+
+	if msg, ok = Drop(t, aliases[0:1]); !ok {
+		return
+	}
+
+	fWhat, fWhere = WhatWhere(aliases[0], t)
+	fInv = attr.Inventory().Find(fWhere)
 
 	fInv.Remove(fWhat)
 	tInv.Add(fWhat)
