@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Syntax: DROP item
 func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
@@ -17,25 +18,26 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	var (
-		from has.Inventory
-		to   has.Inventory
-		what has.Thing
-	)
+	name := aliases[0]
 
-	// Identify inventory we want to drop something from then see if we can find
-	// the something
-	if a := attr.Inventory().Find(t); a != nil {
-		from = a
-		what = from.Search(aliases[0])
-	}
+	// Search ourselves for item we want to drop
+	what, where := search(name, t)
 
-	if from == nil || what == nil {
-		msg = "You have no '" + aliases[0] + "' to drop."
+	if what == nil {
+		msg = "You have no '" + name + "' to drop."
 		return
 	}
 
-	// Identify where thing dropping something is
+	// Get item's proper name
+	if n := attr.Name().Find(what); n != nil {
+		name = n.Name()
+	}
+
+	// Find our own inventory we are dropping item from
+	from := attr.Inventory().Find(where)
+
+	// Find out where we are - where we are going to be dropping the item
+	var to has.Inventory
 	if a := attr.Locate().Find(t); a != nil {
 		if w := a.Where(); w != nil {
 			if i := attr.Inventory().Find(w); i != nil {
@@ -44,23 +46,24 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 		}
 	}
 
-	name := attr.Name().Find(what).Name()
-
 	if to == nil {
 		msg = "You cannot drop " + name + " here."
 		return
 	}
 
+	// Check the drop is not vetoed by the item
 	if veto := CheckVetoes("DROP", what); veto != nil {
 		msg = veto.Message()
 		return
 	}
 
+	// Try and remove item from our inventory
 	if from.Remove(what) == nil {
 		msg = "You cannot drop " + name + "."
 		return
 	}
 
+	// Add item to inventory where we are
 	to.Add(what)
 
 	msg = "You drop " + name + "."
