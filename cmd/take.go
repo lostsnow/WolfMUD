@@ -29,7 +29,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 		msg = "You go to take something out of something else..."
 		return
 	case l > 1:
-		tWhat, _ = WhatWhere(aliases[1], t)
+		tWhat, _ = whatWhere(aliases[1], t)
 		tName = aliases[1]
 		fallthrough
 	case l == 1:

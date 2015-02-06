@@ -10,7 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func WhatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
+func whatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
 
 	// If thing knows it's in an inventory try that inventory first
 	if a := attr.Locate().Find(t); a != nil {

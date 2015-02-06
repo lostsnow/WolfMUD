@@ -17,7 +17,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	what, _ := WhatWhere(aliases[0], t)
+	what, _ := whatWhere(aliases[0], t)
 
 	if what == nil {
 		msg = "You see no '" + aliases[0] + "' to examine."

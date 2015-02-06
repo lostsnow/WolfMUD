@@ -19,10 +19,10 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	what, _ := WhatWhere(aliases[0], t)
+	what, _ := whatWhere(aliases[0], t)
 
 	// As a last resort instead of looking 'IN where we are' look 'AT where we
-	// are' - WhatWhere does not check if the what is also the where.
+	// are' - whatWhere does not check if the what is also the where.
 	if what == nil {
 		if l := attr.Locate().Find(t); l != nil {
 			if where := l.Where(); where != nil {

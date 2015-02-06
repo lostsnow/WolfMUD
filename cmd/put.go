@@ -30,12 +30,12 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	case l > 1:
 		// Try and identify container
-		cWhat, cWhere = WhatWhere(aliases[1], t)
+		cWhat, cWhere = whatWhere(aliases[1], t)
 		cName = aliases[1]
 		fallthrough
 	case l == 1:
 		// Try and identify item
-		tWhat, tWhere = WhatWhere(aliases[0], t)
+		tWhat, tWhere = whatWhere(aliases[0], t)
 		tName = aliases[0]
 	}
 
