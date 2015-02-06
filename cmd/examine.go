@@ -31,11 +31,14 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	buff := make([]byte, 0, 1024)
 
+	name := aliases[0]
 	if n := attr.Name().Find(what); n != nil {
-		buff = append(buff, "You examine "...)
-		buff = append(buff, n.Name()...)
-		buff = append(buff, "."...)
+		name = n.Name()
 	}
+
+	buff = append(buff, "You examine "...)
+	buff = append(buff, name...)
+	buff = append(buff, "."...)
 
 	for _, d := range attr.Description().FindAll(what) {
 		buff = append(buff, " "...)
