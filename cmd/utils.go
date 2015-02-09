@@ -10,38 +10,38 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-func whatWhere(alias string, t has.Thing) (what has.Thing, where has.Thing) {
+func what(alias string, t has.Thing) (what has.Thing) {
 
 	// If thing knows it's in an inventory try that inventory first
 	if a := attr.Locate().Find(t); a != nil {
-		if what, where = search(alias, a.Where()); what != nil && where != nil {
-			return
+		if what = search(alias, a.Where()); what != nil {
+			return what
 		}
 	}
 
 	// If we haven't found our what and where yet check our thing's inventory
-	if what, where = search(alias, t); what != nil && where != nil {
-		return
+	if what = search(alias, t); what != nil {
+		return what
 	}
 
 	// 404 - Not found :(
-	return nil, nil
+	return nil
 }
 
-func search(alias string, t has.Thing) (what has.Thing, where has.Thing) {
+func search(alias string, t has.Thing) (what has.Thing) {
 	if a := attr.Inventory().Find(t); a != nil {
 		if what = a.Search(alias); what != nil {
-			return what, t
+			return
 		}
 	}
 
 	if a := attr.Narrative().Find(t); a != nil {
 		if what = a.Search(alias); what != nil {
-			return what, t
+			return
 		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 func CheckVetoes(cmd string, what has.Thing) has.Veto {

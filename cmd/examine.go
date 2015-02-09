@@ -17,10 +17,13 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	what, _ := whatWhere(aliases[0], t)
+	var (
+		name = aliases[0]
+		what = what(name, t)
+	)
 
 	if what == nil {
-		msg = "You see no '" + aliases[0] + "' to examine."
+		msg = "You see no '" + name + "' to examine."
 		return
 	}
 
@@ -31,7 +34,6 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	buff := make([]byte, 0, 1024)
 
-	name := aliases[0]
 	if n := attr.Name().Find(what); n != nil {
 		name = n.Name()
 	}

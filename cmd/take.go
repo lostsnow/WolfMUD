@@ -30,8 +30,8 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Try and find container
 	var (
-		cName    = aliases[1]
-		cWhat, _ = whatWhere(cName, t)
+		cName = aliases[1]
+		cWhat = what(cName, t)
 	)
 
 	// Was container found?

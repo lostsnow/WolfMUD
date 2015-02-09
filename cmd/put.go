@@ -21,7 +21,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	tName := aliases[0]
 
 	// Search ourselves for item to put into container
-	tWhat, tWhere := search(tName, t)
+	tWhat := search(tName, t)
 
 	if tWhat == nil {
 		msg = "You have no '" + tName + "' to put into anything."
@@ -41,8 +41,8 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Try and find container
 	var (
-		cName    = aliases[1]
-		cWhat, _ = whatWhere(cName, t)
+		cName = aliases[1]
+		cWhat = what(cName, t)
 	)
 
 	// Was container found?
@@ -88,8 +88,8 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Remove item from where it is
-	if a := attr.Inventory().Find(tWhere); a != nil {
-		if a.Remove(tWhat) != nil {
+	if a := attr.Inventory().Find(t); a != nil {
+		if a.Remove(tWhat) == nil {
 			msg = "Something stops you putting " + tName + " anywhere."
 			return
 		}

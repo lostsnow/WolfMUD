@@ -21,7 +21,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	name := aliases[0]
 
 	// Search ourselves for item we want to drop
-	what, where := search(name, t)
+	what := search(name, t)
 
 	if what == nil {
 		msg = "You have no '" + name + "' to drop."
@@ -34,7 +34,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Find our own inventory we are dropping item from
-	from := attr.Inventory().Find(where)
+	from := attr.Inventory().Find(t)
 
 	// Find out where we are - where we are going to be dropping the item
 	var to has.Inventory
