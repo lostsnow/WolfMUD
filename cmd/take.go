@@ -12,74 +12,87 @@ import (
 	"strings"
 )
 
+// Syntax: TAKE item container
 func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
-	var (
-		fWhat has.Thing
-		fName string
-		fInv  has.Inventory
-
-		tWhat has.Thing
-		tName string
-		tInv  has.Inventory
-	)
-
-	switch l := len(aliases); {
-	case l == 0:
+	if len(aliases) == 0 {
 		msg = "You go to take something out of something else..."
 		return
-	case l > 1:
-		tWhat, _ = whatWhere(aliases[1], t)
-		tName = aliases[1]
-		fallthrough
-	case l == 1:
-		fName = aliases[0]
 	}
 
-	if tWhat == nil {
-		msg = "You don't see '" + tName + "' to take things out of."
+	tName := aliases[0]
+
+	// Was container specified? (Item would be in container, cannot resolve tName)
+	if len(aliases) < 2 {
+		msg = "What did you want to take '" + tName + "' out of?"
 		return
 	}
 
+	// Try and find container
+	var (
+		cName    = aliases[1]
+		cWhat, _ = whatWhere(cName, t)
+	)
+
+	// Was container found?
+	if cWhat == nil {
+		msg = "You see no '" + cName + "' to take things out of."
+		return
+	}
+
+	// Get container's proper name
+	if n := attr.Name().Find(cWhat); n != nil {
+		cName = n.Name()
+	}
+
+	// Check container is actually a container with an inventory
+	cInv := attr.Inventory().Find(cWhat)
+	if cInv == nil {
+		msg = strings.Title(cName[0:1]) + cName[1:] + " does not contain anything."
+		return
+	}
+
+	// Is item to be taken in the container?
+	tWhat := cInv.Search(tName)
+	if tWhat == nil {
+		msg = "There is no '" + tName + "' in " + cName + "."
+		return
+	}
+
+	// Get item's proper name
 	if n := attr.Name().Find(tWhat); n != nil {
 		tName = n.Name()
 	}
 
-	tInv = attr.Inventory().Find(tWhat)
-
-	if tInv == nil {
-		msg = strings.Title(tName[0:1]) + tName[1:] + " does not contain anything."
-		return
-	}
-
-	fWhat = tInv.Search(aliases[0])
-
-	if fWhat == nil {
-		msg = "You see no '" + fName + "' in " + tName + "."
-		return
-	}
-
 	// Check for veto on item being taken
-	if veto := CheckVetoes("TAKE", fWhat); veto != nil {
-		msg = veto.Message()
-		return
-	}
-
-	// Check for veto on container
 	if veto := CheckVetoes("TAKE", tWhat); veto != nil {
 		msg = veto.Message()
 		return
 	}
 
-	if n := attr.Name().Find(fWhat); n != nil {
-		fName = n.Name()
+	// Check for veto on container
+	if veto := CheckVetoes("TAKE", cWhat); veto != nil {
+		msg = veto.Message()
+		return
 	}
 
-	fInv = attr.Inventory().Find(t)
+	// Find inventory of thing doing the taking
+	// NOTE: We could drop the item on the floor if it can't be 'carried'.
+	tInv := attr.Inventory().Find(t)
+	if tInv == nil {
+		msg = "You have nowhere to put " + tName + " if you remove it from " + cName + "."
+		return
+	}
 
-	tInv.Remove(fWhat)
-	fInv.Add(fWhat)
+	// Remove item from container
+	if cInv.Remove(tWhat) == nil {
+		msg = "Something stops you taking " + tName + " from " + cName + "..."
+		return
+	}
 
-	msg = "You take " + fName + " out of " + tName + "."
+	// Put item in taking thing's inventory
+	tInv.Add(tWhat)
+
+	msg = "You take " + tName + " from " + cName + "."
 	return msg, true
 }

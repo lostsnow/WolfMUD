@@ -13,66 +13,58 @@ import (
 // Syntax: PUT item container
 func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 
-	var (
-		tWhat  has.Thing // Info for thing we are putting into something
-		tWhere has.Thing
-		tName  string
-
-		cWhat  has.Thing // Info for container we want to put something into
-		cWhere has.Thing
-		cName  string
-		cInv   has.Inventory
-	)
-
-	switch l := len(aliases); {
-	case l == 0:
-		msg = "You go to put something into something..."
+	if len(aliases) == 0 {
+		msg = "You go to put something into something else..."
 		return
-	case l > 1:
-		// Try and identify container
-		cWhat, cWhere = whatWhere(aliases[1], t)
-		cName = aliases[1]
-		fallthrough
-	case l == 1:
-		// Try and identify item
-		tWhat, tWhere = whatWhere(aliases[0], t)
-		tName = aliases[0]
 	}
+
+	tName := aliases[0]
+
+	// Search ourselves for item to put into container
+	tWhat, tWhere := search(tName, t)
 
 	if tWhat == nil {
-		msg = "You see no '" + tName + "' to put into anything."
+		msg = "You have no '" + tName + "' to put into anything."
 		return
 	}
 
+	// Get item's proper name
 	if n := attr.Name().Find(tWhat); n != nil {
 		tName = n.Name()
 	}
 
-	if tWhere != t {
-		msg = "You don't have " + tName + " to put into anything."
-		return
-	}
-
+	// Check a container was specified
 	if len(aliases) < 2 {
 		msg = "What did you want to put " + tName + " into?"
 		return
 	}
 
-	if cWhere == nil {
+	// Try and find container
+	var (
+		cName    = aliases[1]
+		cWhat, _ = whatWhere(cName, t)
+	)
+
+	// Was container found?
+	if cWhat == nil {
 		msg = "You see no '" + cName + "' to put " + tName + " into."
 		return
 	}
 
-	if n := attr.Name().Find(cWhat); n != nil {
-		cName = n.Name()
-	}
-
+	// Unless our name is Klein we can't put something inside itself! ;)
 	if tWhat == cWhat {
 		msg = "You can't put " + tName + " inside itself!"
 		return
 	}
 
-	if cInv = attr.Inventory().Find(cWhat); cInv == nil {
+	// Get container's proper name
+	if n := attr.Name().Find(cWhat); n != nil {
+		cName = n.Name()
+	}
+
+	// Check container is actually a container with an inventory
+	cInv := attr.Inventory().Find(cWhat)
+	if cInv == nil {
 		msg = "You cannot put " + tName + " into " + cName + "."
 		return
 	}
@@ -95,7 +87,15 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	attr.Inventory().Find(tWhere).Remove(tWhat)
+	// Remove item from where it is
+	if a := attr.Inventory().Find(tWhere); a != nil {
+		if a.Remove(tWhat) != nil {
+			msg = "Something stops you putting " + tName + " anywhere."
+			return
+		}
+	}
+
+	// Put item into comtainer
 	cInv.Add(tWhat)
 
 	msg = "You put " + tName + " into " + cName + "."
