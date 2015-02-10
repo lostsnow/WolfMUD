@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Syntax: LOOK
 func Look(t has.Thing) (msg string, ok bool) {
 
 	var where has.Thing
@@ -21,7 +22,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	// Or are we the where?
 	if where == nil {
-		if a := attr.Exits().Find(t); a != nil {
+		if a := attr.Inventory().Find(t); a != nil {
 			where = t
 		}
 	}
