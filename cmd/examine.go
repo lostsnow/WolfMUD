@@ -10,23 +10,55 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Syntax: ( EXAMINE | EXAM ) item
 func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
-		msg = "You examine this and that and find nothing special. Maybe if you examined something specific?"
+		msg = "You examine this and that, find nothing special."
 		return
 	}
 
 	var (
 		name = aliases[0]
-		what = what(name, t)
+
+		what  has.Thing
+		where has.Thing
 	)
 
+	// Work out where we are
+	if a := attr.Locate().Find(t); a != nil {
+		where = a.Where()
+	}
+
+	// Are we somewhere?
+	if where != nil {
+		// Search for item in inventory where we are
+		if a := attr.Inventory().Find(where); a != nil {
+			what = a.Search(name)
+		}
+
+		// If item not found in inventory try searching narratives
+		if what == nil {
+			if a := attr.Narrative().Find(where); a != nil {
+				what = a.Search(name)
+			}
+		}
+	}
+
+	// If item still not found try our own inventory
+	if what == nil {
+		if a := attr.Inventory().Find(t); a != nil {
+			what = a.Search(name)
+		}
+	}
+
+	// Was item to examine found?
 	if what == nil {
 		msg = "You see no '" + name + "' to examine."
 		return
 	}
 
+	// Check examine is not vetoed by item
 	if veto := CheckVetoes("EXAMINE", what); veto != nil {
 		msg = veto.Message()
 		return

@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Syntax: READ item
 func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
@@ -17,23 +18,63 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	what := what(aliases[0], t)
+	var (
+		name = aliases[0]
 
+		what    has.Thing
+		where   has.Thing
+		writing string
+	)
+
+	// Work out where we are
+	if a := attr.Locate().Find(t); a != nil {
+		where = a.Where()
+	}
+
+	// Are we somewhere?
+	if where != nil {
+		// Search for item in inventory where we are
+		if a := attr.Inventory().Find(where); a != nil {
+			what = a.Search(name)
+		}
+
+		// If item not found in inventory try searching narratives
+		if what == nil {
+			if a := attr.Narrative().Find(where); a != nil {
+				what = a.Search(name)
+			}
+		}
+	}
+
+	// If item still not found try our own inventory
 	if what == nil {
-		msg = "You see no '" + aliases[0] + "' to read."
+		if a := attr.Inventory().Find(t); a != nil {
+			what = a.Search(name)
+		}
+	}
+
+	// Was item to read found?
+	if what == nil {
+		msg = "You see no '" + name + "' to read."
 		return
 	}
 
-	name := "something"
+	// Get item's proper name
 	if n := attr.Name().Find(what); n != nil {
 		name = n.Name()
 	}
 
-	if w := attr.Writing().Find(what); w != nil {
-		msg = "You read the writing on " + name + ". It says: " + w.Writing()
-		return msg, true
+	// Find if item has writing
+	if a := attr.Writing().Find(what); a != nil {
+		writing = a.Writing()
 	}
 
-	msg = "You see no writing on " + name + " to read."
-	return
+	// Was writing found?
+	if writing == "" {
+		msg = "You see no writing on " + name + " to read."
+		return
+	}
+
+	msg = "You read the writing on " + name + ". It says: " + writing
+	return msg, true
 }

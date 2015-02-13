@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// Syntax: #DUMP alias
 func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if len(aliases) == 0 {
@@ -19,17 +20,46 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	what := what(aliases[0], t)
+	var (
+		name = aliases[0]
 
-	// As a last resort instead of looking 'IN where we are' look 'AT where we
-	// are' - whatWhere does not check if the what is also the where.
+		what  has.Thing
+		where has.Thing
+	)
+
+	// Work out where we are
+	if a := attr.Locate().Find(t); a != nil {
+		where = a.Where()
+	}
+
+	// Are we somewhere?
+	if where != nil {
+		// Search for item in inventory where we are
+		if a := attr.Inventory().Find(where); a != nil {
+			what = a.Search(name)
+		}
+
+		// If item not found in inventory try searching narratives
+		if what == nil {
+			if a := attr.Narrative().Find(where); a != nil {
+				what = a.Search(name)
+			}
+		}
+	}
+
+	// If item still not found try our own inventory
 	if what == nil {
-		if l := attr.Locate().Find(t); l != nil {
-			if where := l.Where(); where != nil {
-				if a := attr.Alias().Find(where); a != nil {
-					if a.HasAlias(aliases[0]) {
-						what = where
-					}
+		if a := attr.Inventory().Find(t); a != nil {
+			what = a.Search(name)
+		}
+	}
+
+	// If still not found try where we actually are
+	if what == nil {
+		if where != nil {
+			if a := attr.Alias().Find(where); a != nil {
+				if a.HasAlias(aliases[0]) {
+					what = where
 				}
 			}
 		}

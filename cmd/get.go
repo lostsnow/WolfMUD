@@ -8,8 +8,6 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/has"
-
-	"strings"
 )
 
 // Syntax: GET item
@@ -21,24 +19,48 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	var (
-		what  has.Thing // The item we want to get
-		where has.Thing // Where the item currently is
+		name = aliases[0]
+
+		what  has.Thing
+		where has.Thing
 	)
 
-	name := aliases[0]
-
-	// Work out where we are and then search for item to get there
+	// Work out where we are
 	if a := attr.Locate().Find(t); a != nil {
 		where = a.Where()
-		what = search(name, where)
 	}
 
+	// Are we somewhere?
+	// NOTE: The only way this should be possible is if something is gotten when
+	// the current thing is not in the world - but then where would it come from?
+	if where == nil {
+		msg = "You cannot get anything here."
+		return
+	}
+
+	// Search for item we want to get in the inventory where we are
+	from := attr.Inventory().Find(where)
+	if from != nil {
+		what = from.Search(name)
+		if what == nil {
+			from = nil
+		}
+	}
+
+	// If item not found in inventory also check narratives where we are
+	if what == nil {
+		if a := attr.Narrative().Find(where); a != nil {
+			what = a.Search(name)
+		}
+	}
+
+	// Was item to get found?
 	if what == nil {
 		msg = "You see no '" + name + "' to get."
 		return
 	}
 
-	// Check we have an inventory and can carry things
+	// Check we have an inventory so we can carry things
 	to := attr.Inventory().Find(t)
 	if to == nil {
 		msg = "You can't carry anything!"
@@ -52,16 +74,26 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Get item's proper name
-	if n := attr.Name().Find(what); n != nil {
-		name = n.Name()
+	if a := attr.Name().Find(what); a != nil {
+		name = a.Name()
 	}
 
-	// NOTE: If we try to get a narrative item it won't be found in the
-	// inventory, it's in the narrative, so the remove on the inventory will
-	// fail.
-	from := attr.Inventory().Find(where)
+	// Check item not trying to get itself
+	if what == t {
+		msg = "Trying to pick youreself up by your bootlaces?"
+		return
+	}
+
+	// If item not from where's inventory cannot get item - most likely a
+	// narrative item
+	if from == nil {
+		msg = "You cannot get " + name + "."
+		return
+	}
+
+	// If all seems okay try and remove item from where it is
 	if from.Remove(what) == nil {
-		msg = strings.Title(name[0:1]) + name[1:] + " cannot be taken."
+		msg = "You cannot get " + name + "."
 		return
 	}
 

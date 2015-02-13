@@ -18,36 +18,43 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	name := aliases[0]
+	var (
+		name = aliases[0]
+
+		what  has.Thing
+		where has.Thing
+	)
 
 	// Search ourselves for item we want to drop
-	what := search(name, t)
+	from := attr.Inventory().Find(t)
+	if from != nil {
+		what = from.Search(name)
+	}
 
+	// Was item to drop found?
 	if what == nil {
 		msg = "You have no '" + name + "' to drop."
 		return
 	}
 
-	// Get item's proper name
-	if n := attr.Name().Find(what); n != nil {
-		name = n.Name()
-	}
-
-	// Find our own inventory we are dropping item from
-	from := attr.Inventory().Find(t)
-
 	// Find out where we are - where we are going to be dropping the item
-	var to has.Inventory
 	if a := attr.Locate().Find(t); a != nil {
-		if w := a.Where(); w != nil {
-			if i := attr.Inventory().Find(w); i != nil {
-				to = i
-			}
-		}
+		where = a.Where()
 	}
 
+	// Are we somewhere?
+	// TODO: We could drop and junk item if nowhere instead of aborting?
+	if where == nil {
+		msg = "You cannot drop anything here."
+		return
+	}
+
+	// Check inventory available to receive dropped item
+	// NOTE: The only way this should be possible is if something is dropped when
+	// the current thing is not in the world.
+	to := attr.Inventory().Find(where)
 	if to == nil {
-		msg = "You cannot drop " + name + " here."
+		msg = "You cannot drop anything here."
 		return
 	}
 
@@ -55,6 +62,11 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	if veto := CheckVetoes("DROP", what); veto != nil {
 		msg = veto.Message()
 		return
+	}
+
+	// Get item's proper name
+	if n := attr.Name().Find(what); n != nil {
+		name = n.Name()
 	}
 
 	// Try and remove item from our inventory

@@ -10,12 +10,11 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-// Syntax: LOOK
+// Syntax: ( LOOK | L )
 func Look(t has.Thing) (msg string, ok bool) {
 
-	var where has.Thing
-
 	// Do we know where we are?
+	var where has.Thing
 	if a := attr.Locate().Find(t); a != nil {
 		where = a.Where()
 	}
@@ -34,8 +33,9 @@ func Look(t has.Thing) (msg string, ok bool) {
 	}
 
 	buff := make([]byte, 0, 1024)
+	attrName := attr.Name()
 
-	if a := attr.Name().Find(where); a != nil {
+	if a := attrName.Find(where); a != nil {
 		buff = append(buff, "[ "...)
 		buff = append(buff, a.Name()...)
 		buff = append(buff, " ]\n"...)
@@ -52,7 +52,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 	// is what the l != t check is for
 	if a := attr.Inventory().Find(where); a != nil {
 		for _, l := range a.List() {
-			if n := attr.Name().Find(l); l != t && n != nil {
+			if n := attrName.Find(l); l != t && n != nil {
 				buff = append(buff, "You can see "...)
 				buff = append(buff, n.Name()...)
 				buff = append(buff, " here.\n"...)

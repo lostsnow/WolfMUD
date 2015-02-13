@@ -8,24 +8,24 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/has"
-
-	"strings"
 )
 
+// Syntax: ( INVENTORY | INV )
 func Inventory(t has.Thing) (msg string, ok bool) {
 
+	// Try and find our inventory
 	i := attr.Inventory().Find(t)
-
 	if i == nil {
 		msg = "You are not carrying anything."
 		return
 	}
 
-	buff := []string{}
+	buff := make([]byte, 0, 1024)
 
 	for _, i := range i.List() {
 		if n := attr.Name().Find(i); n != nil {
-			buff = append(buff, n.Name())
+			buff = append(buff, "\n  "...)
+			buff = append(buff, n.Name()...)
 		}
 	}
 
@@ -34,6 +34,6 @@ func Inventory(t has.Thing) (msg string, ok bool) {
 		return
 	}
 
-	msg = "You are currently carrying:\n  " + strings.Join(buff, "\n  ")
+	msg = "You are currently carrying:" + string(buff)
 	return msg, true
 }
