@@ -8,8 +8,6 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD-mini.git/attr"
 	"code.wolfmud.org/WolfMUD-mini.git/has"
-
-	"strings"
 )
 
 // Syntax: TAKE item container
@@ -28,11 +26,43 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	// Try and find container
 	var (
 		cName = aliases[1]
-		cWhat = what(cName, t)
+
+		cWhat  has.Thing
+		cWhere has.Thing
 	)
+
+	// Search ourselves for container to get something from
+	from := attr.Inventory().Find(t)
+	if from != nil {
+		cWhat = from.Search(cName)
+	}
+
+	// Container not found?
+	if cWhat == nil {
+
+		// Work out where we are
+		if a := attr.Locate().Find(t); a != nil {
+			cWhere = a.Where()
+		}
+
+		// If we are somewhere then check around us
+		if cWhere != nil {
+
+			// Search for container in the inventory where we are
+			if a := attr.Inventory().Find(cWhere); a != nil {
+				cWhat = a.Search(cName)
+			}
+
+			// If container not found in inventory also check narratives where we are
+			if cWhat == nil {
+				if a := attr.Narrative().Find(cWhere); a != nil {
+					cWhat = a.Search(cName)
+				}
+			}
+		}
+	}
 
 	// Was container found?
 	if cWhat == nil {
@@ -48,7 +78,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check container is actually a container with an inventory
 	cInv := attr.Inventory().Find(cWhat)
 	if cInv == nil {
-		msg = strings.Title(cName[0:1]) + cName[1:] + " does not contain anything."
+		msg = "You cannot take anything from " + cName
 		return
 	}
 
@@ -77,7 +107,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Find inventory of thing doing the taking
-	// NOTE: We could drop the item on the floor if it can't be 'carried'.
+	// NOTE: We could drop the item on the floor if it can't be carried.
 	tInv := attr.Inventory().Find(t)
 	if tInv == nil {
 		msg = "You have nowhere to put " + tName + " if you remove it from " + cName + "."
