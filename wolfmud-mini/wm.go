@@ -24,16 +24,6 @@ var cpuprof = flag.Bool("cpuprof", false, "turn on cpu profiling")
 func main() {
 	flag.Parse()
 
-	if *memprof {
-		runtime.MemProfileRate = 1
-		fmt.Println("Memory profileing turned on.")
-	}
-	if *cpuprof {
-		f, _ := os.Create("cpuprof")
-		pprof.StartCPUProfile(f)
-		fmt.Println("CPU profileing turned on.")
-	}
-
 	world := attr.Setup()
 
 	// Setup test player
@@ -43,6 +33,16 @@ func main() {
 		attr.Inventory().New(),
 		attr.Locate().New(nil),
 	)
+
+	if *memprof {
+		runtime.MemProfileRate = 1
+		fmt.Println("Memory profileing turned on.")
+	}
+	if *cpuprof {
+		f, _ := os.Create("cpuprof")
+		pprof.StartCPUProfile(f)
+		fmt.Println("CPU profileing turned on.")
+	}
 
 	// Put player into the world
 	if i := attr.Exits().Find(world["loc1"]); i != nil {
