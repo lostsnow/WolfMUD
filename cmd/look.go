@@ -52,7 +52,10 @@ func Look(t has.Thing) (msg string, ok bool) {
 	// is what the l != t check is for
 	if a := attr.Inventory().Find(where); a != nil {
 		for _, l := range a.List() {
-			if n := attrName.Find(l); l != t && n != nil {
+			if l == t {
+				continue
+			}
+			if n := attrName.Find(l); n != nil {
 				buff = append(buff, "You can see "...)
 				buff = append(buff, n.Name()...)
 				buff = append(buff, " here.\n"...)
