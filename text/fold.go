@@ -11,11 +11,11 @@ import (
 
 const space = 1
 
-func Fold(in string, width int) string {
+func Fold(in string, width int) []byte {
 
 	// Can we take a short cut?
 	if len(in) <= width {
-		return in
+		return []byte(in)
 	}
 
 	// Add extra line feed to end of input. Will cause final word and line to be
@@ -23,13 +23,15 @@ func Fold(in string, width int) string {
 	// becuase it will still be in the buffers - so we don't need to trim it off.
 	in += "\n"
 
-	bw := &bytes.Buffer{} // Buffered current word
-	bl := &bytes.Buffer{} // Buffered current line
-	bo := &bytes.Buffer{} // Buffered output
-
-	bw.Grow(32)           // word buffer initially up to 32 (arbitrary) characters
-	bl.Grow(width + 32)   // line buffer initially width + 1 word
-	bo.Grow(len(in) + 32) // output buffer initially string length + 32 (arbitrary) line breaks
+	// Setup some buffers:
+	//	bw: word buffer	  - initially up to 32 (arbitrary) characters
+	//	bl: line buffer		- initially width + 1 word
+	//	bo: output buffer - initially input length + 32 (arbitrary) line breaks
+	var (
+		bw = bytes.NewBuffer(make([]byte, 0, 32))
+		bl = bytes.NewBuffer(make([]byte, 0, width+32))
+		bo = bytes.NewBuffer(make([]byte, 0, len(in)+32))
+	)
 
 	lb := true // Only leading blanks have been written to a word
 
@@ -64,5 +66,5 @@ func Fold(in string, width int) string {
 
 	}
 
-	return bo.String()
+	return bo.Bytes()
 }

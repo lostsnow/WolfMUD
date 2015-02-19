@@ -51,14 +51,14 @@ func main() {
 
 	// Describe what they can see
 	msg, _ := cmd.Parse(p, "LOOK")
-	fmt.Println(text.Fold(msg, 80))
+	fmt.Printf("%s\n", text.Fold(msg, 80))
 
 	// Main processing loop
 	r := bufio.NewReader(os.Stdin)
 	fmt.Print(">")
 	for i, err := r.ReadString('\n'); err == nil && i != "quit\n"; i, err = r.ReadString('\n') {
 		if msg, _ := cmd.Parse(p, i); len(msg) > 0 {
-			fmt.Println(text.Fold(msg, 80))
+			fmt.Printf("%s\n", text.Fold(msg, 80))
 		}
 		fmt.Print(">")
 	}
