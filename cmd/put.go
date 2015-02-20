@@ -49,8 +49,41 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Try and find container
 	var (
 		cName = aliases[1]
-		cWhat = what(cName, t)
+
+		cWhat  has.Thing
+		cWhere has.Thing
 	)
+
+	// Search ourselves for container to get something from
+	from := attr.Inventory().Find(t)
+	if from != nil {
+		cWhat = from.Search(cName)
+	}
+
+	// Container not found?
+	if cWhat == nil {
+
+		// Work out where we are
+		if a := attr.Locate().Find(t); a != nil {
+			cWhere = a.Where()
+		}
+
+		// If we are somewhere then check around us
+		if cWhere != nil {
+
+			// Search for container in the inventory where we are
+			if a := attr.Inventory().Find(cWhere); a != nil {
+				cWhat = a.Search(cName)
+			}
+
+			// If container not found in inventory also check narratives where we are
+			if cWhat == nil {
+				if a := attr.Narrative().Find(cWhere); a != nil {
+					cWhat = a.Search(cName)
+				}
+			}
+		}
+	}
 
 	// Was container found?
 	if cWhat == nil {
