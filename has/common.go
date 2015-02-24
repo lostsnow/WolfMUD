@@ -31,7 +31,7 @@ type Writing interface {
 }
 
 type Vetoes interface {
-	Check(string) Veto
+	Check(...string) Veto
 }
 
 type Veto interface {

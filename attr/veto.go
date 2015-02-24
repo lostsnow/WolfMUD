@@ -53,9 +53,21 @@ func (v *vetoes) Dump() (buff []string) {
 	return buff
 }
 
-func (v *vetoes) Check(cmd string) has.Veto {
-	veto, _ := v.vetoes[cmd]
-	return veto
+func (v *vetoes) Check(cmd ...string) has.Veto {
+
+	// For single checks we can take a shortcut
+	if len(cmd) == 1 {
+		veto, _ := v.vetoes[cmd[0]]
+		return veto
+	}
+
+	// For multiple checks return the first that is vetoed
+	for _, cmd := range cmd {
+		if veto, _ := v.vetoes[cmd]; veto != nil {
+			return veto
+		}
+	}
+	return nil
 }
 
 type veto struct {
