@@ -136,6 +136,14 @@ func Setup() map[string]has.Thing {
 		Exits().New(),
 	)
 
+	world["loc5"] = Thing().New(
+		Name().New("Street between Tavern and Bakers"),
+		Description().New("You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south."),
+		Alias().New("tavern", "bakers", "street"),
+		Inventory().New(),
+		Exits().New(),
+	)
+
 	// Link up room exits
 
 	if a := Exits().Find(world["loc1"]); a != nil {
@@ -154,12 +162,17 @@ func Setup() map[string]has.Thing {
 		a.Link(WEST, world["loc1"])
 		a.Link(SOUTHWEST, world["loc2"])
 		a.Link(SOUTH, world["loc4"])
+		a.Link(EAST, world["loc5"])
 	}
 
 	if a := Exits().Find(world["loc4"]); a != nil {
 		a.Link(NORTH, world["loc3"])
 		a.Link(NORTHWEST, world["loc1"])
 		a.Link(WEST, world["loc2"])
+	}
+
+	if a := Exits().Find(world["loc5"]); a != nil {
+		a.Link(WEST, world["loc3"])
 	}
 
 	return world
