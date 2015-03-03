@@ -62,6 +62,18 @@ func Setup() map[string]has.Thing {
 		),
 	)
 
+	world["chairs"] = Thing().New(
+		Name().New("some rough chairs"),
+		Description().New("These chairs(?) are very rough wooden affairs, so rough in fact you decide it's a bad idea to sit on them without some descent rear armour to fend of the splinters."),
+		Alias().New("chair", "chairs"),
+	)
+
+	world["tables"] = Thing().New(
+		Name().New("some rough tables"),
+		Description().New("Well you suppose these are tables. If so they must have been made by a blind carpenter having a very bad day."),
+		Alias().New("table", "tables"),
+	)
+
 	world["plaque"] = Thing().New(
 		Name().New("a wooden plaque"),
 		Description().New("This is a small wooden plaque."),
@@ -101,6 +113,10 @@ func Setup() map[string]has.Thing {
 		Description().New("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
 		Alias().New("tavern", "common"),
 		Inventory().New(),
+		Narrative().New(
+			world["chairs"],
+			world["tables"],
+		),
 		Exits().New(),
 	)
 
