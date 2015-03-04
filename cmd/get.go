@@ -67,12 +67,6 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	// Check the get is not vetoed by the item
-	if veto := CheckVetoes("GET", what); veto != nil {
-		msg = veto.Message()
-		return
-	}
-
 	// Get item's proper name
 	if a := attr.Name().Find(what); a != nil {
 		name = a.Name()
@@ -89,6 +83,22 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	if from == nil {
 		msg = "You cannot get " + name + "."
 		return
+	}
+
+	// Check the get is not vetoed by the item
+	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+		if veto := vetoes.Check("GET"); veto != nil {
+			msg = veto.Message()
+			return
+		}
+	}
+
+	// Check the get is not vetoed by the parent of the item's inventory
+	if vetoes := attr.Vetoes().Find(where); vetoes != nil {
+		if veto := vetoes.Check("GET"); veto != nil {
+			msg = veto.Message()
+			return
+		}
 	}
 
 	// If all seems okay try and remove item from where it is

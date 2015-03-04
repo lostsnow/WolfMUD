@@ -59,9 +59,19 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the drop is not vetoed by the item
-	if veto := CheckVetoes("DROP", what); veto != nil {
-		msg = veto.Message()
-		return
+	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+		if veto := vetoes.Check("DROP"); veto != nil {
+			msg = veto.Message()
+			return
+		}
+	}
+
+	// Check the drop is not vetoed by the receiving inventory
+	if vetoes := attr.Vetoes().Find(where); vetoes != nil {
+		if veto := vetoes.Check("DROP"); veto != nil {
+			msg = veto.Message()
+			return
+		}
 	}
 
 	// Get item's proper name
