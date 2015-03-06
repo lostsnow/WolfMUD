@@ -64,7 +64,7 @@ func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
 
-type attribute struct {
+type Attribute struct {
 	parent has.Thing
 }
 
@@ -73,10 +73,10 @@ type attribute struct {
 // supposed to be the default implementation?
 //var _ has.Attribute = &attribute{}
 
-func (a *attribute) Parent() has.Thing {
+func (a *Attribute) Parent() has.Thing {
 	return a.parent
 }
 
-func (a *attribute) SetParent(t has.Thing) {
+func (a *Attribute) SetParent(t has.Thing) {
 	a.parent = t
 }

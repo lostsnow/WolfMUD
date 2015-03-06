@@ -10,7 +10,7 @@ import (
 )
 
 type writing struct {
-	attribute
+	Attribute
 	writing string
 }
 
@@ -26,7 +26,7 @@ func Writing() *writing {
 }
 
 func (*writing) New(w string) *writing {
-	return &writing{attribute{}, w}
+	return &writing{Attribute{}, w}
 }
 
 func (*writing) Find(t has.Thing) has.Writing {

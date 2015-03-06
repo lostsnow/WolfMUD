@@ -10,7 +10,7 @@ import (
 )
 
 type Name struct {
-	attribute
+	Attribute
 	name string
 }
 
@@ -20,7 +20,7 @@ var (
 )
 
 func NewName(n string) *Name {
-	return &Name{attribute{}, n}
+	return &Name{Attribute{}, n}
 }
 
 func FindName(t has.Thing) has.Name {

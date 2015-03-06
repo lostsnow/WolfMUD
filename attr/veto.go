@@ -12,7 +12,7 @@ import (
 )
 
 type vetoes struct {
-	attribute
+	Attribute
 	vetoes map[string]has.Veto
 }
 
@@ -27,7 +27,7 @@ func Vetoes() *vetoes {
 }
 
 func (*vetoes) New(veto ...has.Veto) *vetoes {
-	vetoes := &vetoes{attribute{}, make(map[string]has.Veto)}
+	vetoes := &vetoes{Attribute{}, make(map[string]has.Veto)}
 	for _, v := range veto {
 		vetoes.vetoes[v.Command()] = v
 	}

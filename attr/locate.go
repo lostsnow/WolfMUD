@@ -10,7 +10,7 @@ import (
 )
 
 type Locate struct {
-	attribute
+	Attribute
 	where has.Thing
 }
 
@@ -20,7 +20,7 @@ var (
 )
 
 func NewLocate(t has.Thing) *Locate {
-	l := &Locate{attribute{}, nil}
+	l := &Locate{Attribute{}, nil}
 	l.SetWhere(t)
 	return l
 }
