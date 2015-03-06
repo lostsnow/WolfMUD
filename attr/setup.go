@@ -29,7 +29,7 @@ func Setup() map[string]has.Thing {
 		Writing().New("Stay calm and drink more coffee!"),
 		NewAlias("mug"),
 		NewAlias("cup"),
-		Inventory().New(
+		NewInventory(
 			Thing().New(
 				Name().New("some coffee"),
 				NewDescription("This is some hot, strong coffee."),
@@ -40,7 +40,7 @@ func Setup() map[string]has.Thing {
 	world["box"] = Thing().New(
 		Name().New("a box"),
 		NewDescription("This is a small, wooden box."),
-		Inventory().New(),
+		NewInventory(),
 		NewAlias("box"),
 	)
 
@@ -48,7 +48,7 @@ func Setup() map[string]has.Thing {
 		Name().New("a bag"),
 		NewDescription("This is a small bag."),
 		NewAlias("bag"),
-		Inventory().New(
+		NewInventory(
 			Thing().New(
 				Name().New("an apple"),
 				NewDescription("This is a juicy red apple."),
@@ -91,7 +91,7 @@ func Setup() map[string]has.Thing {
 		Name().New("Fireplace"),
 		NewDescription("You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. There is a small plaque above the fireplace. To the south the common room extends and east the common room leads to the tavern entrance."),
 		NewAlias("tavern", "fireplace"),
-		Inventory().New(
+		NewInventory(
 			world["cheese"],
 			world["mug"],
 			world["box"],
@@ -112,7 +112,7 @@ func Setup() map[string]has.Thing {
 		Name().New("Common Room"),
 		NewDescription("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
 		NewAlias("tavern", "common"),
-		Inventory().New(),
+		NewInventory(),
 		Narrative().New(
 			world["chairs"],
 			world["tables"],
@@ -124,7 +124,7 @@ func Setup() map[string]has.Thing {
 		Name().New("Tavern Entrance"),
 		NewDescription("You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street."),
 		NewAlias("tavern", "entrance"),
-		Inventory().New(),
+		NewInventory(),
 		NewExits(),
 	)
 
@@ -132,7 +132,7 @@ func Setup() map[string]has.Thing {
 		Name().New("Tavern Bar"),
 		NewDescription("You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here."),
 		NewAlias("tavern", "bar"),
-		Inventory().New(),
+		NewInventory(),
 		NewExits(),
 	)
 
@@ -140,7 +140,7 @@ func Setup() map[string]has.Thing {
 		Name().New("Street between Tavern and Bakers"),
 		NewDescription("You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south."),
 		NewAlias("tavern", "bakers", "street"),
-		Inventory().New(),
+		NewInventory(),
 		NewExits(),
 	)
 

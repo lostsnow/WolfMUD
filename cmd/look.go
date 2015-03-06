@@ -21,7 +21,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	// Or are we the where?
 	if where == nil {
-		if a := attr.Inventory().Find(t); a != nil {
+		if a := attr.FindInventory(t); a != nil {
 			where = t
 		}
 	}
@@ -50,7 +50,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	// Note: We don't want to include the looker in the list of things here which
 	// is what the l != t check is for
-	if a := attr.Inventory().Find(where); a != nil {
+	if a := attr.FindInventory(where); a != nil {
 		for _, l := range a.List() {
 			if l == t {
 				continue

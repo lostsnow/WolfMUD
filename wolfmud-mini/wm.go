@@ -30,7 +30,7 @@ func main() {
 	p := attr.Thing().New(
 		attr.Name().New("a player"),
 		attr.NewAlias("player"),
-		attr.Inventory().New(),
+		attr.NewInventory(),
 		attr.Locate().New(nil),
 	)
 

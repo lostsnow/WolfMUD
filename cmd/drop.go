@@ -26,7 +26,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Search ourselves for item we want to drop
-	from := attr.Inventory().Find(t)
+	from := attr.FindInventory(t)
 	if from != nil {
 		what = from.Search(name)
 	}
@@ -52,7 +52,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check inventory available to receive dropped item
 	// NOTE: The only way this should be possible is if something is dropped when
 	// the current thing is not in the world.
-	to := attr.Inventory().Find(where)
+	to := attr.FindInventory(where)
 	if to == nil {
 		msg = "You cannot drop anything here."
 		return

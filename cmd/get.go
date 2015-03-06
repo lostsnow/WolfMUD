@@ -39,7 +39,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Search for item we want to get in the inventory where we are
-	from := attr.Inventory().Find(where)
+	from := attr.FindInventory(where)
 	if from != nil {
 		what = from.Search(name)
 		if what == nil {
@@ -61,7 +61,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check we have an inventory so we can carry things
-	to := attr.Inventory().Find(t)
+	to := attr.FindInventory(t)
 	if to == nil {
 		msg = "You can't carry anything!"
 		return

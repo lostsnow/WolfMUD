@@ -140,7 +140,7 @@ func (e *Exits) List() string {
 }
 
 func (e *Exits) Place(t has.Thing) {
-	if a := Inventory().Find(e.Parent()); a != nil {
+	if a := FindInventory(e.Parent()); a != nil {
 		a.Add(t)
 	}
 }
@@ -159,13 +159,13 @@ func (e *Exits) Move(t has.Thing, cmd string) (msg string, ok bool) {
 		return
 	}
 
-	from := Inventory().Find(e.Parent())
+	from := FindInventory(e.Parent())
 	if from == nil {
 		msg = "You are not sure where you are, let alone where you are going."
 		return
 	}
 
-	to := Inventory().Find(e.exits[d])
+	to := FindInventory(e.exits[d])
 	if to == nil {
 		msg = "For some odd reason you can't go " + directionLongNames[d] + "."
 		return

@@ -26,7 +26,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Search ourselves for item to put into container
-	if tInv = attr.Inventory().Find(t); tInv != nil {
+	if tInv = attr.FindInventory(t); tInv != nil {
 		tWhat = tInv.Search(tName)
 	}
 
@@ -55,7 +55,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Search ourselves for container to get something from
-	from := attr.Inventory().Find(t)
+	from := attr.FindInventory(t)
 	if from != nil {
 		cWhat = from.Search(cName)
 	}
@@ -72,7 +72,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		if cWhere != nil {
 
 			// Search for container in the inventory where we are
-			if a := attr.Inventory().Find(cWhere); a != nil {
+			if a := attr.FindInventory(cWhere); a != nil {
 				cWhat = a.Search(cName)
 			}
 
@@ -103,7 +103,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check container is actually a container with an inventory
-	cInv := attr.Inventory().Find(cWhat)
+	cInv := attr.FindInventory(cWhat)
 	if cInv == nil {
 		msg = "You cannot put " + tName + " into " + cName + "."
 		return

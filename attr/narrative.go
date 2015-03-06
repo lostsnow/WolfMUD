@@ -10,7 +10,7 @@ import (
 )
 
 type narrative struct {
-	*inventory
+	*Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -25,7 +25,7 @@ func Narrative() *narrative {
 }
 
 func (*narrative) New(t ...has.Thing) *narrative {
-	return &narrative{Inventory().New(t...)}
+	return &narrative{NewInventory(t...)}
 }
 
 func (n *narrative) ImplementsNarrative() {}

@@ -34,7 +34,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Search ourselves for container to get something from
-	from := attr.Inventory().Find(t)
+	from := attr.FindInventory(t)
 	if from != nil {
 		cWhat = from.Search(cName)
 	}
@@ -51,7 +51,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 		if cWhere != nil {
 
 			// Search for container in the inventory where we are
-			if a := attr.Inventory().Find(cWhere); a != nil {
+			if a := attr.FindInventory(cWhere); a != nil {
 				cWhat = a.Search(cName)
 			}
 
@@ -76,7 +76,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check container is actually a container with an inventory
-	cInv := attr.Inventory().Find(cWhat)
+	cInv := attr.FindInventory(cWhat)
 	if cInv == nil {
 		msg = "You cannot take anything from " + cName
 		return
@@ -112,7 +112,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Find inventory of thing doing the taking
 	// NOTE: We could drop the item on the floor if it can't be carried.
-	tInv := attr.Inventory().Find(t)
+	tInv := attr.FindInventory(t)
 	if tInv == nil {
 		msg = "You have nowhere to put " + tName + " if you remove it from " + cName + "."
 		return

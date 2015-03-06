@@ -33,7 +33,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Are we somewhere?
 	if where != nil {
 		// Search for item in inventory where we are
-		if a := attr.Inventory().Find(where); a != nil {
+		if a := attr.FindInventory(where); a != nil {
 			what = a.Search(name)
 		}
 
@@ -47,7 +47,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.Inventory().Find(t); a != nil {
+		if a := attr.FindInventory(t); a != nil {
 			what = a.Search(name)
 		}
 	}
@@ -81,7 +81,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		buff = append(buff, d.Description()...)
 	}
 
-	if i := attr.Inventory().Find(what); i != nil {
+	if i := attr.FindInventory(what); i != nil {
 		buff = append(buff, " "...)
 		buff = append(buff, i.Contents()...)
 	}
