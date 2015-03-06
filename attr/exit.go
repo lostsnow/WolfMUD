@@ -59,26 +59,21 @@ var directionIndex = map[string]uint8{
 	"DOWN":      D,
 }
 
-type exits struct {
+type Exits struct {
 	attribute
 	exits [len(directionLongNames)]has.Thing
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Exits()
-	_ has.Exits     = Exits()
+	_ has.Exits = &Exits{}
 )
 
-func Exits() *exits {
-	return nil
+func NewExits() *Exits {
+	return &Exits{attribute{}, [len(directionLongNames)]has.Thing{}}
 }
 
-func (*exits) New() *exits {
-	return &exits{attribute{}, [len(directionLongNames)]has.Thing{}}
-}
-
-func (*exits) Find(t has.Thing) has.Exits {
+func FindExits(t has.Thing) has.Exits {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Exits); ok {
 			return a
@@ -87,7 +82,7 @@ func (*exits) Find(t has.Thing) has.Exits {
 	return nil
 }
 
-func (e *exits) Dump() []string {
+func (e *Exits) Dump() []string {
 	buff := []byte{}
 	for i, e := range e.exits {
 		if e != nil {
@@ -105,15 +100,15 @@ func (e *exits) Dump() []string {
 	return []string{DumpFmt("%p %[1]T -> %s", e, buff)}
 }
 
-func (e *exits) Link(direction uint8, to has.Thing) {
+func (e *Exits) Link(direction uint8, to has.Thing) {
 	e.exits[direction] = to
 }
 
-func (e *exits) Unlink(direction uint8) {
+func (e *Exits) Unlink(direction uint8) {
 	e.exits[direction] = nil
 }
 
-func (e *exits) List() string {
+func (e *Exits) List() string {
 
 	var (
 		buff = make([]byte, 0, 1024) // buffer for direction list
@@ -144,13 +139,13 @@ func (e *exits) List() string {
 	}
 }
 
-func (e *exits) Place(t has.Thing) {
+func (e *Exits) Place(t has.Thing) {
 	if a := Inventory().Find(e.Parent()); a != nil {
 		a.Add(t)
 	}
 }
 
-func (e *exits) Move(t has.Thing, cmd string) (msg string, ok bool) {
+func (e *Exits) Move(t has.Thing, cmd string) (msg string, ok bool) {
 
 	// Check direction is valid e.g. "N" or "NORTH"
 	d := directionIndex[cmd]

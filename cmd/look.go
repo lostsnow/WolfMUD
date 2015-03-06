@@ -67,7 +67,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 		buff = append(buff, "\n"...)
 	}
 
-	if a := attr.Exits().Find(where); a != nil {
+	if a := attr.FindExits(where); a != nil {
 		buff = append(buff, a.List()...)
 	} else {
 		buff = append(buff, "You can see no immediate exits from here."...)

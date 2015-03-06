@@ -105,7 +105,7 @@ func Setup() map[string]has.Thing {
 			),
 			world["plaque"],
 		),
-		Exits().New(),
+		NewExits(),
 	)
 
 	world["loc2"] = Thing().New(
@@ -117,7 +117,7 @@ func Setup() map[string]has.Thing {
 			world["chairs"],
 			world["tables"],
 		),
-		Exits().New(),
+		NewExits(),
 	)
 
 	world["loc3"] = Thing().New(
@@ -125,7 +125,7 @@ func Setup() map[string]has.Thing {
 		NewDescription("You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street."),
 		NewAlias("tavern", "entrance"),
 		Inventory().New(),
-		Exits().New(),
+		NewExits(),
 	)
 
 	world["loc4"] = Thing().New(
@@ -133,7 +133,7 @@ func Setup() map[string]has.Thing {
 		NewDescription("You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here."),
 		NewAlias("tavern", "bar"),
 		Inventory().New(),
-		Exits().New(),
+		NewExits(),
 	)
 
 	world["loc5"] = Thing().New(
@@ -141,37 +141,37 @@ func Setup() map[string]has.Thing {
 		NewDescription("You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south."),
 		NewAlias("tavern", "bakers", "street"),
 		Inventory().New(),
-		Exits().New(),
+		NewExits(),
 	)
 
 	// Link up room exits
 
-	if a := Exits().Find(world["loc1"]); a != nil {
+	if a := FindExits(world["loc1"]); a != nil {
 		a.Link(SOUTH, world["loc2"])
 		a.Link(EAST, world["loc3"])
 		a.Link(SOUTHEAST, world["loc4"])
 	}
 
-	if a := Exits().Find(world["loc2"]); a != nil {
+	if a := FindExits(world["loc2"]); a != nil {
 		a.Link(NORTH, world["loc1"])
 		a.Link(NORTHEAST, world["loc3"])
 		a.Link(EAST, world["loc4"])
 	}
 
-	if a := Exits().Find(world["loc3"]); a != nil {
+	if a := FindExits(world["loc3"]); a != nil {
 		a.Link(WEST, world["loc1"])
 		a.Link(SOUTHWEST, world["loc2"])
 		a.Link(SOUTH, world["loc4"])
 		a.Link(EAST, world["loc5"])
 	}
 
-	if a := Exits().Find(world["loc4"]); a != nil {
+	if a := FindExits(world["loc4"]); a != nil {
 		a.Link(NORTH, world["loc3"])
 		a.Link(NORTHWEST, world["loc1"])
 		a.Link(WEST, world["loc2"])
 	}
 
-	if a := Exits().Find(world["loc5"]); a != nil {
+	if a := FindExits(world["loc5"]); a != nil {
 		a.Link(WEST, world["loc3"])
 	}
 
