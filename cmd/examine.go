@@ -76,7 +76,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	buff = append(buff, name...)
 	buff = append(buff, "."...)
 
-	for _, d := range attr.Description().FindAll(what) {
+	for _, d := range attr.FindAllDescription(what) {
 		buff = append(buff, " "...)
 		buff = append(buff, d.Description()...)
 	}

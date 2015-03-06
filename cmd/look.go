@@ -41,7 +41,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 		buff = append(buff, " ]\n"...)
 	}
 
-	if a := attr.Description().Find(where); a != nil {
+	if a := attr.FindDescription(where); a != nil {
 		buff = append(buff, a.Description()...)
 	}
 
