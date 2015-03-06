@@ -57,7 +57,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
 			// If container not found in inventory also check narratives where we are
 			if cWhat == nil {
-				if a := attr.Narrative().Find(cWhere); a != nil {
+				if a := attr.FindNarrative(cWhere); a != nil {
 					cWhat = a.Search(cName)
 				}
 			}

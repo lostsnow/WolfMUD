@@ -40,7 +40,7 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 
 		// If item not found in inventory try searching narratives
 		if what == nil {
-			if a := attr.Narrative().Find(where); a != nil {
+			if a := attr.FindNarrative(where); a != nil {
 				what = a.Search(name)
 			}
 		}

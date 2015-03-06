@@ -97,7 +97,7 @@ func Setup() map[string]has.Thing {
 			world["box"],
 			world["bag"],
 		),
-		Narrative().New(
+		NewNarrative(
 			Thing().New(
 				NewName("an ornate fireplace"),
 				NewDescription("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
@@ -113,7 +113,7 @@ func Setup() map[string]has.Thing {
 		NewDescription("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
 		NewAlias("tavern", "common"),
 		NewInventory(),
-		Narrative().New(
+		NewNarrative(
 			world["chairs"],
 			world["tables"],
 		),
