@@ -27,7 +27,7 @@ func main() {
 	world := attr.Setup()
 
 	// Setup test player
-	p := attr.Thing().New(
+	p := attr.NewThing(
 		attr.NewName("a player"),
 		attr.NewAlias("player"),
 		attr.NewInventory(),

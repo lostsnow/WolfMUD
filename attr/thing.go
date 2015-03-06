@@ -11,33 +11,29 @@ import (
 	"fmt"
 )
 
-type thing struct {
+type Thing struct {
 	attrs []has.Attribute
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Thing = Thing()
+	_ has.Thing = &Thing{}
 )
 
-func Thing() *thing {
-	return nil
-}
-
-func (*thing) New(a ...has.Attribute) has.Thing {
-	t := &thing{}
+func NewThing(a ...has.Attribute) *Thing {
+	t := &Thing{}
 	t.Add(a...)
 	return t
 }
 
-func (t *thing) Add(a ...has.Attribute) {
+func (t *Thing) Add(a ...has.Attribute) {
 	for _, a := range a {
 		a.SetParent(t)
 		t.attrs = append(t.attrs, a)
 	}
 }
 
-func (t *thing) Remove(a ...has.Attribute) {
+func (t *Thing) Remove(a ...has.Attribute) {
 	for _, a := range a {
 		for k, v := range t.attrs {
 			if v == a {
@@ -50,11 +46,11 @@ func (t *thing) Remove(a ...has.Attribute) {
 	}
 }
 
-func (t *thing) Attrs() []has.Attribute {
+func (t *Thing) Attrs() []has.Attribute {
 	return t.attrs
 }
 
-func (t *thing) Dump() (buff []string) {
+func (t *Thing) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T %d attributes:", t, len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
