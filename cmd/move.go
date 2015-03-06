@@ -13,7 +13,7 @@ import (
 func Move(t has.Thing, cmd string) (msg string, ok bool) {
 
 	// A thing can only move itself if it knows where it is
-	from := attr.Locate().Find(t)
+	from := attr.FindLocate(t)
 	if from == nil || from.Where() == nil {
 		msg = "You can't go anywhere. You don't know where you are!"
 		return

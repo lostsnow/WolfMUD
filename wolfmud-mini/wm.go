@@ -31,7 +31,7 @@ func main() {
 		attr.Name().New("a player"),
 		attr.NewAlias("player"),
 		attr.NewInventory(),
-		attr.Locate().New(nil),
+		attr.NewLocate(nil),
 	)
 
 	if *memprof {

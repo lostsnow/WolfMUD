@@ -26,7 +26,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Work out where we are
-	if a := attr.Locate().Find(t); a != nil {
+	if a := attr.FindLocate(t); a != nil {
 		where = a.Where()
 	}
 

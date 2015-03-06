@@ -38,7 +38,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Find out where we are - where we are going to be dropping the item
-	if a := attr.Locate().Find(t); a != nil {
+	if a := attr.FindLocate(t); a != nil {
 		where = a.Where()
 	}
 

@@ -15,7 +15,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	// Do we know where we are?
 	var where has.Thing
-	if a := attr.Locate().Find(t); a != nil {
+	if a := attr.FindLocate(t); a != nil {
 		where = a.Where()
 	}
 

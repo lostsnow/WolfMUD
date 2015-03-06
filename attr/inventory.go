@@ -48,7 +48,7 @@ func (i *Inventory) Add(t has.Thing) {
 	i.contents = append(i.contents, t)
 
 	// Is what was added interested in where it is?
-	if a := Locate().Find(t); a != nil {
+	if a := FindLocate(t); a != nil {
 		a.SetWhere(i.Parent())
 	}
 }
@@ -57,7 +57,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
 			// Is what was removed interested in where it is?
-			if a := Locate().Find(t); a != nil {
+			if a := FindLocate(t); a != nil {
 				a.SetWhere(nil)
 			}
 

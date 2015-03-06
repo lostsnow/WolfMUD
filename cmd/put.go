@@ -64,7 +64,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	if cWhat == nil {
 
 		// Work out where we are
-		if a := attr.Locate().Find(t); a != nil {
+		if a := attr.FindLocate(t); a != nil {
 			cWhere = a.Where()
 		}
 
