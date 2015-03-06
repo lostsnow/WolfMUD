@@ -26,7 +26,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Work out where we are
-	if a := attr.Locate().Find(t); a != nil {
+	if a := attr.FindLocate(t); a != nil {
 		where = a.Where()
 	}
 
@@ -39,7 +39,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Search for item we want to get in the inventory where we are
-	from := attr.Inventory().Find(where)
+	from := attr.FindInventory(where)
 	if from != nil {
 		what = from.Search(name)
 		if what == nil {
@@ -49,7 +49,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If item not found in inventory also check narratives where we are
 	if what == nil {
-		if a := attr.Narrative().Find(where); a != nil {
+		if a := attr.FindNarrative(where); a != nil {
 			what = a.Search(name)
 		}
 	}
@@ -61,14 +61,14 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check we have an inventory so we can carry things
-	to := attr.Inventory().Find(t)
+	to := attr.FindInventory(t)
 	if to == nil {
 		msg = "You can't carry anything!"
 		return
 	}
 
 	// Get item's proper name
-	if a := attr.Name().Find(what); a != nil {
+	if a := attr.FindName(what); a != nil {
 		name = a.Name()
 	}
 
@@ -86,7 +86,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the get is not vetoed by the item
-	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			msg = veto.Message()
 			return
@@ -94,7 +94,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
-	if vetoes := attr.Vetoes().Find(where); vetoes != nil {
+	if vetoes := attr.FindVetoes(where); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			msg = veto.Message()
 			return

@@ -9,28 +9,23 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-type inventory struct {
-	attribute
+type Inventory struct {
+	Attribute
 	contents []has.Thing
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Inventory()
-	_ has.Inventory = Inventory()
+	_ has.Inventory = &Inventory{}
 )
 
-func Inventory() *inventory {
-	return nil
-}
-
-func (*inventory) New(t ...has.Thing) *inventory {
+func NewInventory(t ...has.Thing) *Inventory {
 	c := make([]has.Thing, len(t))
 	copy(c, t)
-	return &inventory{attribute{}, c}
+	return &Inventory{Attribute{}, c}
 }
 
-func (*inventory) Find(t has.Thing) has.Inventory {
+func FindInventory(t has.Thing) has.Inventory {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Inventory); ok {
 			return a
@@ -39,7 +34,7 @@ func (*inventory) Find(t has.Thing) has.Inventory {
 	return nil
 }
 
-func (i *inventory) Dump() (buff []string) {
+func (i *Inventory) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T %d items:", i, len(i.contents)))
 	for _, i := range i.contents {
 		for _, i := range i.Dump() {
@@ -49,20 +44,20 @@ func (i *inventory) Dump() (buff []string) {
 	return buff
 }
 
-func (i *inventory) Add(t has.Thing) {
+func (i *Inventory) Add(t has.Thing) {
 	i.contents = append(i.contents, t)
 
 	// Is what was added interested in where it is?
-	if a := Locate().Find(t); a != nil {
+	if a := FindLocate(t); a != nil {
 		a.SetWhere(i.Parent())
 	}
 }
 
-func (i *inventory) Remove(t has.Thing) has.Thing {
+func (i *Inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
 			// Is what was removed interested in where it is?
-			if a := Locate().Find(t); a != nil {
+			if a := FindLocate(t); a != nil {
 				a.SetWhere(nil)
 			}
 
@@ -74,9 +69,9 @@ func (i *inventory) Remove(t has.Thing) has.Thing {
 	return nil
 }
 
-func (i *inventory) Search(alias string) has.Thing {
+func (i *Inventory) Search(alias string) has.Thing {
 	for _, c := range i.contents {
-		if a := Alias().Find(c); a != nil {
+		if a := FindAlias(c); a != nil {
 			if a.HasAlias(alias) {
 				return c
 			}
@@ -85,7 +80,7 @@ func (i *inventory) Search(alias string) has.Thing {
 	return nil
 }
 
-func (i *inventory) Contains(t has.Thing) bool {
+func (i *Inventory) Contains(t has.Thing) bool {
 	for _, c := range i.contents {
 		if c == t {
 			return true
@@ -94,13 +89,13 @@ func (i *inventory) Contains(t has.Thing) bool {
 	return false
 }
 
-func (i *inventory) List() []has.Thing {
+func (i *Inventory) List() []has.Thing {
 	l := make([]has.Thing, len(i.contents))
 	copy(l, i.contents)
 	return l
 }
 
-func (i *inventory) Contents() string {
+func (i *Inventory) Contents() string {
 	buff := make([]byte, 0, 1024)
 
 	switch len(i.contents) {
@@ -115,7 +110,7 @@ func (i *inventory) Contents() string {
 	mark := len(buff)
 
 	for _, c := range i.contents {
-		if a := Name().Find(c); a != nil {
+		if a := FindName(c); a != nil {
 			if len(buff) > mark {
 				buff = append(buff, "\n  "...)
 			}

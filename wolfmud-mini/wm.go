@@ -27,11 +27,11 @@ func main() {
 	world := attr.Setup()
 
 	// Setup test player
-	p := attr.Thing().New(
-		attr.Name().New("a player"),
-		attr.Alias().New("player"),
-		attr.Inventory().New(),
-		attr.Locate().New(nil),
+	p := attr.NewThing(
+		attr.NewName("a player"),
+		attr.NewAlias("player"),
+		attr.NewInventory(),
+		attr.NewLocate(nil),
 	)
 
 	if *memprof {
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Put player into the world
-	if i := attr.Exits().Find(world["loc1"]); i != nil {
+	if i := attr.FindExits(world["loc1"]); i != nil {
 		i.Place(p)
 	}
 

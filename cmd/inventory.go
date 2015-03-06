@@ -14,7 +14,7 @@ import (
 func Inventory(t has.Thing) (msg string, ok bool) {
 
 	// Try and find our inventory
-	i := attr.Inventory().Find(t)
+	i := attr.FindInventory(t)
 	if i == nil {
 		msg = "You are not carrying anything."
 		return
@@ -23,7 +23,7 @@ func Inventory(t has.Thing) (msg string, ok bool) {
 	buff := make([]byte, 0, 1024)
 
 	for _, i := range i.List() {
-		if n := attr.Name().Find(i); n != nil {
+		if n := attr.FindName(i); n != nil {
 			buff = append(buff, "\n  "...)
 			buff = append(buff, n.Name()...)
 		}

@@ -9,27 +9,22 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-type writing struct {
-	attribute
+type Writing struct {
+	Attribute
 	writing string
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute   = Writing()
-	_ has.Description = Writing()
-	_ has.Writing     = Writing()
+	_ has.Description = &Writing{}
+	_ has.Writing     = &Writing{}
 )
 
-func Writing() *writing {
-	return nil
+func NewWriting(w string) *Writing {
+	return &Writing{Attribute{}, w}
 }
 
-func (*writing) New(w string) *writing {
-	return &writing{attribute{}, w}
-}
-
-func (*writing) Find(t has.Thing) has.Writing {
+func FindWriting(t has.Thing) has.Writing {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Writing); ok {
 			return a
@@ -38,14 +33,14 @@ func (*writing) Find(t has.Thing) has.Writing {
 	return nil
 }
 
-func (w *writing) Dump() []string {
+func (w *Writing) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", w, w.writing)}
 }
 
-func (w *writing) Writing() string {
+func (w *Writing) Writing() string {
 	return w.writing
 }
 
-func (w *writing) Description() string {
+func (w *Writing) Description() string {
 	return "It has something written on it."
 }

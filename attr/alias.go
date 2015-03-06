@@ -12,30 +12,25 @@ import (
 	"strings"
 )
 
-type alias struct {
-	attribute
+type Alias struct {
+	Attribute
 	aliases map[string]struct{}
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Alias()
-	_ has.Alias     = Alias()
+	_ has.Alias = &Alias{}
 )
 
-func Alias() *alias {
-	return nil
-}
-
-func (*alias) New(a ...string) *alias {
+func NewAlias(a ...string) *Alias {
 	aliases := make(map[string]struct{}, len(a))
 	for _, a := range a {
 		aliases[strings.ToUpper(a)] = struct{}{}
 	}
-	return &alias{attribute{}, aliases}
+	return &Alias{Attribute{}, aliases}
 }
 
-func (*alias) Find(t has.Thing) has.Alias {
+func FindAlias(t has.Thing) has.Alias {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Alias); ok {
 			return a
@@ -44,7 +39,7 @@ func (*alias) Find(t has.Thing) has.Alias {
 	return nil
 }
 
-func (a *alias) Dump() []string {
+func (a *Alias) Dump() []string {
 	buff := []byte{}
 	for a := range a.aliases {
 		buff = append(buff, ", "...)
@@ -56,7 +51,7 @@ func (a *alias) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %d aliases: %s", a, len(a.aliases), buff)}
 }
 
-func (a *alias) HasAlias(alias string) (found bool) {
+func (a *Alias) HasAlias(alias string) (found bool) {
 	_, found = a.aliases[alias]
 	return
 }

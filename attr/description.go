@@ -9,26 +9,21 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-type description struct {
-	attribute
+type Description struct {
+	Attribute
 	description string
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute   = Description()
-	_ has.Description = Description()
+	_ has.Description = &Description{}
 )
 
-func Description() *description {
-	return nil
+func NewDescription(d string) *Description {
+	return &Description{Attribute{}, d}
 }
 
-func (*description) New(d string) *description {
-	return &description{attribute{}, d}
-}
-
-func (*description) Find(t has.Thing) has.Description {
+func FindDescription(t has.Thing) has.Description {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Description); ok {
 			return a
@@ -37,7 +32,7 @@ func (*description) Find(t has.Thing) has.Description {
 	return nil
 }
 
-func (*description) FindAll(t has.Thing) (matches []has.Description) {
+func FindAllDescription(t has.Thing) (matches []has.Description) {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Description); ok {
 			matches = append(matches, a)
@@ -46,10 +41,10 @@ func (*description) FindAll(t has.Thing) (matches []has.Description) {
 	return
 }
 
-func (d *description) Dump() []string {
+func (d *Description) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", d, d.description)}
 }
 
-func (d *description) Description() string {
+func (d *Description) Description() string {
 	return d.description
 }

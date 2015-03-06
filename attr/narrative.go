@@ -9,28 +9,21 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-type narrative struct {
-	*inventory
+type Narrative struct {
+	*Inventory
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Narrative()
-	_ has.Inventory = Narrative()
-	_ has.Narrative = Narrative()
+	_ has.Inventory = &Narrative{}
+	_ has.Narrative = &Narrative{}
 )
 
-func Narrative() *narrative {
-	return nil
+func NewNarrative(t ...has.Thing) *Narrative {
+	return &Narrative{NewInventory(t...)}
 }
 
-func (*narrative) New(t ...has.Thing) *narrative {
-	return &narrative{Inventory().New(t...)}
-}
-
-func (n *narrative) ImplementsNarrative() {}
-
-func (*narrative) Find(t has.Thing) has.Narrative {
+func FindNarrative(t has.Thing) has.Narrative {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Narrative); ok {
 			return a
@@ -39,7 +32,9 @@ func (*narrative) Find(t has.Thing) has.Narrative {
 	return nil
 }
 
-func (n *narrative) Dump() (buff []string) {
+func (n *Narrative) ImplementsNarrative() {}
+
+func (n *Narrative) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T %d items:", n, len(n.contents)))
 	for _, n := range n.contents {
 		for _, i := range n.Dump() {

@@ -26,20 +26,20 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Work out where we are
-	if a := attr.Locate().Find(t); a != nil {
+	if a := attr.FindLocate(t); a != nil {
 		where = a.Where()
 	}
 
 	// Are we somewhere?
 	if where != nil {
 		// Search for item in inventory where we are
-		if a := attr.Inventory().Find(where); a != nil {
+		if a := attr.FindInventory(where); a != nil {
 			what = a.Search(name)
 		}
 
 		// If item not found in inventory try searching narratives
 		if what == nil {
-			if a := attr.Narrative().Find(where); a != nil {
+			if a := attr.FindNarrative(where); a != nil {
 				what = a.Search(name)
 			}
 		}
@@ -47,7 +47,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.Inventory().Find(t); a != nil {
+		if a := attr.FindInventory(t); a != nil {
 			what = a.Search(name)
 		}
 	}
@@ -59,7 +59,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check examine is not vetoed by item
-	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("EXAMINE"); veto != nil {
 			msg = veto.Message()
 			return
@@ -68,7 +68,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	buff := make([]byte, 0, 1024)
 
-	if n := attr.Name().Find(what); n != nil {
+	if n := attr.FindName(what); n != nil {
 		name = n.Name()
 	}
 
@@ -76,12 +76,12 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	buff = append(buff, name...)
 	buff = append(buff, "."...)
 
-	for _, d := range attr.Description().FindAll(what) {
+	for _, d := range attr.FindAllDescription(what) {
 		buff = append(buff, " "...)
 		buff = append(buff, d.Description()...)
 	}
 
-	if i := attr.Inventory().Find(what); i != nil {
+	if i := attr.FindInventory(what); i != nil {
 		buff = append(buff, " "...)
 		buff = append(buff, i.Contents()...)
 	}

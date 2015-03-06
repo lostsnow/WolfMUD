@@ -11,30 +11,25 @@ import (
 	"strings"
 )
 
-type vetoes struct {
-	attribute
+type Vetoes struct {
+	Attribute
 	vetoes map[string]has.Veto
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Vetoes()
-	_ has.Vetoes    = Vetoes()
+	_ has.Vetoes = &Vetoes{}
 )
 
-func Vetoes() *vetoes {
-	return nil
-}
-
-func (*vetoes) New(veto ...has.Veto) *vetoes {
-	vetoes := &vetoes{attribute{}, make(map[string]has.Veto)}
+func NewVetoes(veto ...has.Veto) *Vetoes {
+	vetoes := &Vetoes{Attribute{}, make(map[string]has.Veto)}
 	for _, v := range veto {
 		vetoes.vetoes[v.Command()] = v
 	}
 	return vetoes
 }
 
-func (*vetoes) Find(t has.Thing) has.Vetoes {
+func FindVetoes(t has.Thing) has.Vetoes {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Vetoes); ok {
 			return a
@@ -43,7 +38,7 @@ func (*vetoes) Find(t has.Thing) has.Vetoes {
 	return nil
 }
 
-func (v *vetoes) Dump() (buff []string) {
+func (v *Vetoes) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T %d vetoes:", v, len(v.vetoes)))
 	for _, veto := range v.vetoes {
 		for _, line := range veto.Dump() {
@@ -53,7 +48,7 @@ func (v *vetoes) Dump() (buff []string) {
 	return buff
 }
 
-func (v *vetoes) Check(cmd ...string) has.Veto {
+func (v *Vetoes) Check(cmd ...string) has.Veto {
 
 	// For single checks we can take a shortcut
 	if len(cmd) == 1 {
@@ -70,32 +65,28 @@ func (v *vetoes) Check(cmd ...string) has.Veto {
 	return nil
 }
 
-type veto struct {
+type Veto struct {
 	cmd string
 	msg string
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Veto = Veto()
+	_ has.Veto = &Veto{}
 )
 
-func Veto() *veto {
-	return nil
+func NewVeto(cmd string, msg string) *Veto {
+	return &Veto{strings.ToUpper(cmd), msg}
 }
 
-func (*veto) New(cmd string, msg string) *veto {
-	return &veto{strings.ToUpper(cmd), msg}
-}
-
-func (v *veto) Dump() (buff []string) {
+func (v *Veto) Dump() (buff []string) {
 	return append(buff, DumpFmt("%p %[1]T %q:%q", v, v.Command(), v.Message()))
 }
 
-func (v *veto) Command() string {
+func (v *Veto) Command() string {
 	return v.cmd
 }
 
-func (v *veto) Message() string {
+func (v *Veto) Message() string {
 	return v.msg
 }

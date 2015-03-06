@@ -26,7 +26,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Search ourselves for item we want to drop
-	from := attr.Inventory().Find(t)
+	from := attr.FindInventory(t)
 	if from != nil {
 		what = from.Search(name)
 	}
@@ -38,7 +38,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Find out where we are - where we are going to be dropping the item
-	if a := attr.Locate().Find(t); a != nil {
+	if a := attr.FindLocate(t); a != nil {
 		where = a.Where()
 	}
 
@@ -52,14 +52,14 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check inventory available to receive dropped item
 	// NOTE: The only way this should be possible is if something is dropped when
 	// the current thing is not in the world.
-	to := attr.Inventory().Find(where)
+	to := attr.FindInventory(where)
 	if to == nil {
 		msg = "You cannot drop anything here."
 		return
 	}
 
 	// Check the drop is not vetoed by the item
-	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("DROP"); veto != nil {
 			msg = veto.Message()
 			return
@@ -67,7 +67,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
-	if vetoes := attr.Vetoes().Find(where); vetoes != nil {
+	if vetoes := attr.FindVetoes(where); vetoes != nil {
 		if veto := vetoes.Check("DROP"); veto != nil {
 			msg = veto.Message()
 			return
@@ -75,7 +75,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Get item's proper name
-	if n := attr.Name().Find(what); n != nil {
+	if n := attr.FindName(what); n != nil {
 		name = n.Name()
 	}
 

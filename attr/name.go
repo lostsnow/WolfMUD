@@ -9,30 +9,21 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-type name struct {
-	attribute
+type Name struct {
+	Attribute
 	name string
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Name()
-	_ has.Name      = Name()
+	_ has.Name = &Name{}
 )
 
-func Name() *name {
-	return nil
+func NewName(n string) *Name {
+	return &Name{Attribute{}, n}
 }
 
-func (*name) New(n string) *name {
-	return &name{attribute{}, n}
-}
-
-func (n *name) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", n, n.name)}
-}
-
-func (*name) Find(t has.Thing) has.Name {
+func FindName(t has.Thing) has.Name {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Name); ok {
 			return a
@@ -41,6 +32,10 @@ func (*name) Find(t has.Thing) has.Name {
 	return nil
 }
 
-func (n *name) Name() string {
+func (n *Name) Dump() []string {
+	return []string{DumpFmt("%p %[1]T %q", n, n.name)}
+}
+
+func (n *Name) Name() string {
 	return n.name
 }

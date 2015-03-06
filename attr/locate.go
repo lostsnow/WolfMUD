@@ -9,28 +9,23 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
-type locate struct {
-	attribute
+type Locate struct {
+	Attribute
 	where has.Thing
 }
 
 // Some interfaces we want to make sure we implement
 var (
-	_ has.Attribute = Locate()
-	_ has.Locate    = Locate()
+	_ has.Locate = &Locate{}
 )
 
-func Locate() *locate {
-	return nil
-}
-
-func (*locate) New(t has.Thing) *locate {
-	l := &locate{attribute{}, nil}
+func NewLocate(t has.Thing) *Locate {
+	l := &Locate{Attribute{}, nil}
 	l.SetWhere(t)
 	return l
 }
 
-func (*locate) Find(t has.Thing) has.Locate {
+func FindLocate(t has.Thing) has.Locate {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Locate); ok {
 			return a
@@ -39,22 +34,22 @@ func (*locate) Find(t has.Thing) has.Locate {
 	return nil
 }
 
-func (l *locate) Dump() []string {
+func (l *Locate) Dump() []string {
 	name := ""
 	if w := l.Where(); w != nil {
-		if a := Name().Find(w); a != nil {
+		if a := FindName(w); a != nil {
 			name = a.Name()
 		}
 	}
 	return []string{DumpFmt("%p %[1]T -> %p %s", l, l.where, name)}
 }
 
-func (l *locate) Where() has.Thing {
+func (l *Locate) Where() has.Thing {
 	return l.where
 }
 
 // TODO: Should we be checking that w has an inventory if we are being placed
 // there?
-func (l *locate) SetWhere(w has.Thing) {
+func (l *Locate) SetWhere(w has.Thing) {
 	l.where = w
 }
