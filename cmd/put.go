@@ -36,7 +36,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Get item's proper name
-	if n := attr.Name().Find(tWhat); n != nil {
+	if n := attr.FindName(tWhat); n != nil {
 		tName = n.Name()
 	}
 
@@ -98,7 +98,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Get container's proper name
-	if n := attr.Name().Find(cWhat); n != nil {
+	if n := attr.FindName(cWhat); n != nil {
 		cName = n.Name()
 	}
 

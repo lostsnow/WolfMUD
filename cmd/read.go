@@ -60,7 +60,7 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Get item's proper name
-	if n := attr.Name().Find(what); n != nil {
+	if n := attr.FindName(what); n != nil {
 		name = n.Name()
 	}
 

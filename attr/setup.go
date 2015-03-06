@@ -15,7 +15,7 @@ func Setup() map[string]has.Thing {
 	world := map[string]has.Thing{}
 
 	world["cheese"] = Thing().New(
-		Name().New("some cheese"),
+		NewName("some cheese"),
 		NewDescription("This is a blob of very soft, sticky, smelly cheese."),
 		NewAlias("cheese"),
 		Vetoes().New(
@@ -24,38 +24,38 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["mug"] = Thing().New(
-		Name().New("a mug"),
+		NewName("a mug"),
 		NewDescription("This is a large, white, chipped mug."),
 		Writing().New("Stay calm and drink more coffee!"),
 		NewAlias("mug"),
 		NewAlias("cup"),
 		NewInventory(
 			Thing().New(
-				Name().New("some coffee"),
+				NewName("some coffee"),
 				NewDescription("This is some hot, strong coffee."),
 			),
 		),
 	)
 
 	world["box"] = Thing().New(
-		Name().New("a box"),
+		NewName("a box"),
 		NewDescription("This is a small, wooden box."),
 		NewInventory(),
 		NewAlias("box"),
 	)
 
 	world["bag"] = Thing().New(
-		Name().New("a bag"),
+		NewName("a bag"),
 		NewDescription("This is a small bag."),
 		NewAlias("bag"),
 		NewInventory(
 			Thing().New(
-				Name().New("an apple"),
+				NewName("an apple"),
 				NewDescription("This is a juicy red apple."),
 				NewAlias("apple"),
 			),
 			Thing().New(
-				Name().New("an orange"),
+				NewName("an orange"),
 				NewDescription("This is a large orange."),
 				NewAlias("orange"),
 			),
@@ -63,19 +63,19 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["chairs"] = Thing().New(
-		Name().New("some rough chairs"),
+		NewName("some rough chairs"),
 		NewDescription("These chairs(?) are very rough wooden affairs, so rough in fact you decide it's a bad idea to sit on them without some descent rear armour to fend of the splinters."),
 		NewAlias("chair", "chairs"),
 	)
 
 	world["tables"] = Thing().New(
-		Name().New("some rough tables"),
+		NewName("some rough tables"),
 		NewDescription("Well you suppose these are tables. If so they must have been made by a blind carpenter having a very bad day."),
 		NewAlias("table", "tables"),
 	)
 
 	world["plaque"] = Thing().New(
-		Name().New("a wooden plaque"),
+		NewName("a wooden plaque"),
 		NewDescription("This is a small wooden plaque."),
 		NewAlias("plaque"),
 		Writing().New("Please do not read the plaques!"),
@@ -88,7 +88,7 @@ func Setup() map[string]has.Thing {
 	// Define some locations
 
 	world["loc1"] = Thing().New(
-		Name().New("Fireplace"),
+		NewName("Fireplace"),
 		NewDescription("You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. There is a small plaque above the fireplace. To the south the common room extends and east the common room leads to the tavern entrance."),
 		NewAlias("tavern", "fireplace"),
 		NewInventory(
@@ -99,7 +99,7 @@ func Setup() map[string]has.Thing {
 		),
 		Narrative().New(
 			Thing().New(
-				Name().New("an ornate fireplace"),
+				NewName("an ornate fireplace"),
 				NewDescription("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
 				NewAlias("fireplace", "fire"),
 			),
@@ -109,7 +109,7 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["loc2"] = Thing().New(
-		Name().New("Common Room"),
+		NewName("Common Room"),
 		NewDescription("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
 		NewAlias("tavern", "common"),
 		NewInventory(),
@@ -121,7 +121,7 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["loc3"] = Thing().New(
-		Name().New("Tavern Entrance"),
+		NewName("Tavern Entrance"),
 		NewDescription("You are in the entryway to the Dragon's Breath tavern. To the west you can see an inviting fireplace, while south an even more inviting bar. Eastward a door leads out into the street."),
 		NewAlias("tavern", "entrance"),
 		NewInventory(),
@@ -129,7 +129,7 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["loc4"] = Thing().New(
-		Name().New("Tavern Bar"),
+		NewName("Tavern Bar"),
 		NewDescription("You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here."),
 		NewAlias("tavern", "bar"),
 		NewInventory(),
@@ -137,7 +137,7 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["loc5"] = Thing().New(
-		Name().New("Street between Tavern and Bakers"),
+		NewName("Street between Tavern and Bakers"),
 		NewDescription("You are on a well kept cobbled street. Buildings looming up either side of you. To the east the smells of a bakery taunt you, west there is the entrance to a tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The street continues to the north and south."),
 		NewAlias("tavern", "bakers", "street"),
 		NewInventory(),

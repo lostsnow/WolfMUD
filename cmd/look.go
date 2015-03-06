@@ -33,9 +33,8 @@ func Look(t has.Thing) (msg string, ok bool) {
 	}
 
 	buff := make([]byte, 0, 1024)
-	attrName := attr.Name()
 
-	if a := attrName.Find(where); a != nil {
+	if a := attr.FindName(where); a != nil {
 		buff = append(buff, "[ "...)
 		buff = append(buff, a.Name()...)
 		buff = append(buff, " ]\n"...)
@@ -55,7 +54,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 			if l == t {
 				continue
 			}
-			if n := attrName.Find(l); n != nil {
+			if n := attr.FindName(l); n != nil {
 				buff = append(buff, "You can see "...)
 				buff = append(buff, n.Name()...)
 				buff = append(buff, " here.\n"...)

@@ -110,7 +110,7 @@ func (i *Inventory) Contents() string {
 	mark := len(buff)
 
 	for _, c := range i.contents {
-		if a := Name().Find(c); a != nil {
+		if a := FindName(c); a != nil {
 			if len(buff) > mark {
 				buff = append(buff, "\n  "...)
 			}

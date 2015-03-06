@@ -37,7 +37,7 @@ func FindLocate(t has.Thing) has.Locate {
 func (l *Locate) Dump() []string {
 	name := ""
 	if w := l.Where(); w != nil {
-		if a := Name().Find(w); a != nil {
+		if a := FindName(w); a != nil {
 			name = a.Name()
 		}
 	}

@@ -68,7 +68,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	buff := make([]byte, 0, 1024)
 
-	if n := attr.Name().Find(what); n != nil {
+	if n := attr.FindName(what); n != nil {
 		name = n.Name()
 	}
 

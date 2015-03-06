@@ -68,7 +68,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Get item's proper name
-	if a := attr.Name().Find(what); a != nil {
+	if a := attr.FindName(what); a != nil {
 		name = a.Name()
 	}
 
