@@ -57,7 +57,7 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 	// If still not found try where we actually are
 	if what == nil {
 		if where != nil {
-			if a := attr.Alias().Find(where); a != nil {
+			if a := attr.FindAlias(where); a != nil {
 				if a.HasAlias(aliases[0]) {
 					what = where
 				}

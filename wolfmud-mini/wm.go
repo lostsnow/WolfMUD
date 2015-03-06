@@ -29,7 +29,7 @@ func main() {
 	// Setup test player
 	p := attr.Thing().New(
 		attr.Name().New("a player"),
-		attr.Alias().New("player"),
+		attr.NewAlias("player"),
 		attr.Inventory().New(),
 		attr.Locate().New(nil),
 	)
