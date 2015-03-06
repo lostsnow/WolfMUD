@@ -26,7 +26,7 @@ func Setup() map[string]has.Thing {
 	world["mug"] = NewThing(
 		NewName("a mug"),
 		NewDescription("This is a large, white, chipped mug."),
-		Writing().New("Stay calm and drink more coffee!"),
+		NewWriting("Stay calm and drink more coffee!"),
 		NewAlias("mug"),
 		NewAlias("cup"),
 		NewInventory(
@@ -78,7 +78,7 @@ func Setup() map[string]has.Thing {
 		NewName("a wooden plaque"),
 		NewDescription("This is a small wooden plaque."),
 		NewAlias("plaque"),
-		Writing().New("Please do not read the plaques!"),
+		NewWriting("Please do not read the plaques!"),
 		NewVetoes(
 			NewVeto("get", "You can't take the plaque. It's firmly nailed to the wall."),
 			NewVeto("examine", "You try to examine the plaque but it makes your head hurt."),

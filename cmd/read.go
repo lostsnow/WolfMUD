@@ -65,7 +65,7 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Find if item has writing
-	if a := attr.Writing().Find(what); a != nil {
+	if a := attr.FindWriting(what); a != nil {
 		writing = a.Writing()
 	}
 
