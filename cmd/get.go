@@ -86,7 +86,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the get is not vetoed by the item
-	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			msg = veto.Message()
 			return
@@ -94,7 +94,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
-	if vetoes := attr.Vetoes().Find(where); vetoes != nil {
+	if vetoes := attr.FindVetoes(where); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			msg = veto.Message()
 			return

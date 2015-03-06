@@ -18,8 +18,8 @@ func Setup() map[string]has.Thing {
 		NewName("some cheese"),
 		NewDescription("This is a blob of very soft, sticky, smelly cheese."),
 		NewAlias("cheese"),
-		Vetoes().New(
-			Veto().New("drop", "You can't drop the sticky cheese!"),
+		NewVetoes(
+			NewVeto("drop", "You can't drop the sticky cheese!"),
 		),
 	)
 
@@ -79,9 +79,9 @@ func Setup() map[string]has.Thing {
 		NewDescription("This is a small wooden plaque."),
 		NewAlias("plaque"),
 		Writing().New("Please do not read the plaques!"),
-		Vetoes().New(
-			Veto().New("get", "You can't take the plaque. It's firmly nailed to the wall."),
-			Veto().New("examine", "You try to examine the plaque but it makes your head hurt."),
+		NewVetoes(
+			NewVeto("get", "You can't take the plaque. It's firmly nailed to the wall."),
+			NewVeto("examine", "You try to examine the plaque but it makes your head hurt."),
 		),
 	)
 

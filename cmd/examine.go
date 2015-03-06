@@ -59,7 +59,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check examine is not vetoed by item
-	if vetoes := attr.Vetoes().Find(what); vetoes != nil {
+	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("EXAMINE"); veto != nil {
 			msg = veto.Message()
 			return

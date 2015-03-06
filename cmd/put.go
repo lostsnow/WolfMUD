@@ -110,7 +110,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check for veto on item being put into container
-	if vetoes := attr.Vetoes().Find(tWhat); vetoes != nil {
+	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
 		if veto := vetoes.Check("DROP", "PUT"); veto != nil {
 			msg = veto.Message()
 			return
@@ -118,7 +118,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check for veto on container
-	if vetoes := attr.Vetoes().Find(cWhat); vetoes != nil {
+	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
 		if veto := vetoes.Check("PUT"); veto != nil {
 			msg = veto.Message()
 			return

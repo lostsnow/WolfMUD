@@ -95,7 +95,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check for veto on item being taken
-	if vetoes := attr.Vetoes().Find(tWhat); vetoes != nil {
+	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
 		if veto := vetoes.Check("TAKE"); veto != nil {
 			msg = veto.Message()
 			return
@@ -103,7 +103,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check for veto on container
-	if vetoes := attr.Vetoes().Find(cWhat); vetoes != nil {
+	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
 		if veto := vetoes.Check("TAKE"); veto != nil {
 			msg = veto.Message()
 			return
