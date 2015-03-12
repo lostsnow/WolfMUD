@@ -63,8 +63,8 @@ type Narrative interface {
 }
 
 type Exits interface {
-	Link(uint8, Thing)
-	Unlink(uint8)
+	Link(byte, Thing)
+	Unlink(byte)
 	List() string
 	Place(Thing)
 	Move(Thing, string) (string, bool)
