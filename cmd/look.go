@@ -40,12 +40,20 @@ func Look(t has.Thing) (msg string, ok bool) {
 		buff = append(buff, " ]\n"...)
 	}
 
-	if a := attr.FindDescription(where); a != nil {
-		buff = append(buff, a.Description()...)
+	mark := len(buff)
+
+	for _, d := range attr.FindAllDescription(where) {
+		buff = append(buff, d.Description()...)
+		buff = append(buff, " "...)
+	}
+
+	// If we added descriptions chop off space appended to last description
+	if mark != len(buff) {
+		buff = buff[:len(buff)-1]
 	}
 
 	buff = append(buff, "\n\n"...)
-	mark := len(buff)
+	mark = len(buff)
 
 	// Note: We don't want to include the looker in the list of things here which
 	// is what the l != t check is for
