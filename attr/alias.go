@@ -22,12 +22,12 @@ var (
 	_ has.Alias = &Alias{}
 )
 
-func NewAlias(a ...string) *Alias {
-	aliases := make(map[string]struct{}, len(a))
-	for _, a := range a {
-		aliases[strings.ToUpper(a)] = struct{}{}
+func NewAlias(aliases ...string) *Alias {
+	a := make(map[string]struct{}, len(aliases))
+	for _, alias := range aliases {
+		a[strings.ToUpper(alias)] = struct{}{}
 	}
-	return &Alias{Attribute{}, aliases}
+	return &Alias{Attribute{}, a}
 }
 
 func FindAlias(t has.Thing) has.Alias {
