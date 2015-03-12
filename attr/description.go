@@ -19,8 +19,8 @@ var (
 	_ has.Description = &Description{}
 )
 
-func NewDescription(d string) *Description {
-	return &Description{Attribute{}, d}
+func NewDescription(description string) *Description {
+	return &Description{Attribute{}, description}
 }
 
 func FindDescription(t has.Thing) has.Description {
