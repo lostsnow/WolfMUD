@@ -99,12 +99,39 @@ func (e *Exits) Dump() []string {
 	return []string{DumpFmt("%p %[1]T -> %s", e, buff)}
 }
 
+func Return(direction byte) byte {
+	if direction < Up {
+		return direction ^ 1<<2
+	}
+	return direction ^ 1
+}
+
 func (e *Exits) Link(direction byte, to has.Thing) {
 	e.exits[direction] = to
 }
 
+func (e *Exits) AutoLink(direction byte, to has.Thing) {
+	e.Link(direction, to)
+	if E := FindExits(to); E != nil {
+		E.Link(Return(direction), e.Parent())
+	}
+}
+
 func (e *Exits) Unlink(direction byte) {
 	e.exits[direction] = nil
+}
+
+func (e *Exits) AutoUnlink(direction byte) {
+	to := e.exits[direction]
+	e.Unlink(direction)
+
+	if to == nil {
+		return
+	}
+
+	if E := FindExits(to); E != nil {
+		E.Unlink(Return(direction))
+	}
 }
 
 func (e *Exits) List() string {

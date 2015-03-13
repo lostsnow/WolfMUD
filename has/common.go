@@ -64,7 +64,9 @@ type Narrative interface {
 
 type Exits interface {
 	Link(byte, Thing)
+	AutoLink(byte, Thing)
 	Unlink(byte)
+	AutoUnlink(byte)
 	List() string
 	Place(Thing)
 	Move(Thing, string) (string, bool)
