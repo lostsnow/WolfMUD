@@ -68,7 +68,6 @@ type Exits interface {
 	Unlink(byte)
 	AutoUnlink(byte)
 	List() string
-	Place(Thing)
 	Move(Thing, string) (string, bool)
 }
 

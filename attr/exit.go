@@ -169,12 +169,6 @@ func (e *Exits) List() string {
 	}
 }
 
-func (e *Exits) Place(t has.Thing) {
-	if a := FindInventory(e.Parent()); a != nil {
-		a.Add(t)
-	}
-}
-
 func (e *Exits) Move(t has.Thing, cmd string) (msg string, ok bool) {
 
 	d, valid := directionIndex[cmd]
