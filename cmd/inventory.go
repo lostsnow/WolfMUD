@@ -22,7 +22,7 @@ func Inventory(t has.Thing) (msg string, ok bool) {
 
 	buff := make([]byte, 0, 1024)
 
-	for _, i := range i.List() {
+	for _, i := range i.Contents() {
 		if n := attr.FindName(i); n != nil {
 			buff = append(buff, "\n  "...)
 			buff = append(buff, n.Name()...)

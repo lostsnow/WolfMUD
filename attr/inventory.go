@@ -89,13 +89,13 @@ func (i *Inventory) Contains(t has.Thing) bool {
 	return false
 }
 
-func (i *Inventory) List() []has.Thing {
+func (i *Inventory) Contents() []has.Thing {
 	l := make([]has.Thing, len(i.contents))
 	copy(l, i.contents)
 	return l
 }
 
-func (i *Inventory) Contents() string {
+func (i *Inventory) List() string {
 	buff := make([]byte, 0, 1024)
 
 	switch len(i.contents) {

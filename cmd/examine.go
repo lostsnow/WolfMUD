@@ -83,7 +83,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	if i := attr.FindInventory(what); i != nil {
 		buff = append(buff, " "...)
-		buff = append(buff, i.Contents()...)
+		buff = append(buff, i.List()...)
 	}
 
 	return string(buff), true
