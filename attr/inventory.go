@@ -9,22 +9,44 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Inventory implements an attribute for container inventories. The most common
+// container usage is for locations and rooms as well as actual containers like
+// bags, boxes and inventories for mobiles. WolfMUD does not actually define a
+// specific type for locations. Locations are simply Things that have Inventory
+// and usually Exits attributes.
+//
+// BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
 	Attribute
 	contents []has.Thing
 }
 
-// Some interfaces we want to make sure we implement
+// Some interfaces we want to make sure we implement. If we don't we'll throw
+// compile time errors.
 var (
 	_ has.Inventory = &Inventory{}
 )
 
+// NewInventory returns a new Inventory attribute initialised with the
+// specified Things as initial contents.
+//
+// BUG(diddymus): NewInventory should use proper copies of the Things passed.
+// Until Attribute and Thing implement a Copy method we can't do that.
+// Implementing a Copy method instead of building a reflect deep copy is more
+// desirable as it will allow us to fine tune exactly what is copied and how it
+// is copied when duplicating a Thing.
 func NewInventory(t ...has.Thing) *Inventory {
 	c := make([]has.Thing, len(t))
+
+	// Shallow copy only - interface headers or pointers
 	copy(c, t)
+
 	return &Inventory{Attribute{}, c}
 }
 
+// FindInventory searches the attributes of the specified Thing for attributes
+// that implement has.Inventory returning the first match it finds or nil
+// otherwise.
 func FindInventory(t has.Thing) has.Inventory {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Inventory); ok {
@@ -44,23 +66,26 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
+// Add put the specified Thing into the Inventory. If the Thing needs to know
+// where it is - because it implements the has.Locate interface - we update
+// where the Thing is to point to the Inventory.
 func (i *Inventory) Add(t has.Thing) {
 	i.contents = append(i.contents, t)
-
-	// Is what was added interested in where it is?
 	if a := FindLocate(t); a != nil {
 		a.SetWhere(i.Parent())
 	}
 }
 
+// Remove tries to take the specified Thing from the Inventory. If the Thing is
+// removed successfully it is returned otherwise nil is returned. If the Thing
+// needs to know where it is - because it implements the has.Locate interface -
+// we update where the Thing is to nil as it is now nowhere.
 func (i *Inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
-			// Is what was removed interested in where it is?
 			if a := FindLocate(t); a != nil {
 				a.SetWhere(nil)
 			}
-
 			i.contents[j] = nil
 			i.contents = append(i.contents[:j], i.contents[j+1:]...)
 			return c
@@ -69,6 +94,8 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 	return nil
 }
 
+// Search returns the first Inventory Thing that matches the alias passed. If
+// no matches are found nil is returned.
 func (i *Inventory) Search(alias string) has.Thing {
 	for _, c := range i.contents {
 		if a := FindAlias(c); a != nil {
@@ -80,21 +107,42 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
+// Contents returns a 'copy' of the Inventory contents. That is a copy of the
+// slice containing has.Thing interface headers. Therefore the Inventory
+// contents may be indirectly manipulated through the copy but changes to the
+// actual slice are not possible - use the Add and Remove methods instead.
 func (i *Inventory) Contents() []has.Thing {
 	l := make([]has.Thing, len(i.contents))
 	copy(l, i.contents)
 	return l
 }
 
+// List returns a string describing the contents of an Inventory. The format of
+// the string is dependant on the number of items. If the Inventory is empty:
+//
+//	It is empty.
+//
+// A single item only:
+//
+//	It contains xxx.
+//
+// Multiple items:
+//
+//	It contains:
+//		Item
+//		Item
+//		Item
+//		...
+//
 func (i *Inventory) List() string {
 	buff := make([]byte, 0, 1024)
 
 	switch len(i.contents) {
-	case 0: // Empty? Just return
+	case 0:
 		return "It is empty."
-	case 1: // Single item? Use a sentance: "It contains XXX."
+	case 1:
 		buff = append(buff, "It contains "...)
-	default: // For multiple items display a list of them.
+	default:
 		buff = append(buff, "It contains:\n  "...)
 	}
 
@@ -109,7 +157,7 @@ func (i *Inventory) List() string {
 		}
 	}
 
-	// End single item sentance with a fullstop.
+	// End single item sentence with a fullstop.
 	if len(i.contents) == 1 {
 		buff = append(buff, "."...)
 	}
