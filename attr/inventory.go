@@ -80,15 +80,6 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
-func (i *Inventory) Contains(t has.Thing) bool {
-	for _, c := range i.contents {
-		if c == t {
-			return true
-		}
-	}
-	return false
-}
-
 func (i *Inventory) Contents() []has.Thing {
 	l := make([]has.Thing, len(i.contents))
 	copy(l, i.contents)

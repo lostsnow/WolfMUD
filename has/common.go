@@ -48,7 +48,6 @@ type Inventory interface {
 	Add(Thing)
 	Remove(Thing) Thing
 	Search(string) Thing
-	Contains(Thing) bool
 	Contents() []Thing
 	List() string
 }
@@ -57,7 +56,6 @@ type Narrative interface {
 	Add(Thing)
 	Remove(Thing) Thing
 	Search(string) Thing
-	Contains(Thing) bool
 	List() string
 	ImplementsNarrative()
 }
