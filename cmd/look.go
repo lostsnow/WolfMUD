@@ -11,16 +11,21 @@ import (
 )
 
 // Syntax: ( LOOK | L )
+//
+// BUG(diddymus): If we look and where we are has a narrative attribute but no
+// inventory attribute the narrative contents will be listed by mistake. Is
+// this an example of a bigger problem with narratives/inventories still?
 func Look(t has.Thing) (msg string, ok bool) {
 
 	// Do we know where we are?
 	var where has.Thing
-	if a := attr.FindLocate(t); a != nil {
-		where = a.Where()
+	locater := attr.FindLocate(t)
+	if locater != nil {
+		where = locater.Where()
 	}
 
 	// Or are we the where?
-	if where == nil {
+	if locater == nil {
 		if a := attr.FindInventory(t); a != nil {
 			where = t
 		}
