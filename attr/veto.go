@@ -11,16 +11,26 @@ import (
 	"strings"
 )
 
+// TODO: Currently vetoes can only be applied to the Thing they are vetoing
+// for. This means, for example, a guard could not veto the get of items at a
+// location it is guarding. Also a Veto is static and unconditional.
+
+// Vetoes implement an attribute for lists of Veto preventing commands for a
+// Thing that would otherwise be valid. For example you could Veto the drop
+// command if a very sticky item is picked up :)
 type Vetoes struct {
 	Attribute
 	vetoes map[string]has.Veto
 }
 
-// Some interfaces we want to make sure we implement
+// Some interfaces we want to make sure we implement. If we don't we'll throw
+// compile time errors.
 var (
 	_ has.Vetoes = &Vetoes{}
 )
 
+// NewVetoes returns a new Vetoes attribute initialised with the specified
+// Vetos.
 func NewVetoes(veto ...has.Veto) *Vetoes {
 	vetoes := &Vetoes{Attribute{}, make(map[string]has.Veto)}
 	for _, v := range veto {
@@ -29,6 +39,9 @@ func NewVetoes(veto ...has.Veto) *Vetoes {
 	return vetoes
 }
 
+// FindVetoes searches the attributes of the specified Thing for attributes
+// that implement has.Vetoes returning the first match it finds or nil
+// otherwise.
 func FindVetoes(t has.Thing) has.Vetoes {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Vetoes); ok {
@@ -48,6 +61,8 @@ func (v *Vetoes) Dump() (buff []string) {
 	return buff
 }
 
+// Check checks if any of the passed commands are vetoed. The first matching
+// Veto found is returned otherwise nil is returned.
 func (v *Vetoes) Check(cmd ...string) has.Veto {
 
 	// For single checks we can take a shortcut
@@ -65,16 +80,25 @@ func (v *Vetoes) Check(cmd ...string) has.Veto {
 	return nil
 }
 
+// Veto implements a veto for a specific command. Veto need to be added to a
+// Vetoes list using NewVetoes.
 type Veto struct {
 	cmd string
 	msg string
 }
 
-// Some interfaces we want to make sure we implement
+// Some interfaces we want to make sure we implement. If we don't we'll throw
+// compile time errors.
 var (
 	_ has.Veto = &Veto{}
 )
 
+// NewVeto returns a new Veto attribute initialised for the specified command
+// with the specified message text. The command is a normal command such as GET
+// and DROP and will automatically be uppercased. The message text should
+// indicate why the command was vetoed such as "You can't drop the sword. It
+// seems to be cursed". Referring to specific items - such as the sword in the
+// example - is valid as a Veto is for a specific known Thing.
 func NewVeto(cmd string, msg string) *Veto {
 	return &Veto{strings.ToUpper(cmd), msg}
 }
@@ -83,10 +107,12 @@ func (v *Veto) Dump() (buff []string) {
 	return append(buff, DumpFmt("%p %[1]T %q:%q", v, v.Command(), v.Message()))
 }
 
+// Command returns the command associated with the Veto.
 func (v *Veto) Command() string {
 	return v.cmd
 }
 
+// Message returns the message associated with the Veto.
 func (v *Veto) Message() string {
 	return v.msg
 }
