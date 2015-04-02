@@ -9,6 +9,15 @@ import (
 	"code.wolfmud.org/WolfMUD-mini.git/has"
 )
 
+// Writing implements an attribute that allows for writing to be put onto any
+// Thing so that it can be read.
+//
+// TODO: Writing currently assumes the text is written onto a Thing. However it
+// could also be carved, burnt, painted, etc. onto a Thing. It also assumes the
+// text is in a common language known to all. If language were implemented we
+// could write in common, elvish, dwarfish, ancient runes, secret code or
+// anything else with the text only being readable by those who know the
+// relevant language. See also the Writing Description method.
 type Writing struct {
 	Attribute
 	writing string
@@ -20,10 +29,15 @@ var (
 	_ has.Writing     = &Writing{}
 )
 
+// NewWriting returns a new Writing attribute initialised with the specified
+// writing/text.
 func NewWriting(w string) *Writing {
 	return &Writing{Attribute{}, w}
 }
 
+// FindWriting searches the attributes of the specified Thing for attributes
+// that implement has.Writing returning the first match it finds or nil
+// otherwise.
 func FindWriting(t has.Thing) has.Writing {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Writing); ok {
@@ -37,10 +51,16 @@ func (w *Writing) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", w, w.writing)}
 }
 
+// Writing returns the text that has been written.
 func (w *Writing) Writing() string {
 	return w.writing
 }
 
+// Description automatically adds the specified text to the description of a
+// Thing that has a has.Writing attribute.
+//
+// FIXME: This should return a message based on the type of writing: runes,
+// painting, carving etc. See also TODO for the Writing type.
 func (w *Writing) Description() string {
 	return "It has something written on it."
 }
