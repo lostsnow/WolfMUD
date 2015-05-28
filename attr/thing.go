@@ -11,6 +11,9 @@ import (
 	"fmt"
 )
 
+// Thing is a container for Attributes. Everything in WolfMUD is constructed by
+// creating a Thing and then adding Attributes to it which implement specific
+// functionality.
 type Thing struct {
 	attrs []has.Attribute
 }
@@ -20,12 +23,18 @@ var (
 	_ has.Thing = &Thing{}
 )
 
+// NewThing returns a new Thing initialised with the specified Attributes.
+// Attributes can also be dynamically modified using Add and Remove methods.
 func NewThing(a ...has.Attribute) *Thing {
 	t := &Thing{}
 	t.Add(a...)
 	return t
 }
 
+// Add is used to add the passed Attributes to a Thing. When an Attribute is
+// added its parent is set to reference the Thing it was added to. This allows
+// an Attribute to find and query the parent Thing about other Attributes the
+// Thing may have.
 func (t *Thing) Add(a ...has.Attribute) {
 	for _, a := range a {
 		a.SetParent(t)
@@ -33,6 +42,9 @@ func (t *Thing) Add(a ...has.Attribute) {
 	}
 }
 
+// Remove is used to remove the passed Attributes from a Thing. When an
+// Attribute is removed its parent it set to nil. There is no indication if an
+// Attribute cannot actually be removed.
 func (t *Thing) Remove(a ...has.Attribute) {
 	for _, a := range a {
 		for k, v := range t.attrs {
@@ -46,6 +58,9 @@ func (t *Thing) Remove(a ...has.Attribute) {
 	}
 }
 
+// Attrs returns all of the Attributes a Thing has as a slice of has.Attribute.
+// This is commonly used to range over all of the Attributes of a Thing instead
+// of using a finder for a specific type of Attribute.
 func (t *Thing) Attrs() []has.Attribute {
 	return t.attrs
 }
@@ -64,19 +79,28 @@ func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
 
+// Attribute implements a stub for other attributes. Any types providing
+// attributes can embed this type instead of implementing their own Parent and
+// SetParent methods.
 type Attribute struct {
 	parent has.Thing
 }
 
-// Some interfaces we want to make sure we implement
-// TODO: Is it odd attribute does not implement has.Attribute even though it is
+// Some interfaces we want to make sure we implement. If we don't we'll throw
+// compile time errors.
+//
+// TODO: Is it odd Attribute does not implement has.Attribute even though it is
 // supposed to be the default implementation?
-//var _ has.Attribute = &attribute{}
+//var _ has.Attribute = &Attribute{}
 
+// Parent returns the Thing that the Attribute has been added to.
 func (a *Attribute) Parent() has.Thing {
 	return a.parent
 }
 
+// SetParent is used to set the Thing that the Attribute has been added to. If
+// it is not currently added to a Thing nil is returned. This method is
+// automatically called by the Thing Add method.
 func (a *Attribute) SetParent(t has.Thing) {
 	a.parent = t
 }
