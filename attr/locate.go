@@ -6,7 +6,7 @@
 package attr
 
 import (
-	"code.wolfmud.org/WolfMUD-mini.git/has"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Locate implements an attribute that refers to the Thing containing the

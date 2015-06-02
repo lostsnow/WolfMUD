@@ -6,8 +6,8 @@
 package cmd
 
 import (
-	"code.wolfmud.org/WolfMUD-mini.git/attr"
-	"code.wolfmud.org/WolfMUD-mini.git/has"
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 func Move(t has.Thing, cmd string) (msg string, ok bool) {

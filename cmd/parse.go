@@ -6,7 +6,7 @@
 package cmd
 
 import (
-	"code.wolfmud.org/WolfMUD-mini.git/has"
+	"code.wolfmud.org/WolfMUD.git/has"
 
 	"strings"
 )

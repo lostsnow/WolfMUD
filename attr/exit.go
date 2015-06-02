@@ -6,7 +6,7 @@
 package attr
 
 import (
-	"code.wolfmud.org/WolfMUD-mini.git/has"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Constants for direction indexes. These can be used for the Link, AutoLink,

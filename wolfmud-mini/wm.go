@@ -6,9 +6,9 @@
 package main
 
 import (
-	"code.wolfmud.org/WolfMUD-mini.git/attr"
-	"code.wolfmud.org/WolfMUD-mini.git/cmd"
-	"code.wolfmud.org/WolfMUD-mini.git/text"
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/cmd"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bufio"
 	"flag"
