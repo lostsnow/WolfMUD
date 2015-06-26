@@ -19,18 +19,22 @@ type Attribute interface {
 }
 
 type Name interface {
+	Attribute
 	Name() string
 }
 
 type Description interface {
+	Attribute
 	Description() string
 }
 
 type Writing interface {
+	Attribute
 	Writing() string
 }
 
 type Vetoes interface {
+	Attribute
 	Check(...string) Veto
 }
 
@@ -41,10 +45,12 @@ type Veto interface {
 }
 
 type Alias interface {
+	Attribute
 	HasAlias(string) bool
 }
 
 type Inventory interface {
+	Attribute
 	Add(Thing)
 	Remove(Thing) Thing
 	Search(string) Thing
@@ -53,6 +59,7 @@ type Inventory interface {
 }
 
 type Narrative interface {
+	Attribute
 	Add(Thing)
 	Remove(Thing) Thing
 	Search(string) Thing
@@ -61,6 +68,7 @@ type Narrative interface {
 }
 
 type Exits interface {
+	Attribute
 	Link(byte, Thing)
 	AutoLink(byte, Thing)
 	Unlink(byte)
@@ -70,6 +78,7 @@ type Exits interface {
 }
 
 type Locate interface {
+	Attribute
 	Where() Thing
 	SetWhere(Thing)
 }
