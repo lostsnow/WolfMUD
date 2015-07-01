@@ -69,8 +69,8 @@ type Narrative interface {
 
 type Exits interface {
 	Attribute
-	Link(byte, Thing)
-	AutoLink(byte, Thing)
+	Link(byte, Inventory)
+	AutoLink(byte, Inventory)
 	Unlink(byte)
 	AutoUnlink(byte)
 	List() string

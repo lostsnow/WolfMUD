@@ -68,11 +68,11 @@ var directionIndex = map[string]byte{
 // Exits implements an attribute describing exits for the eight compass points
 // north, northeast, east, southeast, south, southwest, west and northwest as
 // well as the directions up and down and where they lead to. Exits are usually
-// in pairs, for example one north and one back south although you can have one
-// way exits or exits back that leads somewhere else.
+// in pairs, for example one north and one back south. You can have one way
+// exits or return exits that do not lead back to where you came from.
 type Exits struct {
 	Attribute
-	exits [len(directionNames)]has.Thing
+	exits [len(directionNames)]has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -85,7 +85,7 @@ var (
 // cannot be set during initialisation like most other attributes is that all
 // 'locations' have to be setup before they can all be linked together.
 func NewExits() *Exits {
-	return &Exits{Attribute{}, [len(directionNames)]has.Thing{}}
+	return &Exits{Attribute{}, [len(directionNames)]has.Inventory{}}
 }
 
 // FindExits searches the attributes of the specified Thing for attributes that
@@ -106,7 +106,7 @@ func (e *Exits) Dump() []string {
 			buff = append(buff, ", "...)
 			buff = append(buff, directionNames[i]...)
 			buff = append(buff, ": "...)
-			if a := FindName(e); a != nil {
+			if a := FindName(e.Parent()); a != nil {
 				buff = append(buff, a.Name()...)
 			}
 		}
@@ -129,19 +129,20 @@ func Return(direction byte) byte {
 	return direction ^ 1
 }
 
-// Link links the given exit direction to the given Thing. If the given
+// Link links the given exit direction to the given Inventory. If the given
 // direction was already linked the exit will be overwritten - in effect the
 // same as unlinking the exit first and then relinking it.
-func (e *Exits) Link(direction byte, to has.Thing) {
+func (e *Exits) Link(direction byte, to has.Inventory) {
 	e.exits[direction] = to
 }
 
 // AutoLink links the given exit, calculates the opposite return exit and links
-// that automatically as well - as long as the to Thing has an Exits attribute.
-func (e *Exits) AutoLink(direction byte, to has.Thing) {
+// that automatically as well - as long as the parent Thing of the to Inventory
+// has an Exits attribute.
+func (e *Exits) AutoLink(direction byte, to has.Inventory) {
 	e.Link(direction, to)
-	if E := FindExits(to); E != nil {
-		E.Link(Return(direction), e.Parent())
+	if E := FindExits(to.Parent()); E != nil {
+		E.Link(Return(direction), FindInventory(e.Parent()))
 	}
 }
 
@@ -165,7 +166,7 @@ func (e *Exits) AutoUnlink(direction byte) {
 		return
 	}
 
-	if E := FindExits(to); E != nil {
+	if E := FindExits(to.Parent()); E != nil {
 		E.Unlink(Return(direction))
 	}
 }
@@ -209,8 +210,8 @@ func (e *Exits) List() string {
 	}
 }
 
-// Move relocates a thing from it's current inventory to the inventory of the
-// thing found following the given direction's exit. Note we use Thing a lot
+// Move relocates a Thing from it's current Inventory to the Inventory of the
+// Thing found following the given direction's exit. Note we use Thing a lot
 // here as a location can be anything with an inventory - with or without
 // exits!
 //
@@ -226,7 +227,8 @@ func (e *Exits) Move(t has.Thing, direction string) (msg string, ok bool) {
 		return
 	}
 
-	if e.exits[d] == nil {
+	to := e.exits[d]
+	if to == nil {
 		msg = "You can't go " + directionNames[d] + " from here!"
 		return
 	}
@@ -234,12 +236,6 @@ func (e *Exits) Move(t has.Thing, direction string) (msg string, ok bool) {
 	from := FindInventory(e.Parent())
 	if from == nil {
 		msg = "You are not sure where you are, let alone where you are going."
-		return
-	}
-
-	to := FindInventory(e.exits[d])
-	if to == nil {
-		msg = "For some odd reason you can't go " + directionNames[d] + "."
 		return
 	}
 
