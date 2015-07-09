@@ -51,7 +51,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		cName = aliases[1]
 
 		cWhat  has.Thing
-		cWhere has.Thing
+		cWhere has.Inventory
 	)
 
 	// Search ourselves for container to get something from
@@ -72,13 +72,11 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		if cWhere != nil {
 
 			// Search for container in the inventory where we are
-			if a := attr.FindInventory(cWhere); a != nil {
-				cWhat = a.Search(cName)
-			}
+			cWhat = cWhere.Search(cName)
 
 			// If container not found in inventory also check narratives where we are
 			if cWhat == nil {
-				if a := attr.FindNarrative(cWhere); a != nil {
+				if a := attr.FindNarrative(cWhere.Parent()); a != nil {
 					cWhat = a.Search(cName)
 				}
 			}

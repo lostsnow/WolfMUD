@@ -24,7 +24,7 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 		name = aliases[0]
 
 		what  has.Thing
-		where has.Thing
+		where has.Inventory
 	)
 
 	// Work out where we are
@@ -35,13 +35,11 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Are we somewhere?
 	if where != nil {
 		// Search for item in inventory where we are
-		if a := attr.FindInventory(where); a != nil {
-			what = a.Search(name)
-		}
+		what = where.Search(name)
 
 		// If item not found in inventory try searching narratives
 		if what == nil {
-			if a := attr.FindNarrative(where); a != nil {
+			if a := attr.FindNarrative(where.Parent()); a != nil {
 				what = a.Search(name)
 			}
 		}
@@ -57,9 +55,10 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 	// If still not found try where we actually are
 	if what == nil {
 		if where != nil {
-			if a := attr.FindAlias(where); a != nil {
+			parent := where.Parent()
+			if a := attr.FindAlias(parent); a != nil {
 				if a.HasAlias(aliases[0]) {
-					what = where
+					what = parent
 				}
 			}
 		}

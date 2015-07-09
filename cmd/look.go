@@ -18,7 +18,7 @@ import (
 func Look(t has.Thing) (msg string, ok bool) {
 
 	// Do we know where we are?
-	var where has.Thing
+	var where has.Inventory
 	locater := attr.FindLocate(t)
 	if locater != nil {
 		where = locater.Where()
@@ -27,7 +27,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 	// Or are we the where?
 	if locater == nil {
 		if a := attr.FindInventory(t); a != nil {
-			where = t
+			where = a
 		}
 	}
 
@@ -39,7 +39,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	buff := make([]byte, 0, 1024)
 
-	if a := attr.FindName(where); a != nil {
+	if a := attr.FindName(where.Parent()); a != nil {
 		buff = append(buff, "[ "...)
 		buff = append(buff, a.Name()...)
 		buff = append(buff, " ]\n"...)
@@ -47,7 +47,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	mark := len(buff)
 
-	for _, d := range attr.FindAllDescription(where) {
+	for _, d := range attr.FindAllDescription(where.Parent()) {
 		buff = append(buff, d.Description()...)
 		buff = append(buff, " "...)
 	}
@@ -62,7 +62,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 
 	// Note: We don't want to include the looker in the list of things here which
 	// is what the l != t check is for
-	if a := attr.FindInventory(where); a != nil {
+	if a := attr.FindInventory(where.Parent()); a != nil {
 		for _, l := range a.Contents() {
 			if l == t {
 				continue
@@ -79,7 +79,7 @@ func Look(t has.Thing) (msg string, ok bool) {
 		buff = append(buff, "\n"...)
 	}
 
-	if a := attr.FindExits(where); a != nil {
+	if a := attr.FindExits(where.Parent()); a != nil {
 		buff = append(buff, a.List()...)
 	} else {
 		buff = append(buff, "You can see no immediate exits from here."...)

@@ -22,7 +22,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		name = aliases[0]
 
 		what  has.Thing
-		where has.Thing
+		where has.Inventory
 	)
 
 	// Work out where we are
@@ -33,13 +33,11 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Are we somewhere?
 	if where != nil {
 		// Search for item in inventory where we are
-		if a := attr.FindInventory(where); a != nil {
-			what = a.Search(name)
-		}
+		what = where.Search(name)
 
 		// If item not found in inventory try searching narratives
 		if what == nil {
-			if a := attr.FindNarrative(where); a != nil {
+			if a := attr.FindNarrative(where.Parent()); a != nil {
 				what = a.Search(name)
 			}
 		}

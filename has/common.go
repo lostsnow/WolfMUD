@@ -79,6 +79,6 @@ type Exits interface {
 
 type Locate interface {
 	Attribute
-	Where() Thing
-	SetWhere(Thing)
+	Where() Inventory
+	SetWhere(Inventory)
 }
