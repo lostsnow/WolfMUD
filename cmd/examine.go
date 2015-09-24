@@ -30,16 +30,15 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		where = a.Where()
 	}
 
-	// Are we somewhere?
+	// If we can, search where we are
 	if where != nil {
-		// Search for item in inventory where we are
 		what = where.Search(name)
+	}
 
-		// If item not found in inventory try searching narratives
-		if what == nil {
-			if a := attr.FindNarrative(where.Parent()); a != nil {
-				what = a.Search(name)
-			}
+	// If item not found still see if we can search narratives
+	if what == nil && where != nil {
+		if a := attr.FindNarrative(where.Parent()); a != nil {
+			what = a.Search(name)
 		}
 	}
 
@@ -50,7 +49,7 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		}
 	}
 
-	// Was item to examine found?
+	// Was item to examine eventually found?
 	if what == nil {
 		msg = "You see no '" + name + "' to examine."
 		return
@@ -64,23 +63,23 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		}
 	}
 
-	buff := make([]byte, 0, 1024)
-
+	// Get item's proper name
 	if n := attr.FindName(what); n != nil {
 		name = n.Name()
 	}
 
+	buff := make([]byte, 0, 1024)
 	buff = append(buff, "You examine "...)
 	buff = append(buff, name...)
-	buff = append(buff, "."...)
+	buff = append(buff, '.')
 
 	for _, d := range attr.FindAllDescription(what) {
-		buff = append(buff, " "...)
+		buff = append(buff, ' ')
 		buff = append(buff, d.Description()...)
 	}
 
 	if i := attr.FindInventory(what); i != nil {
-		buff = append(buff, " "...)
+		buff = append(buff, ' ')
 		buff = append(buff, i.List()...)
 	}
 
