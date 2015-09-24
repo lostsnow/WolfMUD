@@ -42,16 +42,10 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 		where = a.Where()
 	}
 
-	// Are we somewhere?
+	// Are we somewhere? We need to be somewhere so that the location can receive
+	// the dropped item.
+	//
 	// TODO: We could drop and junk item if nowhere instead of aborting?
-	if where == nil {
-		msg = "You cannot drop anything here."
-		return
-	}
-
-	// Check inventory available to receive dropped item
-	// NOTE: The only way this should be possible is if something is dropped when
-	// the current thing is not in the world.
 	if where == nil {
 		msg = "You cannot drop anything here."
 		return
