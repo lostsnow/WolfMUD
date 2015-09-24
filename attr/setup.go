@@ -102,6 +102,9 @@ func Setup() map[string]has.Thing {
 				NewName("an ornate fireplace"),
 				NewDescription("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
 				NewAlias("fireplace", "fire"),
+				NewVetoes(
+					NewVeto("get", "You try and rip the ornate fireplace out of the wall but it's just too heavy."),
+				),
 			),
 			world["plaque"],
 		),
