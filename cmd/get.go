@@ -39,17 +39,15 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Search for item we want to get in the inventory where we are
-	if where != nil {
-		what = where.Search(name)
-		if what == nil {
-			where = nil
-		}
-	}
+	what = where.Search(name)
 
 	// If item not found in inventory also check narratives where we are
+	// NOTE: Setting where to nil if we find the item prevents it from being
+	// taken from the narrative inventory.
 	if what == nil {
 		if a := attr.FindNarrative(where.Parent()); a != nil {
 			what = a.Search(name)
+			where = nil
 		}
 	}
 
@@ -77,19 +75,20 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	// If item not from where's inventory cannot get item - most likely a
-	// narrative item
-	if where == nil {
-		msg = "You cannot get " + name + "."
-		return
-	}
-
 	// Check the get is not vetoed by the item
 	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			msg = veto.Message()
 			return
 		}
+	}
+
+	// If item not from where's inventory cannot get item - most likely a
+	// narrative item - we do this check after the item veto check as the veto
+	// could give us a better message/reson for not being able to take the item.
+	if where == nil {
+		msg = "You cannot get " + name + "."
+		return
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
