@@ -31,16 +31,17 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 		where = a.Where()
 	}
 
-	// Are we somewhere?
-	if where != nil {
-		// Search for item in inventory where we are
+	// If we are somewhere and item not found yet try searching inventory where
+	// we are
+	if where != nil && what == nil {
 		what = where.Search(name)
+	}
 
-		// If item not found in inventory try searching narratives
-		if what == nil {
-			if a := attr.FindNarrative(where.Parent()); a != nil {
-				what = a.Search(name)
-			}
+	// If we are somewhere and item still not found try searching narratives
+	// where we are
+	if where != nil && what == nil {
+		if a := attr.FindNarrative(where.Parent()); a != nil {
+			what = a.Search(name)
 		}
 	}
 
