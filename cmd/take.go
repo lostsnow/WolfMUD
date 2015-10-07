@@ -20,7 +20,9 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	tName := aliases[0]
 
-	// Was container specified? (Item would be in container, cannot resolve tName)
+	// Was container specified? We have to check for the container first as the
+	// item would be in the container, if there is no container specified we
+	// cannot find the item and hence resolve the proper name for it.
 	if len(aliases) < 2 {
 		msg = "What did you want to take '" + tName + "' out of?"
 		return
@@ -29,35 +31,39 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	var (
 		cName = aliases[1]
 
-		cWhat  has.Thing
-		cWhere has.Inventory
+		cWhat has.Thing
 	)
 
-	// Search ourselves for container to get something from
-	from := attr.FindInventory(t)
-	if from != nil {
-		cWhat = from.Search(cName)
+	// Find the taking things own inventory. We remember this inventory as this
+	// is where the item will be put if sucessfully taken from the container
+	tWhere := attr.FindInventory(t)
+
+	// If we found and inventory search it for the container
+	if tWhere != nil {
+		cWhat = tWhere.Search(cName)
 	}
 
-	// Container not found?
+	// If container not found yet work out where we are and search there
 	if cWhat == nil {
+		var where has.Inventory
 
-		// Work out where we are
 		if a := attr.FindLocate(t); a != nil {
-			cWhere = a.Where()
+			where = a.Where()
 		}
 
-		// If we are somewhere then check around us
-		if cWhere != nil {
+		// If we are nowhere we are not going to find the container so bail early
+		if where == nil {
+			msg = "You see no '" + cName + "' to take anything from."
+			return
+		}
 
-			// Search for container in the inventory where we are
-			cWhat = cWhere.Search(cName)
+		// Search for container in the inventory where we are
+		cWhat = where.Search(cName)
 
-			// If container not found in inventory also check narratives where we are
-			if cWhat == nil {
-				if a := attr.FindNarrative(cWhere.Parent()); a != nil {
-					cWhat = a.Search(cName)
-				}
+		// If container not found in inventory also check narratives where we are
+		if cWhat == nil {
+			if a := attr.FindNarrative(where.Parent()); a != nil {
+				cWhat = a.Search(cName)
 			}
 		}
 	}
@@ -92,9 +98,19 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 		tName = n.Name()
 	}
 
+	// Check that the thing doing the taking can carry the item. We do this late
+	// in the process so that we have the proper names of the container and the
+	// item being taken from it.
+	//
+	// NOTE: We could just drop the item on the floor if it can't be carried.
+	if tWhere == nil {
+		msg = "You have nowhere to put " + tName + " if you remove it from " + cName + "."
+		return
+	}
+
 	// Check for veto on item being taken
 	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
-		if veto := vetoes.Check("TAKE"); veto != nil {
+		if veto := vetoes.Check("TAKE", "GET"); veto != nil {
 			msg = veto.Message()
 			return
 		}
@@ -108,22 +124,14 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 		}
 	}
 
-	// Find inventory of thing doing the taking
-	// NOTE: We could drop the item on the floor if it can't be carried.
-	tInv := attr.FindInventory(t)
-	if tInv == nil {
-		msg = "You have nowhere to put " + tName + " if you remove it from " + cName + "."
-		return
-	}
-
-	// Remove item from container
+	// Try and remove the item from container
 	if cInv.Remove(tWhat) == nil {
 		msg = "Something stops you taking " + tName + " from " + cName + "..."
 		return
 	}
 
 	// Put item in taking thing's inventory
-	tInv.Add(tWhat)
+	tWhere.Add(tWhat)
 
 	msg = "You take " + tName + " from " + cName + "."
 	return msg, true
