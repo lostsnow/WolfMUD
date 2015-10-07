@@ -24,47 +24,56 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 		name = aliases[0]
 
 		what  has.Thing
-		where has.Thing
+		where has.Inventory
 	)
 
-	// Work out where we are
-	if a := attr.FindLocate(t); a != nil {
-		where = a.Where()
+	// Try our own inventory first for something matching the alias we are
+	// looking for.
+	if a := attr.FindInventory(t); a != nil {
+		what = a.Search(name)
 	}
 
-	// Are we somewhere?
-	if where != nil {
-		// Search for item in inventory where we are
-		if a := attr.FindInventory(where); a != nil {
+	// If match not found work out where we are so we can search further
+	if what == nil {
+		if a := attr.FindLocate(t); a != nil {
+			where = a.Where()
+		}
+	}
+
+	// If match not found yet and we are not somewhere, we can't search any
+	// further
+	if what == nil && where == nil {
+		msg = "You have nothing with alias '" +
+			aliases[0] +
+			"' to dump and nowhere else to search."
+
+		return
+	}
+
+	// If match not found yet search where we are
+	if what == nil {
+		what = where.Search(name)
+	}
+
+	// If match not found try searching narratives
+	location := where.Parent()
+	if what == nil {
+		if a := attr.FindNarrative(location); a != nil {
 			what = a.Search(name)
 		}
+	}
 
-		// If item not found in inventory try searching narratives
-		if what == nil {
-			if a := attr.FindNarrative(where); a != nil {
-				what = a.Search(name)
+	// If match still not found try the location itself - as opposed to it's
+	// inventory and narratives.
+	if what == nil {
+		if a := attr.FindAlias(location); a != nil {
+			if a.HasAlias(aliases[0]) {
+				what = location
 			}
 		}
 	}
 
-	// If item still not found try our own inventory
-	if what == nil {
-		if a := attr.FindInventory(t); a != nil {
-			what = a.Search(name)
-		}
-	}
-
-	// If still not found try where we actually are
-	if what == nil {
-		if where != nil {
-			if a := attr.FindAlias(where); a != nil {
-				if a.HasAlias(aliases[0]) {
-					what = where
-				}
-			}
-		}
-	}
-
+	// If we havn't found a match by this stage we are not going to find one!
 	if what == nil {
 		msg = "Nothing with alias '" + aliases[0] + "' found to dump."
 		return

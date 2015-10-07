@@ -22,7 +22,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 		name = aliases[0]
 
 		what  has.Thing
-		where has.Thing
+		where has.Inventory
 	)
 
 	// Work out where we are
@@ -39,18 +39,15 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Search for item we want to get in the inventory where we are
-	from := attr.FindInventory(where)
-	if from != nil {
-		what = from.Search(name)
-		if what == nil {
-			from = nil
-		}
-	}
+	what = where.Search(name)
 
 	// If item not found in inventory also check narratives where we are
+	// NOTE: Setting where to nil if we find the item prevents it from being
+	// taken from the narrative inventory.
 	if what == nil {
-		if a := attr.FindNarrative(where); a != nil {
+		if a := attr.FindNarrative(where.Parent()); a != nil {
 			what = a.Search(name)
+			where = nil
 		}
 	}
 
@@ -78,13 +75,6 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 		return
 	}
 
-	// If item not from where's inventory cannot get item - most likely a
-	// narrative item
-	if from == nil {
-		msg = "You cannot get " + name + "."
-		return
-	}
-
 	// Check the get is not vetoed by the item
 	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
@@ -93,8 +83,16 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 		}
 	}
 
+	// If item not from where's inventory cannot get item - most likely a
+	// narrative item - we do this check after the item veto check as the veto
+	// could give us a better message/reson for not being able to take the item.
+	if where == nil {
+		msg = "You cannot get " + name + "."
+		return
+	}
+
 	// Check the get is not vetoed by the parent of the item's inventory
-	if vetoes := attr.FindVetoes(where); vetoes != nil {
+	if vetoes := attr.FindVetoes(where.Parent()); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			msg = veto.Message()
 			return
@@ -102,7 +100,7 @@ func Get(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// If all seems okay try and remove item from where it is
-	if from.Remove(what) == nil {
+	if where.Remove(what) == nil {
 		msg = "You cannot get " + name + "."
 		return
 	}

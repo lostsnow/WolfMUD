@@ -22,7 +22,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 		name = aliases[0]
 
 		what  has.Thing
-		where has.Thing
+		where has.Inventory
 	)
 
 	// Search ourselves for item we want to drop
@@ -42,18 +42,11 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 		where = a.Where()
 	}
 
-	// Are we somewhere?
+	// Are we somewhere? We need to be somewhere so that the location can receive
+	// the dropped item.
+	//
 	// TODO: We could drop and junk item if nowhere instead of aborting?
 	if where == nil {
-		msg = "You cannot drop anything here."
-		return
-	}
-
-	// Check inventory available to receive dropped item
-	// NOTE: The only way this should be possible is if something is dropped when
-	// the current thing is not in the world.
-	to := attr.FindInventory(where)
-	if to == nil {
 		msg = "You cannot drop anything here."
 		return
 	}
@@ -67,7 +60,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
-	if vetoes := attr.FindVetoes(where); vetoes != nil {
+	if vetoes := attr.FindVetoes(where.Parent()); vetoes != nil {
 		if veto := vetoes.Check("DROP"); veto != nil {
 			msg = veto.Message()
 			return
@@ -86,7 +79,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Add item to inventory where we are
-	to.Add(what)
+	where.Add(what)
 
 	msg = "You drop " + name + "."
 	return msg, true

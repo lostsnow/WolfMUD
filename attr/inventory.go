@@ -66,13 +66,13 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Add put the specified Thing into the Inventory. If the Thing needs to know
+// Add puts the specified Thing into the Inventory. If the Thing needs to know
 // where it is - because it implements the has.Locate interface - we update
 // where the Thing is to point to the Inventory.
 func (i *Inventory) Add(t has.Thing) {
 	i.contents = append(i.contents, t)
 	if a := FindLocate(t); a != nil {
-		a.SetWhere(i.Parent())
+		a.SetWhere(i)
 	}
 }
 

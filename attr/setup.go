@@ -102,6 +102,9 @@ func Setup() map[string]has.Thing {
 				NewName("an ornate fireplace"),
 				NewDescription("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
 				NewAlias("fireplace", "fire"),
+				NewVetoes(
+					NewVeto("get", "You try and rip the ornate fireplace out of the wall but it's just too heavy."),
+				),
 			),
 			world["plaque"],
 		),
@@ -147,32 +150,32 @@ func Setup() map[string]has.Thing {
 	// Link up room exits
 
 	if a := FindExits(world["loc1"]); a != nil {
-		a.Link(South, world["loc2"])
-		a.Link(East, world["loc3"])
-		a.Link(Southeast, world["loc4"])
+		a.Link(South, FindInventory(world["loc2"]))
+		a.Link(East, FindInventory(world["loc3"]))
+		a.Link(Southeast, FindInventory(world["loc4"]))
 	}
 
 	if a := FindExits(world["loc2"]); a != nil {
-		a.Link(North, world["loc1"])
-		a.Link(Northeast, world["loc3"])
-		a.Link(East, world["loc4"])
+		a.Link(North, FindInventory(world["loc1"]))
+		a.Link(Northeast, FindInventory(world["loc3"]))
+		a.Link(East, FindInventory(world["loc4"]))
 	}
 
 	if a := FindExits(world["loc3"]); a != nil {
-		a.Link(West, world["loc1"])
-		a.Link(Southwest, world["loc2"])
-		a.Link(South, world["loc4"])
-		a.Link(East, world["loc5"])
+		a.Link(West, FindInventory(world["loc1"]))
+		a.Link(Southwest, FindInventory(world["loc2"]))
+		a.Link(South, FindInventory(world["loc4"]))
+		a.Link(East, FindInventory(world["loc5"]))
 	}
 
 	if a := FindExits(world["loc4"]); a != nil {
-		a.Link(North, world["loc3"])
-		a.Link(Northwest, world["loc1"])
-		a.Link(West, world["loc2"])
+		a.Link(North, FindInventory(world["loc3"]))
+		a.Link(Northwest, FindInventory(world["loc1"]))
+		a.Link(West, FindInventory(world["loc2"]))
 	}
 
 	if a := FindExits(world["loc5"]); a != nil {
-		a.Link(West, world["loc3"])
+		a.Link(West, FindInventory(world["loc3"]))
 	}
 
 	return world
