@@ -21,13 +21,13 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	var (
 		tName = aliases[0]
 
-		tWhat has.Thing
-		tInv  has.Inventory
+		tWhat  has.Thing
+		tWhere has.Inventory
 	)
 
 	// Search ourselves for item to put into container
-	if tInv = attr.FindInventory(t); tInv != nil {
-		tWhat = tInv.Search(tName)
+	if tWhere = attr.FindInventory(t); tWhere != nil {
+		tWhat = tWhere.Search(tName)
 	}
 
 	if tWhat == nil {
@@ -54,32 +54,32 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 		cWhere has.Inventory
 	)
 
-	// Search ourselves for container to get something from
-	from := attr.FindInventory(t)
-	if from != nil {
-		cWhat = from.Search(cName)
-	}
+	// Search ourselves for container to put something into
+	cWhat = tWhere.Search(cName)
 
-	// Container not found?
+	// If container not found yet work out where we are
 	if cWhat == nil {
-
-		// Work out where we are
 		if a := attr.FindLocate(t); a != nil {
 			cWhere = a.Where()
 		}
+	}
 
-		// If we are somewhere then check around us
-		if cWhere != nil {
+	// If we are not somewhere and container not found yet we are not going to
+	// find it
+	if cWhere == nil && cWhat == nil {
+		msg = "There is no '" + cName + "' to put " + tName + " into."
+		return
+	}
 
-			// Search for container in the inventory where we are
-			cWhat = cWhere.Search(cName)
+	// If container not found the inventory where we are
+	if cWhat == nil {
+		cWhat = cWhere.Search(cName)
+	}
 
-			// If container not found in inventory also check narratives where we are
-			if cWhat == nil {
-				if a := attr.FindNarrative(cWhere.Parent()); a != nil {
-					cWhat = a.Search(cName)
-				}
-			}
+	// If container still not found check narratives where we are
+	if cWhat == nil {
+		if a := attr.FindNarrative(cWhere.Parent()); a != nil {
+			cWhat = a.Search(cName)
 		}
 	}
 
@@ -124,7 +124,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Remove item from where it is
-	if tInv.Remove(tWhat) == nil {
+	if tWhere.Remove(tWhat) == nil {
 		msg = "Something stops you putting " + tName + " anywhere."
 		return
 	}
