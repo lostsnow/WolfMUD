@@ -44,6 +44,8 @@ func Parse(t has.Thing, input string) (msg string, ok bool) {
 		return Read(t, words[1:])
 	case "TAKE":
 		return Take(t, words[1:])
+	case "VERSION":
+		return Version(t)
 	default:
 		return "Eh?", false
 	}
