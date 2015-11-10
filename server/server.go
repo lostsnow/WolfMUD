@@ -46,7 +46,9 @@ func main() {
 
 	// Put player into the world
 	if i := attr.FindInventory(world["loc1"]); i != nil {
+		i.Lock()
 		i.Add(p)
+		i.Unlock()
 	}
 
 	// Describe what they can see
