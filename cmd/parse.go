@@ -65,7 +65,7 @@ func dispatch(s *state) {
 	case "GET":
 		Get(s)
 	case "INVENTORY", "INV":
-		msg, ok = Inventory(t)
+		Inventory(s)
 	case "LOOK", "L":
 		Look(s)
 	case "PUT":
