@@ -244,45 +244,6 @@ func (e *Exits) List() string {
 	}
 }
 
-// Move relocates a Thing from it's current Inventory to the Inventory of the
-// Thing found following the given direction's exit. Note we use Thing a lot
-// here as a location can be anything with an inventory - with or without
-// exits!
-//
-// TODO: Is this the right place for this? It mostly deals with inventories so
-// maybe it should go there? Really I guess this is 'glue' and should go into
-// the cmd package as part of the move command itself?
-func (e *Exits) Move(t has.Thing, direction string) (msg string, ok bool) {
-
-	d, valid := directionIndex[direction]
-
-	if !valid {
-		msg = "You wanted to go which way!?"
-		return
-	}
-
-	to := e.exits[d]
-	if to == nil {
-		msg = "You can't go " + directionNames[d] + " from here!"
-		return
-	}
-
-	from := FindInventory(e.Parent())
-	if from == nil {
-		msg = "You are not sure where you are, let alone where you are going."
-		return
-	}
-
-	if what := from.Remove(t); what == nil {
-		msg = "Something stops you from leaving here!"
-		return
-	}
-
-	to.Add(t)
-
-	return "", true
-}
-
 // NormalizeDirection takes a long or short variant of a direction name in any
 // case and returns the long direction name in all lower case.
 //

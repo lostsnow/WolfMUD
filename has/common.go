@@ -80,7 +80,6 @@ type Exits interface {
 	Unlink(byte)
 	AutoUnlink(byte)
 	List() string
-	Move(Thing, string) (string, bool)
 	NormalizeDirection(string) string
 	LeadsTo(string) Inventory
 }
