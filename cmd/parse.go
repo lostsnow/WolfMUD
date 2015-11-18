@@ -61,7 +61,7 @@ func dispatch(s *state) {
 	case "DROP":
 		Drop(s)
 	case "EXAMINE", "EXAM":
-		msg, ok = Examine(t, words[0:])
+		Examine(s)
 	case "GET":
 		Get(s)
 	case "INVENTORY", "INV":
