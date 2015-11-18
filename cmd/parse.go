@@ -30,39 +30,52 @@ func Parse(t has.Thing, input string) (msg string, ok bool) {
 	return s.msg.actor.String(), s.ok
 }
 
+var handlers = map[string]func(*state){
+	"N":  Move,
+	"NE": Move,
+	"E":  Move,
+	"SE": Move,
+	"S":  Move,
+	"SW": Move,
+	"W":  Move,
+	"NW": Move,
+	"U":  Move,
+	"D":  Move,
+
+	"NORTH":     Move,
+	"NORTHEAST": Move,
+	"EAST":      Move,
+	"SOUTHEAST": Move,
+	"SOUTH":     Move,
+	"SOUTHWEST": Move,
+	"WEST":      Move,
+	"NORTHWEST": Move,
+	"UP":        Move,
+	"DOWN":      Move,
+
+	"#DUMP":     Dump,
+	"DROP":      Drop,
+	"EXAM":      Examine,
+	"EXAMINE":   Examine,
+	"GET":       Get,
+	"INV":       Inventory,
+	"INVENTORY": Inventory,
+	"L":         Look,
+	"LOOK":      Look,
+	"PUT":       Put,
+	"QUIT":      Quit,
+	"READ":      Read,
+	"TAKE":      Take,
+	"VERSION":   Version,
+}
+
 func dispatch(s *state) {
 
-	switch s.cmd {
-	case "N", "NE", "E", "SE", "S", "SW", "W", "NW", "U", "D":
-		Move(s)
-	case "NORTH", "EAST", "SOUTH", "WEST", "UP", "DOWN":
-		Move(s)
-	case "NORTHEAST", "SOUTHEAST", "SOUTHWEST", "NORTHWEST":
-		Move(s)
-	case "#DUMP":
-		Dump(s)
-	case "DROP":
-		Drop(s)
-	case "EXAMINE", "EXAM":
-		Examine(s)
-	case "GET":
-		Get(s)
-	case "INVENTORY", "INV":
-		Inventory(s)
-	case "LOOK", "L":
-		Look(s)
-	case "PUT":
-		Put(s)
-	case "QUIT":
-		Quit(s)
-	case "READ":
-		Read(s)
-	case "TAKE":
-		Take(s)
-	case "VERSION":
-		Version(s)
-	default:
+	handler, valid := handlers[s.cmd]
+	if !valid {
 		s.msg.actor.WriteString("Eh?")
+		return
 	}
+	handler(s)
 
 }
