@@ -59,7 +59,7 @@ func dispatch(s *state) {
 	case "#DUMP":
 		msg, ok = Dump(t, words[0:])
 	case "DROP":
-		msg, ok = Drop(t, words[0:])
+		Drop(s)
 	case "EXAMINE", "EXAM":
 		msg, ok = Examine(t, words[0:])
 	case "GET":
