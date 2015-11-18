@@ -81,7 +81,7 @@ func dispatch(s *state) {
 	case "VERSION":
 		Version(s)
 	default:
-		msg, ok = "Eh?", false
+		s.msg.actor.WriteString("Eh?")
 	}
 
 	if msg != "" {
