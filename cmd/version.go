@@ -6,8 +6,6 @@
 package cmd
 
 import (
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"runtime"
 )
 
@@ -28,6 +26,7 @@ func init() {
 }
 
 // Syntax: VERSION
-func Version(t has.Thing) (msg string, ok bool) {
-	return version, true
+func Version(s *state) {
+	s.msg.actor.WriteString(version)
+	s.ok = true
 }

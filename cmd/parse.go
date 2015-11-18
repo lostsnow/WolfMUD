@@ -77,7 +77,7 @@ func dispatch(s *state) {
 	case "TAKE":
 		msg, ok = Take(t, words[0:])
 	case "VERSION":
-		msg, ok = Version(t)
+		Version(s)
 	default:
 		msg, ok = "Eh?", false
 	}
