@@ -32,26 +32,7 @@ func Parse(t has.Thing, input string) (msg string, ok bool) {
 
 func dispatch(s *state) {
 
-	var (
-		msg string
-		ok  bool
-
-		cmd   = s.cmd
-		words = s.words
-		t     = s.actor
-	)
-
-	// Dummy usage to avoid 'declared and not used'
-	// compile errors as we incrementally clean up
-	// the code in this function while converting
-	// commands to use parser state
-	_ = words
-	_ = t
-	_ = cmd
-	_ = msg
-	_ = ok
-
-	switch cmd {
+	switch s.cmd {
 	case "N", "NE", "E", "SE", "S", "SW", "W", "NW", "U", "D":
 		Move(s)
 	case "NORTH", "EAST", "SOUTH", "WEST", "UP", "DOWN":
@@ -84,8 +65,4 @@ func dispatch(s *state) {
 		s.msg.actor.WriteString("Eh?")
 	}
 
-	if msg != "" {
-		s.msg.actor.WriteString(msg)
-		s.ok = ok
-	}
 }
