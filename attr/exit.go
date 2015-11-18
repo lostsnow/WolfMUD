@@ -304,3 +304,16 @@ func (e *Exits) NormalizeDirection(direction string) (name string) {
 
 	return ""
 }
+
+// LeadsTo returns the Inventory of the location found by taking a specific
+// exit.
+func (e *Exits) LeadsTo(direction string) has.Inventory {
+	d, valid := directionIndex[direction]
+
+	// If direction not recognised try normalising it
+	if !valid {
+		d, _ = directionIndex[e.NormalizeDirection(direction)]
+	}
+
+	return e.exits[d]
+}

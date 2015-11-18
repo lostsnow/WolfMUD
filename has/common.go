@@ -82,6 +82,7 @@ type Exits interface {
 	List() string
 	Move(Thing, string) (string, bool)
 	NormalizeDirection(string) string
+	LeadsTo(string) Inventory
 }
 
 type Locate interface {
