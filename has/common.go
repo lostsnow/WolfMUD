@@ -81,6 +81,7 @@ type Exits interface {
 	AutoUnlink(byte)
 	List() string
 	Move(Thing, string) (string, bool)
+	NormalizeDirection(string) string
 }
 
 type Locate interface {

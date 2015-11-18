@@ -7,6 +7,8 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+
+	"strings"
 )
 
 // Constants for direction indexes. These can be used for the Link, AutoLink,
@@ -42,27 +44,59 @@ var directionNames = [...]string{
 }
 
 // directionIndex is a lookup table for direction strings to direction indexes.
+// The directional strings cover upper, lower and title cased directions. See
+// also NormalizeDirection method.
 var directionIndex = map[string]byte{
 	"N":         North,
+	"n":         North,
 	"NORTH":     North,
+	"north":     North,
+	"North":     North,
 	"NE":        Northeast,
+	"ne":        Northeast,
 	"NORTHEAST": Northeast,
+	"northeast": Northeast,
+	"Northeast": Northeast,
 	"E":         East,
+	"e":         East,
 	"EAST":      East,
+	"east":      East,
+	"East":      East,
 	"SE":        Southeast,
+	"se":        Southeast,
 	"SOUTHEAST": Southeast,
+	"southeast": Southeast,
+	"Southeast": Southeast,
 	"S":         South,
+	"s":         South,
 	"SOUTH":     South,
+	"south":     South,
+	"South":     South,
 	"SW":        Southwest,
+	"sw":        Southwest,
 	"SOUTHWEST": Southwest,
+	"southwest": Southwest,
+	"Southwest": Southwest,
 	"W":         West,
+	"w":         West,
 	"WEST":      West,
+	"west":      West,
+	"West":      West,
 	"NW":        Northwest,
+	"nw":        Northwest,
 	"NORTHWEST": Northwest,
+	"northwest": Northwest,
+	"Northwest": Northwest,
 	"U":         Up,
+	"u":         Up,
 	"UP":        Up,
+	"up":        Up,
+	"Up":        Up,
 	"D":         Down,
+	"d":         Down,
 	"DOWN":      Down,
+	"down":      Down,
+	"Down":      Down,
 }
 
 // Exits implements an attribute describing exits for the eight compass points
@@ -247,4 +281,26 @@ func (e *Exits) Move(t has.Thing, direction string) (msg string, ok bool) {
 	to.Add(t)
 
 	return "", true
+}
+
+// NormalizeDirection takes a long or short variant of a direction name in any
+// case and returns the long direction name in all lower case.
+//
+// So 'N', 'NORTH', 'n', 'north', 'North' and 'NoRtH' all return 'north'.
+//
+// If the direction given cannot be normalized, maybe because it is an invalid
+// direction, an empty string will be returned.
+func (e *Exits) NormalizeDirection(direction string) (name string) {
+
+	// Common case quick path - upper, lower or title cased input
+	if d, valid := directionIndex[direction]; valid {
+		return directionNames[d]
+	}
+
+	// Try again assuming mixed case input and forcing it to all uppercase
+	if d, valid := directionIndex[strings.ToUpper(direction)]; valid {
+		return directionNames[d]
+	}
+
+	return ""
 }
