@@ -73,7 +73,7 @@ func dispatch(s *state) {
 	case "QUIT":
 		Quit(s)
 	case "READ":
-		msg, ok = Read(t, words[0:])
+		Read(s)
 	case "TAKE":
 		Take(s)
 	case "VERSION":
