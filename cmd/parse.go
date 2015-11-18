@@ -53,9 +53,11 @@ func dispatch(s *state) {
 
 	switch cmd {
 	case "N", "NE", "E", "SE", "S", "SW", "W", "NW", "U", "D":
-		msg, ok = Move(t, cmd)
-	case "NORTH", "NORTHEAST", "EAST", "SOUTHEAST", "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST", "UP", "DOWN":
-		msg, ok = Move(t, cmd)
+		Move(s)
+	case "NORTH", "EAST", "SOUTH", "WEST", "UP", "DOWN":
+		Move(s)
+	case "NORTHEAST", "SOUTHEAST", "SOUTHWEST", "NORTHWEST":
+		Move(s)
 	case "#DUMP":
 		Dump(s)
 	case "DROP":
