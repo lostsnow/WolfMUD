@@ -11,27 +11,27 @@ import (
 )
 
 // Syntax: PUT item container
-func Put(t has.Thing, aliases []string) (msg string, ok bool) {
+func Put(s *state) {
 
-	if len(aliases) == 0 {
-		msg = "You go to put something into something else..."
+	if len(s.words) == 0 {
+		s.msg.actor.WriteString("You go to put something into something else...")
 		return
 	}
 
 	var (
-		tName = aliases[0]
+		tName = s.words[0]
 
 		tWhat  has.Thing
 		tWhere has.Inventory
 	)
 
 	// Search ourselves for item to put into container
-	if tWhere = attr.FindInventory(t); tWhere != nil {
+	if tWhere = attr.FindInventory(s.actor); tWhere != nil {
 		tWhat = tWhere.Search(tName)
 	}
 
 	if tWhat == nil {
-		msg = "You have no '" + tName + "' to put into anything."
+		s.msg.actor.WriteJoin("You have no '", tName, "' to put into anything.")
 		return
 	}
 
@@ -41,14 +41,14 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	}
 
 	// Check a container was specified
-	if len(aliases) < 2 {
-		msg = "What did you want to put " + tName + " into?"
+	if len(s.words) < 2 {
+		s.msg.actor.WriteJoin("What did you want to put ", tName, " into?")
 		return
 	}
 
 	// Try and find container
 	var (
-		cName = aliases[1]
+		cName = s.words[1]
 
 		cWhat  has.Thing
 		cWhere has.Inventory
@@ -59,7 +59,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If container not found yet work out where we are
 	if cWhat == nil {
-		if a := attr.FindLocate(t); a != nil {
+		if a := attr.FindLocate(s.actor); a != nil {
 			cWhere = a.Where()
 		}
 	}
@@ -67,7 +67,7 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	// If we are not somewhere and container not found yet we are not going to
 	// find it
 	if cWhere == nil && cWhat == nil {
-		msg = "There is no '" + cName + "' to put " + tName + " into."
+		s.msg.actor.WriteJoin("There is no '", cName, "' to put ", tName, " into.")
 		return
 	}
 
@@ -85,13 +85,13 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Was container found?
 	if cWhat == nil {
-		msg = "You see no '" + cName + "' to put " + tName + " into."
+		s.msg.actor.WriteJoin("You see no '", cName, "' to put ", tName, " into.")
 		return
 	}
 
 	// Unless our name is Klein we can't put something inside itself! ;)
 	if tWhat == cWhat {
-		msg = "You can't put " + tName + " inside itself!"
+		s.msg.actor.WriteJoin("You can't put ", tName, " inside itself!")
 		return
 	}
 
@@ -103,14 +103,14 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
 	if cInv == nil {
-		msg = "You cannot put " + tName + " into " + cName + "."
+		s.msg.actor.WriteJoin("You cannot put ", tName, " into ", cName, ".")
 		return
 	}
 
 	// Check for veto on item being put into container
 	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
 		if veto := vetoes.Check("DROP", "PUT"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
@@ -118,20 +118,20 @@ func Put(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check for veto on container
 	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
 		if veto := vetoes.Check("PUT"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
 
 	// Remove item from where it is
 	if tWhere.Remove(tWhat) == nil {
-		msg = "Something stops you putting " + tName + " anywhere."
+		s.msg.actor.WriteJoin("Something stops you putting ", tName, " anywhere.")
 		return
 	}
 
 	// Put item into comtainer
 	cInv.Add(tWhat)
 
-	msg = "You put " + tName + " into " + cName + "."
-	return msg, true
+	s.msg.actor.WriteJoin("You put ", tName, " into ", cName, ".")
+	s.ok = true
 }

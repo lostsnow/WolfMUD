@@ -69,7 +69,7 @@ func dispatch(s *state) {
 	case "LOOK", "L":
 		Look(s)
 	case "PUT":
-		msg, ok = Put(t, words[0:])
+		Put(s)
 	case "QUIT":
 		Quit(s)
 	case "READ":
