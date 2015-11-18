@@ -75,7 +75,7 @@ func dispatch(s *state) {
 	case "READ":
 		msg, ok = Read(t, words[0:])
 	case "TAKE":
-		msg, ok = Take(t, words[0:])
+		Take(s)
 	case "VERSION":
 		Version(s)
 	default:

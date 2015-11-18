@@ -11,32 +11,32 @@ import (
 )
 
 // Syntax: TAKE item container
-func Take(t has.Thing, aliases []string) (msg string, ok bool) {
+func Take(s *state) {
 
-	if len(aliases) == 0 {
-		msg = "You go to take something out of something else..."
+	if len(s.words) == 0 {
+		s.msg.actor.WriteString("You go to take something out of something else...")
 		return
 	}
 
-	tName := aliases[0]
+	tName := s.words[0]
 
 	// Was container specified? We have to check for the container first as the
 	// item would be in the container, if there is no container specified we
 	// cannot find the item and hence resolve the proper name for it.
-	if len(aliases) < 2 {
-		msg = "What did you want to take '" + tName + "' out of?"
+	if len(s.words) < 2 {
+		s.msg.actor.WriteJoin("What did you want to take '", tName, "' out of?")
 		return
 	}
 
 	var (
-		cName = aliases[1]
+		cName = s.words[1]
 
 		cWhat has.Thing
 	)
 
 	// Find the taking things own inventory. We remember this inventory as this
 	// is where the item will be put if sucessfully taken from the container
-	tWhere := attr.FindInventory(t)
+	tWhere := attr.FindInventory(s.actor)
 
 	// If we found and inventory search it for the container
 	if tWhere != nil {
@@ -47,13 +47,13 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	if cWhat == nil {
 		var where has.Inventory
 
-		if a := attr.FindLocate(t); a != nil {
+		if a := attr.FindLocate(s.actor); a != nil {
 			where = a.Where()
 		}
 
 		// If we are nowhere we are not going to find the container so bail early
 		if where == nil {
-			msg = "You see no '" + cName + "' to take anything from."
+			s.msg.actor.WriteJoin("You see no '", cName, "' to take anything from.")
 			return
 		}
 
@@ -70,7 +70,7 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Was container found?
 	if cWhat == nil {
-		msg = "You see no '" + cName + "' to take things out of."
+		s.msg.actor.WriteJoin("You see no '", cName, "' to take things out of.")
 		return
 	}
 
@@ -82,14 +82,14 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
 	if cInv == nil {
-		msg = "You cannot take anything from " + cName
+		s.msg.actor.WriteJoin("You cannot take anything from ", cName)
 		return
 	}
 
 	// Is item to be taken in the container?
 	tWhat := cInv.Search(tName)
 	if tWhat == nil {
-		msg = "There is no '" + tName + "' in " + cName + "."
+		s.msg.actor.WriteJoin("There is no '", tName, "' in ", cName, ".")
 		return
 	}
 
@@ -104,14 +104,14 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	//
 	// NOTE: We could just drop the item on the floor if it can't be carried.
 	if tWhere == nil {
-		msg = "You have nowhere to put " + tName + " if you remove it from " + cName + "."
+		s.msg.actor.WriteJoin("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
 		return
 	}
 
 	// Check for veto on item being taken
 	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
 		if veto := vetoes.Check("TAKE", "GET"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
@@ -119,20 +119,20 @@ func Take(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check for veto on container
 	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
 		if veto := vetoes.Check("TAKE"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
 
 	// Try and remove the item from container
 	if cInv.Remove(tWhat) == nil {
-		msg = "Something stops you taking " + tName + " from " + cName + "..."
+		s.msg.actor.WriteJoin("Something stops you taking ", tName, " from ", cName, "...")
 		return
 	}
 
 	// Put item in taking thing's inventory
 	tWhere.Add(tWhat)
 
-	msg = "You take " + tName + " from " + cName + "."
-	return msg, true
+	s.msg.actor.WriteJoin("You take ", tName, " from ", cName, ".")
+	s.ok = true
 }
