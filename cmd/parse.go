@@ -57,7 +57,7 @@ func dispatch(s *state) {
 	case "NORTH", "NORTHEAST", "EAST", "SOUTHEAST", "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST", "UP", "DOWN":
 		msg, ok = Move(t, cmd)
 	case "#DUMP":
-		msg, ok = Dump(t, words[0:])
+		Dump(s)
 	case "DROP":
 		Drop(s)
 	case "EXAMINE", "EXAM":

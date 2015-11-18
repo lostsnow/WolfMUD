@@ -13,15 +13,15 @@ import (
 )
 
 // Syntax: #DUMP alias
-func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
+func Dump(s *state) {
 
-	if len(aliases) == 0 {
-		msg = "What do you want to dump?"
+	if len(s.words) == 0 {
+		s.msg.actor.WriteString("What do you want to dump?")
 		return
 	}
 
 	var (
-		name = aliases[0]
+		name = s.words[0]
 
 		what  has.Thing
 		where has.Inventory
@@ -29,13 +29,13 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Try our own inventory first for something matching the alias we are
 	// looking for.
-	if a := attr.FindInventory(t); a != nil {
+	if a := attr.FindInventory(s.actor); a != nil {
 		what = a.Search(name)
 	}
 
 	// If match not found work out where we are so we can search further
 	if what == nil {
-		if a := attr.FindLocate(t); a != nil {
+		if a := attr.FindLocate(s.actor); a != nil {
 			where = a.Where()
 		}
 	}
@@ -43,9 +43,7 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 	// If match not found yet and we are not somewhere, we can't search any
 	// further
 	if what == nil && where == nil {
-		msg = "You have nothing with alias '" +
-			aliases[0] +
-			"' to dump and nowhere else to search."
+		s.msg.actor.WriteString("You have nothing with alias '" + s.words[0] + "' to dump and nowhere else to search.")
 
 		return
 	}
@@ -67,7 +65,7 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 	// inventory and narratives.
 	if what == nil {
 		if a := attr.FindAlias(location); a != nil {
-			if a.HasAlias(aliases[0]) {
+			if a.HasAlias(s.words[0]) {
 				what = location
 			}
 		}
@@ -75,10 +73,10 @@ func Dump(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If we havn't found a match by this stage we are not going to find one!
 	if what == nil {
-		msg = "Nothing with alias '" + aliases[0] + "' found to dump."
+		s.msg.actor.WriteString("Nothing with alias '" + s.words[0] + "' found to dump.")
 		return
 	}
 
-	msg = strings.Join(what.Dump(), "\n")
-	return msg, true
+	s.msg.actor.WriteString(strings.Join(what.Dump(), "\n"))
+	s.ok = true
 }
