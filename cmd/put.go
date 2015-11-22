@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: PUT item container
+func init() {
+	AddHandler(Put, "PUT")
+}
+
 func Put(s *state) {
 
 	if len(s.words) == 0 {

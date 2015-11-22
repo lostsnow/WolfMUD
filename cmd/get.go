@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: GET item
+func init() {
+	AddHandler(Get, "GET")
+}
+
 func Get(s *state) {
 
 	if len(s.words) == 0 {

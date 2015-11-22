@@ -26,6 +26,10 @@ func init() {
 }
 
 // Syntax: VERSION
+func init() {
+	AddHandler(Version, "VERSION")
+}
+
 func Version(s *state) {
 	s.msg.actor.WriteString(version)
 	s.ok = true

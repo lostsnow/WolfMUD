@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: READ item
+func init() {
+	AddHandler(Read, "READ")
+}
+
 func Read(s *state) {
 
 	if len(s.words) == 0 {

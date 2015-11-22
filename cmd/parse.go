@@ -12,6 +12,21 @@ import (
 	"unicode"
 )
 
+// Add handler for an empty command. The handler just acknowledges the empty
+// command was processed by setting state.ok to true. We should not get empty
+// commands from players as Parse screens them out. However other commands and
+// possibly scripted commands might manually create a state accidentally with
+// no command. Without this handler we would return the same as for an unknown
+// or invalid command.
+func init() {
+	AddHandler(func(s *state) { s.ok = true }, "")
+}
+
+// handlers is a list of commands and their handlers. AddHandler should be used
+// to add new handlers. parser.dispatch uses this list to lookup the correct
+// handler to invoke for a given command.
+var handlers = map[string]func(*state){}
+
 // AddHandler adds the given commands for the specified handler. The commands
 // will automatically be uppercased. Each command and it's aliases should
 // register it's handler in it's init function. For example:
@@ -45,45 +60,6 @@ func Parse(t has.Thing, input string) (msg string, ok bool) {
 	s.parse(dispatch)
 
 	return s.msg.actor.String(), s.ok
-}
-
-var handlers = map[string]func(*state){
-	"N":  Move,
-	"NE": Move,
-	"E":  Move,
-	"SE": Move,
-	"S":  Move,
-	"SW": Move,
-	"W":  Move,
-	"NW": Move,
-	"U":  Move,
-	"D":  Move,
-
-	"NORTH":     Move,
-	"NORTHEAST": Move,
-	"EAST":      Move,
-	"SOUTHEAST": Move,
-	"SOUTH":     Move,
-	"SOUTHWEST": Move,
-	"WEST":      Move,
-	"NORTHWEST": Move,
-	"UP":        Move,
-	"DOWN":      Move,
-
-	"#DUMP":     Dump,
-	"DROP":      Drop,
-	"EXAM":      Examine,
-	"EXAMINE":   Examine,
-	"GET":       Get,
-	"INV":       Inventory,
-	"INVENTORY": Inventory,
-	"L":         Look,
-	"LOOK":      Look,
-	"PUT":       Put,
-	"QUIT":      Quit,
-	"READ":      Read,
-	"TAKE":      Take,
-	"VERSION":   Version,
 }
 
 // dispatch invokes the handler for a given command. The command is specified

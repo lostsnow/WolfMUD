@@ -6,6 +6,10 @@
 package cmd
 
 // Syntax: QUIT
+func init() {
+	AddHandler(Quit, "QUIT")
+}
+
 //
 // The Quit command acts as a hook for processing - such as cleanup - to be
 // done when a player quits the game.

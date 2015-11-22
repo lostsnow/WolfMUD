@@ -13,6 +13,15 @@ import (
 // Syntax: ( N | NORTH | NE | NORTHEAST | E | EAST | SE | SOUTHEAST | S | SOUTH
 //				 | SW | SOUTHWEST | W | WEST | NW | NORTHWEST | U | UP | D | DOWN)
 //
+func init() {
+	AddHandler(Move,
+		"N", "NE", "E", "SE", "S", "SW", "W", "NW", "U", "D",
+		"NORTH", "NORTHEAST", "EAST", "SOUTHEAST",
+		"SOUTH", "SOUTHWEST", "WEST", "NORTHWEST",
+		"UP", "DOWN",
+	)
+}
+
 // TODO: Move does not support vetoes yet.
 func Move(s *state) {
 

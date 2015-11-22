@@ -10,6 +10,10 @@ import (
 )
 
 // Syntax: ( INVENTORY | INV )
+func init() {
+	AddHandler(Inventory, "INV", "INVENTORY")
+}
+
 func Inventory(s *state) {
 
 	// Try and find our inventory

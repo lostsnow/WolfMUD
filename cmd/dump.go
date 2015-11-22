@@ -13,6 +13,10 @@ import (
 )
 
 // Syntax: #DUMP alias
+func init() {
+	AddHandler(Dump, "#DUMP")
+}
+
 func Dump(s *state) {
 
 	if len(s.words) == 0 {

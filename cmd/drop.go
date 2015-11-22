@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: DROP item
+func init() {
+	AddHandler(Drop, "DROP")
+}
+
 func Drop(s *state) {
 
 	if len(s.words) == 0 {

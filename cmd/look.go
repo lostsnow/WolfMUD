@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: ( LOOK | L )
+func init() {
+	AddHandler(Look, "L", "LOOK")
+}
+
 //
 // BUG(diddymus): If we use LOOK and where we are has a narrative attribute but
 // no inventory attribute the narrative contents will be listed by mistake. Is

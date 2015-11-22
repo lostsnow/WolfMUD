@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: ( EXAMINE | EXAM ) item
+func init() {
+	AddHandler(Examine, "EXAM", "EXAMINE")
+}
+
 func Examine(s *state) {
 
 	if len(s.words) == 0 {

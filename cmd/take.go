@@ -11,6 +11,10 @@ import (
 )
 
 // Syntax: TAKE item container
+func init() {
+	AddHandler(Take, "TAKE")
+}
+
 func Take(s *state) {
 
 	if len(s.words) == 0 {
