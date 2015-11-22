@@ -7,33 +7,41 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: ( INVENTORY | INV )
-func Inventory(t has.Thing) (msg string, ok bool) {
+func init() {
+	AddHandler(Inventory, "INV", "INVENTORY")
+}
+
+func Inventory(s *state) {
 
 	// Try and find our inventory
-	i := attr.FindInventory(t)
+	i := attr.FindInventory(s.actor)
 	if i == nil {
-		msg = "You are not carrying anything."
+		s.msg.actor.WriteString("You can't carry anything!")
 		return
 	}
 
-	buff := make([]byte, 0, 1024)
+	// Remember where we are in the buffer in case we want to rewind the next
+	// write in the case of not actually carrying anything...
+	rewind := s.msg.actor.Len()
+	s.msg.actor.WriteString("You are currently carrying:")
+
+	// Mark where we are in the buffer so we can check if we write any new data into it
+	mark := s.msg.actor.Len()
 
 	for _, i := range i.Contents() {
 		if n := attr.FindName(i); n != nil {
-			buff = append(buff, "\n  "...)
-			buff = append(buff, n.Name()...)
+			s.msg.actor.WriteJoin("\n  ", n.Name())
 		}
 	}
 
-	if len(buff) == 0 {
-		msg = "You are not carrying anything."
-		return
+	// If no new data written to the buffer since 'mark', rewind it and write new message
+	if mark == s.msg.actor.Len() {
+		s.msg.actor.Truncate(rewind)
+		s.msg.actor.WriteString("You are not carrying anything.")
 	}
 
-	msg = "You are currently carrying:" + string(buff)
-	return msg, true
+	s.ok = true
 }

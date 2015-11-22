@@ -11,34 +11,38 @@ import (
 )
 
 // Syntax: DROP item
-func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
+func init() {
+	AddHandler(Drop, "DROP")
+}
 
-	if len(aliases) == 0 {
-		msg = "You go to drop... something?"
+func Drop(s *state) {
+
+	if len(s.words) == 0 {
+		s.msg.actor.WriteString("You go to drop... something?")
 		return
 	}
 
 	var (
-		name = aliases[0]
+		name = s.words[0]
 
 		what  has.Thing
 		where has.Inventory
 	)
 
 	// Search ourselves for item we want to drop
-	from := attr.FindInventory(t)
+	from := attr.FindInventory(s.actor)
 	if from != nil {
 		what = from.Search(name)
 	}
 
 	// Was item to drop found?
 	if what == nil {
-		msg = "You have no '" + name + "' to drop."
+		s.msg.actor.WriteJoin("You have no '", name, "' to drop.")
 		return
 	}
 
 	// Find out where we are - where we are going to be dropping the item
-	if a := attr.FindLocate(t); a != nil {
+	if a := attr.FindLocate(s.actor); a != nil {
 		where = a.Where()
 	}
 
@@ -47,14 +51,14 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	//
 	// TODO: We could drop and junk item if nowhere instead of aborting?
 	if where == nil {
-		msg = "You cannot drop anything here."
+		s.msg.actor.WriteString("You cannot drop anything here.")
 		return
 	}
 
 	// Check the drop is not vetoed by the item
 	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("DROP"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
@@ -62,7 +66,7 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 	// Check the drop is not vetoed by the receiving inventory
 	if vetoes := attr.FindVetoes(where.Parent()); vetoes != nil {
 		if veto := vetoes.Check("DROP"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
@@ -74,13 +78,13 @@ func Drop(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Try and remove item from our inventory
 	if from.Remove(what) == nil {
-		msg = "You cannot drop " + name + "."
+		s.msg.actor.WriteJoin("You cannot drop ", name, ".")
 		return
 	}
 
 	// Add item to inventory where we are
 	where.Add(what)
 
-	msg = "You drop " + name + "."
-	return msg, true
+	s.msg.actor.WriteJoin("You drop ", name, ".")
+	s.ok = true
 }

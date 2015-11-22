@@ -6,6 +6,7 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 )
 
@@ -19,6 +20,7 @@ import (
 type Inventory struct {
 	Attribute
 	contents []has.Thing
+	internal.BRL
 }
 
 // Some interfaces we want to make sure we implement. If we don't we'll throw
@@ -41,7 +43,7 @@ func NewInventory(t ...has.Thing) *Inventory {
 	// Shallow copy only - interface headers or pointers
 	copy(c, t)
 
-	return &Inventory{Attribute{}, c}
+	return &Inventory{Attribute{}, c, internal.NewBRL()}
 }
 
 // FindInventory searches the attributes of the specified Thing for attributes
@@ -57,7 +59,7 @@ func FindInventory(t has.Thing) has.Inventory {
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T %d items:", i, len(i.contents)))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items:", i, i.LockID(), len(i.contents)))
 	for _, i := range i.contents {
 		for _, i := range i.Dump() {
 			buff = append(buff, DumpFmt("%s", i))

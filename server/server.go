@@ -46,7 +46,9 @@ func main() {
 
 	// Put player into the world
 	if i := attr.FindInventory(world["loc1"]); i != nil {
+		i.Lock()
 		i.Add(p)
+		i.Unlock()
 	}
 
 	// Describe what they can see
@@ -54,11 +56,15 @@ func main() {
 	fmt.Printf("%s\n", text.Fold(msg, 80))
 
 	// Main processing loop
-	r := bufio.NewReader(os.Stdin)
+	s := bufio.NewScanner(os.Stdin)
 	fmt.Print(">")
-	for i, err := r.ReadString('\n'); err == nil && i != "quit\n"; i, err = r.ReadString('\n') {
+	for s.Scan() {
+		i := s.Text()
 		if msg, _ := cmd.Parse(p, i); len(msg) > 0 {
 			fmt.Printf("%s\n", text.Fold(msg, 80))
+		}
+		if i == "quit" {
+			break
 		}
 		fmt.Print(">")
 	}

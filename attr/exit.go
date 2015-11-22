@@ -7,6 +7,8 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+
+	"strings"
 )
 
 // Constants for direction indexes. These can be used for the Link, AutoLink,
@@ -42,27 +44,59 @@ var directionNames = [...]string{
 }
 
 // directionIndex is a lookup table for direction strings to direction indexes.
+// The directional strings cover upper, lower and title cased directions. See
+// also NormalizeDirection method.
 var directionIndex = map[string]byte{
 	"N":         North,
+	"n":         North,
 	"NORTH":     North,
+	"north":     North,
+	"North":     North,
 	"NE":        Northeast,
+	"ne":        Northeast,
 	"NORTHEAST": Northeast,
+	"northeast": Northeast,
+	"Northeast": Northeast,
 	"E":         East,
+	"e":         East,
 	"EAST":      East,
+	"east":      East,
+	"East":      East,
 	"SE":        Southeast,
+	"se":        Southeast,
 	"SOUTHEAST": Southeast,
+	"southeast": Southeast,
+	"Southeast": Southeast,
 	"S":         South,
+	"s":         South,
 	"SOUTH":     South,
+	"south":     South,
+	"South":     South,
 	"SW":        Southwest,
+	"sw":        Southwest,
 	"SOUTHWEST": Southwest,
+	"southwest": Southwest,
+	"Southwest": Southwest,
 	"W":         West,
+	"w":         West,
 	"WEST":      West,
+	"west":      West,
+	"West":      West,
 	"NW":        Northwest,
+	"nw":        Northwest,
 	"NORTHWEST": Northwest,
+	"northwest": Northwest,
+	"Northwest": Northwest,
 	"U":         Up,
+	"u":         Up,
 	"UP":        Up,
+	"up":        Up,
+	"Up":        Up,
 	"D":         Down,
+	"d":         Down,
 	"DOWN":      Down,
+	"down":      Down,
+	"Down":      Down,
 }
 
 // Exits implements an attribute describing exits for the eight compass points
@@ -210,41 +244,37 @@ func (e *Exits) List() string {
 	}
 }
 
-// Move relocates a Thing from it's current Inventory to the Inventory of the
-// Thing found following the given direction's exit. Note we use Thing a lot
-// here as a location can be anything with an inventory - with or without
-// exits!
+// NormalizeDirection takes a long or short variant of a direction name in any
+// case and returns the long direction name in all lower case.
 //
-// TODO: Is this the right place for this? It mostly deals with inventories so
-// maybe it should go there? Really I guess this is 'glue' and should go into
-// the cmd package as part of the move command itself?
-func (e *Exits) Move(t has.Thing, direction string) (msg string, ok bool) {
+// So 'N', 'NORTH', 'n', 'north', 'North' and 'NoRtH' all return 'north'.
+//
+// If the direction given cannot be normalized, maybe because it is an invalid
+// direction, an empty string will be returned.
+func (e *Exits) NormalizeDirection(direction string) (name string) {
 
+	// Common case quick path - upper, lower or title cased input
+	if d, valid := directionIndex[direction]; valid {
+		return directionNames[d]
+	}
+
+	// Try again assuming mixed case input and forcing it to all uppercase
+	if d, valid := directionIndex[strings.ToUpper(direction)]; valid {
+		return directionNames[d]
+	}
+
+	return ""
+}
+
+// LeadsTo returns the Inventory of the location found by taking a specific
+// exit.
+func (e *Exits) LeadsTo(direction string) has.Inventory {
 	d, valid := directionIndex[direction]
 
+	// If direction not recognised try normalising it
 	if !valid {
-		msg = "You wanted to go which way!?"
-		return
+		d, _ = directionIndex[e.NormalizeDirection(direction)]
 	}
 
-	to := e.exits[d]
-	if to == nil {
-		msg = "You can't go " + directionNames[d] + " from here!"
-		return
-	}
-
-	from := FindInventory(e.Parent())
-	if from == nil {
-		msg = "You are not sure where you are, let alone where you are going."
-		return
-	}
-
-	if what := from.Remove(t); what == nil {
-		msg = "Something stops you from leaving here!"
-		return
-	}
-
-	to.Add(t)
-
-	return "", true
+	return e.exits[d]
 }

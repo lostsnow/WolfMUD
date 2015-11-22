@@ -93,7 +93,7 @@ func FindNarrative(t has.Thing) has.Narrative {
 func (n *Narrative) ImplementsNarrative() {}
 
 func (n *Narrative) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T %d items:", n, len(n.contents)))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items:", n, n.LockID(), len(n.contents)))
 	for _, n := range n.contents {
 		for _, i := range n.Dump() {
 			buff = append(buff, DumpFmt("%s", i))

@@ -11,15 +11,19 @@ import (
 )
 
 // Syntax: READ item
-func Read(t has.Thing, aliases []string) (msg string, ok bool) {
+func init() {
+	AddHandler(Read, "READ")
+}
 
-	if len(aliases) == 0 {
-		msg = "Did you want to read something specific?"
+func Read(s *state) {
+
+	if len(s.words) == 0 {
+		s.msg.actor.WriteString("Did you want to read something specific?")
 		return
 	}
 
 	var (
-		name = aliases[0]
+		name = s.words[0]
 
 		what    has.Thing
 		where   has.Inventory
@@ -27,7 +31,7 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 	)
 
 	// Work out where we are
-	if a := attr.FindLocate(t); a != nil {
+	if a := attr.FindLocate(s.actor); a != nil {
 		where = a.Where()
 	}
 
@@ -47,14 +51,14 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.FindInventory(t); a != nil {
+		if a := attr.FindInventory(s.actor); a != nil {
 			what = a.Search(name)
 		}
 	}
 
 	// Was item to read found?
 	if what == nil {
-		msg = "You see no '" + name + "' to read."
+		s.msg.actor.WriteJoin("You see no '", name, "' to read.")
 		return
 	}
 
@@ -70,10 +74,10 @@ func Read(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// Was writing found?
 	if writing == "" {
-		msg = "You see no writing on " + name + " to read."
+		s.msg.actor.WriteJoin("You see no writing on ", name, " to read.")
 		return
 	}
 
-	msg = "You read the writing on " + name + ". It says: " + writing
-	return msg, true
+	s.msg.actor.WriteJoin("You read the writing on ", name, ". It says: ", writing)
+	s.ok = true
 }

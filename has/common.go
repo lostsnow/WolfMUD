@@ -5,6 +5,10 @@
 
 package has
 
+import (
+	"sync"
+)
+
 type Thing interface {
 	Add(...Attribute)
 	Remove(...Attribute)
@@ -56,6 +60,8 @@ type Inventory interface {
 	Search(string) Thing
 	Contents() []Thing
 	List() string
+	sync.Locker
+	LockID() uint64
 }
 
 type Narrative interface {
@@ -74,7 +80,8 @@ type Exits interface {
 	Unlink(byte)
 	AutoUnlink(byte)
 	List() string
-	Move(Thing, string) (string, bool)
+	NormalizeDirection(string) string
+	LeadsTo(string) Inventory
 }
 
 type Locate interface {

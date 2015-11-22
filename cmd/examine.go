@@ -11,22 +11,26 @@ import (
 )
 
 // Syntax: ( EXAMINE | EXAM ) item
-func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
+func init() {
+	AddHandler(Examine, "EXAM", "EXAMINE")
+}
 
-	if len(aliases) == 0 {
-		msg = "You examine this and that, find nothing special."
+func Examine(s *state) {
+
+	if len(s.words) == 0 {
+		s.msg.actor.WriteString("You examine this and that, find nothing special.")
 		return
 	}
 
 	var (
-		name = aliases[0]
+		name = s.words[0]
 
 		what  has.Thing
 		where has.Inventory
 	)
 
 	// Work out where we are
-	if a := attr.FindLocate(t); a != nil {
+	if a := attr.FindLocate(s.actor); a != nil {
 		where = a.Where()
 	}
 
@@ -44,21 +48,21 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.FindInventory(t); a != nil {
+		if a := attr.FindInventory(s.actor); a != nil {
 			what = a.Search(name)
 		}
 	}
 
 	// Was item to examine eventually found?
 	if what == nil {
-		msg = "You see no '" + name + "' to examine."
+		s.msg.actor.WriteJoin("You see no '", name, "' to examine.")
 		return
 	}
 
 	// Check examine is not vetoed by item
 	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("EXAMINE"); veto != nil {
-			msg = veto.Message()
+			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
@@ -68,20 +72,15 @@ func Examine(t has.Thing, aliases []string) (msg string, ok bool) {
 		name = n.Name()
 	}
 
-	buff := make([]byte, 0, 1024)
-	buff = append(buff, "You examine "...)
-	buff = append(buff, name...)
-	buff = append(buff, '.')
+	s.msg.actor.WriteJoin("You examine ", name, ".")
 
 	for _, d := range attr.FindAllDescription(what) {
-		buff = append(buff, ' ')
-		buff = append(buff, d.Description()...)
+		s.msg.actor.WriteJoin(" ", d.Description())
 	}
 
 	if i := attr.FindInventory(what); i != nil {
-		buff = append(buff, ' ')
-		buff = append(buff, i.List()...)
+		s.msg.actor.WriteJoin(" ", i.List())
 	}
 
-	return string(buff), true
+	s.ok = true
 }
