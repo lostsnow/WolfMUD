@@ -12,6 +12,23 @@ import (
 	"unicode"
 )
 
+// AddHandler adds the given commands for the specified handler. The commands
+// will automatically be uppercased. Each command and it's aliases should
+// register it's handler in it's init function. For example:
+//
+//	func init() {
+//		AddHandler(Look, "L", "LOOK")
+//	}
+//
+// In this example the LOOK command and it's alias 'L' register the Look
+// function as their handler. If a handler is added for an existing command or
+// alias the original handler will be replaced.
+func AddHandler(handler func(*state), cmd ...string) {
+	for _, cmd := range cmd {
+		handlers[strings.ToUpper(cmd)] = handler
+	}
+}
+
 // Parse initiates processing of the input string for the specified Thing. The
 // input string is expected to be either a players input or possibly a scripted
 // command. It returns msg which is the response to carry out the command and
