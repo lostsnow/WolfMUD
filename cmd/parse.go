@@ -69,9 +69,15 @@ var handlers = map[string]func(*state){
 	"VERSION":   Version,
 }
 
+// dispatch invokes the handler for a given command. The command is specified
+// by state.cmd which is used to lookup the handler to invoke. dispatch should
+// only be called once any required locks are held. This is usually taken care
+// of by the state.parse method which is normally called by cmd.Parse.
 func dispatch(s *state) {
 
 	handler, valid := handlers[s.cmd]
+
+	// Respond to an invalid command
 	if !valid {
 		s.msg.actor.WriteString("Eh?")
 		return
