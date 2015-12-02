@@ -89,3 +89,8 @@ type Locate interface {
 	Where() Inventory
 	SetWhere(Inventory)
 }
+
+type Player interface {
+	Attribute
+	Write([]byte)
+}
