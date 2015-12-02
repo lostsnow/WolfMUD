@@ -33,7 +33,7 @@ const (
 //
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
-func Fold(in string, width int) []byte {
+func Fold(in []byte, width int) []byte {
 
 	// Can we take a short cut? Counting bytes is fine although we may end up
 	// with a string shorter than we think it is if there are multibyte runes.
@@ -44,7 +44,7 @@ func Fold(in string, width int) []byte {
 	// Add extra line feed to end of input. Will cause final word and line to be
 	// 'flushed' from the buffers. The extra line feed itself will not be output
 	// because it will still be in the buffers - so we don't need to trim it off.
-	in += "\n"
+	in = append(in, '\n')
 
 	var (
 		word = bytes.NewBuffer(make([]byte, 0, chars))
@@ -57,7 +57,7 @@ func Fold(in string, width int) []byte {
 		blank                     = true    // true when line is empty or only blanks
 	)
 
-	for _, r := range in {
+	for _, r := range bytes.Runes(in) {
 
 		if (r != ' ' && r != '\n') || (r == ' ' && blank == true) {
 			word.WriteRune(r)

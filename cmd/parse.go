@@ -50,7 +50,7 @@ func AddHandler(handler func(*state), cmd ...string) {
 // ok which is set to true if the command completed successfully else false.
 // The ok flag can be used by other commands and possibly scripting to check if
 // the command was successful without having to try and parse the msg.
-func Parse(t has.Thing, input string) (msg string, ok bool) {
+func Parse(t has.Thing, input string) (msg []byte, ok bool) {
 
 	if strings.TrimLeftFunc(input, unicode.IsSpace) == "" {
 		return
@@ -59,7 +59,7 @@ func Parse(t has.Thing, input string) (msg string, ok bool) {
 	s := NewState(t, input)
 	s.parse(dispatch)
 
-	return s.msg.actor.String(), s.ok
+	return s.msg.actor.Bytes(), s.ok
 }
 
 // dispatch invokes the handler for a given command. The command is specified
