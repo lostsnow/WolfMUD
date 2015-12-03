@@ -5,6 +5,10 @@
 
 package cmd
 
+import (
+	"code.wolfmud.org/WolfMUD.git/attr"
+)
+
 // Syntax: QUIT
 func init() {
 	AddHandler(Quit, "QUIT")
@@ -14,6 +18,13 @@ func init() {
 // The Quit command acts as a hook for processing - such as cleanup - to be
 // done when a player quits the game.
 func Quit(s *state) {
-	s.msg.actor.WriteString("Bye bye...")
+
+	// Remove the player from the world
+	if a := attr.FindLocate(s.actor); a != nil {
+		where := a.Where()
+		where.Remove(s.actor)
+	}
+
+	s.msg.actor.WriteString("\nBye bye...\n\n")
 	s.ok = true
 }
