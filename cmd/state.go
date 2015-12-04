@@ -40,7 +40,7 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 // TODO: Need to document msg buffers properly
 type state struct {
 	actor has.Thing // The Thing executing the command
-	input string    // The original input of the actor
+	input []string  // The original input of the actor
 	cmd   string    // The current command being processed
 	words []string  // Input split into uppercased words
 	ok    bool      // Flag to indicate if command was successful
@@ -62,22 +62,25 @@ type state struct {
 // list, but the lock is not taken at this point.
 func NewState(t has.Thing, input string) *state {
 
-	words := strings.Fields(strings.ToUpper(input))
-
 	s := &state{
 		actor: t,
-		input: input,
 		locks: make([]has.Inventory, 0, 2), // Common case is only 1 or 2 locks
+	}
+
+	s.input = strings.Fields(input)
+	s.words = make([]string, len(s.input))
+	for x, o := range s.input {
+		s.words[x] = strings.ToUpper(o)
 	}
 
 	// Make sure we don't try to index beyond the
 	// number of words we have and cause a panic
-	switch l := len(words); {
+	switch l := len(s.words); {
 	case l > 1:
-		s.words = words[1:]
-		fallthrough
+		s.cmd, s.words = s.words[0], s.words[1:]
+		s.input = s.input[1:]
 	case l > 0:
-		s.cmd = words[0]
+		s.cmd = s.words[0]
 	}
 
 	if a := attr.FindLocate(t); a != nil {
