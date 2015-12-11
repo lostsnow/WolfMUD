@@ -5,10 +5,6 @@
 
 package internal
 
-import (
-	"sync"
-)
-
 // BRL or 'Big Room Lock' is responsible for all of the 'in game' locking.
 // Named in tribute to the Linux kernel 'big kernel lock' that is no more. In
 // Linux the BKL stopped concurrency in kernel space. In WolfMUD the BRL stops
@@ -24,19 +20,21 @@ import (
 //
 //  https://en.wikipedia.org/wiki/Dining_philosophers_problem
 //
+// A BRL also fulfils the sync.Locker interface.
+//
 // TODO: Add more details on the BRL, lockID and implications of room level
 // locking.
 type BRL struct {
-	lockID uint64
-	sync.Mutex
+	lockID chan uint64
+	lock   chan struct{}
 }
 
-// next is a read only channel used to retrieve the next unique ID number.
+// nextLockID is a read only channel used to retrieve the next unique ID number
 var nextLockID <-chan uint64
 
-// init starts a goroutine to generate unique IDs on demand. The goroutine is a
-// simple and efficient incrementing counter which blocks and only generates
-// the next unique ID when the current one is read using <-nextLockID
+// init starts a goroutine to generate unique lock IDs on demand. The goroutine
+// is a simple and efficient incrementing counter which blocks and only
+// generates the next unique ID when the current one is read using <-nextLockID
 func init() {
 
 	// Create bi-directional channel so goroutine can write to it
@@ -55,10 +53,28 @@ func init() {
 
 // NewBRL returns an initialised BRL with a unique lock ID.
 func NewBRL() BRL {
-	return BRL{lockID: <-nextLockID}
+	brl := BRL{
+		lockID: make(chan uint64, 1),
+		lock:   make(chan struct{}, 1),
+	}
+	brl.lockID <- <-nextLockID
+	brl.lock <- struct{}{}
+	return brl
+}
+
+// Lock locks the specified BRL and implements Lock for a sync.Locker
+func (brl BRL) Lock() {
+	<-brl.lock
+}
+
+// Unlock unlocks the specified BRL and implements Unlock for a sync.Locker
+func (brl BRL) Unlock() {
+	brl.lock <- struct{}{}
 }
 
 // LockID returns the unique lock ID associated with a specific BRL.
-func (brl BRL) LockID() uint64 {
-	return brl.lockID
+func (brl BRL) LockID() (id uint64) {
+	id = <-brl.lockID
+	brl.lockID <- id
+	return
 }
