@@ -129,9 +129,8 @@ func (s *state) sync(dispatcher func(s *state)) {
 // could be locked, otherwise false. It does NOT determine if the lock is
 // currently held or not.
 func (s *state) CanLock(i has.Inventory) bool {
-	u := i.LockID()
 	for _, l := range s.locks {
-		if u == l.LockID() {
+		if i == l {
 			return true
 		}
 	}
