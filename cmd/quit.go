@@ -20,8 +20,9 @@ func Quit(s *state) {
 
 	// Remove the player from the world
 	if a := attr.FindLocate(s.actor); a != nil {
-		where := a.Where()
-		where.Remove(s.actor)
+		if where := a.Where(); where != nil {
+			where.Remove(s.actor)
+		}
 	}
 
 	s.msg.actor.WriteString("\nBye bye...\n\n")
