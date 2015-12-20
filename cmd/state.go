@@ -37,13 +37,17 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
 //
+// NOTE: where is only set when the state is created and not updated if the
+// actor moves.
+//
 // TODO: Need to document msg buffers properly
 type state struct {
-	actor has.Thing // The Thing executing the command
-	input []string  // The original input of the actor
-	cmd   string    // The current command being processed
-	words []string  // Input split into uppercased words
-	ok    bool      // Flag to indicate if command was successful
+	actor has.Thing     // The Thing executing the command
+	where has.Inventory // Where the actor currently is
+	input []string      // The original input of the actor
+	cmd   string        // The current command being processed
+	words []string      // Input split into uppercased words
+	ok    bool          // Flag to indicate if command was successful
 
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
@@ -83,8 +87,12 @@ func NewState(t has.Thing, input string) *state {
 		s.cmd = s.words[0]
 	}
 
+	// Need to determine the actor's current location so we can lock it. As
+	// commands frequently need to know the current location also, we stash it in
+	// the state for later reuse.
 	if a := attr.FindLocate(t); a != nil {
-		s.AddLock(a.Where())
+		s.where = a.Where()
+		s.AddLock(s.where)
 	}
 
 	return s
