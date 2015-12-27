@@ -6,76 +6,15 @@
 package main
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/cmd"
-	"code.wolfmud.org/WolfMUD.git/text"
+	"code.wolfmud.org/WolfMUD.git/comms"
+	"code.wolfmud.org/WolfMUD.git/stats"
 
-	"bufio"
-	"flag"
-	"fmt"
-	"os"
-	"runtime"
-	"runtime/pprof"
+	"log"
 )
 
-var memprof = flag.Bool("memprof", false, "turn on memory profiling")
-var cpuprof = flag.Bool("cpuprof", false, "turn on cpu profiling")
-
 func main() {
-	flag.Parse()
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	world := attr.Setup()
-
-	// Setup test player
-	p := attr.NewThing(
-		attr.NewName("a player"),
-		attr.NewAlias("player"),
-		attr.NewInventory(),
-		attr.NewLocate(nil),
-	)
-
-	if *memprof {
-		runtime.MemProfileRate = 1
-		fmt.Println("Memory profileing turned on.")
-	}
-	if *cpuprof {
-		f, _ := os.Create("cpuprof")
-		pprof.StartCPUProfile(f)
-		fmt.Println("CPU profileing turned on.")
-	}
-
-	// Put player into the world
-	if i := attr.FindInventory(world["loc1"]); i != nil {
-		i.Lock()
-		i.Add(p)
-		i.Unlock()
-	}
-
-	// Describe what they can see
-	msg, _ := cmd.Parse(p, "LOOK")
-	fmt.Printf("%s\n", text.Fold(msg, 80))
-
-	// Main processing loop
-	s := bufio.NewScanner(os.Stdin)
-	fmt.Print(">")
-	for s.Scan() {
-		i := s.Text()
-		if msg, _ := cmd.Parse(p, i); len(msg) > 0 {
-			fmt.Printf("%s\n", text.Fold(msg, 80))
-		}
-		if i == "quit" {
-			break
-		}
-		fmt.Print(">")
-	}
-	fmt.Println()
-
-	if *memprof {
-		f, _ := os.Create("memprof")
-		pprof.WriteHeapProfile(f)
-		f.Close()
-	}
-	if *cpuprof {
-		pprof.StopCPUProfile()
-	}
+	stats.Start()
+	comms.Listen("127.0.0.1", "4001")
 }
