@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bufio"
@@ -112,6 +113,7 @@ func newClient(conn *net.TCPConn) *client {
 	if i := attr.FindInventory(world["loc1"]); i != nil {
 		i.Lock()
 		i.Add(c.player)
+		stats.Add(c.player)
 		i.Unlock()
 	}
 

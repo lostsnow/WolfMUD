@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/stats"
 )
 
 // Syntax: QUIT
@@ -24,6 +25,9 @@ func Quit(s *state) {
 			where.Remove(s.actor)
 		}
 	}
+
+	// Remove players from stats
+	stats.Remove(s.actor)
 
 	s.msg.actor.WriteString("\nBye bye...\n\n")
 	s.ok = true
