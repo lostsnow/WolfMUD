@@ -60,11 +60,31 @@ func Look(s *state) {
 	s.msg.actor.WriteString("\n\n")
 	mark = s.msg.actor.Len()
 
-	// Note: We don't want to include the looker in the list of things here which
-	// is what the l != t check is for
 	if a := attr.FindInventory(where.Parent()); a != nil {
+
+		if a.Crowded() {
+			s.msg.actor.WriteString("You can see a crowd here.\n")
+		} else {
+
+			for _, l := range a.Contents() {
+
+				if l == s.actor { // Don't include the looker in the list
+					continue
+				}
+
+				if attr.FindPlayer(l) == nil {
+					continue
+				}
+
+				if n := attr.FindName(l); n != nil {
+					s.msg.actor.WriteJoin("You can see ", n.Name(), " here.\n")
+				}
+			}
+		}
+
+		// Extract non-players and non-mobiles
 		for _, l := range a.Contents() {
-			if l == s.actor {
+			if attr.FindPlayer(l) != nil {
 				continue
 			}
 			if n := attr.FindName(l); n != nil {
