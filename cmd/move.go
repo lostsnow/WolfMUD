@@ -75,6 +75,16 @@ func Move(s *state) {
 
 	to.Add(s.actor)
 
+	// Get actors name
+	name := "Someone"
+	if a := attr.FindName(s.actor); a != nil {
+		name = a.Name()
+	}
+
+	// Broadcast leaving and arrival notifications
+	s.msg.observers[from].WriteJoin("You see ", name, " go ", direction, ".")
+	s.msg.observers[to].WriteJoin("You see ", name, " enter.")
+
 	// Describe our destination
 	Look(s)
 }
