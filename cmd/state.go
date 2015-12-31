@@ -55,9 +55,9 @@ type state struct {
 	// msg is a collection of buffers for gathering messages to send back as a
 	// result of processing a command.
 	msg struct {
-		actor       buffer
-		participant buffer
-		observers   buffer
+		actor       *buffer
+		participant *buffer
+		observers   map[has.Inventory]*buffer
 	}
 }
 
