@@ -132,6 +132,37 @@ func (s *state) parse(dispatcher func(s *state)) {
 	}
 }
 
+// messenger sends buffered messages to participants and observers. The
+// participant may be in another location to the actor - such as when throwing
+// something at someone or shooting someone.
+//
+// NOTE: Messages are not broadcast to observers in a crowded location.
+func (s *state) messenger() {
+	if s.participant != nil && s.msg.participant.Len() > 1 {
+		if p := attr.FindPlayer(s.participant); p != nil {
+			p.Write(s.msg.participant.Bytes())
+		}
+	}
+
+	if len(s.msg.observers) == 0 || s.where == nil {
+		return
+	}
+
+	for where, buffer := range s.msg.observers {
+		if where.Crowded() || buffer.Len() == 1 {
+			continue
+		}
+		msg := buffer.Bytes()
+		for _, c := range where.Contents() {
+			if c != s.actor && c != s.participant {
+				if p := attr.FindPlayer(c); p != nil {
+					p.Write(msg)
+				}
+			}
+		}
+	}
+}
+
 // sync is called by parse to do the actual locking and unlocking. Having this
 // separate from parse takes advantage of unwinding the locks using defer. This
 // makes both parse and sync very simple.
