@@ -42,12 +42,13 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 //
 // TODO: Need to document msg buffers properly
 type state struct {
-	actor has.Thing     // The Thing executing the command
-	where has.Inventory // Where the actor currently is
-	input []string      // The original input of the actor
-	cmd   string        // The current command being processed
-	words []string      // Input split into uppercased words
-	ok    bool          // Flag to indicate if command was successful
+	actor       has.Thing     // The Thing executing the command
+	where       has.Inventory // Where the actor currently is
+	participant has.Thing     // The other Thing participating in the command
+	input       []string      // The original input of the actor
+	cmd         string        // The current command being processed
+	words       []string      // Input split into uppercased words
+	ok          bool          // Flag to indicate if command was successful
 
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
