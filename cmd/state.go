@@ -78,6 +78,15 @@ func NewState(t has.Thing, input string) *state {
 		s.words[x] = strings.ToUpper(o)
 	}
 
+	s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, 80*24))}
+	s.msg.participant = &buffer{}
+	s.msg.observers = make(map[has.Inventory]*buffer)
+
+	// When messages are sent to participants we need an initial line feed to
+	// move them off the prompt line - usually this is done by the player when
+	// hitting the enter key. Observers are handled similarly in AddLock.
+	s.msg.participant.WriteByte(byte('\n'))
+
 	// Make sure we don't try to index beyond the
 	// number of words we have and cause a panic
 	switch l := len(s.words); {
@@ -159,6 +168,14 @@ func (s *state) CanLock(i has.Inventory) bool {
 // one location to another location requires 2 locks. Having more that 2 locks
 // is rare but could occure with things like area or line of sight effects.
 //
+// As we can broadcast messages to anyone in any of the locked locations we
+// also setup an observers message buffer for each added lock. The message
+// buffers can then be accessed using:
+//
+//	s.msg.observers[i]
+//
+// where i is a location's Inventory.
+//
 // NOTE: We cannot add the same lock twice otherwise we would deadlock
 // ourselves when locking - currently we silently drop duplicate locks.
 func (s *state) AddLock(i has.Inventory) {
@@ -169,6 +186,9 @@ func (s *state) AddLock(i has.Inventory) {
 
 	s.locks = append(s.locks, i)
 	l := len(s.locks)
+
+	s.msg.observers[i] = &buffer{}
+	s.msg.observers[i].WriteByte('\n')
 
 	if l == 1 {
 		return
