@@ -171,7 +171,15 @@ func (s *state) sync(dispatcher func(s *state)) {
 		l.Lock()
 		defer l.Unlock()
 	}
+
+	l := len(s.locks)
 	dispatcher(s)
+
+	// If we don't add any new locks process any pending messages before we
+	// release our locks
+	if l-len(s.locks) == 0 {
+		s.messenger()
+	}
 }
 
 // CanLock returns true if the specified Inventory is in the list of locks and
