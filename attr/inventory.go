@@ -10,6 +10,12 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 )
 
+const (
+	reclaimFactor = 2  // is capacity > length * reclaimFactor
+	reclaimBuffer = 4  // only reclaim if gain more than reclaimBuffer
+	crowdSize     = 10 // If inventory has more player than this it's a crowd
+)
+
 // Inventory implements an attribute for container inventories. The most common
 // container usage is for locations and rooms as well as actual containers like
 // bags, boxes and inventories for mobiles. WolfMUD does not actually define a
@@ -19,7 +25,8 @@ import (
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
 	Attribute
-	contents []has.Thing
+	contents    []has.Thing
+	playerCount uint64
 	internal.BRL
 }
 
@@ -43,7 +50,7 @@ func NewInventory(t ...has.Thing) *Inventory {
 	// Shallow copy only - interface headers or pointers
 	copy(c, t)
 
-	return &Inventory{Attribute{}, c, internal.NewBRL()}
+	return &Inventory{Attribute{}, c, 0, internal.NewBRL()}
 }
 
 // FindInventory searches the attributes of the specified Thing for attributes
@@ -76,12 +83,22 @@ func (i *Inventory) Add(t has.Thing) {
 	if a := FindLocate(t); a != nil {
 		a.SetWhere(i)
 	}
+
+	// TODO: Need to check for players or mobiles
+	if a := FindPlayer(t); a != nil {
+		i.playerCount++
+	}
 }
 
 // Remove tries to take the specified Thing from the Inventory. If the Thing is
 // removed successfully it is returned otherwise nil is returned. If the Thing
 // needs to know where it is - because it implements the has.Locate interface -
 // we update where the Thing is to nil as it is now nowhere.
+//
+// TODO: The reclaim factor and buffer should be tunable via the configuration.
+//
+// TODO: A slice is fine for conveniance and simplicity but maybe a linked list
+// would be better?
 func (i *Inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
@@ -90,6 +107,21 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			}
 			i.contents[j] = nil
 			i.contents = append(i.contents[:j], i.contents[j+1:]...)
+
+			// If we are using less than length*reclaimFactor of the slice's capacity
+			// and the difference is more than reclaimBuffer 'shrink' the slice by
+			// allocating a new slice of the exact size needed. The reclaimBuffer
+			// stops us shrinking small buffers all the time where the gain is
+			// minimal.
+			if cap(i.contents)-(len(i.contents)*reclaimFactor) > reclaimBuffer {
+				i.contents = append([]has.Thing(nil), i.contents[:]...)
+			}
+
+			// TODO: Need to check for players or mobiles
+			if a := FindPlayer(t); a != nil {
+				i.playerCount--
+			}
+
 			return c
 		}
 	}
@@ -165,4 +197,8 @@ func (i *Inventory) List() string {
 	}
 
 	return string(buff)
+}
+
+func (i *Inventory) Crowded() bool {
+	return i.playerCount > crowdSize
 }

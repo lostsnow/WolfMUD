@@ -62,6 +62,7 @@ type Inventory interface {
 	List() string
 	sync.Locker
 	LockID() uint64
+	Crowded() bool
 }
 
 type Narrative interface {
@@ -88,4 +89,9 @@ type Locate interface {
 	Attribute
 	Where() Inventory
 	SetWhere(Inventory)
+}
+
+type Player interface {
+	Attribute
+	Write([]byte)
 }

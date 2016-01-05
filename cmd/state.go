@@ -37,13 +37,18 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
 //
+// NOTE: where is only set when the state is created and not updated if the
+// actor moves.
+//
 // TODO: Need to document msg buffers properly
 type state struct {
-	actor has.Thing // The Thing executing the command
-	input string    // The original input of the actor
-	cmd   string    // The current command being processed
-	words []string  // Input split into uppercased words
-	ok    bool      // Flag to indicate if command was successful
+	actor       has.Thing     // The Thing executing the command
+	where       has.Inventory // Where the actor currently is
+	participant has.Thing     // The other Thing participating in the command
+	input       []string      // The original input of the actor
+	cmd         string        // The current command being processed
+	words       []string      // Input split into uppercased words
+	ok          bool          // Flag to indicate if command was successful
 
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
@@ -51,9 +56,9 @@ type state struct {
 	// msg is a collection of buffers for gathering messages to send back as a
 	// result of processing a command.
 	msg struct {
-		actor       buffer
-		participant buffer
-		observers   buffer
+		actor       *buffer
+		participant *buffer
+		observers   map[has.Inventory]*buffer
 	}
 }
 
@@ -62,26 +67,42 @@ type state struct {
 // list, but the lock is not taken at this point.
 func NewState(t has.Thing, input string) *state {
 
-	words := strings.Fields(strings.ToUpper(input))
-
 	s := &state{
 		actor: t,
-		input: input,
 		locks: make([]has.Inventory, 0, 2), // Common case is only 1 or 2 locks
 	}
 
-	// Make sure we don't try to index beyond the
-	// number of words we have and cause a panic
-	switch l := len(words); {
-	case l > 1:
-		s.words = words[1:]
-		fallthrough
-	case l > 0:
-		s.cmd = words[0]
+	s.input = strings.Fields(input)
+	s.words = make([]string, len(s.input))
+	for x, o := range s.input {
+		s.words[x] = strings.ToUpper(o)
 	}
 
+	s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, 80*24))}
+	s.msg.participant = &buffer{}
+	s.msg.observers = make(map[has.Inventory]*buffer)
+
+	// When messages are sent to participants we need an initial line feed to
+	// move them off the prompt line - usually this is done by the player when
+	// hitting the enter key. Observers are handled similarly in AddLock.
+	s.msg.participant.WriteByte(byte('\n'))
+
+	// Make sure we don't try to index beyond the
+	// number of words we have and cause a panic
+	switch l := len(s.words); {
+	case l > 1:
+		s.cmd, s.words = s.words[0], s.words[1:]
+		s.input = s.input[1:]
+	case l > 0:
+		s.cmd = s.words[0]
+	}
+
+	// Need to determine the actor's current location so we can lock it. As
+	// commands frequently need to know the current location also, we stash it in
+	// the state for later reuse.
 	if a := attr.FindLocate(t); a != nil {
-		s.AddLock(a.Where())
+		s.where = a.Where()
+		s.AddLock(s.where)
 	}
 
 	return s
@@ -111,6 +132,37 @@ func (s *state) parse(dispatcher func(s *state)) {
 	}
 }
 
+// messenger sends buffered messages to participants and observers. The
+// participant may be in another location to the actor - such as when throwing
+// something at someone or shooting someone.
+//
+// NOTE: Messages are not broadcast to observers in a crowded location.
+func (s *state) messenger() {
+	if s.participant != nil && s.msg.participant.Len() > 1 {
+		if p := attr.FindPlayer(s.participant); p != nil {
+			p.Write(s.msg.participant.Bytes())
+		}
+	}
+
+	if len(s.msg.observers) == 0 || s.where == nil {
+		return
+	}
+
+	for where, buffer := range s.msg.observers {
+		if where.Crowded() || buffer.Len() == 1 {
+			continue
+		}
+		msg := buffer.Bytes()
+		for _, c := range where.Contents() {
+			if c != s.actor && c != s.participant {
+				if p := attr.FindPlayer(c); p != nil {
+					p.Write(msg)
+				}
+			}
+		}
+	}
+}
+
 // sync is called by parse to do the actual locking and unlocking. Having this
 // separate from parse takes advantage of unwinding the locks using defer. This
 // makes both parse and sync very simple.
@@ -119,16 +171,23 @@ func (s *state) sync(dispatcher func(s *state)) {
 		l.Lock()
 		defer l.Unlock()
 	}
+
+	l := len(s.locks)
 	dispatcher(s)
+
+	// If we don't add any new locks process any pending messages before we
+	// release our locks
+	if l-len(s.locks) == 0 {
+		s.messenger()
+	}
 }
 
 // CanLock returns true if the specified Inventory is in the list of locks and
 // could be locked, otherwise false. It does NOT determine if the lock is
 // currently held or not.
 func (s *state) CanLock(i has.Inventory) bool {
-	u := i.LockID()
 	for _, l := range s.locks {
-		if u == l.LockID() {
+		if i == l {
 			return true
 		}
 	}
@@ -148,6 +207,14 @@ func (s *state) CanLock(i has.Inventory) bool {
 // one location to another location requires 2 locks. Having more that 2 locks
 // is rare but could occure with things like area or line of sight effects.
 //
+// As we can broadcast messages to anyone in any of the locked locations we
+// also setup an observers message buffer for each added lock. The message
+// buffers can then be accessed using:
+//
+//	s.msg.observers[i]
+//
+// where i is a location's Inventory.
+//
 // NOTE: We cannot add the same lock twice otherwise we would deadlock
 // ourselves when locking - currently we silently drop duplicate locks.
 func (s *state) AddLock(i has.Inventory) {
@@ -158,6 +225,9 @@ func (s *state) AddLock(i has.Inventory) {
 
 	s.locks = append(s.locks, i)
 	l := len(s.locks)
+
+	s.msg.observers[i] = &buffer{}
+	s.msg.observers[i].WriteByte('\n')
 
 	if l == 1 {
 		return

@@ -147,6 +147,46 @@ func Setup() map[string]has.Thing {
 		NewExits(),
 	)
 
+	world["loc6"] = NewThing(
+		NewName("Baker's shop"),
+		NewDescription("You are standing in a bakers shop. Low tables show an array of fresh breads, cakes and the like. The smells here are beyond description."),
+		NewAlias("SHOP", "BAKERS"),
+		NewInventory(),
+		NewExits(),
+	)
+
+	world["loc7"] = NewThing(
+		NewName("Street outside pawn shop"),
+		NewDescription("You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you."),
+		NewAlias("STREET", "PAWNSHOP"),
+		NewInventory(),
+		NewExits(),
+	)
+
+	world["loc8"] = NewThing(
+		NewName("Pawn shop"),
+		NewDescription("You are in small Pawn shop. All around you on shelves are what looks like a load of useless junk."),
+		NewAlias("SHOP", "PAWN", "PAWNSHOP"),
+		NewInventory(),
+		NewExits(),
+	)
+
+	world["loc9"] = NewThing(
+		NewName("Fountain Square"),
+		NewDescription("You are in a small square at the crossing of two roads. In the centre of the square a magnificent fountain has been erected, providing fresh water to any who want it. From here the streets lead off in all directions."),
+		NewAlias("FOUNTAIN"),
+		NewInventory(),
+		NewExits(),
+	)
+
+	world["loc10"] = NewThing(
+		NewName("Street outside armourer"),
+		NewDescription("You are on a well kept cobbled street which runs to the east and west. To the south you can see the shop of an armourer."),
+		NewAlias("STREET", "ARMOURER"),
+		NewInventory(),
+		NewExits(),
+	)
+
 	// Link up room exits
 
 	if a := FindExits(world["loc1"]); a != nil {
@@ -175,7 +215,37 @@ func Setup() map[string]has.Thing {
 	}
 
 	if a := FindExits(world["loc5"]); a != nil {
+		//a.Link(North, FindInventory(world["loc14"]))
+		a.Link(South, FindInventory(world["loc7"]))
+		a.Link(East, FindInventory(world["loc6"]))
 		a.Link(West, FindInventory(world["loc3"]))
+	}
+
+	if a := FindExits(world["loc6"]); a != nil {
+		a.Link(West, FindInventory(world["loc5"]))
+	}
+
+	if a := FindExits(world["loc7"]); a != nil {
+		a.Link(North, FindInventory(world["loc5"]))
+		a.Link(East, FindInventory(world["loc8"]))
+		a.Link(South, FindInventory(world["loc9"]))
+	}
+
+	if a := FindExits(world["loc8"]); a != nil {
+		a.Link(West, FindInventory(world["loc7"]))
+	}
+
+	if a := FindExits(world["loc9"]); a != nil {
+		a.Link(North, FindInventory(world["loc7"]))
+		//a.Link(South, FindInventory(world["loc50"]))
+		//a.Link(East, FindInventory(world["loc12"]))
+		a.Link(West, FindInventory(world["loc10"]))
+	}
+
+	if a := FindExits(world["loc10"]); a != nil {
+		//a.Link(South, FindInventory(world["loc11"]))
+		a.Link(East, FindInventory(world["loc9"]))
+		//a.Link(West, FindInventory(world["loc24"]))
 	}
 
 	return world
