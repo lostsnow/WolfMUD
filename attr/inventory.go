@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	reclaimFactor = 2 // is capacity > length * reclaimFactor
-	reclaimBuffer = 4 // only reclaim if gain more than reclaimBuffer
+	reclaimFactor = 2  // is capacity > length * reclaimFactor
+	reclaimBuffer = 4  // only reclaim if gain more than reclaimBuffer
+	crowdSize     = 10 // If inventory has more player than this it's a crowd
 )
 
 // Inventory implements an attribute for container inventories. The most common
@@ -24,7 +25,8 @@ const (
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
 	Attribute
-	contents []has.Thing
+	contents    []has.Thing
+	playerCount uint64
 	internal.BRL
 }
 
@@ -48,7 +50,7 @@ func NewInventory(t ...has.Thing) *Inventory {
 	// Shallow copy only - interface headers or pointers
 	copy(c, t)
 
-	return &Inventory{Attribute{}, c, internal.NewBRL()}
+	return &Inventory{Attribute{}, c, 0, internal.NewBRL()}
 }
 
 // FindInventory searches the attributes of the specified Thing for attributes
@@ -81,6 +83,11 @@ func (i *Inventory) Add(t has.Thing) {
 	if a := FindLocate(t); a != nil {
 		a.SetWhere(i)
 	}
+
+	// TODO: Need to check for players or mobiles
+	if a := FindPlayer(t); a != nil {
+		i.playerCount++
+	}
 }
 
 // Remove tries to take the specified Thing from the Inventory. If the Thing is
@@ -108,6 +115,11 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			// minimal.
 			if cap(i.contents)-(len(i.contents)*reclaimFactor) > reclaimBuffer {
 				i.contents = append([]has.Thing(nil), i.contents[:]...)
+			}
+
+			// TODO: Need to check for players or mobiles
+			if a := FindPlayer(t); a != nil {
+				i.playerCount--
 			}
 
 			return c
@@ -185,4 +197,8 @@ func (i *Inventory) List() string {
 	}
 
 	return string(buff)
+}
+
+func (i *Inventory) Crowded() bool {
+	return i.playerCount > crowdSize
 }

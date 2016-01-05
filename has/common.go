@@ -62,6 +62,7 @@ type Inventory interface {
 	List() string
 	sync.Locker
 	LockID() uint64
+	Crowded() bool
 }
 
 type Narrative interface {
