@@ -19,16 +19,20 @@ func init() {
 // done when a player quits the game.
 func Quit(s *state) {
 
-	// Remove the player from the world
-	if a := attr.FindLocate(s.actor); a != nil {
-		if where := a.Where(); where != nil {
-			where.Remove(s.actor)
-		}
+	who := "Someone"
+	if a := attr.FindName(s.actor); a != nil {
+		who = a.Name()
 	}
 
-	// Remove players from stats
+	// Remove the player from the world
+	if s.where != nil {
+		s.msg.observers[s.where].WriteJoin(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+		s.where.Remove(s.actor)
+	}
+
 	stats.Remove(s.actor)
 
 	s.msg.actor.WriteString("\nBye bye...\n\n")
+
 	s.ok = true
 }
