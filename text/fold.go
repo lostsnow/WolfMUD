@@ -25,11 +25,18 @@ const (
 	lines = 24 // Starting number of lines for page initial buffer sizing
 )
 
+// Carriage return/line feed for network data
+var crlf = []byte("\r\n")
+
 // Fold takes a string and reformats it so lines have a maximum length of the
 // passed width. Fold will handle multibyte runes. However it cannot handle
 // 'wide' runes - those that are wider than a normal single character when
 // displayed. This is because the required information is actually contained in
 // the font files of the font in use at the 'client' end.
+//
+// It is expected the incoming end of lines are Unix linefeeds (LF, \n) only
+// and will be output as carridge return and linefeed pairs (CR+LF, \r\n) for
+// Telnet. For more information see RFC 854 - Telnet Protocol Specification.
 //
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
@@ -68,7 +75,7 @@ func Fold(in []byte, width int) []byte {
 
 		if lineLen+space+wordLen > width {
 			if pageLen != reset {
-				page.WriteByte('\n')
+				page.Write(crlf)
 				pageLen++
 			}
 			line.WriteTo(page)
@@ -86,8 +93,16 @@ func Fold(in []byte, width int) []byte {
 		wordLen = reset
 
 		if r == '\n' {
+
+			// An initial linefeed does not count towards the page length. This is
+			// normally used to move output off of the player's prompt line.
+			if pageLen == reset && lineLen == reset {
+				page.Write(crlf)
+				continue
+			}
+
 			if pageLen != reset {
-				page.WriteByte('\n')
+				page.Write(crlf)
 				pageLen++
 			}
 			line.WriteTo(page)

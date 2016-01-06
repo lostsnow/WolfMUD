@@ -13,7 +13,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
 	"log"
@@ -32,9 +31,7 @@ const (
 
 // Values to be treated as constants but we can't define them as constants
 var (
-	crlf          = []byte("\r\n") // Carriage return/line feed for network data
-	lf            = crlf[1:]       // Line feed used internally for data
-	defaultPrompt = []byte("\n>")  // Default prompt for client input
+	defaultPrompt = []byte("\n>") // Default prompt for client input
 
 	// Most of the flow and control for the client is done using errors so we
 	// raise an "I want to quit" error instead of adding another level of
@@ -227,7 +224,7 @@ func (c *client) Write(d []byte) (n int, err error) {
 
 	c.SetWriteDeadline(time.Now().Add(timeout))
 
-	if n, err = c.TCPConn.Write(bytes.Replace(t, lf, crlf, -1)); err != nil {
+	if n, err = c.TCPConn.Write(t); err != nil {
 		c.SetError(err)
 	}
 	return
