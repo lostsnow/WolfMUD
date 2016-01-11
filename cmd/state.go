@@ -37,8 +37,8 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
 //
-// NOTE: where is only set when the state is created and not updated if the
-// actor moves.
+// NOTE: where is only set when the state is created. If the actor moves to
+// another location where should be updated as well.
 //
 // TODO: Need to document msg buffers properly
 type state struct {

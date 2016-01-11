@@ -74,6 +74,7 @@ func Move(s *state) {
 	}
 
 	to.Add(s.actor)
+	s.where = to
 
 	// Get actors name
 	name := "Someone"
