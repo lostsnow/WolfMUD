@@ -7,6 +7,7 @@ package main
 
 import (
 	"code.wolfmud.org/WolfMUD.git/comms"
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/stats"
 
 	"log"
@@ -16,5 +17,5 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	stats.Start()
-	comms.Listen("127.0.0.1", "4001")
+	comms.Listen(config.Server.Host, config.Server.Port)
 }

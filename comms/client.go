@@ -8,6 +8,7 @@ package comms
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd"
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/text"
@@ -23,10 +24,8 @@ import (
 
 // TODO: These need to be configuration options once we have them
 const (
-	timeout       = 10 * time.Minute // Idle connection timeout
-	terminalWidth = 80               // fold wrapping length - see fold function
-	lineBuffer    = 80               // Default network read & line buffer size
-	pageBuffer    = 80 * 24          // Default network write buffer size
+	termColumns = 80
+	termLines   = 24
 )
 
 // Values to be treated as constants but we can't define them as constants
@@ -82,8 +81,8 @@ func newClient(conn *net.TCPConn) *client {
 	conn.SetKeepAlive(true)
 	conn.SetLinger(0)
 	conn.SetNoDelay(false)
-	conn.SetWriteBuffer(pageBuffer)
-	conn.SetReadBuffer(lineBuffer)
+	conn.SetWriteBuffer(termColumns * termLines)
+	conn.SetReadBuffer(termColumns)
 
 	id := string(<-nextPlayerID)
 
@@ -125,14 +124,14 @@ func newClient(conn *net.TCPConn) *client {
 func (c *client) process() {
 
 	var (
-		s   = bufio.NewReaderSize(c, lineBuffer) // Sized network reading buffer
-		err error                                // function local errors
-		in  string                               // Input string from buffer
+		s   = bufio.NewReaderSize(c, termColumns) // Sized network read buffer
+		err error                                 // function local errors
+		in  string                                // Input string from buffer
 	)
 
 	// Main input processing loop
 	for err == nil {
-		c.SetReadDeadline(time.Now().Add(timeout))
+		c.SetReadDeadline(time.Now().Add(config.Server.IdleTimeout))
 		in, err = s.ReadString('\n')
 
 		// Do we need to set an error?
@@ -220,9 +219,9 @@ func (c *client) Write(d []byte) (n int, err error) {
 	}
 
 	d = append(d, c.prompt...)
-	t := text.Fold(d, terminalWidth)
+	t := text.Fold(d, termColumns)
 
-	c.SetWriteDeadline(time.Now().Add(timeout))
+	c.SetWriteDeadline(time.Now().Add(config.Server.IdleTimeout))
 
 	if n, err = c.TCPConn.Write(t); err != nil {
 		c.SetError(err)

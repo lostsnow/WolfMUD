@@ -22,6 +22,8 @@
 package stats
 
 import (
+	"code.wolfmud.org/WolfMUD.git/config"
+
 	"log"
 	"runtime"
 	"time"
@@ -46,9 +48,7 @@ type stats struct {
 // collection and reporting.
 func Start() {
 
-	rate := 10 * time.Second
-
-	if rate == 0 {
+	if config.Stats.Rate == 0 {
 		log.Printf("Stats collection disabled")
 		return
 	}
@@ -57,12 +57,12 @@ func Start() {
 	s.collect() // 1st time initialisation
 
 	go func() {
-		for _ = range time.Tick(rate) {
+		for _ = range time.Tick(config.Stats.Rate) {
 			s.collect()
 		}
 	}()
 
-	log.Printf("Stats collection started, frequency: %s", rate)
+	log.Printf("Stats collection started, frequency: %s", config.Stats.Rate)
 }
 
 // collect runs periodically to collect, process and report statistics.

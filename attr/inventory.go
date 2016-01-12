@@ -7,13 +7,8 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
-)
-
-const (
-	reclaimFactor = 2  // is capacity > length * reclaimFactor
-	reclaimBuffer = 4  // only reclaim if gain more than reclaimBuffer
-	crowdSize     = 10 // If inventory has more player than this it's a crowd
 )
 
 // Inventory implements an attribute for container inventories. The most common
@@ -95,8 +90,6 @@ func (i *Inventory) Add(t has.Thing) {
 // needs to know where it is - because it implements the has.Locate interface -
 // we update where the Thing is to nil as it is now nowhere.
 //
-// TODO: The reclaim factor and buffer should be tunable via the configuration.
-//
 // TODO: A slice is fine for conveniance and simplicity but maybe a linked list
 // would be better?
 func (i *Inventory) Remove(t has.Thing) has.Thing {
@@ -113,7 +106,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			// allocating a new slice of the exact size needed. The reclaimBuffer
 			// stops us shrinking small buffers all the time where the gain is
 			// minimal.
-			if cap(i.contents)-(len(i.contents)*reclaimFactor) > reclaimBuffer {
+			if cap(i.contents)-(len(i.contents)*config.ReclaimFactor) > config.ReclaimBuffer {
 				i.contents = append([]has.Thing(nil), i.contents[:]...)
 			}
 
@@ -200,5 +193,5 @@ func (i *Inventory) List() string {
 }
 
 func (i *Inventory) Crowded() bool {
-	return i.playerCount > crowdSize
+	return i.playerCount > config.CrowdSize
 }
