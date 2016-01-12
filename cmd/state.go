@@ -78,7 +78,9 @@ func NewState(t has.Thing, input string) *state {
 		s.words[x] = strings.ToUpper(o)
 	}
 
-	s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, 80*24))}
+	// Set actor's send buffer to half a page @ 80 columns * 24 lines - seems reasonable?
+	s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
+
 	s.msg.participant = &buffer{}
 	s.msg.observers = make(map[has.Inventory]*buffer)
 
