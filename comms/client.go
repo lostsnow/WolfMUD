@@ -31,6 +31,7 @@ const (
 // Values to be treated as constants but we can't define them as constants
 var (
 	defaultPrompt = []byte("\n>") // Default prompt for client input
+	noPrompt      = []byte{}      // An empty prompt
 
 	// Most of the flow and control for the client is done using errors so we
 	// raise an "I want to quit" error instead of adding another level of
@@ -176,7 +177,13 @@ func (c *client) process() {
 	case err != nil:
 		if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
 			log.Printf("Connection timeout: %s", c.RemoteAddr())
-			c.Write([]byte("quit\n\nIdle connection terminated by server."))
+
+			// Clear temporary timeout error so that we can say goodbye to the client
+			<-c.err
+			c.err <- nil
+
+			c.prompt = noPrompt
+			c.Write([]byte("\n\nIdle connection terminated by server."))
 		} else {
 			log.Printf("Connection error: %s", err)
 		}
