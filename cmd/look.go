@@ -22,14 +22,10 @@ func init() {
 func Look(s *state) {
 
 	// Do we know where we are?
-	var where has.Inventory
-	locater := attr.FindLocate(s.actor)
-	if locater != nil {
-		where = locater.Where()
-	}
+	where := s.where
 
 	// Or are we the where?
-	if locater == nil {
+	if where == nil {
 		if a := attr.FindInventory(s.actor); a != nil {
 			where = a
 		}
@@ -41,14 +37,16 @@ func Look(s *state) {
 		return
 	}
 
-	if a := attr.FindName(where.Parent()); a != nil {
+	what := where.Parent()
+
+	if a := attr.FindName(what); a != nil {
 		s.msg.actor.WriteJoin("[ ", a.Name(), " ]\n")
 	}
 
 	mark := s.msg.actor.Len()
 
-	for _, d := range attr.FindAllDescription(where.Parent()) {
-		s.msg.actor.WriteJoin(d.Description(), " ")
+	for _, a := range attr.FindAllDescription(what) {
+		s.msg.actor.WriteJoin(a.Description(), " ")
 	}
 
 	// If we added descriptions chop off space appended to last description
@@ -57,50 +55,52 @@ func Look(s *state) {
 		s.msg.actor.Truncate(s.msg.actor.Len() - 1)
 	}
 
+	// Move off the current line and then write out a blank separator line
 	s.msg.actor.WriteString("\n\n")
 	mark = s.msg.actor.Len()
 
-	if a := attr.FindInventory(where.Parent()); a != nil {
+	if where.Crowded() {
+		s.msg.actor.WriteJoin("You see a crowd here.\n")
 
-		if a.Crowded() {
-			s.msg.actor.WriteString("You can see a crowd here.\n")
-		} else {
+		// NOTE: If location is crowded we don't list the items
 
-			for _, l := range a.Contents() {
+	} else {
 
-				if l == s.actor { // Don't include the looker in the list
-					continue
-				}
+		// List mobiles here
+		items := []has.Thing{}
+		for _, c := range where.Contents() {
 
-				if attr.FindPlayer(l) == nil {
-					continue
-				}
+			if c == s.actor { // Don't include the looker in the list
+				continue
+			}
 
-				if n := attr.FindName(l); n != nil {
-					s.msg.actor.WriteJoin("You can see ", n.Name(), " here.\n")
-				}
+			if attr.FindPlayer(c) == nil {
+				items = append(items, c)
+				continue
+			}
+
+			if a := attr.FindName(c); a != nil {
+				s.msg.actor.WriteJoin("You see ", a.Name(), " here.\n")
 			}
 		}
 
-		// Extract non-players and non-mobiles
-		for _, l := range a.Contents() {
-			if attr.FindPlayer(l) != nil {
-				continue
-			}
-			if n := attr.FindName(l); n != nil {
-				s.msg.actor.WriteJoin("You can see ", n.Name(), " here.\n")
+		// List items here
+		for _, i := range items {
+			if a := attr.FindName(i); a != nil {
+				s.msg.actor.WriteJoin("You see ", a.Name(), " here.\n")
 			}
 		}
 	}
 
+	// If we wrote out any mobiles or items write out a blank separator line
 	if mark != s.msg.actor.Len() {
 		s.msg.actor.WriteString("\n")
 	}
 
-	if a := attr.FindExits(where.Parent()); a != nil {
+	if a := attr.FindExits(what); a != nil {
 		s.msg.actor.WriteString(a.List())
 	} else {
-		s.msg.actor.WriteString("You can see no immediate exits from here.")
+		s.msg.actor.WriteString("You see no immediate exits from here.")
 	}
 
 	s.ok = true
