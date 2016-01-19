@@ -30,8 +30,8 @@ const (
 
 // Values to be treated as constants but we can't define them as constants
 var (
-	defaultPrompt = []byte("\n>") // Default prompt for client input
-	noPrompt      = []byte{}      // An empty prompt
+	defaultPrompt = []byte(">") // Default prompt for client input
+	noPrompt      = []byte{}    // An empty prompt
 
 	// Most of the flow and control for the client is done using errors so we
 	// raise an "I want to quit" error instead of adding another level of
@@ -149,6 +149,8 @@ func (c *client) process() {
 		// Process the input, if we get an error the loop will exit
 		if msg, _ := cmd.Parse(c.player, in); len(msg) > 0 {
 			c.Write(msg)
+		} else {
+			c.TCPConn.Write(c.prompt)
 		}
 
 		// Remember ReadString will return the delimiters...
@@ -225,8 +227,9 @@ func (c *client) Write(d []byte) (n int, err error) {
 		return
 	}
 
-	d = append(d, c.prompt...)
 	t := text.Fold(d, termColumns)
+	t = append(t, "\r\n"...)
+	t = append(t, c.prompt...)
 
 	c.SetWriteDeadline(time.Now().Add(config.Server.IdleTimeout))
 
