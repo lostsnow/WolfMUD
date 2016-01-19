@@ -96,7 +96,8 @@ func NewState(t has.Thing, input string) *state {
 		s.cmd, s.words = s.words[0], s.words[1:]
 		s.input = s.input[1:]
 	case l > 0:
-		s.cmd = s.words[0]
+		s.cmd, s.words = s.words[0], []string{}
+		s.input = []string{}
 	}
 
 	// Need to determine the actor's current location so we can lock it. As
