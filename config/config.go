@@ -22,8 +22,10 @@ var Server = struct {
 
 var Stats = struct {
 	Rate time.Duration // Stats collection and display rate
+	GC   bool          // Run garbage collection before stat collection
 }{
 	Rate: 10 * time.Second,
+	GC:   false,
 }
 
 // Inventory configuration

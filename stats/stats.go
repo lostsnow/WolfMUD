@@ -26,6 +26,7 @@ import (
 
 	"log"
 	"runtime"
+	"runtime/debug"
 	"time"
 )
 
@@ -67,7 +68,11 @@ func Start() {
 
 // collect runs periodically to collect, process and report statistics.
 func (s *stats) collect() {
-	runtime.GC()
+
+	if config.Stats.GC {
+		runtime.GC()
+		debug.FreeOSMemory()
+	}
 
 	m := new(runtime.MemStats)
 	runtime.ReadMemStats(m)
