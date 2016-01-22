@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/has"
 
+	"log"
 	"sync"
 )
 
@@ -37,6 +38,14 @@ func Remove(player has.Thing) {
 			players.list = append(players.list[:i], players.list[i+1:]...)
 			break
 		}
+	}
+
+	// A tiny bit of housekeeping, in case we've had a lot of players recently
+	// create a new, smaller capacity player list. The capacity of 10 is totally
+	// arbitrary - maybe this should be config tweakable?
+	if len(players.list) == 0 && cap(players.list) > 10 {
+		log.Printf("Last one out reclaims the player list: %d slots reclaimed", cap(players.list)-10)
+		players.list = make([]has.Thing, 0, 10)
 	}
 }
 
