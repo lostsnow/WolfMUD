@@ -6,16 +6,16 @@
 // Package stats implements periodic collection and display of various -
 // possibly interisting - statistics. A typical reading might be:
 //
-//	A[   1Mb  -816b ] HO[          1564        +0] GO[    39     +0] PL 11/11
+//	M[   1Mb  -816b ] HO[          1564        +0] GO[    39     +0] PL 11/11
 //
 // This shows:
 //
-//	 A[   1Mb  -816b ] - allocated memory, change since last collection
+//	M[   1Mb  -816b ] - system memory, change since last collection
 //	HO[  1564      +0] - heap objects, change since last collection
 //	GO[    39      +0] - Goroutines, change since last collection
 //	PL 11/11           - Current number of players / maximum number of players
 //
-// Allocated memory is rounded to the nearest convenient units: b - bytes, kb -
+// System memory is rounded to the nearest convenient units: b - bytes, kb -
 // kilobytes, Mb - megabytes, Gb - gigabytes, Tb - terabytes, Pb - petabytes,
 // Eb - exabytes. Everything above terabytes is included for completeness - but
 // 64 unsigned bits *CAN* go up to 15Eb or 18,446,744,073,709,551,615 bytes ;)
@@ -38,7 +38,7 @@ var (
 
 // statistics from the last collection
 type stats struct {
-	Alloc       uint64
+	HeapSys     uint64
 	HeapObjects uint64
 	Goroutines  int
 	MaxPlayers  int
@@ -81,7 +81,7 @@ func (s *stats) collect() {
 	p := Len()
 
 	// Calculate difference in resources since last run
-	Δa := int64(m.Alloc - s.Alloc)
+	Δs := int64(m.HeapSys - s.HeapSys)
 	Δh := int(m.HeapObjects - s.HeapObjects)
 	Δg := g - s.Goroutines
 
@@ -92,15 +92,15 @@ func (s *stats) collect() {
 	}
 
 	// Calculate scaled numeric and prefix parts of Alloc and Alloc difference
-	an, ap := uscale(m.Alloc)
-	Δan, Δap := scale(Δa)
+	sn, sp := uscale(m.HeapSys)
+	Δsn, Δsp := scale(Δs)
 
-	log.Printf("A[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d",
-		an, ap, Δan, Δap, m.HeapObjects, Δh, g, Δg, p, maxPlayers,
+	log.Printf("M[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d",
+		sn, sp, Δsn, Δsp, m.HeapObjects, Δh, g, Δg, p, maxPlayers,
 	)
 
 	// Save current stats
-	s.Alloc = m.Alloc
+	s.HeapSys = m.HeapSys
 	s.HeapObjects = m.HeapObjects
 	s.Goroutines = g
 	s.MaxPlayers = maxPlayers
