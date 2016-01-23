@@ -6,14 +6,14 @@
 // Package stats implements periodic collection and display of various -
 // possibly interisting - statistics. A typical reading might be:
 //
-//	M[   1Mb  -816b ] HO[          1564        +0] GO[    39     +0] PL 11/11
+//	M[   1Mb  -816b ] O[          1564        +0] G[    39     +0] P 11/11
 //
 // This shows:
 //
 //	M[   1Mb  -816b ] - system memory, change since last collection
-//	HO[  1564      +0] - heap objects, change since last collection
-//	GO[    39      +0] - Goroutines, change since last collection
-//	PL 11/11           - Current number of players / maximum number of players
+//	O[  1564      +0] - heap objects, change since last collection
+//	G[    39      +0] - Goroutines, change since last collection
+//	P 11/11           - Current number of players / maximum number of players
 //
 // System memory is rounded to the nearest convenient units: b - bytes, kb -
 // kilobytes, Mb - megabytes, Gb - gigabytes, Tb - terabytes, Pb - petabytes,
@@ -82,7 +82,7 @@ func (s *stats) collect() {
 
 	// Calculate difference in resources since last run
 	Δs := int64(m.HeapSys - s.HeapSys)
-	Δh := int(m.HeapObjects - s.HeapObjects)
+	Δo := int(m.HeapObjects - s.HeapObjects)
 	Δg := g - s.Goroutines
 
 	// Calculate max players
@@ -95,8 +95,8 @@ func (s *stats) collect() {
 	sn, sp := uscale(m.HeapSys)
 	Δsn, Δsp := scale(Δs)
 
-	log.Printf("M[%4d%-2s %+5d%-2s] HO[%14d %+9d] GO[%6d %+6d] PL %d/%d",
-		sn, sp, Δsn, Δsp, m.HeapObjects, Δh, g, Δg, p, maxPlayers,
+	log.Printf("M[%4d%-2s %+5d%-2s] O[%14d %+9d] G[%6d %+6d] P %d/%d",
+		sn, sp, Δsn, Δsp, m.HeapObjects, Δo, g, Δg, p, maxPlayers,
 	)
 
 	// Save current stats
