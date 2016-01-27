@@ -54,35 +54,27 @@ func Put(s *state) {
 	var (
 		cName = s.words[1]
 
-		cWhat  has.Thing
-		cWhere has.Inventory
+		cWhat has.Thing
 	)
 
 	// Search ourselves for container to put something into
 	cWhat = tWhere.Search(cName)
 
-	// If container not found yet work out where we are
-	if cWhat == nil {
-		if a := attr.FindLocate(s.actor); a != nil {
-			cWhere = a.Where()
-		}
-	}
-
-	// If we are not somewhere and container not found yet we are not going to
-	// find it
-	if cWhere == nil && cWhat == nil {
+	// If container not found and we are not somewhere we are not going to find
+	// it
+	if cWhat == nil && s.where == nil {
 		s.msg.actor.WriteJoin("There is no '", cName, "' to put ", tName, " into.")
 		return
 	}
 
-	// If container not found the inventory where we are
+	// If container not found search the inventory where we are
 	if cWhat == nil {
-		cWhat = cWhere.Search(cName)
+		cWhat = s.where.Search(cName)
 	}
 
 	// If container still not found check narratives where we are
 	if cWhat == nil {
-		if a := attr.FindNarrative(cWhere.Parent()); a != nil {
+		if a := attr.FindNarrative(s.where.Parent()); a != nil {
 			cWhat = a.Search(cName)
 		}
 	}
