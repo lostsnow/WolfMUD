@@ -38,35 +38,30 @@ func Take(s *state) {
 		cWhat has.Thing
 	)
 
-	// Find the taking things own inventory. We remember this inventory as this
+	// Find the taking thing's own inventory. We remember this inventory as this
 	// is where the item will be put if sucessfully taken from the container
 	tWhere := attr.FindInventory(s.actor)
 
-	// If we found and inventory search it for the container
+	// If we found an inventory search it for the container
 	if tWhere != nil {
 		cWhat = tWhere.Search(cName)
 	}
 
 	// If container not found yet work out where we are and search there
 	if cWhat == nil {
-		var where has.Inventory
-
-		if a := attr.FindLocate(s.actor); a != nil {
-			where = a.Where()
-		}
 
 		// If we are nowhere we are not going to find the container so bail early
-		if where == nil {
+		if s.where == nil {
 			s.msg.actor.WriteJoin("You see no '", cName, "' to take anything from.")
 			return
 		}
 
 		// Search for container in the inventory where we are
-		cWhat = where.Search(cName)
+		cWhat = s.where.Search(cName)
 
 		// If container not found in inventory also check narratives where we are
 		if cWhat == nil {
-			if a := attr.FindNarrative(where.Parent()); a != nil {
+			if a := attr.FindNarrative(s.where.Parent()); a != nil {
 				cWhat = a.Search(cName)
 			}
 		}
