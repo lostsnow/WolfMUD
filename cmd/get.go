@@ -25,39 +25,36 @@ func Get(s *state) {
 	var (
 		name = s.words[0]
 
-		what  has.Thing
-		where has.Inventory
+		what        has.Thing
+		isNarrative bool
 	)
 
-	// Work out where we are
-	if a := attr.FindLocate(s.actor); a != nil {
-		where = a.Where()
-	}
-
 	// Are we somewhere?
-	// NOTE: The only way this should be possible is if something is gotten when
-	// the current thing is not in the world - but then where would it come from?
-	if where == nil {
+	if s.where == nil {
 		s.msg.actor.WriteString("You cannot get anything here.")
 		return
 	}
 
 	// Search for item we want to get in the inventory where we are
-	what = where.Search(name)
+	what = s.where.Search(name)
 
 	// If item not found in inventory also check narratives where we are
-	// NOTE: Setting where to nil if we find the item prevents it from being
-	// taken from the narrative inventory.
 	if what == nil {
-		if a := attr.FindNarrative(where.Parent()); a != nil {
+		if a := attr.FindNarrative(s.where.Parent()); a != nil {
 			what = a.Search(name)
-			where = nil
+			isNarrative = (what != nil)
 		}
 	}
 
 	// Was item to get found?
 	if what == nil {
 		s.msg.actor.WriteJoin("You see no '", name, "' to get.")
+		return
+	}
+
+	// Check item not trying to get itself
+	if what == s.actor {
+		s.msg.actor.WriteString("Trying to pick youreself up by your bootlaces?")
 		return
 	}
 
@@ -73,12 +70,6 @@ func Get(s *state) {
 		name = a.Name()
 	}
 
-	// Check item not trying to get itself
-	if what == s.actor {
-		s.msg.actor.WriteString("Trying to pick youreself up by your bootlaces?")
-		return
-	}
-
 	// Check the get is not vetoed by the item
 	if vetoes := attr.FindVetoes(what); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
@@ -87,24 +78,24 @@ func Get(s *state) {
 		}
 	}
 
-	// If item not from where's inventory cannot get item - most likely a
-	// narrative item - we do this check after the item veto check as the veto
-	// could give us a better message/reson for not being able to take the item.
-	if where == nil {
-		s.msg.actor.WriteJoin("You cannot get ", name, ".")
-		return
-	}
-
 	// Check the get is not vetoed by the parent of the item's inventory
-	if vetoes := attr.FindVetoes(where.Parent()); vetoes != nil {
+	if vetoes := attr.FindVetoes(s.where.Parent()); vetoes != nil {
 		if veto := vetoes.Check("GET"); veto != nil {
 			s.msg.actor.WriteString(veto.Message())
 			return
 		}
 	}
 
+	// If item is a narrative we can't get it. We do this check after the veto
+	// checks as the vetos could give us a better message/reson for not being
+	// able to take the item.
+	if isNarrative {
+		s.msg.actor.WriteJoin("You cannot get ", name, ".")
+		return
+	}
+
 	// If all seems okay try and remove item from where it is
-	if where.Remove(what) == nil {
+	if s.where.Remove(what) == nil {
 		s.msg.actor.WriteJoin("You cannot get ", name, ".")
 		return
 	}

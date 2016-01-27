@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: ( N | NORTH | NE | NORTHEAST | E | EAST | SE | SOUTHEAST | S | SOUTH
@@ -25,12 +24,7 @@ func init() {
 // TODO: Move does not support vetoes yet.
 func Move(s *state) {
 
-	var from has.Inventory
-
-	// Can we find out where we are?
-	if a := attr.FindLocate(s.actor); a != nil {
-		from = a.Where()
-	}
+	from := s.where
 
 	// A thing can only move itself if it knows where it is
 	if from == nil {

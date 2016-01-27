@@ -27,47 +27,33 @@ func Dump(s *state) {
 	var (
 		name = s.words[0]
 
-		what  has.Thing
-		where has.Inventory
+		what     has.Thing
+		location has.Thing
 	)
 
-	// Try our own inventory first for something matching the alias we are
-	// looking for.
-	if a := attr.FindInventory(s.actor); a != nil {
-		what = a.Search(name)
+	// If we can, search where we are
+	if s.where != nil {
+		what = s.where.Search(name)
+		location = s.where.Parent()
 	}
 
-	// If match not found work out where we are so we can search further
-	if what == nil {
-		if a := attr.FindLocate(s.actor); a != nil {
-			where = a.Where()
+	// If item still not found see if we can search narratives
+	if what == nil && location != nil {
+		if a := attr.FindNarrative(location); a != nil {
+			what = a.Search(name)
 		}
 	}
 
-	// If match not found yet and we are not somewhere, we can't search any
-	// further
-	if what == nil && where == nil {
-		s.msg.actor.WriteString("You have nothing with alias '" + s.words[0] + "' to dump and nowhere else to search.")
-
-		return
-	}
-
-	// If match not found yet search where we are
+	// If item still not found try our own inventory
 	if what == nil {
-		what = where.Search(name)
-	}
-
-	// If match not found try searching narratives
-	location := where.Parent()
-	if what == nil {
-		if a := attr.FindNarrative(location); a != nil {
+		if a := attr.FindInventory(s.actor); a != nil {
 			what = a.Search(name)
 		}
 	}
 
 	// If match still not found try the location itself - as opposed to it's
 	// inventory and narratives.
-	if what == nil {
+	if what == nil && location != nil {
 		if a := attr.FindAlias(location); a != nil {
 			if a.HasAlias(s.words[0]) {
 				what = location
@@ -75,9 +61,20 @@ func Dump(s *state) {
 		}
 	}
 
-	// If we havn't found a match by this stage we are not going to find one!
+	// If item still not found try the actor - normally we would find the actor
+	// in the location's inventory, assuming the actor is somewhere. If the actor
+	// is nowhere we have to check it specifically.
+	if what == nil && location == nil {
+		if a := attr.FindAlias(s.actor); a != nil {
+			if a.HasAlias(s.words[0]) {
+				what = s.actor
+			}
+		}
+	}
+
+	// Was item to dump eventually found?
 	if what == nil {
-		s.msg.actor.WriteString("Nothing with alias '" + s.words[0] + "' found to dump.")
+		s.msg.actor.WriteJoin("There is nothing with alias '", s.words[0], "' to dump.")
 		return
 	}
 

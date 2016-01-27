@@ -21,23 +21,13 @@ func init() {
 // this an example of a bigger problem with narratives/inventories still?
 func Look(s *state) {
 
-	// Do we know where we are?
-	where := s.where
-
-	// Or are we the where?
-	if where == nil {
-		if a := attr.FindInventory(s.actor); a != nil {
-			where = a
-		}
-	}
-
 	// Still not anywhere?
-	if where == nil {
-		s.msg.actor.WriteString("You are in a dark void. Around you nothing. No stars, no light, no heat and no sound.")
+	if s.where == nil {
+		s.msg.actor.WriteString("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
 		return
 	}
 
-	what := where.Parent()
+	what := s.where.Parent()
 
 	if a := attr.FindName(what); a != nil {
 		s.msg.actor.WriteJoin("[ ", a.Name(), " ]\n")
@@ -59,7 +49,7 @@ func Look(s *state) {
 	s.msg.actor.WriteString("\n\n")
 	mark = s.msg.actor.Len()
 
-	if where.Crowded() {
+	if s.where.Crowded() {
 		s.msg.actor.WriteJoin("You see a crowd here.\n")
 
 		// NOTE: If location is crowded we don't list the items
@@ -68,7 +58,7 @@ func Look(s *state) {
 
 		// List mobiles here
 		items := []has.Thing{}
-		for _, c := range where.Contents() {
+		for _, c := range s.where.Contents() {
 
 			if c == s.actor { // Don't include the looker in the list
 				continue

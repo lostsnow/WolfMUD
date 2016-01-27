@@ -25,8 +25,7 @@ func Drop(s *state) {
 	var (
 		name = s.words[0]
 
-		what  has.Thing
-		where has.Inventory
+		what has.Thing
 	)
 
 	// Search ourselves for item we want to drop
@@ -41,16 +40,11 @@ func Drop(s *state) {
 		return
 	}
 
-	// Find out where we are - where we are going to be dropping the item
-	if a := attr.FindLocate(s.actor); a != nil {
-		where = a.Where()
-	}
-
 	// Are we somewhere? We need to be somewhere so that the location can receive
 	// the dropped item.
 	//
 	// TODO: We could drop and junk item if nowhere instead of aborting?
-	if where == nil {
+	if s.where == nil {
 		s.msg.actor.WriteString("You cannot drop anything here.")
 		return
 	}
@@ -64,7 +58,7 @@ func Drop(s *state) {
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
-	if vetoes := attr.FindVetoes(where.Parent()); vetoes != nil {
+	if vetoes := attr.FindVetoes(s.where.Parent()); vetoes != nil {
 		if veto := vetoes.Check("DROP"); veto != nil {
 			s.msg.actor.WriteString(veto.Message())
 			return
@@ -83,7 +77,7 @@ func Drop(s *state) {
 	}
 
 	// Add item to inventory where we are
-	where.Add(what)
+	s.where.Add(what)
 
 	s.msg.actor.WriteJoin("You drop ", name, ".")
 	s.ok = true
