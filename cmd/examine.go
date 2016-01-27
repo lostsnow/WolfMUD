@@ -25,23 +25,17 @@ func Examine(s *state) {
 	var (
 		name = s.words[0]
 
-		what  has.Thing
-		where has.Inventory
+		what has.Thing
 	)
 
-	// Work out where we are
-	if a := attr.FindLocate(s.actor); a != nil {
-		where = a.Where()
-	}
-
 	// If we can, search where we are
-	if where != nil {
-		what = where.Search(name)
+	if s.where != nil {
+		what = s.where.Search(name)
 	}
 
-	// If item not found still see if we can search narratives
-	if what == nil && where != nil {
-		if a := attr.FindNarrative(where.Parent()); a != nil {
+	// If item still not found see if we can search narratives
+	if what == nil && s.where != nil {
+		if a := attr.FindNarrative(s.where.Parent()); a != nil {
 			what = a.Search(name)
 		}
 	}
