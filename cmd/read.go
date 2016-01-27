@@ -26,25 +26,18 @@ func Read(s *state) {
 		name = s.words[0]
 
 		what    has.Thing
-		where   has.Inventory
 		writing string
 	)
 
-	// Work out where we are
-	if a := attr.FindLocate(s.actor); a != nil {
-		where = a.Where()
-	}
-
-	// If we are somewhere and item not found yet try searching inventory where
-	// we are
-	if where != nil && what == nil {
-		what = where.Search(name)
+	// If we are somewhere try searching inventory where we are
+	if s.where != nil {
+		what = s.where.Search(name)
 	}
 
 	// If we are somewhere and item still not found try searching narratives
 	// where we are
-	if where != nil && what == nil {
-		if a := attr.FindNarrative(where.Parent()); a != nil {
+	if what == nil && s.where != nil {
+		if a := attr.FindNarrative(s.where.Parent()); a != nil {
 			what = a.Search(name)
 		}
 	}
