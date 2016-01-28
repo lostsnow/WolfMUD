@@ -54,10 +54,13 @@ type state struct {
 	locks []has.Inventory // List of locks we want to be holding
 
 	// msg is a collection of buffers for gathering messages to send back as a
-	// result of processing a command.
+	// result of processing a command. Note observer is setup as an 'alias' for
+	// observers[s.where] - observer and observers[s.where] point to the same
+	// buffer.
 	msg struct {
 		actor       *buffer
 		participant *buffer
+		observer    *buffer
 		observers   map[has.Inventory]*buffer
 	}
 }
@@ -105,7 +108,10 @@ func NewState(t has.Thing, input string) *state {
 	// the state for later reuse.
 	if a := attr.FindLocate(t); a != nil {
 		s.where = a.Where()
-		s.AddLock(s.where)
+		if s.where != nil {
+			s.AddLock(s.where)
+			s.msg.observer = s.msg.observers[s.where]
+		}
 	}
 
 	return s
