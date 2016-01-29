@@ -136,6 +136,9 @@ func Setup() map[string]has.Thing {
 		NewDescription("You standing at the bar. Behind which you can see various sized and shaped bottles. Looking at the contents you decide an abstract painter would get lots of colourful inspirations after a long night here."),
 		NewAlias("tavern", "bar"),
 		NewInventory(),
+		NewVetoes(
+			NewVeto("drop", "No littering in the bar!"),
+		),
 		NewExits(),
 	)
 
