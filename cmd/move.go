@@ -84,5 +84,5 @@ func Move(s *state) {
 	s.msg.observers[to].WriteJoin("You see ", name, " enter.")
 
 	// Describe our destination
-	Look(s)
+	s.silent(false, true, true, Look)
 }
