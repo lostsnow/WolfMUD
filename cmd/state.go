@@ -133,7 +133,7 @@ func NewState(t has.Thing, input string) *state {
 // lock list can therefore be detected by simply checking the length of the
 // list. If at a later time we need to be able to remove locks as well this
 // simple length check will not be sufficient.
-func (s *state) parse(dispatcher func(s *state)) {
+func (s *state) parse(dispatcher func(*state)) {
 	for l := -1; l != 0; {
 		l = len(s.locks)
 		s.sync(dispatcher)
