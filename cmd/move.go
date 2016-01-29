@@ -68,7 +68,10 @@ func Move(s *state) {
 	}
 
 	to.Add(s.actor)
+
+	// Re-point where we are and re-alias observer
 	s.where = to
+	s.msg.observer = s.msg.observers[s.where]
 
 	// Get actors name
 	name := "Someone"
