@@ -87,11 +87,7 @@ func Look(s *state) {
 		s.msg.actor.WriteString("\n")
 	}
 
-	if a := attr.FindExits(what); a != nil {
-		s.msg.actor.WriteString(a.List())
-	} else {
-		s.msg.actor.WriteString("You see no immediate exits from here.")
-	}
+	s.msg.actor.WriteString(attr.FindExits(what).List())
 
 	s.ok = true
 }

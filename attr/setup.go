@@ -190,66 +190,57 @@ func Setup() map[string]has.Thing {
 		NewExits(),
 	)
 
-	// Link up room exits
+	// Link up location exits
+	var e has.Exits
 
-	if a := FindExits(world["loc1"]); a != nil {
-		a.Link(South, FindInventory(world["loc2"]))
-		a.Link(East, FindInventory(world["loc3"]))
-		a.Link(Southeast, FindInventory(world["loc4"]))
-	}
+	e = FindExits(world["loc1"])
+	e.Link(South, FindInventory(world["loc2"]))
+	e.Link(East, FindInventory(world["loc3"]))
+	e.Link(Southeast, FindInventory(world["loc4"]))
 
-	if a := FindExits(world["loc2"]); a != nil {
-		a.Link(North, FindInventory(world["loc1"]))
-		a.Link(Northeast, FindInventory(world["loc3"]))
-		a.Link(East, FindInventory(world["loc4"]))
-	}
+	e = FindExits(world["loc2"])
+	e.Link(North, FindInventory(world["loc1"]))
+	e.Link(Northeast, FindInventory(world["loc3"]))
+	e.Link(East, FindInventory(world["loc4"]))
 
-	if a := FindExits(world["loc3"]); a != nil {
-		a.Link(West, FindInventory(world["loc1"]))
-		a.Link(Southwest, FindInventory(world["loc2"]))
-		a.Link(South, FindInventory(world["loc4"]))
-		a.Link(East, FindInventory(world["loc5"]))
-	}
+	e = FindExits(world["loc3"])
+	e.Link(West, FindInventory(world["loc1"]))
+	e.Link(Southwest, FindInventory(world["loc2"]))
+	e.Link(South, FindInventory(world["loc4"]))
+	e.Link(East, FindInventory(world["loc5"]))
 
-	if a := FindExits(world["loc4"]); a != nil {
-		a.Link(North, FindInventory(world["loc3"]))
-		a.Link(Northwest, FindInventory(world["loc1"]))
-		a.Link(West, FindInventory(world["loc2"]))
-	}
+	e = FindExits(world["loc4"])
+	e.Link(North, FindInventory(world["loc3"]))
+	e.Link(Northwest, FindInventory(world["loc1"]))
+	e.Link(West, FindInventory(world["loc2"]))
 
-	if a := FindExits(world["loc5"]); a != nil {
-		//a.Link(North, FindInventory(world["loc14"]))
-		a.Link(South, FindInventory(world["loc7"]))
-		a.Link(East, FindInventory(world["loc6"]))
-		a.Link(West, FindInventory(world["loc3"]))
-	}
+	e = FindExits(world["loc5"])
+	//e.Link(North, FindInventory(world["loc14"]))
+	e.Link(South, FindInventory(world["loc7"]))
+	e.Link(East, FindInventory(world["loc6"]))
+	e.Link(West, FindInventory(world["loc3"]))
 
-	if a := FindExits(world["loc6"]); a != nil {
-		a.Link(West, FindInventory(world["loc5"]))
-	}
+	e = FindExits(world["loc6"])
+	e.Link(West, FindInventory(world["loc5"]))
 
-	if a := FindExits(world["loc7"]); a != nil {
-		a.Link(North, FindInventory(world["loc5"]))
-		a.Link(East, FindInventory(world["loc8"]))
-		a.Link(South, FindInventory(world["loc9"]))
-	}
+	e = FindExits(world["loc7"])
+	e.Link(North, FindInventory(world["loc5"]))
+	e.Link(East, FindInventory(world["loc8"]))
+	e.Link(South, FindInventory(world["loc9"]))
 
-	if a := FindExits(world["loc8"]); a != nil {
-		a.Link(West, FindInventory(world["loc7"]))
-	}
+	e = FindExits(world["loc8"])
+	e.Link(West, FindInventory(world["loc7"]))
 
-	if a := FindExits(world["loc9"]); a != nil {
-		a.Link(North, FindInventory(world["loc7"]))
-		//a.Link(South, FindInventory(world["loc50"]))
-		//a.Link(East, FindInventory(world["loc12"]))
-		a.Link(West, FindInventory(world["loc10"]))
-	}
+	e = FindExits(world["loc9"])
+	e.Link(North, FindInventory(world["loc7"]))
+	//e.Link(South, FindInventory(world["loc50"]))
+	//e.Link(East, FindInventory(world["loc12"]))
+	e.Link(West, FindInventory(world["loc10"]))
 
-	if a := FindExits(world["loc10"]); a != nil {
-		//a.Link(South, FindInventory(world["loc11"]))
-		a.Link(East, FindInventory(world["loc9"]))
-		//a.Link(West, FindInventory(world["loc24"]))
-	}
+	e = FindExits(world["loc10"])
+	//e.Link(South, FindInventory(world["loc11"]))
+	e.Link(East, FindInventory(world["loc9"]))
+	//e.Link(West, FindInventory(world["loc24"]))
 
 	return world
 }

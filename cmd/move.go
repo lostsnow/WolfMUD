@@ -34,7 +34,7 @@ func Move(s *state) {
 
 	// Is where we are exitable?
 	exits := attr.FindExits(from.Parent())
-	if exits == nil {
+	if exits == (*attr.Exits)(nil) {
 		s.msg.actor.WriteString("You can't see anywhere to go from here.")
 		return
 	}
