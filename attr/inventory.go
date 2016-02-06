@@ -125,10 +125,8 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 // no matches are found nil is returned.
 func (i *Inventory) Search(alias string) has.Thing {
 	for _, c := range i.contents {
-		if a := FindAlias(c); a != nil {
-			if a.HasAlias(alias) {
-				return c
-			}
+		if FindAlias(c).HasAlias(alias) {
+			return c
 		}
 	}
 	return nil

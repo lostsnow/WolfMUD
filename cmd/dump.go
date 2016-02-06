@@ -54,10 +54,8 @@ func Dump(s *state) {
 	// If match still not found try the location itself - as opposed to it's
 	// inventory and narratives.
 	if what == nil && location != nil {
-		if a := attr.FindAlias(location); a != nil {
-			if a.HasAlias(s.words[0]) {
-				what = location
-			}
+		if attr.FindAlias(location).HasAlias(s.words[0]) {
+			what = location
 		}
 	}
 
@@ -65,10 +63,8 @@ func Dump(s *state) {
 	// in the location's inventory, assuming the actor is somewhere. If the actor
 	// is nowhere we have to check it specifically.
 	if what == nil && location == nil {
-		if a := attr.FindAlias(s.actor); a != nil {
-			if a.HasAlias(s.words[0]) {
-				what = s.actor
-			}
+		if attr.FindAlias(s.actor).HasAlias(s.words[0]) {
+			what = s.actor
 		}
 	}
 

@@ -52,14 +52,15 @@ func NewAlias(aliases ...string) *Alias {
 }
 
 // FindAlias searches the attributes of the specified Thing for attributes that
-// implement has.Aliases returning the first match it finds or nil otherwise.
+// implement has.Alias returning the first match it finds or a *Alias typed nil
+// otherwise.
 func FindAlias(t has.Thing) has.Alias {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Alias); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Alias)(nil)
 }
 
 func (a *Alias) Dump() []string {
@@ -77,6 +78,8 @@ func (a *Alias) Dump() []string {
 // HasAlias checks the passed string for a matching alias. Returns true if a
 // match is found otherwise false.
 func (a *Alias) HasAlias(alias string) (found bool) {
-	_, found = a.aliases[alias]
+	if a != nil {
+		_, found = a.aliases[alias]
+	}
 	return
 }
