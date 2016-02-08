@@ -43,11 +43,9 @@ func Examine(s *state) {
 	}
 
 	// Check examine is not vetoed by item
-	if vetoes := attr.FindVetoes(what); vetoes != nil {
-		if veto := vetoes.Check("EXAMINE"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(what).Check("EXAMINE"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Get item's proper name

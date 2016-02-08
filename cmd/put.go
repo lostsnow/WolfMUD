@@ -92,19 +92,15 @@ func Put(s *state) {
 	}
 
 	// Check for veto on item being put into container
-	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
-		if veto := vetoes.Check("DROP", "PUT"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(tWhat).Check("DROP", "PUT"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Check for veto on container
-	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
-		if veto := vetoes.Check("PUT"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(cWhat).Check("PUT"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Remove item from where it is

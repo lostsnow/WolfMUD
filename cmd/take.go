@@ -95,19 +95,15 @@ func Take(s *state) {
 	}
 
 	// Check for veto on item being taken
-	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
-		if veto := vetoes.Check("TAKE", "GET"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(tWhat).Check("TAKE", "GET"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Check for veto on container
-	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
-		if veto := vetoes.Check("TAKE"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(cWhat).Check("TAKE"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Try and remove the item from container

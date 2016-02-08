@@ -67,19 +67,15 @@ func Get(s *state) {
 	name = attr.FindName(what).Name(name)
 
 	// Check the get is not vetoed by the item
-	if vetoes := attr.FindVetoes(what); vetoes != nil {
-		if veto := vetoes.Check("GET"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(what).Check("GET"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
-	if vetoes := attr.FindVetoes(s.where.Parent()); vetoes != nil {
-		if veto := vetoes.Check("GET"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(s.where.Parent()).Check("GET"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// If item is a narrative we can't get it. We do this check after the veto

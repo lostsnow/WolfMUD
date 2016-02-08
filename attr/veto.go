@@ -40,15 +40,15 @@ func NewVetoes(veto ...has.Veto) *Vetoes {
 }
 
 // FindVetoes searches the attributes of the specified Thing for attributes
-// that implement has.Vetoes returning the first match it finds or nil
-// otherwise.
+// that implement has.Vetoes returning the first match it finds or a *Vetoes
+// typed nil otherwise.
 func FindVetoes(t has.Thing) has.Vetoes {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Vetoes); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Vetoes)(nil)
 }
 
 func (v *Vetoes) Dump() (buff []string) {
@@ -64,6 +64,9 @@ func (v *Vetoes) Dump() (buff []string) {
 // Check checks if any of the passed commands are vetoed. The first matching
 // Veto found is returned otherwise nil is returned.
 func (v *Vetoes) Check(cmd ...string) has.Veto {
+	if v == nil {
+		return nil
+	}
 
 	// For single checks we can take a shortcut
 	if len(cmd) == 1 {

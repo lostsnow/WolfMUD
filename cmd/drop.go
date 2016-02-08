@@ -43,19 +43,15 @@ func Drop(s *state) {
 	}
 
 	// Check the drop is not vetoed by the item
-	if vetoes := attr.FindVetoes(what); vetoes != nil {
-		if veto := vetoes.Check("DROP"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(what).Check("DROP"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
-	if vetoes := attr.FindVetoes(s.where.Parent()); vetoes != nil {
-		if veto := vetoes.Check("DROP"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(s.where.Parent()).Check("DROP"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Get item's proper name
