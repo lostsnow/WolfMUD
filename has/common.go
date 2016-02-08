@@ -93,5 +93,6 @@ type Locate interface {
 
 type Player interface {
 	Attribute
+	Found() bool
 	Write([]byte)
 }

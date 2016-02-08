@@ -82,7 +82,7 @@ func (i *Inventory) Add(t has.Thing) {
 	FindLocate(t).SetWhere(i)
 
 	// TODO: Need to check for players or mobiles
-	if a := FindPlayer(t); a != nil {
+	if FindPlayer(t).Found() {
 		i.playerCount++
 	}
 }
@@ -115,7 +115,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			}
 
 			// TODO: Need to check for players or mobiles
-			if a := FindPlayer(t); a != nil {
+			if FindPlayer(t).Found() {
 				i.playerCount--
 			}
 

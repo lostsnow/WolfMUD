@@ -62,7 +62,7 @@ func Look(s *state) {
 				continue
 			}
 
-			if attr.FindPlayer(c) == nil {
+			if !attr.FindPlayer(c).Found() {
 				items = append(items, c)
 				continue
 			}

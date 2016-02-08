@@ -207,8 +207,8 @@ func (c *client) process() {
 	}
 	c.TCPConn = nil
 
-	// Remove cyclic reference
-	if a := attr.FindPlayer(c.player); a != nil {
+	// Remove Player attribute cyclic reference
+	if a := attr.FindPlayer(c.player); a.Found() {
 		c.player.Remove(a)
 	}
 

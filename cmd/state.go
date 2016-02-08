@@ -145,9 +145,7 @@ func (s *state) parse(dispatcher func(*state)) {
 // NOTE: Messages are not broadcast to observers in a crowded location.
 func (s *state) messenger() {
 	if s.participant != nil && s.msg.participant.Len() > 1 {
-		if p := attr.FindPlayer(s.participant); p != nil {
-			p.Write(s.msg.participant.Bytes())
-		}
+		attr.FindPlayer(s.participant).Write(s.msg.participant.Bytes())
 	}
 
 	if len(s.msg.observers) == 0 || s.where == nil {
@@ -161,9 +159,7 @@ func (s *state) messenger() {
 		msg := buffer.Bytes()
 		for _, c := range where.Contents() {
 			if c != s.actor && c != s.participant {
-				if p := attr.FindPlayer(c); p != nil {
-					p.Write(msg)
-				}
+				attr.FindPlayer(c).Write(msg)
 			}
 		}
 	}

@@ -34,19 +34,36 @@ func (p *Player) Dump() []string {
 }
 
 // FindPlayer searches the attributes of the specified Thing for attributes
-// that implement has.Player returning the first match it finds or nil
-// otherwise.
+// that implement has.Player returning the first match it finds or a *Player
+// typed nil otherwise.
 func FindPlayer(t has.Thing) has.Player {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Player); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Player)(nil)
+}
+
+// Found returns false if the receiver is nil, otherwise true. This is a
+// convenience method for detecting if a player was found using FindPlayer:
+//
+//	if attr.FindPlayer(p).Found() {
+//	}
+//
+// is equivelent to:
+//
+//	if attr.FindPlayer(p); p != (*attr.Player)(nil) {
+//	}
+//
+func (p *Player) Found() bool {
+	return p != nil
 }
 
 // Write writes the specified byte slice to the network connection associated
 // with the Player receiver.
 func (p *Player) Write(b []byte) {
-	p.conn.Write(b)
+	if p != nil {
+		p.conn.Write(b)
+	}
 }
