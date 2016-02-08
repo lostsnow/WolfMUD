@@ -35,15 +35,15 @@ func NewLocate(i has.Inventory) *Locate {
 }
 
 // FindLocate searches the attributes of the specified Thing for attributes
-// that implement has.Locate returning the first match it finds or nil
-// otherwise.
+// that implement has.Locate returning the first match it finds or a *Locate
+// typed nil otherwise.
 func FindLocate(t has.Thing) has.Locate {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Locate); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Locate)(nil)
 }
 
 func (l *Locate) Dump() []string {
@@ -59,8 +59,11 @@ func (l *Locate) Dump() []string {
 // Where returns the Inventory where 'we' are. Returning nil is a valid
 // reference and is usually treated as being nowhere. The current reference
 // should be set by calling SetWhere.
-func (l *Locate) Where() has.Inventory {
-	return l.where
+func (l *Locate) Where() (where has.Inventory) {
+	if l != nil {
+		where = l.where
+	}
+	return
 }
 
 // SetWhere is used to set the Inventory where 'we' are. Passing nil is a valid
@@ -69,5 +72,7 @@ func (l *Locate) Where() has.Inventory {
 //
 // NOTE: This is called automatically by the Inventory Add and Remove methods.
 func (l *Locate) SetWhere(i has.Inventory) {
-	l.where = i
+	if l != nil {
+		l.where = i
+	}
 }

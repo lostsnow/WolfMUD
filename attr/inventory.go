@@ -79,9 +79,7 @@ func (i *Inventory) Add(t has.Thing) {
 	}
 
 	i.contents = append(i.contents, t)
-	if a := FindLocate(t); a != nil {
-		a.SetWhere(i)
-	}
+	FindLocate(t).SetWhere(i)
 
 	// TODO: Need to check for players or mobiles
 	if a := FindPlayer(t); a != nil {
@@ -103,9 +101,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 
 	for j, c := range i.contents {
 		if c == t {
-			if a := FindLocate(t); a != nil {
-				a.SetWhere(nil)
-			}
+			FindLocate(t).SetWhere(nil)
 			i.contents[j] = nil
 			i.contents = append(i.contents[:j], i.contents[j+1:]...)
 
