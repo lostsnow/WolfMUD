@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: DROP item
@@ -22,17 +21,11 @@ func Drop(s *state) {
 		return
 	}
 
-	var (
-		name = s.words[0]
-
-		what has.Thing
-	)
+	name := s.words[0]
 
 	// Search ourselves for item we want to drop
 	from := attr.FindInventory(s.actor)
-	if from != nil {
-		what = from.Search(name)
-	}
+	what := from.Search(name)
 
 	// Was item to drop found?
 	if what == nil {

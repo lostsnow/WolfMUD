@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: ( EXAMINE | EXAM ) item
@@ -22,16 +21,10 @@ func Examine(s *state) {
 		return
 	}
 
-	var (
-		name = s.words[0]
-
-		what has.Thing
-	)
+	name := s.words[0]
 
 	// If we can, search where we are
-	if s.where != nil {
-		what = s.where.Search(name)
-	}
+	what := s.where.Search(name)
 
 	// If item still not found see if we can search narratives
 	if what == nil && s.where != nil {
@@ -42,9 +35,7 @@ func Examine(s *state) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.FindInventory(s.actor); a != nil {
-			what = a.Search(name)
-		}
+		what = attr.FindInventory(s.actor).Search(name)
 	}
 
 	// Was item to examine eventually found?
@@ -72,8 +63,8 @@ func Examine(s *state) {
 		s.msg.actor.WriteJoin(" ", d.Description())
 	}
 
-	if i := attr.FindInventory(what); i != nil {
-		s.msg.actor.WriteJoin(" ", i.List())
+	if l := attr.FindInventory(what).List(); l != "" {
+		s.msg.actor.WriteJoin(" ", l)
 	}
 
 	s.ok = true

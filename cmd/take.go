@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: TAKE item container
@@ -32,20 +31,14 @@ func Take(s *state) {
 		return
 	}
 
-	var (
-		cName = s.words[1]
-
-		cWhat has.Thing
-	)
+	cName := s.words[1]
 
 	// Find the taking thing's own inventory. We remember this inventory as this
 	// is where the item will be put if sucessfully taken from the container
 	tWhere := attr.FindInventory(s.actor)
 
-	// If we found an inventory search it for the container
-	if tWhere != nil {
-		cWhat = tWhere.Search(cName)
-	}
+	// Search inventory for the container
+	cWhat := tWhere.Search(cName)
 
 	// If container not found yet work out where we are and search there
 	if cWhat == nil {
@@ -80,7 +73,7 @@ func Take(s *state) {
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
-	if cInv == nil {
+	if cInv == (*attr.Inventory)(nil) {
 		s.msg.actor.WriteJoin("You cannot take anything from ", cName)
 		return
 	}
@@ -102,7 +95,7 @@ func Take(s *state) {
 	// item being taken from it.
 	//
 	// NOTE: We could just drop the item on the floor if it can't be carried.
-	if tWhere == nil {
+	if tWhere == (*attr.Inventory)(nil) {
 		s.msg.actor.WriteJoin("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
 		return
 	}

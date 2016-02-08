@@ -49,15 +49,15 @@ func NewInventory(t ...has.Thing) *Inventory {
 }
 
 // FindInventory searches the attributes of the specified Thing for attributes
-// that implement has.Inventory returning the first match it finds or nil
-// otherwise.
+// that implement has.Inventory returning the first match it finds or a
+// *Inventory typed nil otherwise.
 func FindInventory(t has.Thing) has.Inventory {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Inventory); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Inventory)(nil)
 }
 
 func (i *Inventory) Dump() (buff []string) {
@@ -74,6 +74,10 @@ func (i *Inventory) Dump() (buff []string) {
 // where it is - because it implements the has.Locate interface - we update
 // where the Thing is to point to the Inventory.
 func (i *Inventory) Add(t has.Thing) {
+	if i == nil {
+		return
+	}
+
 	i.contents = append(i.contents, t)
 	if a := FindLocate(t); a != nil {
 		a.SetWhere(i)
@@ -93,6 +97,10 @@ func (i *Inventory) Add(t has.Thing) {
 // TODO: A slice is fine for conveniance and simplicity but maybe a linked list
 // would be better?
 func (i *Inventory) Remove(t has.Thing) has.Thing {
+	if i == nil {
+		return nil
+	}
+
 	for j, c := range i.contents {
 		if c == t {
 			if a := FindLocate(t); a != nil {
@@ -124,6 +132,10 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 // Search returns the first Inventory Thing that matches the alias passed. If
 // no matches are found nil is returned.
 func (i *Inventory) Search(alias string) has.Thing {
+	if i == nil {
+		return nil
+	}
+
 	for _, c := range i.contents {
 		if FindAlias(c).HasAlias(alias) {
 			return c
@@ -137,6 +149,9 @@ func (i *Inventory) Search(alias string) has.Thing {
 // contents may be indirectly manipulated through the copy but changes to the
 // actual slice are not possible - use the Add and Remove methods instead.
 func (i *Inventory) Contents() []has.Thing {
+	if i == nil {
+		return []has.Thing{}
+	}
 	l := make([]has.Thing, len(i.contents))
 	copy(l, i.contents)
 	return l
@@ -159,7 +174,12 @@ func (i *Inventory) Contents() []has.Thing {
 //		Item
 //		...
 //
+// If the inventory cannot be listed an empty string will be returned.
 func (i *Inventory) List() string {
+	if i == nil {
+		return ""
+	}
+
 	buff := make([]byte, 0, 1024)
 
 	switch len(i.contents) {
@@ -190,6 +210,9 @@ func (i *Inventory) List() string {
 	return string(buff)
 }
 
-func (i *Inventory) Crowded() bool {
-	return i.playerCount > config.CrowdSize
+func (i *Inventory) Crowded() (crowded bool) {
+	if i != nil {
+		crowded = i.playerCount > config.CrowdSize
+	}
+	return
 }

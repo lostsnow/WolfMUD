@@ -46,9 +46,7 @@ func Dump(s *state) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.FindInventory(s.actor); a != nil {
-			what = a.Search(name)
-		}
+		what = attr.FindInventory(s.actor).Search(name)
 	}
 
 	// If match still not found try the location itself - as opposed to it's

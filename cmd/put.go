@@ -22,17 +22,11 @@ func Put(s *state) {
 		return
 	}
 
-	var (
-		tName = s.words[0]
-
-		tWhat  has.Thing
-		tWhere has.Inventory
-	)
+	tName := s.words[0]
 
 	// Search ourselves for item to put into container
-	if tWhere = attr.FindInventory(s.actor); tWhere != nil {
-		tWhat = tWhere.Search(tName)
-	}
+	tWhere := attr.FindInventory(s.actor)
+	tWhat := tWhere.Search(tName)
 
 	if tWhat == nil {
 		s.msg.actor.WriteJoin("You have no '", tName, "' to put into anything.")
@@ -98,7 +92,7 @@ func Put(s *state) {
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
-	if cInv == nil {
+	if cInv == (*attr.Inventory)(nil) {
 		s.msg.actor.WriteJoin("You cannot put ", tName, " into ", cName, ".")
 		return
 	}

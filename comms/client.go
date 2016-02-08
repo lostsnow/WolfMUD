@@ -107,7 +107,7 @@ func newClient(conn *net.TCPConn) *client {
 	c.player.Add(attr.NewPlayer(c))
 
 	// Put player into the world
-	if i := attr.FindInventory(world["loc1"]); i != nil {
+	if i := attr.FindInventory(world["loc1"]); i != (*attr.Inventory)(nil) {
 		i.Lock()
 		i.Add(c.player)
 		stats.Add(c.player)

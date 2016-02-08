@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: READ item
@@ -25,14 +24,11 @@ func Read(s *state) {
 	var (
 		name = s.words[0]
 
-		what    has.Thing
 		writing string
 	)
 
-	// If we are somewhere try searching inventory where we are
-	if s.where != nil {
-		what = s.where.Search(name)
-	}
+	// Try searching inventory where we are
+	what := s.where.Search(name)
 
 	// If we are somewhere and item still not found try searching narratives
 	// where we are
@@ -44,9 +40,7 @@ func Read(s *state) {
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.FindInventory(s.actor); a != nil {
-			what = a.Search(name)
-		}
+		what = attr.FindInventory(s.actor).Search(name)
 	}
 
 	// Was item to read found?
