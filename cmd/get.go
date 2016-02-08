@@ -40,10 +40,8 @@ func Get(s *state) {
 
 	// If item not found in inventory also check narratives where we are
 	if what == nil {
-		if a := attr.FindNarrative(s.where.Parent()); a != nil {
-			what = a.Search(name)
-			isNarrative = (what != nil)
-		}
+		what = attr.FindNarrative(s.where.Parent()).Search(name)
+		isNarrative = (what != nil)
 	}
 
 	// Was item to get found?

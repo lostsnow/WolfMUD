@@ -39,9 +39,7 @@ func Dump(s *state) {
 
 	// If item still not found see if we can search narratives
 	if what == nil && location != nil {
-		if a := attr.FindNarrative(location); a != nil {
-			what = a.Search(name)
-		}
+		what = attr.FindNarrative(location).Search(name)
 	}
 
 	// If item still not found try our own inventory

@@ -66,9 +66,7 @@ func Put(s *state) {
 
 	// If container still not found check narratives where we are
 	if cWhat == nil {
-		if a := attr.FindNarrative(s.where.Parent()); a != nil {
-			cWhat = a.Search(cName)
-		}
+		cWhat = attr.FindNarrative(s.where.Parent()).Search(cName)
 	}
 
 	// Was container found?

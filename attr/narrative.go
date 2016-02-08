@@ -77,15 +77,15 @@ func NewNarrative(t ...has.Thing) *Narrative {
 }
 
 // FindNarrative searches the attributes of the specified Thing for attributes
-// that implement has.Narrative returning the first match it finds or nil
-// otherwise.
+// that implement has.Narrative returning the first match it finds or a
+// *Narrative typed nil otherwise.
 func FindNarrative(t has.Thing) has.Narrative {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Narrative); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Narrative)(nil)
 }
 
 // ImplementsNarrative is a marker method so that we can distinguish between
