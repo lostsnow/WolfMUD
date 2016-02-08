@@ -74,10 +74,7 @@ func Move(s *state) {
 	s.msg.observer = s.msg.observers[s.where]
 
 	// Get actors name
-	name := "Someone"
-	if a := attr.FindName(s.actor); a != nil {
-		name = a.Name()
-	}
+	name := attr.FindName(s.actor).Name("someone")
 
 	// Broadcast leaving and arrival notifications
 	s.msg.observers[from].WriteJoin("You see ", name, " go ", direction, ".")

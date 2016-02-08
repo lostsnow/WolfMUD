@@ -49,9 +49,7 @@ func FindLocate(t has.Thing) has.Locate {
 func (l *Locate) Dump() []string {
 	name := ""
 	if w := l.Where(); w != nil {
-		if a := FindName(w.Parent()); a != nil {
-			name = a.Name()
-		}
+		name = FindName(w.Parent()).Name("Somewhere")
 	}
 	return []string{DumpFmt("%p %[1]T -> %p %s", l, l.where, name)}
 }

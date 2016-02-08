@@ -53,9 +53,7 @@ func Examine(s *state) {
 	}
 
 	// Get item's proper name
-	if n := attr.FindName(what); n != nil {
-		name = n.Name()
-	}
+	name = attr.FindName(what).Name(name)
 
 	s.msg.actor.WriteJoin("You examine ", name, ".")
 

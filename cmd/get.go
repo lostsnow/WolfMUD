@@ -66,9 +66,7 @@ func Get(s *state) {
 	}
 
 	// Get item's proper name
-	if a := attr.FindName(what); a != nil {
-		name = a.Name()
-	}
+	name = attr.FindName(what).Name(name)
 
 	// Check the get is not vetoed by the item
 	if vetoes := attr.FindVetoes(what); vetoes != nil {

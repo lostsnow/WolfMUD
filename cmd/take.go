@@ -67,9 +67,7 @@ func Take(s *state) {
 	}
 
 	// Get container's proper name
-	if n := attr.FindName(cWhat); n != nil {
-		cName = n.Name()
-	}
+	cName = attr.FindName(cWhat).Name(cName)
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
@@ -86,9 +84,7 @@ func Take(s *state) {
 	}
 
 	// Get item's proper name
-	if n := attr.FindName(tWhat); n != nil {
-		tName = n.Name()
-	}
+	tName = attr.FindName(tWhat).Name(tName)
 
 	// Check that the thing doing the taking can carry the item. We do this late
 	// in the process so that we have the proper names of the container and the

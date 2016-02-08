@@ -190,12 +190,10 @@ func (i *Inventory) List() string {
 	mark := len(buff)
 
 	for _, c := range i.contents {
-		if a := FindName(c); a != nil {
-			if len(buff) > mark {
-				buff = append(buff, "\n  "...)
-			}
-			buff = append(buff, a.Name()...)
+		if len(buff) > mark {
+			buff = append(buff, "\n  "...)
 		}
+		buff = append(buff, FindName(c).Name("Something")...)
 	}
 
 	// End single item sentence with a fullstop.

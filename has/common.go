@@ -24,7 +24,7 @@ type Attribute interface {
 
 type Name interface {
 	Attribute
-	Name() string
+	Name(string) string
 }
 
 type Description interface {

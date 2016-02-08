@@ -59,9 +59,7 @@ func Drop(s *state) {
 	}
 
 	// Get item's proper name
-	if n := attr.FindName(what); n != nil {
-		name = n.Name()
-	}
+	name = attr.FindName(what).Name(name)
 
 	// Try and remove item from our inventory
 	if from.Remove(what) == nil {

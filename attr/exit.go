@@ -141,9 +141,7 @@ func (e *Exits) Dump() []string {
 			buff = append(buff, ", "...)
 			buff = append(buff, directionNames[i]...)
 			buff = append(buff, ": "...)
-			if a := FindName(e.Parent()); a != nil {
-				buff = append(buff, a.Name()...)
-			}
+			buff = append(buff, FindName(e.Parent()).Name("Somewhere")...)
 		}
 	}
 	if len(buff) > 0 {
