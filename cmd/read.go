@@ -21,11 +21,7 @@ func Read(s *state) {
 		return
 	}
 
-	var (
-		name = s.words[0]
-
-		writing string
-	)
+	name := s.words[0]
 
 	// Try searching inventory where we are
 	what := s.where.Search(name)
@@ -51,9 +47,7 @@ func Read(s *state) {
 	name = attr.FindName(what).Name("something")
 
 	// Find if item has writing
-	if a := attr.FindWriting(what); a != nil {
-		writing = a.Writing()
-	}
+	writing := attr.FindWriting(what).Writing()
 
 	// Was writing found?
 	if writing == "" {

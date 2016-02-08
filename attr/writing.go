@@ -36,15 +36,15 @@ func NewWriting(w string) *Writing {
 }
 
 // FindWriting searches the attributes of the specified Thing for attributes
-// that implement has.Writing returning the first match it finds or nil
-// otherwise.
+// that implement has.Writing returning the first match it finds or a *Writing
+// typed nil otherwise.
 func FindWriting(t has.Thing) has.Writing {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Writing); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Writing)(nil)
 }
 
 func (w *Writing) Dump() []string {
@@ -52,8 +52,11 @@ func (w *Writing) Dump() []string {
 }
 
 // Writing returns the text that has been written.
-func (w *Writing) Writing() string {
-	return w.writing
+func (w *Writing) Writing() (writing string) {
+	if w != nil {
+		writing = w.writing
+	}
+	return
 }
 
 // Description automatically adds the specified text to the description of a
