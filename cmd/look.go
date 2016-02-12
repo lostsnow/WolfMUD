@@ -29,9 +29,7 @@ func Look(s *state) {
 
 	what := s.where.Parent()
 
-	if a := attr.FindName(what); a != nil {
-		s.msg.actor.WriteJoin("[ ", a.Name(), " ]\n")
-	}
+	s.msg.actor.WriteJoin("[ ", attr.FindName(what).Name("Somewhere"), " ]\n")
 
 	mark := s.msg.actor.Len()
 
@@ -64,21 +62,17 @@ func Look(s *state) {
 				continue
 			}
 
-			if attr.FindPlayer(c) == nil {
+			if !attr.FindPlayer(c).Found() {
 				items = append(items, c)
 				continue
 			}
 
-			if a := attr.FindName(c); a != nil {
-				s.msg.actor.WriteJoin("You see ", a.Name(), " here.\n")
-			}
+			s.msg.actor.WriteJoin("You see ", attr.FindName(c).Name("someone"), " here.\n")
 		}
 
 		// List items here
 		for _, i := range items {
-			if a := attr.FindName(i); a != nil {
-				s.msg.actor.WriteJoin("You see ", a.Name(), " here.\n")
-			}
+			s.msg.actor.WriteJoin("You see ", attr.FindName(i).Name("something"), " here.\n")
 		}
 	}
 
@@ -87,11 +81,7 @@ func Look(s *state) {
 		s.msg.actor.WriteString("\n")
 	}
 
-	if a := attr.FindExits(what); a != nil {
-		s.msg.actor.WriteString(a.List())
-	} else {
-		s.msg.actor.WriteString("You see no immediate exits from here.")
-	}
+	s.msg.actor.WriteString(attr.FindExits(what).List())
 
 	s.ok = true
 }

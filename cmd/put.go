@@ -22,17 +22,11 @@ func Put(s *state) {
 		return
 	}
 
-	var (
-		tName = s.words[0]
-
-		tWhat  has.Thing
-		tWhere has.Inventory
-	)
+	tName := s.words[0]
 
 	// Search ourselves for item to put into container
-	if tWhere = attr.FindInventory(s.actor); tWhere != nil {
-		tWhat = tWhere.Search(tName)
-	}
+	tWhere := attr.FindInventory(s.actor)
+	tWhat := tWhere.Search(tName)
 
 	if tWhat == nil {
 		s.msg.actor.WriteJoin("You have no '", tName, "' to put into anything.")
@@ -40,9 +34,7 @@ func Put(s *state) {
 	}
 
 	// Get item's proper name
-	if n := attr.FindName(tWhat); n != nil {
-		tName = n.Name()
-	}
+	tName = attr.FindName(tWhat).Name(tName)
 
 	// Check a container was specified
 	if len(s.words) < 2 {
@@ -74,9 +66,7 @@ func Put(s *state) {
 
 	// If container still not found check narratives where we are
 	if cWhat == nil {
-		if a := attr.FindNarrative(s.where.Parent()); a != nil {
-			cWhat = a.Search(cName)
-		}
+		cWhat = attr.FindNarrative(s.where.Parent()).Search(cName)
 	}
 
 	// Was container found?
@@ -92,31 +82,25 @@ func Put(s *state) {
 	}
 
 	// Get container's proper name
-	if n := attr.FindName(cWhat); n != nil {
-		cName = n.Name()
-	}
+	cName = attr.FindName(cWhat).Name(cName)
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
-	if cInv == nil {
+	if cInv == (*attr.Inventory)(nil) {
 		s.msg.actor.WriteJoin("You cannot put ", tName, " into ", cName, ".")
 		return
 	}
 
 	// Check for veto on item being put into container
-	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
-		if veto := vetoes.Check("DROP", "PUT"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(tWhat).Check("DROP", "PUT"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Check for veto on container
-	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
-		if veto := vetoes.Check("PUT"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(cWhat).Check("PUT"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Remove item from where it is

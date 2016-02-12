@@ -39,25 +39,19 @@ func Dump(s *state) {
 
 	// If item still not found see if we can search narratives
 	if what == nil && location != nil {
-		if a := attr.FindNarrative(location); a != nil {
-			what = a.Search(name)
-		}
+		what = attr.FindNarrative(location).Search(name)
 	}
 
 	// If item still not found try our own inventory
 	if what == nil {
-		if a := attr.FindInventory(s.actor); a != nil {
-			what = a.Search(name)
-		}
+		what = attr.FindInventory(s.actor).Search(name)
 	}
 
 	// If match still not found try the location itself - as opposed to it's
 	// inventory and narratives.
 	if what == nil && location != nil {
-		if a := attr.FindAlias(location); a != nil {
-			if a.HasAlias(s.words[0]) {
-				what = location
-			}
+		if attr.FindAlias(location).HasAlias(s.words[0]) {
+			what = location
 		}
 	}
 
@@ -65,10 +59,8 @@ func Dump(s *state) {
 	// in the location's inventory, assuming the actor is somewhere. If the actor
 	// is nowhere we have to check it specifically.
 	if what == nil && location == nil {
-		if a := attr.FindAlias(s.actor); a != nil {
-			if a.HasAlias(s.words[0]) {
-				what = s.actor
-			}
+		if attr.FindAlias(s.actor).HasAlias(s.words[0]) {
+			what = s.actor
 		}
 	}
 

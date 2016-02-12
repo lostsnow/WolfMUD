@@ -61,9 +61,7 @@ func List(omit has.Thing) []string {
 		if player == omit {
 			continue
 		}
-		if a := attr.FindName(player); a != nil {
-			list = append(list, a.Name())
-		}
+		list = append(list, attr.FindName(player).Name("Someone"))
 	}
 
 	return list

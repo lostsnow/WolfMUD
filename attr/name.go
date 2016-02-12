@@ -43,22 +43,32 @@ func NewName(n string) *Name {
 }
 
 // FindName searches the attributes of the specified Thing for attributes that
-// implement has.Name returning all that match. If no matches are found an
-// empty slice will be returned.
+// implement has.Name returning the first match it finds or a *Name typed nil
+// otherwise.
 func FindName(t has.Thing) has.Name {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Name); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Name)(nil)
 }
 
 func (n *Name) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", n, n.name)}
 }
 
-// Name returns the name stored in the attribute.
-func (n *Name) Name() string {
-	return n.name
+// Name returns the name stored in the attribute. If the receiver is nil or the
+// name is an empty string the specified preset will be returned instead. This
+// allows for a generic preset name such as someone, something or somewhere to
+// be returned for things without names.
+func (n *Name) Name(preset string) string {
+	switch {
+	case n == nil:
+		return preset
+	case n.name == "":
+		return preset
+	default:
+		return n.name
+	}
 }

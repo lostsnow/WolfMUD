@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: TAKE item container
@@ -32,20 +31,14 @@ func Take(s *state) {
 		return
 	}
 
-	var (
-		cName = s.words[1]
-
-		cWhat has.Thing
-	)
+	cName := s.words[1]
 
 	// Find the taking thing's own inventory. We remember this inventory as this
 	// is where the item will be put if sucessfully taken from the container
 	tWhere := attr.FindInventory(s.actor)
 
-	// If we found an inventory search it for the container
-	if tWhere != nil {
-		cWhat = tWhere.Search(cName)
-	}
+	// Search inventory for the container
+	cWhat := tWhere.Search(cName)
 
 	// If container not found yet work out where we are and search there
 	if cWhat == nil {
@@ -61,9 +54,7 @@ func Take(s *state) {
 
 		// If container not found in inventory also check narratives where we are
 		if cWhat == nil {
-			if a := attr.FindNarrative(s.where.Parent()); a != nil {
-				cWhat = a.Search(cName)
-			}
+			cWhat = attr.FindNarrative(s.where.Parent()).Search(cName)
 		}
 	}
 
@@ -74,13 +65,11 @@ func Take(s *state) {
 	}
 
 	// Get container's proper name
-	if n := attr.FindName(cWhat); n != nil {
-		cName = n.Name()
-	}
+	cName = attr.FindName(cWhat).Name(cName)
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
-	if cInv == nil {
+	if cInv == (*attr.Inventory)(nil) {
 		s.msg.actor.WriteJoin("You cannot take anything from ", cName)
 		return
 	}
@@ -93,34 +82,28 @@ func Take(s *state) {
 	}
 
 	// Get item's proper name
-	if n := attr.FindName(tWhat); n != nil {
-		tName = n.Name()
-	}
+	tName = attr.FindName(tWhat).Name(tName)
 
 	// Check that the thing doing the taking can carry the item. We do this late
 	// in the process so that we have the proper names of the container and the
 	// item being taken from it.
 	//
 	// NOTE: We could just drop the item on the floor if it can't be carried.
-	if tWhere == nil {
+	if tWhere == (*attr.Inventory)(nil) {
 		s.msg.actor.WriteJoin("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
 		return
 	}
 
 	// Check for veto on item being taken
-	if vetoes := attr.FindVetoes(tWhat); vetoes != nil {
-		if veto := vetoes.Check("TAKE", "GET"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(tWhat).Check("TAKE", "GET"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Check for veto on container
-	if vetoes := attr.FindVetoes(cWhat); vetoes != nil {
-		if veto := vetoes.Check("TAKE"); veto != nil {
-			s.msg.actor.WriteString(veto.Message())
-			return
-		}
+	if veto := attr.FindVetoes(cWhat).Check("TAKE"); veto != nil {
+		s.msg.actor.WriteString(veto.Message())
+		return
 	}
 
 	// Try and remove the item from container

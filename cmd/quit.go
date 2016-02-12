@@ -19,10 +19,7 @@ func init() {
 // done when a player quits the game.
 func Quit(s *state) {
 
-	who := "Someone"
-	if a := attr.FindName(s.actor); a != nil {
-		who = a.Name()
-	}
+	who := attr.FindName(s.actor).Name("someone")
 
 	// Remove the player from the world
 	if s.where != nil {

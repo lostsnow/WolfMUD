@@ -24,7 +24,7 @@ type Attribute interface {
 
 type Name interface {
 	Attribute
-	Name() string
+	Name(string) string
 }
 
 type Description interface {
@@ -93,5 +93,6 @@ type Locate interface {
 
 type Player interface {
 	Attribute
+	Found() bool
 	Write([]byte)
 }

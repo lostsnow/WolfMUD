@@ -123,14 +123,15 @@ func NewExits() *Exits {
 }
 
 // FindExits searches the attributes of the specified Thing for attributes that
-// implement has.Exits returning the first match it finds or nil otherwise.
+// implement has.Exits returning the first match it finds or a *Exits typed nil
+// otherwise.
 func FindExits(t has.Thing) has.Exits {
 	for _, a := range t.Attrs() {
 		if a, ok := a.(has.Exits); ok {
 			return a
 		}
 	}
-	return nil
+	return (*Exits)(nil)
 }
 
 func (e *Exits) Dump() []string {
@@ -140,9 +141,7 @@ func (e *Exits) Dump() []string {
 			buff = append(buff, ", "...)
 			buff = append(buff, directionNames[i]...)
 			buff = append(buff, ": "...)
-			if a := FindName(e.Parent()); a != nil {
-				buff = append(buff, a.Name()...)
-			}
+			buff = append(buff, FindName(e.Parent()).Name("Somewhere")...)
 		}
 	}
 	if len(buff) > 0 {
@@ -167,7 +166,9 @@ func Return(direction byte) byte {
 // direction was already linked the exit will be overwritten - in effect the
 // same as unlinking the exit first and then relinking it.
 func (e *Exits) Link(direction byte, to has.Inventory) {
-	e.exits[direction] = to
+	if e != nil {
+		e.exits[direction] = to
+	}
 }
 
 // AutoLink links the given exit, calculates the opposite return exit and links
@@ -175,15 +176,13 @@ func (e *Exits) Link(direction byte, to has.Inventory) {
 // has an Exits attribute.
 func (e *Exits) AutoLink(direction byte, to has.Inventory) {
 	e.Link(direction, to)
-	if E := FindExits(to.Parent()); E != nil {
-		E.Link(Return(direction), FindInventory(e.Parent()))
-	}
+	FindExits(to.Parent()).Link(Return(direction), FindInventory(e.Parent()))
 }
 
-// Unlink removes the exit for the given direction. It does not matter if the
-// given direction was not linked in the first place.
+// Unlink sets the exit for the given direction to nil. It does not matter if
+// the given direction was not linked in the first place.
 func (e *Exits) Unlink(direction byte) {
-	e.exits[direction] = nil
+	e.Link(direction, nil)
 }
 
 // AutoUnlink unlinks the given exit, calculates the opposite return exit and
@@ -193,15 +192,13 @@ func (e *Exits) Unlink(direction byte) {
 // For example a maze may have an exit going North from A to B but going South
 // from B takes you to C instead of back to A as would be expected!
 func (e *Exits) AutoUnlink(direction byte) {
-	to := e.exits[direction]
-	e.Unlink(direction)
-
-	if to == nil {
+	if e == nil {
 		return
 	}
 
-	if E := FindExits(to.Parent()); E != nil {
-		E.Unlink(Return(direction))
+	e.Unlink(direction)
+	if to := e.exits[direction]; to != nil {
+		FindExits(to.Parent()).Unlink(Return(direction))
 	}
 }
 
@@ -210,6 +207,10 @@ func (e *Exits) AutoUnlink(direction byte) {
 //	You can see exits east, southeast and south.
 //
 func (e *Exits) List() string {
+
+	if e == nil {
+		return "You can see no immediate exits from here."
+	}
 
 	// Note we can tell the difference between l=0 initially and l=0 when the
 	// last location was North by looking at the count c. If c is zero we have
@@ -251,7 +252,7 @@ func (e *Exits) List() string {
 //
 // If the direction given cannot be normalized, maybe because it is an invalid
 // direction, an empty string will be returned.
-func (e *Exits) NormalizeDirection(direction string) (name string) {
+func (_ *Exits) NormalizeDirection(direction string) (name string) {
 
 	// Common case quick path - upper, lower or title cased input
 	if d, valid := directionIndex[direction]; valid {
@@ -267,8 +268,12 @@ func (e *Exits) NormalizeDirection(direction string) (name string) {
 }
 
 // LeadsTo returns the Inventory of the location found by taking a specific
-// exit.
+// exit. If a particular direction leads nowhere nil will be returned.
 func (e *Exits) LeadsTo(direction string) has.Inventory {
+	if e == nil {
+		return nil
+	}
+
 	d, valid := directionIndex[direction]
 
 	// If direction not recognised try normalising it
