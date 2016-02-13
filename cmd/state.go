@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/cmd/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"bytes"
@@ -76,6 +77,12 @@ func NewState(t has.Thing, input string) *state {
 	}
 
 	s.input = strings.Fields(input)
+
+	// BUG: Stop words are currently experimental. Use of removeStopWords means
+	// that s.input is no longer the original input anymore, but s.input and
+	// s.words do still match up.
+	s.input = internal.RemoveStopWords(s.input)
+
 	s.words = make([]string, len(s.input))
 	for x, o := range s.input {
 		s.words[x] = strings.ToUpper(o)
