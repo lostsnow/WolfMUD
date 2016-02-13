@@ -27,19 +27,19 @@ func Dump(s *state) {
 	var (
 		name = s.words[0]
 
-		what     has.Thing
-		location has.Thing
+		what  has.Thing
+		where has.Thing
 	)
 
 	// If we can, search where we are
 	if s.where != nil {
 		what = s.where.Search(name)
-		location = s.where.Parent()
+		where = s.where.Parent()
 	}
 
 	// If item still not found see if we can search narratives
-	if what == nil && location != nil {
-		what = attr.FindNarrative(location).Search(name)
+	if what == nil && where != nil {
+		what = attr.FindNarrative(where).Search(name)
 	}
 
 	// If item still not found try our own inventory
@@ -49,24 +49,24 @@ func Dump(s *state) {
 
 	// If match still not found try the location itself - as opposed to it's
 	// inventory and narratives.
-	if what == nil && location != nil {
-		if attr.FindAlias(location).HasAlias(s.words[0]) {
-			what = location
+	if what == nil && where != nil {
+		if attr.FindAlias(where).HasAlias(name) {
+			what = where
 		}
 	}
 
 	// If item still not found try the actor - normally we would find the actor
 	// in the location's inventory, assuming the actor is somewhere. If the actor
 	// is nowhere we have to check it specifically.
-	if what == nil && location == nil {
-		if attr.FindAlias(s.actor).HasAlias(s.words[0]) {
+	if what == nil && where == nil {
+		if attr.FindAlias(s.actor).HasAlias(name) {
 			what = s.actor
 		}
 	}
 
 	// Was item to dump eventually found?
 	if what == nil {
-		s.msg.actor.WriteJoin("There is nothing with alias '", s.words[0], "' to dump.")
+		s.msg.actor.WriteJoin("There is nothing with alias '", name, "' to dump.")
 		return
 	}
 
