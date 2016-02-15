@@ -9,7 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 )
 
-// Narrative implements an attribute for non-removable content. It allows
+// Narrative implements an attribute to mark non-removable content. It allows
 // creators to cater to the more discerning adventurer by providing content
 // that is not spoon fed to them. Narrative content is usually mentioned or
 // discoverable from text descriptions. For example:
@@ -51,29 +51,19 @@ import (
 // NOTE: At the moment narrative content should not be removeable for the
 // simple reason that descriptions are mostly static - for now(?). So removing
 // something would therefore invalidate the descriptive text.
-//
-// BUG(diddymus): Currently narrative Things should implement a veto on GET to
-// prevent removal. Narratives should prevent removal automatically - perhaps
-// by reimplementing the Inventory Remove method? But then how do we remove a
-// narrative if we really, really, we know what we are doing, want to? For
-// example we could want to remove a Thing and add a similar Thing to, in
-// effect, change something. Maybe allow access to (simple conversion?) the
-// embeded Inventory directly for removals?
 type Narrative struct {
-	*Inventory
+	Attribute
 }
 
 // Some interfaces we want to make sure we implement. If we don't we'll throw
 // compile time errors.
 var (
-	_ has.Inventory = &Narrative{}
 	_ has.Narrative = &Narrative{}
 )
 
-// NewNarrative returns a new Narrative attribute initialised with the
-// specified Things as initial contents.
-func NewNarrative(t ...has.Thing) *Narrative {
-	return &Narrative{NewInventory(t...)}
+// NewNarrative returns a new Narrative attribute.
+func NewNarrative() *Narrative {
+	return &Narrative{Attribute{}}
 }
 
 // FindNarrative searches the attributes of the specified Thing for attributes
@@ -88,16 +78,21 @@ func FindNarrative(t has.Thing) has.Narrative {
 	return (*Narrative)(nil)
 }
 
-// ImplementsNarrative is a marker method so that we can distinguish between
-// a Narrative (that is also an Inventory) and a plain Inventory.
+// ImplementsNarrative is a marker method so that we can specifically identify
+// a Narrative.
 func (n *Narrative) ImplementsNarrative() {}
 
 func (n *Narrative) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items:", n, n.LockID(), len(n.contents)))
-	for _, n := range n.contents {
-		for _, i := range n.Dump() {
-			buff = append(buff, DumpFmt("%s", i))
-		}
-	}
+	buff = append(buff, DumpFmt("%p %[1]T", n))
 	return buff
+}
+
+// Found returns false if the receiver is nil otherwise true. This is a utility
+// method that can be chained with FindNarrative to easily check if a narrative
+// was found.
+func (n *Narrative) Found() bool {
+	if n == nil {
+		return false
+	}
+	return true
 }

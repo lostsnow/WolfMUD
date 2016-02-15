@@ -67,11 +67,8 @@ type Inventory interface {
 
 type Narrative interface {
 	Attribute
-	Add(Thing)
-	Remove(Thing) Thing
-	Search(string) Thing
-	List() string
 	ImplementsNarrative()
+	Found() bool
 }
 
 type Exits interface {

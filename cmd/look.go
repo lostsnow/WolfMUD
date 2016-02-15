@@ -15,10 +15,6 @@ func init() {
 	AddHandler(Look, "L", "LOOK")
 }
 
-//
-// BUG(diddymus): If we use LOOK and where we are has a narrative attribute but
-// no inventory attribute the narrative contents will be listed by mistake. Is
-// this an example of a bigger problem with narratives/inventories still?
 func Look(s *state) {
 
 	// Still not anywhere?

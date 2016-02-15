@@ -63,18 +63,21 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["chairs"] = NewThing(
+		NewNarrative(),
 		NewName("some rough chairs"),
 		NewDescription("These chairs(?) are very rough wooden affairs, so rough in fact you decide it's a bad idea to sit on them without some descent rear armour to fend of the splinters."),
 		NewAlias("chair", "chairs"),
 	)
 
 	world["tables"] = NewThing(
+		NewNarrative(),
 		NewName("some rough tables"),
 		NewDescription("Well you suppose these are tables. If so they must have been made by a blind carpenter having a very bad day."),
 		NewAlias("table", "tables"),
 	)
 
 	world["plaque"] = NewThing(
+		NewNarrative(),
 		NewName("a wooden plaque"),
 		NewDescription("This is a small wooden plaque."),
 		NewAlias("plaque"),
@@ -96,17 +99,16 @@ func Setup() map[string]has.Thing {
 			world["mug"],
 			world["box"],
 			world["bag"],
-		),
-		NewNarrative(
+			world["plaque"],
 			NewThing(
+				NewNarrative(),
 				NewName("an ornate fireplace"),
 				NewDescription("This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."),
-				NewAlias("fireplace", "fire"),
+				NewAlias("fireplace"),
 				NewVetoes(
 					NewVeto("get", "You try and rip the ornate fireplace out of the wall but it's just too heavy."),
 				),
 			),
-			world["plaque"],
 		),
 		NewExits(),
 	)
@@ -115,8 +117,7 @@ func Setup() map[string]has.Thing {
 		NewName("Common Room"),
 		NewDescription("You are in a small, cosy common room in the Dragon's Breath tavern. Looking around you see a few chairs and tables for patrons. To the east there is a bar and to the north you can see a merry fireplace burning away."),
 		NewAlias("tavern", "common"),
-		NewInventory(),
-		NewNarrative(
+		NewInventory(
 			world["chairs"],
 			world["tables"],
 		),

@@ -51,11 +51,6 @@ func Take(s *state) {
 
 		// Search for container in the inventory where we are
 		cWhat = s.where.Search(cName)
-
-		// If container not found in inventory also check narratives where we are
-		if cWhat == nil {
-			cWhat = attr.FindNarrative(s.where.Parent()).Search(cName)
-		}
 	}
 
 	// Was container found?

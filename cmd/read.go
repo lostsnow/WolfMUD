@@ -26,12 +26,6 @@ func Read(s *state) {
 	// Try searching inventory where we are
 	what := s.where.Search(name)
 
-	// If we are somewhere and item still not found try searching narratives
-	// where we are
-	if what == nil && s.where != nil {
-		what = attr.FindNarrative(s.where.Parent()).Search(name)
-	}
-
 	// If item still not found try our own inventory
 	if what == nil {
 		what = attr.FindInventory(s.actor).Search(name)

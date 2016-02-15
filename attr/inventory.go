@@ -17,10 +17,24 @@ import (
 // specific type for locations. Locations are simply Things that have Inventory
 // and usually Exits attributes.
 //
+// For a complete description of narratives see the Narrative attribute type.
+//
+// NOTE: The contents slice is split into two parts. Things with a Narrative
+// attribute are added to the begenning of the slice. All other Things are
+// appended to the end of the slice. Which items are narrative and which are
+// not is tracked by split:
+//
+//	narattives := contents[:split]
+//	other := contents[split:]
+//
+//	countNarratives := split
+//	countOther := len(contents) - split
+//
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
 	Attribute
 	contents    []has.Thing
+	split       int
 	playerCount uint64
 	internal.BRL
 }
@@ -40,12 +54,14 @@ var (
 // desirable as it will allow us to fine tune exactly what is copied and how it
 // is copied when duplicating a Thing.
 func NewInventory(t ...has.Thing) *Inventory {
-	c := make([]has.Thing, len(t))
+	c := make([]has.Thing, 0, len(t))
+	i := &Inventory{Attribute{}, c, 0, 0, internal.NewBRL()}
 
-	// Shallow copy only - interface headers or pointers
-	copy(c, t)
+	for _, t := range t {
+		i.Add(t)
+	}
 
-	return &Inventory{Attribute{}, c, 0, internal.NewBRL()}
+	return i
 }
 
 // FindInventory searches the attributes of the specified Thing for attributes
@@ -61,7 +77,7 @@ func FindInventory(t has.Thing) has.Inventory {
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items:", i, i.LockID(), len(i.contents)))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d):", i, i.LockID(), len(i.contents), i.split))
 	for _, i := range i.contents {
 		for _, i := range i.Dump() {
 			buff = append(buff, DumpFmt("%s", i))
@@ -78,8 +94,17 @@ func (i *Inventory) Add(t has.Thing) {
 		return
 	}
 
-	i.contents = append(i.contents, t)
-	FindLocate(t).SetWhere(i)
+	// If Thing added was a narrative move it to the front of the slice otherwise
+	// just append it onto the end. Adjust split if Thing is narrative.
+	if FindNarrative(t).Found() {
+		i.contents = append(i.contents, nil)
+		copy(i.contents[1:], i.contents[0:])
+		i.contents[0] = t
+		i.split++
+	} else {
+		i.contents = append(i.contents, t)
+		FindLocate(t).SetWhere(i)
+	}
 
 	// TODO: Need to check for players or mobiles
 	if FindPlayer(t).Found() {
@@ -119,6 +144,11 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 				i.playerCount--
 			}
 
+			// If Thing removed was a Narrative adjust split
+			if FindNarrative(t).Found() {
+				i.split--
+			}
+
 			return c
 		}
 	}
@@ -140,21 +170,23 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
-// Contents returns a 'copy' of the Inventory contents. That is a copy of the
-// slice containing has.Thing interface headers. Therefore the Inventory
-// contents may be indirectly manipulated through the copy but changes to the
-// actual slice are not possible - use the Add and Remove methods instead.
+// Contents returns a 'copy' of the Inventory non-narrative contents. That is a
+// copy of the slice containing has.Thing interface headers. Therefore the
+// Inventory contents may be indirectly manipulated through the copy but
+// changes to the actual slice are not possible - use the Add and Remove
+// methods instead.
 func (i *Inventory) Contents() []has.Thing {
 	if i == nil {
 		return []has.Thing{}
 	}
-	l := make([]has.Thing, len(i.contents))
-	copy(l, i.contents)
+	l := make([]has.Thing, len(i.contents)-i.split)
+	copy(l, i.contents[i.split:])
 	return l
 }
 
-// List returns a string describing the contents of an Inventory. The format of
-// the string is dependant on the number of items. If the Inventory is empty:
+// List returns a string describing the non-narrative contents of an Inventory.
+// The format of the string is dependant on the number of items. If the
+// Inventory is empty:
 //
 //	It is empty.
 //
@@ -178,7 +210,7 @@ func (i *Inventory) List() string {
 
 	buff := make([]byte, 0, 1024)
 
-	switch len(i.contents) {
+	switch len(i.contents) - i.split {
 	case 0:
 		return "It is empty."
 	case 1:
@@ -189,7 +221,7 @@ func (i *Inventory) List() string {
 
 	mark := len(buff)
 
-	for _, c := range i.contents {
+	for _, c := range i.contents[i.split:] {
 		if len(buff) > mark {
 			buff = append(buff, "\n  "...)
 		}
@@ -197,7 +229,7 @@ func (i *Inventory) List() string {
 	}
 
 	// End single item sentence with a fullstop.
-	if len(i.contents) == 1 {
+	if len(i.contents)-i.split == 1 {
 		buff = append(buff, "."...)
 	}
 

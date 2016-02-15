@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: GET item
@@ -22,12 +21,7 @@ func Get(s *state) {
 		return
 	}
 
-	var (
-		name = s.words[0]
-
-		what        has.Thing
-		isNarrative bool
-	)
+	name := s.words[0]
 
 	// Are we somewhere?
 	if s.where == nil {
@@ -36,13 +30,7 @@ func Get(s *state) {
 	}
 
 	// Search for item we want to get in the inventory where we are
-	what = s.where.Search(name)
-
-	// If item not found in inventory also check narratives where we are
-	if what == nil {
-		what = attr.FindNarrative(s.where.Parent()).Search(name)
-		isNarrative = (what != nil)
-	}
+	what := s.where.Search(name)
 
 	// Was item to get found?
 	if what == nil {
@@ -81,8 +69,8 @@ func Get(s *state) {
 	// If item is a narrative we can't get it. We do this check after the veto
 	// checks as the vetos could give us a better message/reson for not being
 	// able to take the item.
-	if isNarrative {
-		s.msg.actor.WriteJoin("You cannot get ", name, ".")
+	if attr.FindNarrative(what).Found() {
+		s.msg.actor.WriteJoin("For some reason you cannot get ", name, ".")
 		return
 	}
 

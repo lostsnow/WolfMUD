@@ -24,22 +24,13 @@ func Dump(s *state) {
 		return
 	}
 
-	var (
-		name = s.words[0]
+	name := s.words[0]
 
-		what  has.Thing
-		where has.Thing
-	)
+	var what has.Thing
 
 	// If we can, search where we are
 	if s.where != nil {
 		what = s.where.Search(name)
-		where = s.where.Parent()
-	}
-
-	// If item still not found see if we can search narratives
-	if what == nil && where != nil {
-		what = attr.FindNarrative(where).Search(name)
 	}
 
 	// If item still not found try our own inventory
@@ -49,16 +40,16 @@ func Dump(s *state) {
 
 	// If match still not found try the location itself - as opposed to it's
 	// inventory and narratives.
-	if what == nil && where != nil {
-		if attr.FindAlias(where).HasAlias(name) {
-			what = where
+	if what == nil && s.where != nil {
+		if attr.FindAlias(s.where.Parent()).HasAlias(name) {
+			what = s.where.Parent()
 		}
 	}
 
-	// If item still not found try the actor - normally we would find the actor
-	// in the location's inventory, assuming the actor is somewhere. If the actor
-	// is nowhere we have to check it specifically.
-	if what == nil && where == nil {
+	// If item still not found  and we are nowhere try the actor - normally we
+	// would find the actor in the location's inventory, assuming the actor is
+	// somewhere. If the actor is nowhere we have to check it specifically.
+	if what == nil && s.where == nil {
 		if attr.FindAlias(s.actor).HasAlias(name) {
 			what = s.actor
 		}

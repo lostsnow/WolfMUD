@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: PUT item container
@@ -43,17 +42,12 @@ func Put(s *state) {
 	}
 
 	// Try and find container
-	var (
-		cName = s.words[1]
-
-		cWhat has.Thing
-	)
+	cName := s.words[1]
 
 	// Search ourselves for container to put something into
-	cWhat = tWhere.Search(cName)
+	cWhat := tWhere.Search(cName)
 
-	// If container not found and we are not somewhere we are not going to find
-	// it
+	// If container not found and we are not somewhere we're not going to find it
 	if cWhat == nil && s.where == nil {
 		s.msg.actor.WriteJoin("There is no '", cName, "' to put ", tName, " into.")
 		return
@@ -62,11 +56,6 @@ func Put(s *state) {
 	// If container not found search the inventory where we are
 	if cWhat == nil {
 		cWhat = s.where.Search(cName)
-	}
-
-	// If container still not found check narratives where we are
-	if cWhat == nil {
-		cWhat = attr.FindNarrative(s.where.Parent()).Search(cName)
 	}
 
 	// Was container found?
