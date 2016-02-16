@@ -78,6 +78,13 @@ func FindNarrative(t has.Thing) has.Narrative {
 	return (*Narrative)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true. This is a utility
+// method that can be chained with FindNarrative to easily check if a Narrative
+// attribute was found.
+func (n *Narrative) Found() bool {
+	return n != nil
+}
+
 // ImplementsNarrative is a marker method so that we can specifically identify
 // a Narrative.
 func (n *Narrative) ImplementsNarrative() {}
@@ -85,14 +92,4 @@ func (n *Narrative) ImplementsNarrative() {}
 func (n *Narrative) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T", n))
 	return buff
-}
-
-// Found returns false if the receiver is nil otherwise true. This is a utility
-// method that can be chained with FindNarrative to easily check if a narrative
-// was found.
-func (n *Narrative) Found() bool {
-	if n == nil {
-		return false
-	}
-	return true
 }

@@ -45,17 +45,9 @@ func FindPlayer(t has.Thing) has.Player {
 	return (*Player)(nil)
 }
 
-// Found returns false if the receiver is nil, otherwise true. This is a
-// convenience method for detecting if a player was found using FindPlayer:
-//
-//	if attr.FindPlayer(p).Found() {
-//	}
-//
-// is equivelent to:
-//
-//	if attr.FindPlayer(p); p != (*attr.Player)(nil) {
-//	}
-//
+// Found returns false if the receiver is nil otherwise true. This is a utility
+// method that can be chained with FindPlayer to easily check if a Player
+// attribute was found.
 func (p *Player) Found() bool {
 	return p != nil
 }

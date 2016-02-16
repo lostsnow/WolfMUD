@@ -134,6 +134,13 @@ func FindExits(t has.Thing) has.Exits {
 	return (*Exits)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true. This is a utility
+// method that can be chained with FindExits to easily check if an Exits
+// attribute was found.
+func (e *Exits) Found() bool {
+	return e != nil
+}
+
 func (e *Exits) Dump() []string {
 	buff := []byte{}
 	for i, e := range e.exits {

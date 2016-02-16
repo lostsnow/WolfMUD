@@ -63,6 +63,7 @@ type Inventory interface {
 	sync.Locker
 	LockID() uint64
 	Crowded() bool
+	Found() bool
 }
 
 type Narrative interface {
@@ -80,6 +81,7 @@ type Exits interface {
 	List() string
 	NormalizeDirection(string) string
 	LeadsTo(string) Inventory
+	Found() bool
 }
 
 type Locate interface {
