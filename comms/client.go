@@ -95,6 +95,7 @@ func newClient(conn *net.TCPConn) *client {
 		// Setup test player
 		player: attr.NewThing(
 			attr.NewName("Player "+id),
+			attr.NewDescription("This is an adventurer just like you."),
 			attr.NewAlias("PLAYER"+id),
 			attr.NewInventory(),
 			attr.NewLocate(nil),
