@@ -73,8 +73,8 @@ func Put(s *state) {
 	cName = attr.FindName(cWhat).Name(cName)
 
 	// Check container is actually a container with an inventory
-	cInv := attr.FindInventory(cWhat)
-	if !cInv.Found() {
+	cWhere := attr.FindInventory(cWhat)
+	if !cWhere.Found() {
 		s.msg.actor.WriteJoin("You cannot put ", tName, " into ", cName, ".")
 		return
 	}
@@ -98,7 +98,7 @@ func Put(s *state) {
 	}
 
 	// Put item into comtainer
-	cInv.Add(tWhat)
+	cWhere.Add(tWhat)
 
 	s.msg.actor.WriteJoin("You put ", tName, " into ", cName, ".")
 	s.ok = true

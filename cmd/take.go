@@ -40,16 +40,15 @@ func Take(s *state) {
 	// Search inventory for the container
 	cWhat := tWhere.Search(cName)
 
-	// If container not found yet work out where we are and search there
+	// If we have not foun the container and we are nowhere we are not going to
+	// find the container so bail early
+	if cWhat == nil && s.where == nil {
+		s.msg.actor.WriteJoin("You see no '", cName, "' to take anything from.")
+		return
+	}
+
+	// If container not found yet search where we are
 	if cWhat == nil {
-
-		// If we are nowhere we are not going to find the container so bail early
-		if s.where == nil {
-			s.msg.actor.WriteJoin("You see no '", cName, "' to take anything from.")
-			return
-		}
-
-		// Search for container in the inventory where we are
 		cWhat = s.where.Search(cName)
 	}
 
@@ -63,14 +62,14 @@ func Take(s *state) {
 	cName = attr.FindName(cWhat).Name(cName)
 
 	// Check container is actually a container with an inventory
-	cInv := attr.FindInventory(cWhat)
-	if !cInv.Found() {
+	cWhere := attr.FindInventory(cWhat)
+	if !cWhere.Found() {
 		s.msg.actor.WriteJoin("You cannot take anything from ", cName)
 		return
 	}
 
 	// Is item to be taken in the container?
-	tWhat := cInv.Search(tName)
+	tWhat := cWhere.Search(tName)
 	if tWhat == nil {
 		s.msg.actor.WriteJoin("There is no '", tName, "' in ", cName, ".")
 		return
@@ -110,7 +109,7 @@ func Take(s *state) {
 	}
 
 	// Try and remove the item from container
-	if cInv.Remove(tWhat) == nil {
+	if cWhere.Remove(tWhat) == nil {
 		s.msg.actor.WriteJoin("Something stops you taking ", tName, " from ", cName, "...")
 		return
 	}
