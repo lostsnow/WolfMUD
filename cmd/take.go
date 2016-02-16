@@ -64,7 +64,7 @@ func Take(s *state) {
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
-	if cInv == (*attr.Inventory)(nil) {
+	if !cInv.Found() {
 		s.msg.actor.WriteJoin("You cannot take anything from ", cName)
 		return
 	}
@@ -84,7 +84,7 @@ func Take(s *state) {
 	// item being taken from it.
 	//
 	// NOTE: We could just drop the item on the floor if it can't be carried.
-	if tWhere == (*attr.Inventory)(nil) {
+	if !tWhere.Found() {
 		s.msg.actor.WriteJoin("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
 		return
 	}

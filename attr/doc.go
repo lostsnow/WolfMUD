@@ -26,6 +26,12 @@
 //		// do something...
 //	}
 //
+// Or if available use the Found method:
+//
+//	if !attr.FindAlias(t).Found() {
+//		// do something...
+//	}
+//
 // All methods that take a pointer to an Attribute as a receiver are expected
 // to be able to handle a nil receiver unless otherwise stated.
 //

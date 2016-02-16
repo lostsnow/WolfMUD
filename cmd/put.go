@@ -75,7 +75,7 @@ func Put(s *state) {
 
 	// Check container is actually a container with an inventory
 	cInv := attr.FindInventory(cWhat)
-	if cInv == (*attr.Inventory)(nil) {
+	if !cInv.Found() {
 		s.msg.actor.WriteJoin("You cannot put ", tName, " into ", cName, ".")
 		return
 	}
