@@ -9,7 +9,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"strings"
-	"unicode"
 )
 
 // Add handler for an empty command. The handler just acknowledges the empty
@@ -46,20 +45,10 @@ func AddHandler(handler func(*state), cmd ...string) {
 
 // Parse initiates processing of the input string for the specified Thing. The
 // input string is expected to be either a players input or possibly a scripted
-// command. It returns msg which is the response to carry out the command and
-// ok which is set to true if the command completed successfully else false.
-// The ok flag can be used by other commands and possibly scripting to check if
-// the command was successful without having to try and parse the msg.
-func Parse(t has.Thing, input string) (msg []byte, ok bool) {
-
-	if strings.TrimLeftFunc(input, unicode.IsSpace) == "" {
-		return
-	}
-
+// command.
+func Parse(t has.Thing, input string) {
 	s := NewState(t, input)
 	s.parse(dispatch)
-
-	return s.msg.actor.Bytes(), s.ok
 }
 
 // dispatch invokes the handler for a given command. The command is specified

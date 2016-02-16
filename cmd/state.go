@@ -145,12 +145,21 @@ func (s *state) parse(dispatcher func(*state)) {
 	}
 }
 
-// messenger sends buffered messages to participants and observers. The
-// participant may be in another location to the actor - such as when throwing
-// something at someone or shooting someone.
+// messenger is used to send buffered messages to the actor, participant and
+// observers. The participant may be in another location to the actor - such as
+// when throwing something at someone or shooting someone.
+//
+// For the actor we don't check the buffer length to see if there is anything
+// in it to send. We always send to the actor so that we can redisplay the
+// prompt even if they just hit enter.
 //
 // NOTE: Messages are not broadcast to observers in a crowded location.
 func (s *state) messenger() {
+
+	if s.actor != nil {
+		attr.FindPlayer(s.actor).Write(s.msg.actor.Bytes())
+	}
+
 	if s.participant != nil && s.msg.participant.Len() > 1 {
 		attr.FindPlayer(s.participant).Write(s.msg.participant.Bytes())
 	}

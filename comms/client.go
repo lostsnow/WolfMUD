@@ -115,8 +115,7 @@ func newClient(conn *net.TCPConn) *client {
 	}
 
 	// Describe what they can see
-	msg, _ := cmd.Parse(c.player, "LOOK")
-	c.Write(msg)
+	cmd.Parse(c.player, "LOOK")
 
 	return c
 }
@@ -147,11 +146,7 @@ func (c *client) process() {
 		}
 
 		// Process the input, if we get an error the loop will exit
-		if msg, _ := cmd.Parse(c.player, in); len(msg) > 0 {
-			c.Write(msg)
-		} else {
-			c.TCPConn.Write(c.prompt)
-		}
+		cmd.Parse(c.player, in)
 
 		// Remember ReadString will return the delimiters...
 		if strings.TrimSpace(strings.ToUpper(in)) == "QUIT" {
@@ -195,8 +190,7 @@ func (c *client) process() {
 
 	// If not voluntarily quitting do it automatically
 	if c.Error() != quitting {
-		msg, _ := cmd.Parse(c.player, "QUIT")
-		c.Write(msg)
+		cmd.Parse(c.player, "QUIT")
 	}
 
 	// Make sure connection closed down
