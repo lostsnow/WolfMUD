@@ -41,7 +41,6 @@ func Put(s *state) {
 		return
 	}
 
-	// Try and find container
 	cName := s.words[1]
 
 	// Search ourselves for container to put something into

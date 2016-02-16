@@ -68,7 +68,7 @@ func Get(s *state) {
 
 	// If item is a narrative we can't get it. We do this check after the veto
 	// checks as the vetos could give us a better message/reson for not being
-	// able to take the item.
+	// able to get the item.
 	if attr.FindNarrative(what).Found() {
 		s.msg.actor.WriteJoin("For some reason you cannot get ", name, ".")
 		return

@@ -17,7 +17,7 @@ func init() {
 
 func Look(s *state) {
 
-	// Still not anywhere?
+	// Are we somewhere?
 	if s.where == nil {
 		s.msg.actor.WriteString("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
 		return
