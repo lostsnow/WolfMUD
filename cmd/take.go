@@ -101,6 +101,14 @@ func Take(s *state) {
 		return
 	}
 
+	// If item is a narrative we can't take it. We do this check after the veto
+	// checks as the vetos could give us a better message/reson for not being
+	// able to take the item.
+	if attr.FindNarrative(tWhat).Found() {
+		s.msg.actor.WriteJoin("For some reason you cannot take ", tName, " from ", cName, ".")
+		return
+	}
+
 	// Try and remove the item from container
 	if cInv.Remove(tWhat) == nil {
 		s.msg.actor.WriteJoin("Something stops you taking ", tName, " from ", cName, "...")
