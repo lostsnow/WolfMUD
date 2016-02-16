@@ -52,8 +52,13 @@ func Examine(s *state) {
 		s.msg.actor.WriteJoin(" ", d.Description())
 	}
 
-	if l := attr.FindInventory(what).List(); l != "" {
-		s.msg.actor.WriteJoin(" ", l)
+	// BUG(diddymus): If you examine another player you can see their inventory
+	// items. For now we just skip the inventory listing if we are examining a
+	// player.
+	if !attr.FindPlayer(what).Found() {
+		if l := attr.FindInventory(what).List(); l != "" {
+			s.msg.actor.WriteJoin(" ", l)
+		}
 	}
 
 	s.ok = true
