@@ -249,3 +249,12 @@ func (i *Inventory) Crowded() (crowded bool) {
 	}
 	return
 }
+
+// Count returns the total number of objects, number of Narratives and number
+// of items in the specified Inventory.
+func (i *Inventory) Count() (L, N, I int) {
+	if i != nil {
+		return len(i.contents), i.split, len(i.contents) - i.split
+	}
+	return 0, 0, 0
+}

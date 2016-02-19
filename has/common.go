@@ -64,6 +64,7 @@ type Inventory interface {
 	LockID() uint64
 	Crowded() bool
 	Found() bool
+	Count() (int, int, int)
 }
 
 type Narrative interface {
