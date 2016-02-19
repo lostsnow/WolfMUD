@@ -83,6 +83,8 @@ type Exits interface {
 	NormalizeDirection(string) string
 	LeadsTo(string) Inventory
 	Found() bool
+	Within(int) [][]Inventory
+	Surrounding() []Inventory
 }
 
 type Locate interface {
