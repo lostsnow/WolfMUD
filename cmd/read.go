@@ -50,5 +50,9 @@ func Read(s *state) {
 	}
 
 	s.msg.actor.WriteJoin("You read the writing on ", name, ". It says: ", writing)
+
+	who := attr.FindName(s.actor).Name("Someone")
+	s.msg.observer.WriteJoin("You see ", who, " read ", name, ".")
+
 	s.ok = true
 }

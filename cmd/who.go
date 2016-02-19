@@ -6,6 +6,7 @@
 package cmd
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/stats"
 
 	"strconv"
@@ -40,4 +41,9 @@ func Who(s *state) {
 	}
 
 	s.msg.actor.WriteJoin(start, strconv.Itoa(len(players)), " other player", end)
+
+	who := attr.FindName(s.actor).Name("Someone")
+	s.msg.observer.WriteJoin("You see ", who, " concentrate for a moment.")
+
+	s.ok = true
 }

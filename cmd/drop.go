@@ -25,6 +25,13 @@ func Drop(s *state) {
 
 	// Search ourselves for item we want to drop
 	from := attr.FindInventory(s.actor)
+
+	// Are we carrying anything at all?
+	if _, _, i := from.Count(); i == 0 {
+		s.msg.actor.WriteJoin("You don't have anything to drop.")
+		return
+	}
+
 	what := from.Search(name)
 
 	// Was item to drop found?
@@ -66,6 +73,9 @@ func Drop(s *state) {
 	// Add item to inventory where we are
 	s.where.Add(what)
 
+	who := attr.FindName(s.actor).Name("Someone")
+
 	s.msg.actor.WriteJoin("You drop ", name, ".")
+	s.msg.observer.WriteJoin(who, " drops ", name, ".")
 	s.ok = true
 }

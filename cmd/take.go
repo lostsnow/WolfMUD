@@ -68,10 +68,14 @@ func Take(s *state) {
 		return
 	}
 
+	// Get actor's name
+	who := attr.FindName(s.actor).Name("Someone")
+
 	// Is item to be taken in the container?
 	tWhat := cWhere.Search(tName)
 	if tWhat == nil {
-		s.msg.actor.WriteJoin("There is no '", tName, "' in ", cName, ".")
+		s.msg.actor.WriteJoin(cName, " does not seem to contain ", tName, ".")
+		s.msg.observer.WriteJoin("You see ", who, " rummage around in ", cName, ".")
 		return
 	}
 
@@ -105,12 +109,14 @@ func Take(s *state) {
 	// able to take the item.
 	if attr.FindNarrative(tWhat).Found() {
 		s.msg.actor.WriteJoin("For some reason you cannot take ", tName, " from ", cName, ".")
+		s.msg.observer.WriteJoin("You see ", who, " having trouble removing something from ", cName, ".")
 		return
 	}
 
 	// Try and remove the item from container
 	if cWhere.Remove(tWhat) == nil {
 		s.msg.actor.WriteJoin("Something stops you taking ", tName, " from ", cName, "...")
+		s.msg.observer.WriteJoin("You see ", who, " having trouble removing something from ", cName, ".")
 		return
 	}
 
@@ -118,5 +124,7 @@ func Take(s *state) {
 	tWhere.Add(tWhat)
 
 	s.msg.actor.WriteJoin("You take ", tName, " from ", cName, ".")
+	s.msg.observer.WriteJoin("You see ", who, " take something from ", cName, ".")
+
 	s.ok = true
 }

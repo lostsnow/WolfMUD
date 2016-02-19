@@ -63,9 +63,12 @@ func Put(s *state) {
 		return
 	}
 
+	who := attr.FindName(s.actor).Name("Someone")
+
 	// Unless our name is Klein we can't put something inside itself! ;)
 	if tWhat == cWhat {
-		s.msg.actor.WriteJoin("You can't put ", tName, " inside itself!")
+		s.msg.actor.WriteJoin("It might be interesting putting ", tName, " inside itself, but probably paradoxical as well.")
+		s.msg.observer.WriteJoin(who, " seems to be trying to turn ", tName, " into a paradox.")
 		return
 	}
 
@@ -101,5 +104,7 @@ func Put(s *state) {
 	cWhere.Add(tWhat)
 
 	s.msg.actor.WriteJoin("You put ", tName, " into ", cName, ".")
+
+	s.msg.observer.WriteJoin("You see ", who, " put something into ", cName, ".")
 	s.ok = true
 }

@@ -79,5 +79,8 @@ func Look(s *state) {
 
 	s.msg.actor.WriteString(attr.FindExits(what).List())
 
+	who := attr.FindName(s.actor).Name("Someone")
+	s.msg.observer.WriteJoin(who, " starts looking around.")
+
 	s.ok = true
 }

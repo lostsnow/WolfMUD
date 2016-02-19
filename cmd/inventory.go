@@ -30,5 +30,8 @@ func Inventory(s *state) {
 		s.msg.actor.WriteJoin("\n  ", attr.FindName(i).Name("something"))
 	}
 
+	who := attr.FindName(s.actor).Name("Someone")
+	s.msg.observer.WriteJoin("You see ", who, " check over their gear.")
+
 	s.ok = true
 }

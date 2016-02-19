@@ -83,6 +83,9 @@ func Get(s *state) {
 	// Add item to our inventory
 	to.Add(what)
 
+	who := attr.FindName(s.actor).Name("Someone")
+
 	s.msg.actor.WriteJoin("You get ", name, ".")
+	s.msg.observer.WriteJoin("You see ", who, " get ", name, ".")
 	s.ok = true
 }
