@@ -16,13 +16,15 @@ func init() {
 
 func Sneeze(s *state) {
 
-	// Try locking locations within a distance of 2 moves
+	// Get all location inventories within 2 moves of current location
+	locations := attr.FindExits(s.where.Parent()).Within(2)
+
+	// Try locking all of the locations we found
 	lockAdded := false
-	locs := attr.FindExits(s.where.Parent()).Within(2)
-	for _, e1 := range locs {
-		for _, e2 := range e1 {
-			if !s.CanLock(e2) {
-				s.AddLock(e2)
+	for _, d := range locations {
+		for _, i := range d {
+			if !s.CanLock(i) {
+				s.AddLock(i)
 				lockAdded = true
 			}
 		}
@@ -41,12 +43,12 @@ func Sneeze(s *state) {
 	s.msg.observer.WriteJoin("You see ", who, " sneeze.")
 
 	// Notify observers in near by locations
-	for _, e := range locs[1] {
+	for _, e := range locations[1] {
 		s.msg.observers[e].WriteString("You hear a loud sneeze.")
 	}
 
 	// Notify observers in further out locations
-	for _, e := range locs[2] {
+	for _, e := range locations[2] {
 		s.msg.observers[e].WriteString("You hear a sneeze.")
 	}
 
