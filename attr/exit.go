@@ -291,11 +291,12 @@ func (e *Exits) LeadsTo(direction string) has.Inventory {
 	return e.exits[d]
 }
 
-// Within returns all of the locations within the given distance from the
-// location specified by the receiver. It is 3D and will follow up and down
+// Within returns all of the locations within the given number of moves from
+// the location specified by the receiver. It is 3D and will follow up and down
 // exits as well. The locations are returned as a slice of Inventory slices.
-// The first slice represents the range. The second slice is all locations
-// within that range. Range zero is always the current location.
+// The first slice represents the cwnumber of moves. The second slice is all
+// locations within that number of moves. The first slice, moves 0, is always
+// the current location.
 //
 // Assume the following map of the Tavern and surrounding locations:
 //
@@ -315,53 +316,54 @@ func (e *Exits) LeadsTo(direction string) has.Inventory {
 //
 //
 // If we are at location 7 on the map then Within(2) will return all locations
-// within 2 locations travel:
+// within 2 moves:
 //
 //	 [][]has.Inventory{
-//		[]has.Inventory{ 7 },					// Within distance 0 of location 7
-//		[]has.Inventory{ 5, 8, 9 },   // Within distance 1 of location 7
-//		[]has.Inventory{ 6, 3, 10 },  // Within distance 2 of location 7
+//		[]has.Inventory{ 7 },					// Within 0 moves of location 7
+//		[]has.Inventory{ 5, 8, 9 },   // Within 1 move of location 7
+//		[]has.Inventory{ 6, 3, 10 },  // Within 2 moves of location 7
 //	 }
 //
 // The above numbers e.g. 5,8,9 refer to the map locations. In reality they
 // would actually be references to has.Inventory interface types.
 //
 // See cmd/sneeze.go for an example of using the Within method.
-func (e *Exits) Within(distance int) (locs [][]has.Inventory) {
+func (e *Exits) Within(moves int) (locations [][]has.Inventory) {
 	if e == nil {
 		return
 	}
 
-	// Add current location at distance zero
+	// Add current location at zero moves
 	center := FindInventory(e.Parent())
-	locs = append(locs, []has.Inventory{center})
+	locations = append(locations, []has.Inventory{center})
 
-	// Go through each distance expanding from the center
-	for d := 1; d <= distance; d++ {
+	// Go through each number of moves expanding from the center/current location
+	for m := 1; m <= moves; m++ {
 
-		// D is the group of locations for a given distance d
-		D := []has.Inventory{}
+		// M is the group of locations for a given number of moves m
+		M := []has.Inventory{}
 
-		// Go through locations found for previous distance
-		for _, e := range locs[d-1] {
+		// Go through locations found for previous number of moves to see if there
+		// are more exits available to follow
+		for _, e := range locations[m-1] {
 		exitLoop:
-			for _, s := range FindExits(e.Parent()).Surrounding() {
-				// Go through each distance dd for each location DD we have found so
-				// far to see if current location has been accounted for yet
-				for _, dd := range locs {
-					for _, DD := range dd {
-						if DD == s {
+			for _, l := range FindExits(e.Parent()).Surrounding() {
+				// For location l go through each number of moves mm for each location
+				// MM in the results we have so far to see if l is in the results yet
+				for _, mm := range locations {
+					for _, MM := range mm {
+						if MM == l {
 							continue exitLoop
 						}
 					}
 				}
-				// current location not found so add it to the current group (D)
-				D = append(D, s)
+				// If location not found add to group M (locations at m moves out)
+				M = append(M, l)
 			}
 		}
 
-		// Add set of locations found (D) at distance d to result
-		locs = append(locs, D)
+		// Add group M (locations at m moves out) to results
+		locations = append(locations, M)
 	}
 
 	return
