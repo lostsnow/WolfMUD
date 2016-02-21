@@ -10,16 +10,16 @@ import (
 )
 
 type Inventory interface {
-	Attribute
 	Add(Thing)
-	Remove(Thing) Thing
-	Search(string) Thing
+	Attribute
 	Contents() []Thing
-	List() string
-	LockID() uint64
+	Count() (int, int, int)
 	Crowded() bool
 	Found() bool
-	Count() (int, int, int)
+	List() string
+	LockID() uint64
+	Remove(Thing) Thing
+	Search(string) Thing
 
 	sync.Locker
 }

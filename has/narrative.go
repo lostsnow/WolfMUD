@@ -7,6 +7,6 @@ package has
 
 type Narrative interface {
 	Attribute
-	ImplementsNarrative()
 	Found() bool
+	ImplementsNarrative()
 }

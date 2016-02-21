@@ -7,6 +7,6 @@ package has
 
 type Locate interface {
 	Attribute
-	Where() Inventory
 	SetWhere(Inventory)
+	Where() Inventory
 }

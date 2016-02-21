@@ -12,6 +12,6 @@ type Vetoes interface {
 
 type Veto interface {
 	Command() string
-	Message() string
 	Dump() []string
+	Message() string
 }

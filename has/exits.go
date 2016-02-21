@@ -7,14 +7,14 @@ package has
 
 type Exits interface {
 	Attribute
-	Link(byte, Inventory)
 	AutoLink(byte, Inventory)
-	Unlink(byte)
 	AutoUnlink(byte)
+	Found() bool
+	LeadsTo(string) Inventory
+	Link(byte, Inventory)
 	List() string
 	NormalizeDirection(string) string
-	LeadsTo(string) Inventory
-	Found() bool
-	Within(int) [][]Inventory
 	Surrounding() []Inventory
+	Unlink(byte)
+	Within(int) [][]Inventory
 }

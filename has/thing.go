@@ -7,13 +7,13 @@ package has
 
 type Thing interface {
 	Add(...Attribute)
-	Remove(...Attribute)
 	Attrs() []Attribute
 	Dump() []string
+	Remove(...Attribute)
 }
 
 type Attribute interface {
+	Dump() []string
 	Parent() Thing
 	SetParent(Thing)
-	Dump() []string
 }
