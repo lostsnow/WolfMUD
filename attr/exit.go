@@ -25,6 +25,8 @@ const (
 	Northwest
 	Up
 	Down
+
+	exitCount // Make sure this is the last item!
 )
 
 // directionNames is a lookup table for direction indexes to direction strings.
@@ -106,7 +108,7 @@ var directionIndex = map[string]byte{
 // exits or return exits that do not lead back to where you came from.
 type Exits struct {
 	Attribute
-	exits [len(directionNames)]has.Inventory
+	exits [exitCount]has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -119,7 +121,7 @@ var (
 // cannot be set during initialisation like most other attributes is that all
 // 'locations' have to be setup before they can all be linked together.
 func NewExits() *Exits {
-	return &Exits{Attribute{}, [len(directionNames)]has.Inventory{}}
+	return &Exits{Attribute{}, [exitCount]has.Inventory{}}
 }
 
 // FindExits searches the attributes of the specified Thing for attributes that
@@ -375,7 +377,7 @@ func (e *Exits) Within(moves int) (locations [][]has.Inventory) {
 // be returned.
 func (e *Exits) Surrounding() []has.Inventory {
 
-	exits := make([]has.Inventory, 0, len(directionNames))
+	exits := make([]has.Inventory, 0, exitCount)
 
 	if e == nil {
 		return exits
