@@ -9,6 +9,7 @@ type Exits interface {
 	Attribute
 	AutoLink(byte, Inventory)
 	AutoUnlink(byte)
+	ToName(direction byte) string
 	Found() bool
 	LeadsTo(string) Inventory
 	Link(byte, Inventory)

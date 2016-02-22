@@ -276,6 +276,15 @@ func (_ *Exits) NormalizeDirection(direction string) (name string) {
 	return ""
 }
 
+// ToName returns the lowercased long name of a direction or an empty string if
+// the direction is invalid.
+func (_ *Exits) ToName(direction byte) (name string) {
+	if direction >= 0 && direction < exitCount {
+		return directionNames[direction]
+	}
+	return ""
+}
+
 // LeadsTo returns the Inventory of the location found by taking a specific
 // exit. If a particular direction leads nowhere nil will be returned.
 func (e *Exits) LeadsTo(direction string) has.Inventory {
