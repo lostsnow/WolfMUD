@@ -8,6 +8,7 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
 
+	"errors"
 	"strings"
 )
 
@@ -255,25 +256,26 @@ func (e *Exits) List() string {
 }
 
 // NormalizeDirection takes a long or short variant of a direction name in any
-// case and returns the long direction name in all lower case.
+// case and returns the direction.
 //
-// So 'N', 'NORTH', 'n', 'north', 'North' and 'NoRtH' all return 'north'.
+// So 'N', 'NORTH', 'n', 'north', 'North' and 'NoRtH' all return the constant
+// NORTH which is 0.
 //
-// If the direction given cannot be normalized, maybe because it is an invalid
-// direction, an empty string will be returned.
-func (_ *Exits) NormalizeDirection(direction string) (name string) {
+// If the direction name given cannot be normalized, maybe because it is
+// invalid, a non-nil error will be returned.
+func (_ *Exits) NormalizeDirection(name string) (direction byte, err error) {
 
 	// Common case quick path - upper, lower or title cased input
-	if d, valid := directionIndex[direction]; valid {
-		return directionNames[d]
+	if d, valid := directionIndex[name]; valid {
+		return d, nil
 	}
 
 	// Try again assuming mixed case input and forcing it to all uppercase
-	if d, valid := directionIndex[strings.ToUpper(direction)]; valid {
-		return directionNames[d]
+	if d, valid := directionIndex[strings.ToUpper(name)]; valid {
+		return d, nil
 	}
 
-	return ""
+	return 0, errors.New("invalid direction")
 }
 
 // ToName returns the lowercased long name of a direction or an empty string if
@@ -287,19 +289,11 @@ func (_ *Exits) ToName(direction byte) (name string) {
 
 // LeadsTo returns the Inventory of the location found by taking a specific
 // exit. If a particular direction leads nowhere nil will be returned.
-func (e *Exits) LeadsTo(direction string) has.Inventory {
-	if e == nil {
-		return nil
+func (e *Exits) LeadsTo(direction byte) has.Inventory {
+	if e != nil {
+		return e.exits[direction]
 	}
-
-	d, valid := directionIndex[direction]
-
-	// If direction not recognised try normalising it
-	if !valid {
-		d, _ = directionIndex[e.NormalizeDirection(direction)]
-	}
-
-	return e.exits[d]
+	return nil
 }
 
 // Within returns all of the locations within the given number of moves from

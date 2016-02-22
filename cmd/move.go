@@ -41,16 +41,18 @@ func Move(s *state) {
 
 	// Is direction a valid direction? Move could have been called directly by
 	// another command just passing in the direction.
-	direction := exits.NormalizeDirection(s.cmd)
-	if direction == "" {
+	direction, err := exits.NormalizeDirection(s.cmd)
+	if err != nil {
 		s.msg.actor.WriteString("You wanted to go which way!?")
 		return
 	}
 
+	wayToGo := exits.ToName(direction)
+
 	// Find out where our exit leads to
 	to := exits.LeadsTo(direction)
 	if to == nil {
-		s.msg.actor.WriteJoin("You can't go ", direction, " from here!")
+		s.msg.actor.WriteJoin("You can't go ", wayToGo, " from here!")
 		return
 	}
 
@@ -77,7 +79,7 @@ func Move(s *state) {
 	name := attr.FindName(s.actor).Name("someone")
 
 	// Broadcast leaving and arrival notifications
-	s.msg.observers[from].WriteJoin("You see ", name, " go ", direction, ".")
+	s.msg.observers[from].WriteJoin("You see ", name, " go ", wayToGo, ".")
 	s.msg.observers[to].WriteJoin("You see ", name, " enter.")
 
 	// Describe our destination

@@ -11,10 +11,10 @@ type Exits interface {
 	AutoUnlink(byte)
 	ToName(direction byte) string
 	Found() bool
-	LeadsTo(string) Inventory
+	LeadsTo(direction byte) Inventory
 	Link(byte, Inventory)
 	List() string
-	NormalizeDirection(string) string
+	NormalizeDirection(name string) (byte, error)
 	Surrounding() []Inventory
 	Unlink(byte)
 	Within(int) [][]Inventory
