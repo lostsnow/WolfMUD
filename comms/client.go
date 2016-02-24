@@ -53,17 +53,17 @@ type client struct {
 }
 
 // nextPlayerID is used to get the next available unique player ID
-var nextPlayerID <-chan []byte
+var nextPlayerID <-chan string
 
 // Temporary unique player ID generator used to create "Player x" names and
 // "PLAYERx" aliases until we have accounts up and running
 func init() {
-	c := make(chan []byte)
+	c := make(chan string)
 	nextPlayerID = c
 	go func() {
 		playerID := []byte("0000001")
 		for {
-			c <- playerID
+			c <- string(playerID)
 			for p := 6; p >= 0; p-- {
 				playerID[p]++
 				if playerID[p] <= '9' {
@@ -85,7 +85,7 @@ func newClient(conn *net.TCPConn) *client {
 	conn.SetWriteBuffer(termColumns * termLines)
 	conn.SetReadBuffer(termColumns)
 
-	id := string(<-nextPlayerID)
+	id := <-nextPlayerID
 
 	c := &client{
 		TCPConn: conn,
