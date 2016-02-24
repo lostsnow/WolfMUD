@@ -270,11 +270,15 @@ func (_ *Exits) NormalizeDirection(name string) (direction byte, err error) {
 		return d, nil
 	}
 
-	// Try again assuming mixed case input and forcing it to all uppercase
-	if d, valid := directionIndex[strings.ToUpper(name)]; valid {
+	// Slower path - force name to all uppercase and trim any possible whitespace
+	name = strings.ToUpper(strings.TrimSpace(name))
+
+	// See if we can find a match now
+	if d, valid := directionIndex[name]; valid {
 		return d, nil
 	}
 
+	// No matches found so assume direction name is invalid
 	return 0, errors.New("invalid direction")
 }
 
