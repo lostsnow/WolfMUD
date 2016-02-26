@@ -3,6 +3,9 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
+// Package config provides access to all of the tunable settings of a WolfMUD
+// server.
+//
 // TODO: Load from a config file instead of being hardcoded!
 package config
 
