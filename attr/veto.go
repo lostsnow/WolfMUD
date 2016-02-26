@@ -14,6 +14,8 @@ import (
 // TODO: Currently vetoes can only be applied to the Thing they are vetoing
 // for. This means, for example, a guard could not veto the get of items at a
 // location it is guarding. Also a Veto is static and unconditional.
+//
+// TODO: Currently a veto cannot be dynamically added or removed.
 
 // Vetoes implement an attribute for lists of Veto preventing commands for a
 // Thing that would otherwise be valid. For example you could Veto the drop
