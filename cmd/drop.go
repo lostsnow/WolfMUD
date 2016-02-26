@@ -27,7 +27,7 @@ func Drop(s *state) {
 	from := attr.FindInventory(s.actor)
 
 	// Are we carrying anything at all?
-	if _, _, i := from.Count(); i == 0 {
+	if from.Empty() {
 		s.msg.actor.WriteJoin("You don't have anything to drop.")
 		return
 	}

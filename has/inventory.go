@@ -13,8 +13,8 @@ type Inventory interface {
 	Add(Thing)
 	Attribute
 	Contents() []Thing
-	Count() (int, int, int)
 	Crowded() bool
+	Empty() bool
 	Found() bool
 	List() string
 	LockID() uint64

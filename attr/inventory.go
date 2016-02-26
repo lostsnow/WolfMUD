@@ -250,11 +250,10 @@ func (i *Inventory) Crowded() (crowded bool) {
 	return
 }
 
-// Count returns the total number of objects, number of Narratives and number
-// of items in the specified Inventory.
-func (i *Inventory) Count() (L, N, I int) {
+// Empty returns true if there are no non-Narrative items else false.
+func (i *Inventory) Empty() bool {
 	if i != nil {
-		return len(i.contents), i.split, len(i.contents) - i.split
+		return len(i.contents)-i.split == 0
 	}
-	return 0, 0, 0
+	return true
 }
