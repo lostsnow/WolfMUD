@@ -5,7 +5,13 @@
 
 package has
 
+// Alias provides aliases that can be used to refer to a Thing.
+//
+// Its default implementation is the attr.Alias type.
 type Alias interface {
 	Attribute
-	HasAlias(string) bool
+
+	// HasAlias returns true if the alias passed is a valid alias, otherwise
+	// false.
+	HasAlias(alias string) (found bool)
 }

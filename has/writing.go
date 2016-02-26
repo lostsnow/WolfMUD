@@ -5,7 +5,13 @@
 
 package has
 
+// Writing allows text to be added to any Thing that can then be read to reveal
+// what is written.
+//
+// Its default implementation is the attr.Writing type.
 type Writing interface {
 	Attribute
+
+	// Writing returns the text for what has been written.
 	Writing() string
 }

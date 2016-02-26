@@ -5,8 +5,18 @@
 
 package has
 
+// Narrative is used to mark a Thing as being for narrative purposes. Any Thing
+// can be a Narrative by adding a Narrative attribute.
+//
+// Its default implementation is the attr.Narrative type.
 type Narrative interface {
 	Attribute
+
+	// Found returns false if the receiver is nil otherwise true. A utility
+	// method mainly for use with Finders such as attr.FindNarrative.
 	Found() bool
+
+	// ImplementsNarrative is a marker until we have a fuller implementation of
+	// Narrative and we don't accidentally fulfil another interface.
 	ImplementsNarrative()
 }

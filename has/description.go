@@ -5,7 +5,12 @@
 
 package has
 
+// Description provides descriptive text for a Thing.
+//
+// Its default implementation is the attr.Description type.
 type Description interface {
 	Attribute
+
+	// Description returns the descriptive text for the attribute.
 	Description() string
 }
