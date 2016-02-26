@@ -64,9 +64,7 @@ func NewInventory(t ...has.Thing) *Inventory {
 	return i
 }
 
-// Found returns false if the receiver is nil otherwise true. This is a utility
-// method that can be chained with FindInventory to easily check if an
-// Inventory attribute was found.
+// Found returns false if the receiver is nil otherwise true.
 func (i *Inventory) Found() bool {
 	return i != nil
 }

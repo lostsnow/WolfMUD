@@ -63,6 +63,11 @@ func FindAlias(t has.Thing) has.Alias {
 	return (*Alias)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true.
+func (a *Alias) Found() bool {
+	return a != nil
+}
+
 func (a *Alias) Dump() []string {
 	buff := []byte{}
 	for a := range a.aliases {

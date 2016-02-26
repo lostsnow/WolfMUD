@@ -54,6 +54,11 @@ func FindName(t has.Thing) has.Name {
 	return (*Name)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true.
+func (n *Name) Found() bool {
+	return n != nil
+}
+
 func (n *Name) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", n, n.name)}
 }

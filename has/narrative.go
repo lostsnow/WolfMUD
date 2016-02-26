@@ -12,10 +12,6 @@ package has
 type Narrative interface {
 	Attribute
 
-	// Found returns false if the receiver is nil otherwise true. A utility
-	// method mainly for use with Finders such as attr.FindNarrative.
-	Found() bool
-
 	// ImplementsNarrative is a marker until we have a fuller implementation of
 	// Narrative and we don't accidentally fulfil another interface.
 	ImplementsNarrative()

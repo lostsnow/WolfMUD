@@ -41,6 +41,11 @@ func FindAllDescription(t has.Thing) (matches []has.Description) {
 	return
 }
 
+// Found returns false if the receiver is nil otherwise true.
+func (d *Description) Found() bool {
+	return d != nil
+}
+
 func (d *Description) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", d, d.description)}
 }

@@ -46,6 +46,11 @@ func FindLocate(t has.Thing) has.Locate {
 	return (*Locate)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true.
+func (l *Locate) Found() bool {
+	return l != nil
+}
+
 func (l *Locate) Dump() []string {
 	name := ""
 	if w := l.Where(); w != nil {

@@ -78,9 +78,7 @@ func FindNarrative(t has.Thing) has.Narrative {
 	return (*Narrative)(nil)
 }
 
-// Found returns false if the receiver is nil otherwise true. This is a utility
-// method that can be chained with FindNarrative to easily check if a Narrative
-// attribute was found.
+// Found returns false if the receiver is nil otherwise true.
 func (n *Narrative) Found() bool {
 	return n != nil
 }

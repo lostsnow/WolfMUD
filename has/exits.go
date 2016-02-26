@@ -22,9 +22,6 @@ type Exits interface {
 	// in the opposite direction.
 	AutoUnlink(direction byte)
 
-	// Found returns false if the receiver is nil otherwise true.
-	Found() bool
-
 	// LeadsTo returns the Inventory of the location reached by taking the exit
 	// in the given direction. If the exit does not leads nowhere nil returned.
 	LeadsTo(direction byte) Inventory

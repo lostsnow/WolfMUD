@@ -38,6 +38,11 @@ type Thing interface {
 type Attribute interface {
 	Dump() []string
 
+	// Found returns false if the receiver is nil otherwise true. Found has no
+	// default implementation and should be implemented by each Attribute as it
+	// is based on the receiver type.
+	Found() bool
+
 	// Parent returns the Thing to which the Attribute has been added.
 	Parent() Thing
 

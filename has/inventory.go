@@ -33,10 +33,6 @@ type Inventory interface {
 	// to be removed for example.
 	Empty() bool
 
-	// Found returns false if the receiver is nil otherwise true. A utility
-	// method mainly for use with Finders such as attr.FindInventory.
-	Found() bool
-
 	// List returns a textual description of the Inventory content.
 	List() string
 

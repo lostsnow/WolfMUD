@@ -53,6 +53,11 @@ func FindVetoes(t has.Thing) has.Vetoes {
 	return (*Vetoes)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true.
+func (v *Vetoes) Found() bool {
+	return v != nil
+}
+
 func (v *Vetoes) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T %d vetoes:", v, len(v.vetoes)))
 	for _, veto := range v.vetoes {

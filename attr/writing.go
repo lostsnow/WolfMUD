@@ -47,6 +47,11 @@ func FindWriting(t has.Thing) has.Writing {
 	return (*Writing)(nil)
 }
 
+// Found returns false if the receiver is nil otherwise true.
+func (w *Writing) Found() bool {
+	return w != nil
+}
+
 func (w *Writing) Dump() []string {
 	return []string{DumpFmt("%p %[1]T %q", w, w.writing)}
 }
