@@ -26,7 +26,10 @@ const (
 )
 
 // Carriage return/line feed for network data
-var crlf = []byte("\r\n")
+var (
+	lf   = []byte("\n")
+	crlf = []byte("\r\n")
+)
 
 // Fold takes a string and reformats it so lines have a maximum length of the
 // passed width. Fold will handle multibyte runes. However it cannot handle
@@ -45,7 +48,7 @@ func Fold(in []byte, width int) []byte {
 	// Can we take a short cut? Counting bytes is fine although we may end up
 	// with a string shorter than we think it is if there are multibyte runes.
 	if len(in) <= width {
-		return []byte(in)
+		return bytes.Replace(in, lf, crlf, -1)
 	}
 
 	// Add extra line feed to end of input. Will cause final word and line to be
