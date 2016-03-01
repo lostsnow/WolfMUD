@@ -222,9 +222,15 @@ func (c *client) Write(d []byte) (n int, err error) {
 		return
 	}
 
-	t := text.Fold(d, termColumns)
-	t = append(t, "\r\n"...)
-	t = append(t, c.prompt...)
+	var t []byte
+
+	if len(d) != 0 {
+		t = text.Fold(d, termColumns)
+		t = append(t, "\r\n"...)
+		t = append(t, c.prompt...)
+	} else {
+		t = c.prompt
+	}
 
 	c.SetWriteDeadline(time.Now().Add(config.Server.IdleTimeout))
 
