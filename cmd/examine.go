@@ -63,7 +63,7 @@ func Examine(s *state) {
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.observer.WriteJoin(who, " study ", name, ".")
+	s.msg.observer.WriteJoin(who, " studies ", name, ".")
 
 	s.ok = true
 }
