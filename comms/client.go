@@ -90,7 +90,7 @@ func newClient(conn *net.TCPConn) *client {
 	c := &client{
 		TCPConn: conn,
 		err:     make(chan error, 1),
-		prompt:  defaultPrompt,
+		prompt:  noPrompt,
 
 		// Setup test player
 		player: attr.NewThing(
@@ -106,6 +106,9 @@ func newClient(conn *net.TCPConn) *client {
 
 	// Add player attribute with reference to client for sending back data
 	c.player.Add(attr.NewPlayer(c))
+
+	c.Write(config.Server.Greeting)
+	c.prompt = defaultPrompt
 
 	// Put player into the world
 	if i := attr.FindInventory(world["loc1"]); i.Found() {
