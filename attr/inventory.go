@@ -35,7 +35,7 @@ type Inventory struct {
 	Attribute
 	contents    []has.Thing
 	split       int
-	playerCount uint64
+	playerCount int
 	internal.BRL
 }
 
@@ -135,13 +135,13 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			i.contents[j] = nil
 			i.contents = append(i.contents[:j], i.contents[j+1:]...)
 
-			// If we are using less than length*reclaimFactor of the slice's capacity
-			// and the difference is more than reclaimBuffer 'shrink' the slice by
-			// allocating a new slice of the exact size needed. The reclaimBuffer
-			// stops us shrinking small buffers all the time where the gain is
-			// minimal.
-			if cap(i.contents)-(len(i.contents)*config.ReclaimFactor) > config.ReclaimBuffer {
-				i.contents = append([]has.Thing(nil), i.contents[:]...)
+			// If we are using less than half of the slice's capacity and the
+			// difference is more than config.Inventory.Compact 'shrink' the slice by
+			// allocating a new slice of the exact size needed. The value of
+			// config.Inventory.Compact stops us shrinking small buffers all the time
+			// where the gain is minimal.
+			if l, c := len(i.contents), cap(i.contents); (c - l - l) >= config.Inventory.Compact {
+				i.contents = append(make([]has.Thing, 0, l), i.contents[:]...)
 			}
 
 			// TODO: Need to check for players or mobiles
@@ -243,7 +243,7 @@ func (i *Inventory) List() string {
 
 func (i *Inventory) Crowded() (crowded bool) {
 	if i != nil {
-		crowded = i.playerCount > config.CrowdSize
+		crowded = i.playerCount > config.Inventory.CrowdSize
 	}
 	return
 }
