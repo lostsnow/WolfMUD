@@ -37,13 +37,6 @@ func (a *Attribute) SetParent(t has.Thing) {
 	a.parent = t
 }
 
-// FOR DEVELOPMENT ONLY SO WE DON'T HAVE TO IMPLEMENT Unmarshal ON ALL THE
-// ATTRIBUTES AT ONCE. REMOVE AS SOON AS ALL ATTRIBUTES UPDATED.
-func (a *Attribute) Unmarshal(data []byte) has.Attribute {
-	log.Println("[DEBUG] dummy unmarshal")
-	return nil
-}
-
 // FOR DEVELOPMENT ONLY SO WE DON'T HAVE TO IMPLEMENT Marshal ON ALL THE
 // ATTRIBUTES AT ONCE. REMOVE AS SOON AS ALL ATTRIBUTES UPDATED.
 func (a *Attribute) Marshal(attr has.Attribute) []byte {
