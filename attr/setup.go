@@ -91,6 +91,7 @@ func Setup() map[string]has.Thing {
 	// Define some locations
 
 	world["loc1"] = NewThing(
+		NewStart(),
 		NewName("Fireplace"),
 		NewDescription("You are in the corner of a common room in the Dragon's Breath tavern. There is a fire burning away merrily in an ornate fireplace giving comfort to weary travellers. Shadows flicker around the room, changing light to darkness and back again. There is a small plaque above the fireplace. To the south the common room extends and east the common room leads to the tavern entrance."),
 		NewAlias("tavern", "fireplace"),
@@ -160,6 +161,7 @@ func Setup() map[string]has.Thing {
 	)
 
 	world["loc7"] = NewThing(
+		NewStart(),
 		NewName("Street outside pawn shop"),
 		NewDescription("You are on a well kept cobbled street that runs north and south. To the east You can see a small Pawn shop. Southward you can see a large fountain and northward the smell of a bakery teases you."),
 		NewAlias("STREET", "PAWNSHOP"),
