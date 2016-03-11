@@ -6,8 +6,15 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 )
+
+// Register marshaler for Description attribute.
+func init() {
+	internal.AddMarshaler((*Description)(nil), "description")
+}
 
 // Description implements an attribute for describing Things. Things can have
 // multiple descriptions or other attributes that implement the has.Description
@@ -44,6 +51,11 @@ func FindAllDescription(t has.Thing) (matches []has.Description) {
 // Found returns false if the receiver is nil otherwise true.
 func (d *Description) Found() bool {
 	return d != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Description attribute.
+func (_ *Description) Unmarshal(data []byte) has.Attribute {
+	return NewDescription(recordjar.Decode.String(data))
 }
 
 func (d *Description) Dump() []string {
