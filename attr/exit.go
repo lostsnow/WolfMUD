@@ -6,11 +6,17 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"errors"
 	"strings"
 )
+
+// Register marshaler for Exits attribute.
+func init() {
+	internal.AddMarshaler((*Exits)(nil), "exits", "exit")
+}
 
 // Constants for direction indexes. These can be used for the Link, AutoLink,
 // Unlink and AutoUnlink methods. If these constants are modified probably need
@@ -140,6 +146,11 @@ func FindExits(t has.Thing) has.Exits {
 // Found returns false if the receiver is nil otherwise true.
 func (e *Exits) Found() bool {
 	return e != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Exits attribute.
+func (_ *Exits) Unmarshal(data []byte) has.Attribute {
+	return NewExits()
 }
 
 func (e *Exits) Dump() []string {
