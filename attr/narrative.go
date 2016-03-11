@@ -85,7 +85,7 @@ func (n *Narrative) Found() bool {
 
 // ImplementsNarrative is a marker method so that we can specifically identify
 // a Narrative.
-func (n *Narrative) ImplementsNarrative() {}
+func (_ *Narrative) ImplementsNarrative() {}
 
 func (n *Narrative) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T", n))
