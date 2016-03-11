@@ -6,8 +6,14 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 )
+
+// Register marshaler for Narrative attribute.
+func init() {
+	internal.AddMarshaler((*Narrative)(nil), "narrative")
+}
 
 // Narrative implements an attribute to mark non-removable content. It allows
 // creators to cater to the more discerning adventurer by providing content
@@ -81,6 +87,11 @@ func FindNarrative(t has.Thing) has.Narrative {
 // Found returns false if the receiver is nil otherwise true.
 func (n *Narrative) Found() bool {
 	return n != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Narrative attribute.
+func (_ *Narrative) Unmarshal(data []byte) has.Attribute {
+	return NewNarrative()
 }
 
 // ImplementsNarrative is a marker method so that we can specifically identify
