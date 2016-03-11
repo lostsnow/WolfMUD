@@ -6,8 +6,15 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 )
+
+// Register marshaler for Name attribute.
+func init() {
+	internal.AddMarshaler((*Name)(nil), "name")
+}
 
 type Name struct {
 	Attribute
@@ -57,6 +64,11 @@ func FindName(t has.Thing) has.Name {
 // Found returns false if the receiver is nil otherwise true.
 func (n *Name) Found() bool {
 	return n != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Name attribute.
+func (_ *Name) Unmarshal(data []byte) has.Attribute {
+	return NewName(recordjar.Decode.String(data))
 }
 
 func (n *Name) Dump() []string {
