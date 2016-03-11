@@ -6,10 +6,16 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"net"
 )
+
+// Register marshaler for Player attribute.
+func init() {
+	internal.AddMarshaler((*Player)(nil), "player")
+}
 
 // Player implements an attribute for associating a thing with a client network
 // connection.
@@ -48,6 +54,13 @@ func FindPlayer(t has.Thing) has.Player {
 // Found returns false if the receiver is nil otherwise true.
 func (p *Player) Found() bool {
 	return p != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Player attribute. At
+// the moment Player attributes are created internally so return an untyped nil
+// so we get ignored.
+func (_ *Player) Unmarshal(data []byte) has.Attribute {
+	return nil
 }
 
 // Write writes the specified byte slice to the network connection associated
