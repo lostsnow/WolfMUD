@@ -11,6 +11,11 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 )
 
+// Register marshaler for Inventory attribute.
+func init() {
+	internal.AddMarshaler((*Inventory)(nil), "inventory", "inv")
+}
+
 // Inventory implements an attribute for container inventories. The most common
 // container usage is for locations and rooms as well as actual containers like
 // bags, boxes and inventories for mobiles. WolfMUD does not actually define a
@@ -79,6 +84,11 @@ func FindInventory(t has.Thing) has.Inventory {
 		}
 	}
 	return (*Inventory)(nil)
+}
+
+// Unmarshal is used to turn the passed data into a new Inventory attribute.
+func (_ *Inventory) Unmarshal(data []byte) has.Attribute {
+	return NewInventory()
 }
 
 func (i *Inventory) Dump() (buff []string) {
