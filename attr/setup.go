@@ -21,12 +21,19 @@ func Setup() map[string]has.Thing {
 	// Create the world!
 	world := map[string]has.Thing{}
 
-	// Load a zone
-	zone := loadZone("zones/zinara.wrj")
+	// Get a list of zone files
+	z := filepath.Join(config.Server.DataDir, "zones", "*.wrj")
+	log.Printf("Searching for zones: %s", z)
+	files, _ := filepath.Glob(z)
 
-	// Add zone to the world
-	for r, t := range zone {
-		world[r] = t
+	// Load zones
+	for _, f := range files {
+		zone := loadZone(f)
+
+		// Add zone to the world
+		for r, t := range zone {
+			world[r] = t
+		}
 	}
 
 	if len(world) == 0 {
@@ -60,13 +67,14 @@ func createVoid() has.Thing {
 }
 
 // loadZone loads the recordjar specified by the filename and returns an
-// unmarshaled zone.
+// unmarshaled zone. The filename should be fully qualified with the path but
+// the path can be relative or absolute.
 func loadZone(filename string) (zone map[string]has.Thing) {
 
 	zone = make(map[string]has.Thing)
 
 	// Try and open the data file
-	f, err := os.Open(filepath.Join(config.Server.DataDir, filename))
+	f, err := os.Open(filename)
 	if err != nil {
 		log.Printf("Error loading %s: %s", filename, err)
 		return
