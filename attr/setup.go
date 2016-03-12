@@ -247,3 +247,22 @@ func Setup() map[string]has.Thing {
 
 	return world
 }
+
+// checkExitsHaveInventory makes sure that all locations in a zone have an
+// Inventory attribute. Locations are identified as any Thing with an Exits
+// attribute. If a location does not also have an Inventory nothing can be put
+// into the location.
+func checkExitsHaveInventory(zone map[string]has.Thing) {
+	for _, t := range zone {
+		// If we have no exits we don't have to worry about an inventory
+		if !FindExits(t).Found() {
+			continue
+		}
+		// If we have an inventory we don't have to worry about adding one
+		if FindInventory(t).Found() {
+			continue
+		}
+		// Add required Inventory
+		t.Add(NewInventory())
+	}
+}
