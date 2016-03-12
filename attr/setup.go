@@ -29,7 +29,34 @@ func Setup() map[string]has.Thing {
 		world[r] = t
 	}
 
+	if len(world) == 0 {
+		world["void"] = createVoid()
+	}
+
 	return world
+}
+
+// createVoid makes a default starting location which can be used if nothing is
+// loaded into the world.
+func createVoid() has.Thing {
+	t := NewThing(
+		NewStart(),
+		NewName("The Void"),
+		NewDescription("You are in a dark void. Around you nothing. No stars, no light, no heat and no sound."),
+		NewExits(),
+		NewInventory(
+			NewThing(
+				NewNarrative(),
+				NewName("the void"),
+				NewAlias("VOID"),
+				NewVetoes(
+					NewVeto("EXAMINE", "You cannot examine the void, there is nothing to examine."),
+				),
+			),
+		),
+	)
+
+	return t
 }
 
 // loadZone loads the recordjar specified by the filename and returns an
