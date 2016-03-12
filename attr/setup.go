@@ -6,8 +6,13 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+
+	"log"
+	"os"
+	"path/filepath"
 )
 
 // Setup test 'world' with some test data
@@ -247,6 +252,70 @@ func Setup() map[string]has.Thing {
 	//e.Link(West, FindInventory(world["loc24"]))
 
 	return world
+}
+
+// loadZone loads the recordjar specified by the filename and returns an
+// unmarshaled zone.
+func loadZone(filename string) (zone map[string]has.Thing) {
+
+	zone = make(map[string]has.Thing)
+
+	// Try and open the data file
+	f, err := os.Open(filepath.Join(config.Server.DataDir, filename))
+	if err != nil {
+		log.Printf("Error loading %s: %s", filename, err)
+		return
+	}
+
+	// Read the data into a jar and close the data file
+	jar := recordjar.Read(f, "description")
+	if err := f.Close(); err != nil {
+		log.Printf("Error closing %s: %s", filename, err)
+		return
+	}
+
+	log.Printf("Loading: %s", filename)
+
+	// Go through the records in the jar. For each record unmarshal a Thing
+	for i, record := range jar {
+
+		t := NewThing()
+
+		// If we don't have a reference we can't add the Thing to the zone
+		if _, ok := record["ref"]; !ok {
+			log.Printf("[Record %d]: Not added to zone, no ref.", i)
+			continue
+		}
+
+		ref := recordjar.Decode.Keyword(record["ref"])
+		t.Unmarshal(i, record)
+
+		// Log a warning if we are going to overwrite a Thing by using the same
+		// reference more than once - but don't prevent it.
+		if _, ok := zone[ref]; ok {
+			log.Printf("[Record %d/Ref %s] Warning: duplicate ref, not overwriting.", i, ref)
+			continue
+		}
+
+		// Finally add Thing to the zone
+		zone[ref] = t
+	}
+
+	// Post unmarshaling processing
+
+	log.Printf("Checking exits...")
+	checkExitsHaveInventory(zone)
+
+	log.Printf("Linking exits...")
+	linkupExits(zone, jar)
+
+	log.Printf("Populating inventories...")
+	linkupInventory(zone, jar)
+
+	log.Printf("Populating things...")
+	linkupThings(zone, jar)
+
+	return
 }
 
 // checkExitsHaveInventory makes sure that all locations in a zone have an
