@@ -7,6 +7,7 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 )
 
 // Setup test 'world' with some test data
@@ -264,5 +265,46 @@ func checkExitsHaveInventory(zone map[string]has.Thing) {
 		}
 		// Add required Inventory
 		t.Add(NewInventory())
+	}
+}
+
+// linkupExits sets up all exits for a zone. For each location in the given
+// zone the Exits are linked to the respective destination location Inventory
+// attributes. This cannot be done during unmarshaling as we cannot link from
+// one location to another if either of them have not been unmarshaled yet.
+func linkupExits(zone map[string]has.Thing, jar recordjar.Jar) {
+
+	var (
+		data  []byte
+		ref   string
+		exits [][2]string
+		to    has.Thing
+		ok    bool
+	)
+
+	for _, r := range jar {
+
+		// Get reference from record
+		if data, ok = r["ref"]; !ok {
+			continue
+		}
+		ref = recordjar.Decode.Keyword(data)
+
+		// Get exits from record
+		if data, ok = r["exits"]; !ok {
+			continue
+		}
+		exits = recordjar.Decode.PairList(data)
+
+		e := FindExits(zone[ref])
+
+		for _, pair := range exits {
+			d, r := pair[0], pair[1]
+			if to, ok = zone[r]; !ok {
+				continue
+			}
+			dir, _ := e.NormalizeDirection(d)
+			e.Link(dir, FindInventory(to))
+		}
 	}
 }
