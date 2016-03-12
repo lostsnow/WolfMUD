@@ -350,3 +350,44 @@ func linkupInventory(zone map[string]has.Thing, jar recordjar.Jar) {
 		}
 	}
 }
+
+// linkupThings puts Thing into an Inventory as specified by the location field
+// in a recordjar record. That is:
+//
+//	Location: L1 L2
+//
+// This says that the Thing with the location field should be put into the
+// Inventory that have the references L1 and L2.
+//
+// BUG(diddymus): linkupThings does not check if a Thing is adding itself to
+// it's own Inventory.
+func linkupThings(zone map[string]has.Thing, jar recordjar.Jar) {
+
+	var (
+		data []byte
+		ref  string
+		inv  []string
+		ok   bool
+	)
+
+	for _, r := range jar {
+
+		// Get reference from record
+		if data, ok = r["ref"]; !ok {
+			continue
+		}
+		ref = recordjar.Decode.Keyword(data)
+
+		// Get location from record
+		if data, ok = r["location"]; !ok {
+			continue
+		}
+
+		inv = recordjar.Decode.KeywordList(data)
+
+		for _, ref2 := range inv {
+			i := FindInventory(zone[ref2])
+			i.Add(zone[ref])
+		}
+	}
+}
