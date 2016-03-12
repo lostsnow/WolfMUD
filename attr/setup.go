@@ -308,3 +308,45 @@ func linkupExits(zone map[string]has.Thing, jar recordjar.Jar) {
 		}
 	}
 }
+
+// linkupInventory puts Thing into an Inventory as specified by the inventory
+// field in a recordjar record. That is:
+//
+//	Inventory: O1 O2
+//
+// This says put Things with references O1 and O2 into this inventory. This
+// cannot be done during unmarshaling of the Inventory as the Things may not be
+// unmarshaled yet.
+//
+// BUG(diddymus): linkupInventory does not check if a Thing is adding itself to
+// it's own Inventory.
+func linkupInventory(zone map[string]has.Thing, jar recordjar.Jar) {
+
+	var (
+		data []byte
+		ref  string
+		inv  []string
+		ok   bool
+	)
+
+	for _, r := range jar {
+
+		// Get reference from record
+		if data, ok = r["ref"]; !ok {
+			continue
+		}
+		ref = recordjar.Decode.Keyword(data)
+
+		// Get inventory from record
+		if data, ok = r["inventory"]; !ok {
+			continue
+		}
+
+		inv = recordjar.Decode.KeywordList(data)
+		i := FindInventory(zone[ref])
+
+		for _, ref := range inv {
+			i.Add(zone[ref])
+		}
+	}
+}
