@@ -6,8 +6,14 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 )
+
+// Register marshaler for Locate attribute.
+func init() {
+	internal.AddMarshaler((*Locate)(nil), "locate")
+}
 
 // Locate implements an attribute that refers to the Inventory of where
 // something is. When a Thing changes the Inventory it is contained in and has
@@ -49,6 +55,13 @@ func FindLocate(t has.Thing) has.Locate {
 // Found returns false if the receiver is nil otherwise true.
 func (l *Locate) Found() bool {
 	return l != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Locate attribute. At
+// the moment Locate attributes are created internally so return an untyped nil
+// so we get ignored.
+func (_ *Locate) Unmarshal(data []byte) has.Attribute {
+	return nil
 }
 
 func (l *Locate) Dump() []string {

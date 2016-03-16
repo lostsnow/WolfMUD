@@ -6,10 +6,16 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"strings"
 )
+
+// Register marshaler for Vetoes attribute.
+func init() {
+	internal.AddMarshaler((*Vetoes)(nil), "vetoes")
+}
 
 // TODO: Currently vetoes can only be applied to the Thing they are vetoing
 // for. This means, for example, a guard could not veto the get of items at a
@@ -56,6 +62,11 @@ func FindVetoes(t has.Thing) has.Vetoes {
 // Found returns false if the receiver is nil otherwise true.
 func (v *Vetoes) Found() bool {
 	return v != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Vetoes attribute.
+func (_ *Vetoes) Unmarshal(data []byte) has.Attribute {
+	return NewVetoes()
 }
 
 func (v *Vetoes) Dump() (buff []string) {

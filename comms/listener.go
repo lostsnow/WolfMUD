@@ -7,6 +7,7 @@ package comms
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 
 	"log"
 	"net"
@@ -14,7 +15,7 @@ import (
 )
 
 // TODO: World setup should not go here but it's the best place for now.
-var world = attr.Setup()
+var world = map[string]has.Thing{}
 
 // Listen sets up a socket to listen for client connections. When a client
 // connects the connection made is passed to newClient to setup a client
@@ -23,6 +24,8 @@ var world = attr.Setup()
 //
 // TODO: currently there is no way to shut the server down other than Ctrl-C
 func Listen(host, port string) {
+
+	world = attr.Setup()
 
 	addr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(host, port))
 	if err != nil {

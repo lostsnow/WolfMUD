@@ -1,0 +1,456 @@
+// Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included with
+// the source code.
+//
+// Zone for: City of Zinara
+%%
+			Ref: L1
+		Start:
+		 Name: Fireplace
+	Aliases: TAVERN FIREPLACE
+		Exits: E→L3 SE→L4 S→L2
+Inventory: L1N1
+
+You are in the corner of a common room in the Dragon's Breath tavern. There is
+a fire burning away merrily in an ornate fireplace giving comfort to weary
+travellers. Shadows flicker around the room, changing light to darkness and
+back again. To the south the common room extends and east the common room leads
+to the tavern entrance.
+%%
+			Ref: L2
+		 Name: Common Room
+	Aliases: TAVERN COMMON
+		Exits: N→L1 NE→L3 E→L4
+Inventory: L2N1 L2N2
+
+You are in a small, cosy common room in the Dragon's Breath tavern. Looking
+around you see a few chairs and tables for patrons. To the east there is a bar
+and to the north you can see a merry fireplace burning away.
+%%
+		Ref: L3
+	 Name: Tavern entrance
+Aliases: TAVERN ENTRANCE
+	Exits: E→L5 S→L4 SW→L2 W→L1
+
+You are in the entryway to the Dragon's Breath tavern. To the west you can see
+an inviting fireplace, while south an even more inviting bar. Eastward a door
+leads out into the street.
+%%
+			Ref: L4
+		 Name: Tavern Bar
+	Aliases: TAVERN BAR
+		Exits: N→L3 NW→L1 W→L2
+Inventory: L4N1 L4N2
+
+You standing at the bar. Behind which you can see various sized and shaped
+bottles. Looking at the contents you decide an abstract painter would get lots
+of colourful inspirations after a long night here.
+%%
+		Ref: L5
+	 Name: Street between Tavern and Bakers
+Aliases: TAVERN BAKERS STREET
+	Exits: N→L14 E→L6 S→L7 W→L3
+
+You are on a well kept cobbled street. Buildings looming up either side of you.
+To the east the smells of a bakery taunt you, west there is the entrance to a
+tavern. A sign above the tavern door proclaims it as the Dragon's Breath. The
+street continues to the north and south.
+%%
+		Ref: L6
+	 Name: Baker's Shop
+Aliases: BAKERS
+	Exits: W→L5
+
+You are standing in a bakers shop. Low tables show an array of fresh breads,
+cakes and the like. The smells here are beyond description.
+%%
+		Ref: L7
+	 Name: Street outside Pawn Shop
+Aliases: PAWNSHOP STREET
+	Exits: N→L5 E→L8 S→L9
+
+You are on a well kept cobbled street that runs north and south. To the east
+You can see a small Pawn shop. Southward you can see a large fountain and
+northward the smell of a bakery teases you.
+%%
+		Ref: L8
+	 Name: Pawn Shop
+Aliases: PAWNSHOP
+	Exits: W→L7
+
+You are in small Pawn shop. All around you on shelves are what looks like a
+load of useless junk.
+%%
+		Ref: L9
+	 Name: Fountain Square
+Aliases: FOUNTAIN SQUARE
+	Exits: N→L7 E→L12 W→L10
+
+You are in a small square at the crossing of two roads. In the centre of the
+square a magnificent fountain has been erected, providing fresh water to any
+who want it. From here the streets lead off in all directions.
+%%
+		Ref: L10
+	 Name: Street outside Armourer
+Aliases: ARMOURER STREET
+	Exits: E→L9 S→L11 W→L24
+
+You are on a well kept cobbled street which runs to the east and west. To the
+south you can see the shop of an armourer.
+%%
+		Ref: L11
+	 Name: Armourer's
+Aliases: ARMOURER
+	Exits: N→L10
+
+You are in a small Armourers. Here, if you have the money, you could stagger
+out weighed down by more armour than a tank.
+%%
+		Ref: L12
+	 Name: Street outside Weapon Shop
+Aliases: WEAPONSHOP STREET
+	Exits: S→L13 W→L9 E→L21
+
+You are on a well kept, wide street which runs to the east and west. To the
+south you can see a weapon shop.
+%%
+		Ref: L13
+	 Name: Weapons Shop
+Aliases: WEAPONS SHOP
+	Exits: N→L12
+
+You are in a small weapons shop. If it's 'big gun' stuff you're after you would
+do better looking else where.
+%%
+		Ref: L14
+	 Name: Crossroads
+Aliases: CROSSROADS
+	Exits: N→45 E→L15 S→L5 W→L17
+
+You are at the cross roads of two streets. One street runs east to west and the
+other north to south.
+%%
+		Ref: L15
+	 Name: Street outside Trading Post
+Aliases: TRADINGPOST STREET
+	Exits: W→L14 N→L16 E→L19
+
+You are on a street running east to west. To north is a large Trading Post.
+%%
+		Ref: L16
+	 Name: Trading Post
+Aliases: TRADINGPOST SHOP
+	Exits: S→L15
+
+You are standing in a large Trading Post. The only exit is west into the
+street.
+%%
+		Ref: L17
+	 Name: Street outside Guard House
+Aliases: GUARDHOUSE STREET
+	Exits: N→L18 E→L14 W→L25
+
+You are on a street running east to west. To north is the cities Guard House.
+%%
+		Ref: L18
+	 Name: Guard House
+Aliases: GUARDHOUSE STREET
+	Exits: S→L17
+
+You are in the cities Guard House.
+%%
+		Ref: L19
+	 Name: Street by North Bridge
+Aliases: STREET
+	Exits: E→L20 W→L15 S→43
+
+You are at a junction in the street. You can either head south, east or west.
+East there is the north bridge over the cities river.
+%%
+		Ref: L20
+	Start:
+	 Name: North Bridge
+Aliases: NORTHBRIDGE
+	Exits: W→L19
+
+You are standing on the west side of an incomplete bridge. By the looks of it
+the city wants to expand onto the far banks of the river. Down river to the
+south you can see another bridge in a similar state of construction.
+%%
+		Ref: L21
+	 Name: Street by South Bridge
+Aliases: STREET
+	Exits: E→L22 W→L12
+
+You are at a junction in the street. You can either head north, east or west.
+East there is the south bridge over the cities river.
+%%
+		Ref: L22
+	Start:
+	 Name: South Bridge
+Aliases: SOUTHBRIDGE
+	Exits: W→L21
+
+You are standing on the west side of an incomplete bridge. By the looks of it
+the city wants to expand onto the far banks of the river. Up river to the north
+you can see another bridge in a similar state of construction.
+%%
+		Ref: L23
+	 Name: Money Changer's Office
+Aliases: MONEYCHANGER SHOP
+	Exits: N→L24
+
+You are standing in the small office of a Money Changer. The only exit is north
+into the street.
+%%
+		Ref: L24
+	 Name: Street outside Money Changer
+Aliases: STREET
+	Exits: E→L10 S→L23
+
+You are in the street outside a small Money Changer's Office. The street heads
+to the east and west. The entrance to the Money Changer is to the South.
+%%
+		Ref: L25
+	 Name: Street
+Aliases: STREET
+	Exits: E→L17 W→L26 N→L38
+
+You are in the street which is running east and west. To the north looms a dark
+alley.
+%%
+		Ref: L26
+	 Name: Street outside City Gardens
+Aliases: STREET
+	Exits: E→L25 W→L27 S→L58
+
+You are at the end of street which runs to the east. To the west you can see
+the entrance to the City Gardens. A narrow alley runs south.
+%%
+		Ref: L27
+	 Name: Entrance to City Gardens
+Aliases: GARDENS ENTRANCE
+	Exits: E→L26 W→L28
+
+You are standing at the entrance to the City Gardens. Around you flowers
+blossom and insects hum. West you can see an intricate iron gate leading into
+the gardens. East the streets await.
+%%
+		Ref: L28
+	 Name: Gardens
+Aliases: GARDENS
+	Exits: E→L27 N→L31
+
+You are in a fine, formal garden. Around you small trees and shrubs grow. Here
+and there a splash of colour is present in the form of small delicate flowers.
+To the east you can see the gateway, northward there is a fish pond.
+%%
+		Ref: L29
+	 Name: Quiet Sheltered Area
+Aliases: GARDENS SHELTERED
+	Exits: S→L30
+
+You are in a small quiet area of the garden. Tall bushes have grown up over a
+trellis work to provide a small shaded area to come and sit in. The only exit
+from this area is southward.
+%%
+		Ref: L30
+	 Name: Gardens
+Aliases: GARDENS
+	Exits: N→L29 S→L31 W→L33
+
+You are in a fine, formal garden. Around you small trees and shrubs grow. Here
+and there a splash of colour is present in the form of small delicate flowers.
+The gardens continue north, south and west.
+%%
+		Ref: L31
+	 Name: Fish Pond
+Aliases: GARDENS FISHPOND
+	Exits: N→L30 S→L28 W→L32
+
+You are standing next to a small fish pond. Paths lead off north, south and west
+deeper into the gardens.
+%%
+		Ref: L32
+	 Name: Gardens
+Aliases: GARDENS
+	Exits: N→L33 E→L31 S→L35
+
+You are in a fine, formal garden. Around you small trees and shrubs grow. Here
+and there a splash of colour is present in the form of small delicate flowers.
+The gardens continue north, south and east.
+%%
+		Ref: L33
+	 Name: Gardens
+Aliases: GARDENS
+	Exits: E→L30 S→L32 W→L34
+
+You are in a fine, formal garden. Around you small trees and shrubs grow. Here
+and there a splash of colour is present in the form of small delicate flowers.
+The gardens continue east, west and south.
+%%
+		Ref: L34
+	 Name: Quiet Sheltered Area
+Aliases: GARDENS SHELTERED
+	Exits: E→L33
+
+You are in a small quiet area of the garden. Tall bushes have grown up over a
+trellis work to provide a small shaded area to come and sit in. The only exit
+from this area is eastward.
+%%
+		Ref: L35
+	 Name: Gravel Path
+Aliases: GARDENS PATH
+	Exits: N→L32 S→L36
+
+You find yourself on a narrow gravel path leading between some bushes. The path
+continues south or you can go north into the gardens.
+%%
+		Ref: L36
+	 Name: Secluded Path by Shed
+Aliases: GARDENS PATH SECLUDED
+	Exits: N→L35 S→L37
+
+You are on a small secluded gravel path screened off from the formal gardens by
+some large bushes. To the south you can make out the door to a small shed. A
+rock has been positioned by the shed, from the looks of it by someone who
+thought it might be artistic. The gravel path you are on leads northward.
+%%
+		Ref: L37
+	 Name: Garden Shed
+Aliases: GARDENS SHED
+	Exits: N→L36
+
+You are in a small garden shed. The only exit appears to be through the door to
+the north.
+%%
+		Ref: L38
+	 Name: Dim Alley
+Aliases: ALLEY
+	Exits: N→L39 S→L25
+
+You are in a dim alley full of rubbish. The alley continues northward. To the
+south it leads into the street.
+%%
+		Ref: L39
+	 Name: Dim Alley
+Aliases: ALLEY
+	Exits: N→L40 S→L38
+
+You are in a dim alley full of rubbish. The alley continues north and south.
+%%
+		Ref: L40
+	 Name: Bend in Dim Alley
+Aliases: ALLEY
+	Exits: S→L39 W→L41
+
+You are in a dim alley full of rubbish. Here the alley bends to the south and
+to the west.
+%%
+		Ref: L41
+	 Name: Rogue's Den Entrance
+Aliases: DEN ENTRANCE
+	Exits: E→L40 D→L42
+
+You are in a dim alley which leads to the east. Partially hidden by rubbish you
+can see a small trap door.
+%%
+		Ref: L42
+	 Name: Rogue's Den
+Aliases: DEN
+	Exits: U→L41
+
+You are in a large dim room. Looking around to catch glimpses of things moving
+in the shadows.
+%%
+//
+// Narratives
+//
+%%
+			Ref: L1N1
+Narrative:
+		 Name: an ornate fireplace
+	  Alias: FIRE FIREPLACE
+	 Vetoes: N1V1
+
+This is a very ornate fireplace carved from marble. Either side a dragon curls
+downward until the head is below the fire looking upward, giving the impression
+that they are breathing fire.
+%%
+			Ref: L2N1
+Narrative:
+     Name: some rough chairs
+		Alias: CHAIR CHAIRS
+
+Description: These chairs(?) are very rough wooden affairs, so rough in fact
+you decide it's a bad idea to sit on them without some descent rear armour to
+fend of the splinters.
+%%
+			Ref: L2N2
+Narrative:
+     Name: some rough tables
+		Alias: TABLE TABLES
+
+Description: Well you suppose these are tables. If so it was a blind carpenter
+who had had a very bad day.
+%%
+			Ref: L4N1
+Narrative:
+		 Name: some bottles
+	  Alias: BOTTLE BOTTLES
+
+There are tall bottles, sort ones, fat ones, etc.. They are filled with blue
+liquids and yellow, green, amber. Some also contain fruit some ... small
+animals? Well you get the idea.
+%%
+			Ref: L4N2
+Narrative:
+     Name: the bar
+		Alias: BAR
+
+This is a very solid oak bar. By the looks of the counter top you think it may
+have been a few inches taller, until the various drinks spilt on it ate away at
+it.
+%%
+//
+// OBJECTS
+//
+%%
+		 Ref: O1
+		Name: a curious brass lattice
+ Aliases: LATTICE
+Location: L1
+
+This is a finely crafted, intricate lattice of fine brass wires forming a
+roughly ball shaped curiosity.
+%%
+		 Ref: O2
+		Name: a small green ball
+ Aliases: BALL
+Location: L1
+
+This is a small, green, rubber ball.
+%%
+		 Ref: O3
+		Name: a small red ball
+ Aliases: BALL
+Location: L1
+
+This is a small, red, rubber ball.
+%%
+		 Ref: O4
+		Name: an iron bound chest
+ Aliases: CHEST
+Location: L1
+
+This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick
+metal bands bind it.
+%%
+		 Ref: O5
+		Name: a runestone
+ Aliases: RUNE RUNESTONE STONE
+Location: L13 L23 L8 L29 L37
+
+This is a flat polished stone about half an inch wide by an inch long. One side
+is smooth. On the other a strange rune has been carved.

@@ -16,6 +16,10 @@ package has
 type Attribute interface {
 	Dump() []string
 
+	// Attributes need to be able to marshal and unmarshal themselves. Marshaler
+	// has no default implementation and should be implemented by each Attribute.
+	Marshaler
+
 	// Found returns false if the receiver is nil otherwise true. Found has no
 	// default implementation and should be implemented by each Attribute as it
 	// is based on the receiver type.

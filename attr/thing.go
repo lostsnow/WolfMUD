@@ -6,9 +6,12 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 
 	"fmt"
+	"log"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by
@@ -63,6 +66,47 @@ func (t *Thing) Remove(a ...has.Attribute) {
 // of using a finder for a specific type of Attribute.
 func (t *Thing) Attrs() []has.Attribute {
 	return t.attrs
+}
+
+// Unmarshal unmarshals a Thing from a recordjar record containing all of the
+// Attribute to be added. The recno is the record number in the recordjar for
+// this record. It is passed so that we can give informative messages if errors
+// are found. If the record number is not known -1 should be passed instead.
+func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
+
+	var (
+		m  has.Marshaler
+		a  has.Attribute
+		ok bool
+	)
+
+	// Go through the fields in the record
+	for field, data := range record {
+
+		// Some known fields without attributes or marshalers we don't want to
+		// try and unmarshal so we ignore.
+		if field == "ref" || field == "location" {
+			continue
+		}
+
+		// Look for a marshaler for the field name
+		if m, ok = internal.Marshalers[field]; !ok {
+			if recno == -1 {
+				log.Printf("Unknown attribute: %s", field)
+			} else {
+				log.Printf("[Record: %d] Unknown attribute: %s", recno, field)
+			}
+			continue
+		}
+
+		// Unmarshal the data into an Attribute and add it to the Thing as long as
+		// the returned, unmarshaled Attribute is not an untyped nil.
+		if a = m.Unmarshal(data); a != nil {
+			t.Add(a)
+		}
+	}
+
+	return
 }
 
 func (t *Thing) Dump() (buff []string) {

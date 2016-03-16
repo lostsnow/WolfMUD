@@ -37,6 +37,8 @@ var (
 	// raise an "I want to quit" error instead of adding another level of
 	// checking for a separate quitting flag
 	quitting = errors.New("Client quitting error")
+
+	start = (*attr.Start)(nil)
 )
 
 // client contains state information about a client connection. The err field
@@ -90,7 +92,7 @@ func newClient(conn *net.TCPConn) *client {
 	c := &client{
 		TCPConn: conn,
 		err:     make(chan error, 1),
-		prompt:  defaultPrompt,
+		prompt:  noPrompt,
 
 		// Setup test player
 		player: attr.NewThing(
@@ -107,13 +109,15 @@ func newClient(conn *net.TCPConn) *client {
 	// Add player attribute with reference to client for sending back data
 	c.player.Add(attr.NewPlayer(c))
 
+	c.Write(config.Server.Greeting)
+	c.prompt = defaultPrompt
+
 	// Put player into the world
-	if i := attr.FindInventory(world["loc1"]); i.Found() {
-		i.Lock()
-		i.Add(c.player)
-		stats.Add(c.player)
-		i.Unlock()
-	}
+	i := start.Pick()
+	i.Lock()
+	i.Add(c.player)
+	stats.Add(c.player)
+	i.Unlock()
 
 	// Describe what they can see
 	cmd.Parse(c.player, "LOOK")

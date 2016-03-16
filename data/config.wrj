@@ -1,0 +1,31 @@
+// Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
+//
+// config.wrj - Main WolfMUD server configuration file
+//
+// Server configuration
+	Server.Host:				127.0.0.1
+	Server.Port:				4001
+	Server.IdleTimeout: 10m
+//
+// Stats configuration
+//
+	Stats.Rate:	10s
+	Stats.GC:		false
+//
+// Inventory configuration
+//
+	Inventory.Compact:		 8
+	Inventory.CrowdSize:	10
+//
+
+WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+
+    World
+    Of
+    Living
+    Fantasy
+
+%%

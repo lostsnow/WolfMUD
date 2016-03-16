@@ -6,11 +6,18 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 
 	"strconv"
 	"strings"
 )
+
+// Register marshaler for Alias attribute.
+func init() {
+	internal.AddMarshaler((*Alias)(nil), "alias", "aliases")
+}
 
 // BUG(diddymus): Aliases are expected be single words only, otherwise they
 // probably won't work correctly and cause all sorts of weird problems and
@@ -66,6 +73,11 @@ func FindAlias(t has.Thing) has.Alias {
 // Found returns false if the receiver is nil otherwise true.
 func (a *Alias) Found() bool {
 	return a != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Alias attribute.
+func (_ *Alias) Unmarshal(data []byte) has.Attribute {
+	return NewAlias(recordjar.Decode.KeywordList(data)...)
 }
 
 func (a *Alias) Dump() []string {

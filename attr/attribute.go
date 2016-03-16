@@ -7,6 +7,8 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+
+	"log"
 )
 
 // Attribute implements a stub for other attributes. Any types providing
@@ -33,4 +35,11 @@ func (a *Attribute) Parent() has.Thing {
 // automatically called by the Thing Add method.
 func (a *Attribute) SetParent(t has.Thing) {
 	a.parent = t
+}
+
+// FOR DEVELOPMENT ONLY SO WE DON'T HAVE TO IMPLEMENT Marshal ON ALL THE
+// ATTRIBUTES AT ONCE. REMOVE AS SOON AS ALL ATTRIBUTES UPDATED.
+func (a *Attribute) Marshal(attr has.Attribute) []byte {
+	log.Println("[DEBUG] dummy marshal")
+	return []byte{}
 }

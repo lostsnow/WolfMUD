@@ -16,6 +16,7 @@ import (
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
+	config.Load()
 	stats.Start()
 	comms.Listen(config.Server.Host, config.Server.Port)
 }

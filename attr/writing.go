@@ -6,8 +6,15 @@
 package attr
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 )
+
+// Register marshaler for Writing attribute.
+func init() {
+	internal.AddMarshaler((*Writing)(nil), "writing")
+}
 
 // Writing implements an attribute that allows for writing to be put onto any
 // Thing so that it can be read.
@@ -50,6 +57,11 @@ func FindWriting(t has.Thing) has.Writing {
 // Found returns false if the receiver is nil otherwise true.
 func (w *Writing) Found() bool {
 	return w != nil
+}
+
+// Unmarshal is used to turn the passed data into a new Writing attribute.
+func (_ *Writing) Unmarshal(data []byte) has.Attribute {
+	return NewWriting(recordjar.Decode.String(data))
 }
 
 func (w *Writing) Dump() []string {
