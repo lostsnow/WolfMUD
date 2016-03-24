@@ -5,26 +5,22 @@
 
 package internal
 
-// stopWords is a map of valid stopwords as initialised by init.
-var stopWords map[string]struct{}
+import (
+	"code.wolfmud.org/WolfMUD.git/text"
+)
 
-// Initialise stop words
-func init() {
-	stopWords = make(map[string]struct{})
-	for _, word := range []string{
-		"a",
-		"an",
-		"from",
-		"in",
-		"into",
-		"of",
-		"out",
-		"some",
-		"the",
-	} {
-		stopWords[word] = struct{}{}
-	}
-}
+// stopWords is the list of words considered to be stop words.
+var stopWords = text.Dictionary(
+	"a",
+	"an",
+	"from",
+	"in",
+	"into",
+	"of",
+	"out",
+	"some",
+	"the",
+)
 
 // removeStopWords takes a slice of strings (words) and returns a slice of
 // strings with the words removed that are stop words. For example:
@@ -37,9 +33,10 @@ func init() {
 //
 func RemoveStopWords(in []string) (out []string) {
 	for _, word := range in {
-		if _, match := stopWords[word]; !match {
-			out = append(out, word)
+		if stopWords.Contains(word) {
+			continue
 		}
+		out = append(out, word)
 	}
 	return
 }
