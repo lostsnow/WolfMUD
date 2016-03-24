@@ -46,6 +46,17 @@ func newZone() zone {
 // zones is a collection of all of the currently loaded zones.
 var zones = map[string]zone{}
 
+// zonelink contains the bookkeeping information  we need to be able to
+// initialise a zone link once all zones are loaded.
+type zoneLink struct {
+	zone string
+	ref  string
+	data []byte
+}
+
+// zoneLinks contains all of the zone links discovered while loading the zones.
+var zoneLinks = []zoneLink{}
+
 // Load loads all of the zone files it can find in the data directory's 'zones'
 // subdirectory.
 func Load() {
@@ -69,6 +80,9 @@ func Load() {
 	} else {
 		zones["void"] = createVoid()
 	}
+
+	log.Printf("Linking zones...")
+	linkupZones()
 
 	return
 }
@@ -113,6 +127,12 @@ func loadZone(path string) zone {
 		jar = jar[1:]
 	}
 
+	// Did jar just have a zone record?
+	if len(jar) == 0 {
+		log.Printf("Ignoring empty zone: %s", filename)
+		return z
+	}
+
 	log.Printf("Loading %s: %s (%s)", filename, z.name, z.ref)
 
 	// Go through the records in the jar. For each record unmarshal a Thing
@@ -125,8 +145,8 @@ func loadZone(path string) zone {
 			log.Printf("[Record %d]: Not added to zone, no ref.", i)
 			continue
 		}
-
 		ref := recordjar.Decode.Keyword(record["ref"])
+
 		t.Unmarshal(i, record)
 
 		// Log a warning if we are going to overwrite a Thing by using the same
@@ -138,6 +158,12 @@ func loadZone(path string) zone {
 
 		// Finally add Thing to the zone
 		z.things[ref] = t
+
+		// If we have any zone links record the details
+		if _, ok := record["zonelinks"]; ok {
+			zoneLinks = append(zoneLinks, zoneLink{z.ref, ref, record["zonelinks"]})
+		}
+
 	}
 
 	z.zoneBookkeeping(jar)
@@ -340,4 +366,57 @@ func (z *zone) linkupThings(jar recordjar.Jar) {
 			i.Add(z.things[ref])
 		}
 	}
+}
+
+// linkupZones processes zone linking information to link exits between
+// different zones. This has to be delayed until all of the zones have been
+// loaded and initialised.
+func linkupZones() {
+	for _, l := range zoneLinks {
+
+		// We have to have Exits where we are linking from
+		e := attr.FindExits(zones[l.zone].things[l.ref])
+		if !e.Found() {
+			e = attr.NewExits()
+			zones[l.zone].things[l.ref].Add(e)
+		}
+
+		// Split the ZoneLink data into direction and a reference pairs
+		for _, pair := range recordjar.Decode.PairList(l.data) {
+			d, r := pair[0], pair[1]
+			{
+				// Split the reference into a zone and reference pair
+				pair := recordjar.Decode.PairList([]byte(r))
+
+				// Ignore incomplete zonelinks so that we can leave markers in the zone file
+				if len(pair) == 0 {
+					continue
+				}
+				z, r := pair[0][0], pair[0][1]
+
+				// Check destination exists
+				if _, ok := zones[z]; !ok {
+					log.Printf("Zone %s: Destination zone not found for zone link: %s", l.zone, z)
+					continue
+				}
+				if _, ok := zones[z].things[r]; !ok {
+					log.Printf("Zone %s: Destination location not found for zone link: %s", z, r)
+					continue
+				}
+
+				// We have to have an inventory where we are linking to
+				i := attr.FindInventory(zones[z].things[r])
+				if !i.Found() {
+					i = attr.NewInventory()
+					zones[z].things[r].Add(i)
+				}
+
+				d, _ := e.NormalizeDirection(d)
+				e.Link(d, i)
+			}
+		}
+	}
+
+	// We can't make further use of the zone links so clear them down
+	zoneLinks = zoneLinks[0:0]
 }
