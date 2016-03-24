@@ -73,7 +73,7 @@ func Load() {
 	return
 }
 
-// loadZone loads the single zone file specified by the passed path and returs
+// loadZone loads the single zone file specified by the passed path and returns
 // a zone. A zone will always be returned even if it is empty, in which case
 // len(zone.things) == 0.
 func loadZone(path string) zone {
