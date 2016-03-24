@@ -73,7 +73,7 @@ func (t *Thing) Attrs() []has.Attribute {
 // Unmarshal as there is no corresponding Attribute to unmarshal the field's
 // data. If the field isn't ignored we just get extra warnings in the log when
 // unmarshaling is attempted.
-var ignoredFields = text.Dictionary("ref", "location")
+var ignoredFields = text.Dictionary("ref", "location", "zonelinks")
 
 // Unmarshal unmarshals a Thing from a recordjar record containing all of the
 // Attribute to be added. The recno is the record number in the recordjar for
