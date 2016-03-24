@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"fmt"
 	"log"
@@ -68,6 +69,12 @@ func (t *Thing) Attrs() []has.Attribute {
 	return t.attrs
 }
 
+// ignoredFields is a list of known field names that should be ignored by
+// Unmarshal as there is no corresponding Attribute to unmarshal the field's
+// data. If the field isn't ignored we just get extra warnings in the log when
+// unmarshaling is attempted.
+var ignoredFields = text.Dictionary("ref", "location")
+
 // Unmarshal unmarshals a Thing from a recordjar record containing all of the
 // Attribute to be added. The recno is the record number in the recordjar for
 // this record. It is passed so that we can give informative messages if errors
@@ -85,7 +92,7 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 
 		// Some known fields without attributes or marshalers we don't want to
 		// try and unmarshal so we ignore.
-		if field == "ref" || field == "location" {
+		if ignoredFields.Contains(field) {
 			continue
 		}
 
