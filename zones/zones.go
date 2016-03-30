@@ -78,7 +78,7 @@ func Load() {
 	if l := len(zones); l > 0 {
 		log.Printf("Loaded %d zones", l)
 	} else {
-		zones["void"] = createVoid()
+		zones["VOID"] = createVoid()
 	}
 
 	log.Printf("Linking zones...")
@@ -116,10 +116,10 @@ func loadZone(path string) zone {
 	}
 
 	// check if the first record is a zone record
-	if name, ok := jar[0]["zone"]; ok {
+	if name, ok := jar[0]["ZONE"]; ok {
 		z.name = recordjar.Decode.String(name)
 
-		if ref, ok := jar[0]["ref"]; ok {
+		if ref, ok := jar[0]["REF"]; ok {
 			z.ref = recordjar.Decode.Keyword(ref)
 		}
 
@@ -141,11 +141,11 @@ func loadZone(path string) zone {
 		t := attr.NewThing()
 
 		// If we don't have a reference we can't add the Thing to the zone
-		if _, ok := record["ref"]; !ok {
+		if _, ok := record["REF"]; !ok {
 			log.Printf("[Record %d]: Not added to zone, no ref.", i)
 			continue
 		}
-		ref := recordjar.Decode.Keyword(record["ref"])
+		ref := recordjar.Decode.Keyword(record["REF"])
 
 		t.Unmarshal(i, record)
 
@@ -160,8 +160,8 @@ func loadZone(path string) zone {
 		z.things[ref] = t
 
 		// If we have any zone links record the details
-		if _, ok := record["zonelinks"]; ok {
-			zoneLinks = append(zoneLinks, zoneLink{z.ref, ref, record["zonelinks"]})
+		if _, ok := record["ZONELINKS"]; ok {
+			zoneLinks = append(zoneLinks, zoneLink{z.ref, ref, record["ZONELINKS"]})
 		}
 
 	}
@@ -252,13 +252,13 @@ func (z *zone) linkupExits(jar recordjar.Jar) {
 	for _, r := range jar {
 
 		// Get reference from record
-		if data, ok = r["ref"]; !ok {
+		if data, ok = r["REF"]; !ok {
 			continue
 		}
 		ref := recordjar.Decode.Keyword(data)
 
 		// Get exits from record
-		if data, ok = r["exits"]; !ok {
+		if data, ok = r["EXITS"]; !ok {
 			continue
 		}
 		exitList := recordjar.Decode.PairList(data)
@@ -300,13 +300,13 @@ func (z *zone) linkupInventory(jar recordjar.Jar) {
 	for _, r := range jar {
 
 		// Get reference from record
-		if data, ok = r["ref"]; !ok {
+		if data, ok = r["REF"]; !ok {
 			continue
 		}
 		ref := recordjar.Decode.Keyword(data)
 
 		// Get inventory from record
-		if data, ok = r["inventory"]; !ok {
+		if data, ok = r["INVENTORY"]; !ok {
 			continue
 		}
 		inv := recordjar.Decode.KeywordList(data)
@@ -341,13 +341,13 @@ func (z *zone) linkupThings(jar recordjar.Jar) {
 	for _, r := range jar {
 
 		// Get reference from record
-		if data, ok = r["ref"]; !ok {
+		if data, ok = r["REF"]; !ok {
 			continue
 		}
 		ref := recordjar.Decode.Keyword(data)
 
 		// Get location from record
-		if data, ok = r["location"]; !ok {
+		if data, ok = r["LOCATION"]; !ok {
 			continue
 		}
 		inv := recordjar.Decode.KeywordList(data)

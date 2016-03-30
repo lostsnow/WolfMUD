@@ -73,31 +73,31 @@ func Load() {
 	f.Close()
 	record := j[0]
 
-	// NOTE: a recordjar will lowercase all fieldnames so we need to use
-	// lowercase switch cases below.
+	// NOTE: a recordjar will uppercase all fieldnames so we need to use
+	// uppercase switch cases below.
 	for field, data := range record {
 		switch field {
 
 		// Main server settings
-		case "server.host":
+		case "SERVER.HOST":
 			Server.Host = recordjar.Decode.String(data)
-		case "server.port":
+		case "SERVER.PORT":
 			Server.Port = recordjar.Decode.String(data)
-		case "server.idletimeout":
+		case "SERVER.IDLETIMEOUT":
 			Server.IdleTimeout = recordjar.Decode.Duration(data)
-		case "server.greeting":
+		case "SERVER.GREETING":
 			Server.Greeting = recordjar.Decode.Bytes(data)
 
 		// Stats settings
-		case "stats.rate":
+		case "STATS.RATE":
 			Stats.Rate = recordjar.Decode.Duration(data)
-		case "stats.gc":
+		case "STATS.GC":
 			Stats.GC = recordjar.Decode.Boolean(data)
 
 		// Inventory settings
-		case "inventory.compact":
+		case "INVENTORY.COMPACT":
 			Inventory.Compact = recordjar.Decode.Integer(data)
-		case "inventory.crowdsize":
+		case "INVENTORY.CROWDSIZE":
 			Inventory.CrowdSize = recordjar.Decode.Integer(data)
 
 		// Unknow setting

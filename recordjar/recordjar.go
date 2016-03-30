@@ -38,8 +38,8 @@ func Read(in io.Reader, freetext string) Jar {
 	j := Jar{}
 	r := Record{}
 
-	// Make sure the name to use for the free text block is lowercased.
-	freetext = (string)(bytes.ToLower([]byte(freetext)))
+	// Make sure the name to use for the free text block is uppercased.
+	freetext = (string)(bytes.ToUpper([]byte(freetext)))
 
 	// Start off assuming last field seen was the special freetext field. If the
 	// record does not actually start with free text then the field name found
@@ -66,7 +66,7 @@ func Read(in io.Reader, freetext string) Jar {
 		tokens = splitLine.FindSubmatch(line)
 		switch len(tokens) {
 		case 3:
-			field, data = string(bytes.ToLower(tokens[1])), tokens[2]
+			field, data = string(bytes.ToUpper(tokens[1])), tokens[2]
 		case 2:
 			field, data = "", tokens[1]
 		default:

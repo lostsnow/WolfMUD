@@ -11,7 +11,8 @@ import (
 	"strings"
 )
 
-// Marshalers is a map of registered .wrj marshalers keyed by field name.
+// Marshalers is a map of registered .wrj marshalers keyed by uppercased field
+// names.
 var Marshalers = map[string]has.Marshaler{}
 
 // AddMarshaler registers the passed Marshaler as handling marshaling for a
@@ -19,6 +20,6 @@ var Marshalers = map[string]has.Marshaler{}
 // such as (*Name)(nil).
 func AddMarshaler(marshaler has.Marshaler, attr ...string) {
 	for _, attr := range attr {
-		Marshalers[strings.ToLower(attr)] = marshaler
+		Marshalers[strings.ToUpper(attr)] = marshaler
 	}
 }
