@@ -569,10 +569,11 @@ you would do better looking somewhere else.
 You are on a street which runs from the City gates to the south, north into the
 city.
 %%
-    Ref: L69
-   Name: South Gate of Zinara
-  Alias: SOUTHGATE
-  Exits: N→L68 E→L71 S→L2000
+      Ref: L69
+     Name: South Gate of Zinara
+    Alias: SOUTHGATE
+    Exits: N→L68 E→L71
+ZoneLinks: S→ZINARASOUTH:L1
 
 You are standing before the huge southern gates of the city of Zinara. To the east you can see a small Gate House, north the way leads into the city.
 %%
