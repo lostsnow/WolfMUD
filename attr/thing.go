@@ -50,12 +50,12 @@ func (t *Thing) Add(a ...has.Attribute) {
 // Attribute is removed its parent it set to nil. There is no indication if an
 // Attribute cannot actually be removed.
 func (t *Thing) Remove(a ...has.Attribute) {
-	for _, a := range a {
-		for k, v := range t.attrs {
-			if v == a {
-				t.attrs[k] = nil
-				a.SetParent(nil)
-				t.attrs = append(t.attrs[:k], t.attrs[k+1:]...)
+	for i := len(a) - 1; i >= 0; i-- {
+		for j := len(t.attrs) - 1; j >= 0; j-- {
+			if a[i] == t.attrs[j] {
+				t.attrs[j].SetParent(nil)
+				t.attrs[j] = nil
+				t.attrs = append(t.attrs[:j], t.attrs[j+1:]...)
 				break
 			}
 		}
