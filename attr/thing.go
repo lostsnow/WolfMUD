@@ -35,6 +35,15 @@ func NewThing(a ...has.Attribute) *Thing {
 	return t
 }
 
+// Close is used to clean-up/release references to all Attribute for a Thing.
+// When a Thing is finished with calling Close helps the garbage collector to
+// reclaim objects. It can also help to break cyclic references that could
+// prevent garbage collection.
+func (t *Thing) Close() {
+	t.Remove(t.attrs...)
+	t.attrs = nil
+}
+
 // Add is used to add the passed Attributes to a Thing. When an Attribute is
 // added its parent is set to reference the Thing it was added to. This allows
 // an Attribute to find and query the parent Thing about other Attributes the
