@@ -49,6 +49,7 @@ var (
 // account system etc.
 type client struct {
 	*net.TCPConn            // The client's connection
+	remoteAddr   string     // client's remote address
 	err          chan error // Error channel to sync between input & output
 	player       has.Thing  // The player this client is associated with
 	prompt       []byte     // The current prompt the client is using
@@ -90,9 +91,10 @@ func newClient(conn *net.TCPConn) *client {
 	id := <-nextPlayerID
 
 	c := &client{
-		TCPConn: conn,
-		err:     make(chan error, 1),
-		prompt:  noPrompt,
+		TCPConn:    conn,
+		remoteAddr: conn.RemoteAddr().String(),
+		err:        make(chan error, 1),
+		prompt:     noPrompt,
 
 		// Setup test player
 		player: attr.NewThing(
@@ -171,14 +173,14 @@ func (c *client) process() {
 	// if trying to handle a player dispute ;)
 	switch err := c.Error(); {
 	case err == quitting:
-		log.Printf("Quit received from: %s", c.RemoteAddr())
+		log.Printf("Quit received from: %s", c.remoteAddr)
 	case err == io.EOF:
 		if in != "" {
-			log.Printf("Connection error: %s %s", c.RemoteAddr(), err)
+			log.Printf("Connection error: %s %s", c.remoteAddr, err)
 		}
 	case err != nil:
 		if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
-			log.Printf("Connection timeout: %s", c.RemoteAddr())
+			log.Printf("Connection timeout: %s", c.remoteAddr)
 
 			// Clear temporary timeout error so that we can say goodbye to the client
 			<-c.err
@@ -190,7 +192,7 @@ func (c *client) process() {
 			log.Printf("Connection error: %s", err)
 		}
 	default:
-		log.Printf("Connection dropped by: %s", c.RemoteAddr())
+		log.Printf("Connection dropped by: %s", c.remoteAddr)
 	}
 
 	// If not voluntarily quitting do it automatically
@@ -202,7 +204,7 @@ func (c *client) process() {
 	if err = c.Close(); err != nil {
 		log.Printf("Error closing connection: %s", err)
 	} else {
-		log.Printf("Connection closed: %s", c.RemoteAddr())
+		log.Printf("Connection closed: %s", c.remoteAddr)
 	}
 	c.TCPConn = nil
 
