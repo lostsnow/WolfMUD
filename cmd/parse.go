@@ -49,6 +49,13 @@ func AddHandler(handler func(*state), cmd ...string) {
 func Parse(t has.Thing, input string) {
 	s := NewState(t, input)
 	s.parse(dispatch)
+
+	// If actor is quitting call Close to deallocate all of the Thing Attribute.
+	// We can do that at this point as all message buffers have been written, all
+	// locks released and the actor removed from the world.
+	if string(s.cmd) == "QUIT" {
+		s.actor.Close()
+	}
 }
 
 // dispatch invokes the handler for a given command. The command is specified
@@ -65,5 +72,4 @@ func dispatch(s *state) {
 		return
 	}
 	handler(s)
-
 }
