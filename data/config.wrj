@@ -20,6 +20,7 @@
 	Inventory.Compact:		 8
 	Inventory.CrowdSize:	10
 //
+// Initial client connection greeting
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
 
