@@ -39,10 +39,9 @@ func Remove(player has.Thing) {
 	}
 
 	// A tiny bit of housekeeping, in case we've had a lot of players recently
-	// create a new, smaller capacity player list. The capacity of 10 is totally
-	// arbitrary - maybe this should be config tweakable?
-	if len(players.list) == 0 && cap(players.list) > 10 {
-		log.Printf("Last one out reclaims the player list: %d slots reclaimed", cap(players.list)-10)
+	// create a new, smaller capacity player list.
+	if len(players.list) == 0 {
+		log.Printf("Last one out reclaims the player list: %d slots reclaimed", cap(players.list))
 		players.list = make([]has.Thing, 0, 10)
 	}
 
