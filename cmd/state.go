@@ -88,17 +88,6 @@ func NewState(t has.Thing, input string) *state {
 		s.words[x] = strings.ToUpper(o)
 	}
 
-	// Set actor's send buffer to half a page @ 80 columns * 24 lines - seems reasonable?
-	s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-
-	s.msg.participant = &buffer{}
-	s.msg.observers = make(map[has.Inventory]*buffer)
-
-	// When messages are sent to participants we need an initial line feed to
-	// move them off the prompt line - usually this is done by the player when
-	// hitting the enter key. Observers are handled similarly in AddLock.
-	s.msg.participant.WriteByte(byte('\n'))
-
 	// Make sure we don't try to index beyond the
 	// number of words we have and cause a panic
 	switch l := len(s.words); {
@@ -115,7 +104,6 @@ func NewState(t has.Thing, input string) *state {
 	// the state for later reuse.
 	if s.where = attr.FindLocate(t).Where(); s.where != nil {
 		s.AddLock(s.where)
-		s.msg.observer = s.msg.observers[s.where]
 	}
 
 	return s
@@ -179,6 +167,8 @@ func (s *state) messenger() {
 			}
 		}
 	}
+
+	s.deallocateBuffers()
 }
 
 // silent allows a command to be processed without sending messages to specific
@@ -246,6 +236,7 @@ func (s *state) sync(dispatcher func(s *state)) {
 		defer l.Unlock()
 	}
 
+	s.allocateBuffers()
 	l := len(s.locks)
 	dispatcher(s)
 
@@ -300,9 +291,6 @@ func (s *state) AddLock(i has.Inventory) {
 	s.locks = append(s.locks, i)
 	l := len(s.locks)
 
-	s.msg.observers[i] = &buffer{}
-	s.msg.observers[i].WriteByte('\n')
-
 	if l == 1 {
 		return
 	}
@@ -314,5 +302,41 @@ func (s *state) AddLock(i has.Inventory) {
 			s.locks[x] = i
 			break
 		}
+	}
+}
+
+// allocateBuffers sets up the message buffers for the actor, participant and
+// observers. The participant and observers buffers need an initial linefeed to
+// move the cursor off of the client's prompt line - for the actor this is done
+// when they hit enter. The actor's buffer is initially set to half a page
+// (half of 80 columns by 24 lines) as it is common to be sending location
+// descriptions back to the actor. Half a page is arbitrary but seems to be
+// reasonable.
+func (s *state) allocateBuffers() {
+	if s.msg.actor == nil {
+		s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
+		s.msg.participant = &buffer{Buffer: *bytes.NewBuffer([]byte{})}
+		s.msg.observers = make(map[has.Inventory]*buffer)
+		s.msg.participant.WriteByte(byte('\n'))
+	}
+
+	for _, l := range s.locks {
+		if _, ok := s.msg.observers[l]; !ok {
+			s.msg.observers[l] = &buffer{Buffer: *bytes.NewBuffer([]byte{})}
+			s.msg.observers[l].WriteByte('\n')
+		}
+	}
+	s.msg.observer = s.msg.observers[s.where]
+}
+
+// deallocateBuffers releases the references to message buffers for the actor,
+// participant and observers.
+func (s *state) deallocateBuffers() {
+	s.msg.actor = nil
+	s.msg.participant = nil
+	s.msg.observer = nil
+	for x := range s.msg.observers {
+		s.msg.observers[x] = nil
+		delete(s.msg.observers, x)
 	}
 }
