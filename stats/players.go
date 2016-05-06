@@ -48,6 +48,20 @@ func Remove(player has.Thing) {
 	players.Unlock()
 }
 
+func Find(player has.Thing) (found bool) {
+	players.Lock()
+
+	for _, p := range players.list {
+		if p == player {
+			found = true
+			break
+		}
+	}
+
+	players.Unlock()
+	return
+}
+
 // List returns the names of all players in the player list. The omit parameter
 // may be used to specify a player that should be omitted from the list.
 func List(omit has.Thing) []string {
