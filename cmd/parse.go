@@ -7,6 +7,14 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+
+	"errors"
+)
+
+// EndOfDataError represents the fact that no more data is expected to be
+// returned. For example the QUIT command has been used.
+var (
+	EndOfDataError = errors.New("End of data - player quitting")
 )
 
 // Add handler for an empty command. The handler just acknowledges the empty
@@ -21,8 +29,10 @@ func init() {
 
 // Parse initiates processing of the input string for the specified Thing. The
 // input string is expected to be either a players input or possibly a scripted
-// command.
-func Parse(t has.Thing, input string) {
+// command. If there is to be no more data - for example because the QUIT
+// command has been issued - an EndOfDataError will be returned. Otherwise nil
+// is returned.
+func Parse(t has.Thing, input string) error {
 	s := NewState(t, input)
 	s.parse(dispatch)
 
@@ -31,7 +41,10 @@ func Parse(t has.Thing, input string) {
 	// locks released and the actor removed from the world.
 	if string(s.cmd) == "QUIT" {
 		s.actor.Close()
+		return EndOfDataError
 	}
+
+	return nil
 }
 
 // dispatch invokes the handler for a given command. The command is specified
