@@ -14,11 +14,9 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bufio"
-	"errors"
 	"io"
 	"log"
 	"net"
-	"strings"
 	"time"
 )
 
@@ -32,11 +30,6 @@ const (
 var (
 	defaultPrompt = []byte(">") // Default prompt for client input
 	noPrompt      = []byte{}    // An empty prompt
-
-	// Most of the flow and control for the client is done using errors so we
-	// raise an "I want to quit" error instead of adding another level of
-	// checking for a separate quitting flag
-	quitting = errors.New("Client quitting error")
 
 	start = (*attr.Start)(nil)
 )
@@ -136,31 +129,17 @@ func (c *client) process() {
 		in  string                                // Input string from buffer
 	)
 
-	// Main input processing loop
-	for err == nil {
+	// Main input processing loop, terminates on any error raised not just read
+	// or Parse errors.
+	for c.Error() == nil {
 		c.SetReadDeadline(time.Now().Add(config.Server.IdleTimeout))
-		in, err = s.ReadString('\n')
-
-		// Do we need to set an error?
-		if err != nil {
+		if in, err = s.ReadString('\n'); err != nil {
 			c.SetError(err)
-			break
+			continue
 		}
-
-		// Anyone else set an error?
-		if c.Error() != nil {
-			break
+		if err = cmd.Parse(c.player, in); err != nil {
+			c.SetError(err)
 		}
-
-		// Process the input, if we get an error the loop will exit
-		cmd.Parse(c.player, in)
-
-		// Remember ReadString will return the delimiters...
-		if strings.TrimSpace(strings.ToUpper(in)) == "QUIT" {
-			c.SetError(quitting)
-			break
-		}
-
 	}
 
 	// Log reson for ending, notify player if we can
@@ -172,8 +151,6 @@ func (c *client) process() {
 	// just log quits, timeouts and drops which is what you usually want to know
 	// if trying to handle a player dispute ;)
 	switch err := c.Error(); {
-	case err == quitting:
-		log.Printf("Quit received from: %s", c.remoteAddr)
 	case err == io.EOF:
 		if in != "" {
 			log.Printf("Connection error: %s %s", c.remoteAddr, err)
