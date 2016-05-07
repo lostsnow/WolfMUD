@@ -195,8 +195,9 @@ func (c *client) process() {
 		log.Printf("Connection dropped by: %s", c.remoteAddr)
 	}
 
-	// If not voluntarily quitting do it automatically
-	if c.Error() != quitting {
+	// If player still in the world force them to quit
+	if stats.Find(c.player) {
+		log.Printf("Forcing quit: %s", c.remoteAddr)
 		cmd.Parse(c.player, "QUIT")
 	}
 
