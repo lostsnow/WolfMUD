@@ -189,7 +189,7 @@ func (c *client) process() {
 			c.prompt = noPrompt
 			c.Write([]byte("\n\nIdle connection terminated by server."))
 		} else {
-			log.Printf("Connection error: %s", err)
+			log.Printf("Connection error: %s %s", c.remoteAddr, err)
 		}
 	default:
 		log.Printf("Connection dropped by: %s", c.remoteAddr)
