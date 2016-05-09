@@ -5,13 +5,17 @@
 
 package has
 
+import (
+	"io"
+)
+
 // Player is used to represent an actual player.
 //
 // Its default implementation is the attr.Player type.
 type Player interface {
 	Attribute
 
-	// Write implements the standard io.Writer interface. It is used to write
-	// textual information back to the player.
-	Write([]byte)
+	// Player should implement a standard Write method to send data back to the
+	// associated client.
+	io.Writer
 }

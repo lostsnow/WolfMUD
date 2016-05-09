@@ -9,7 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 
-	"net"
+	"io"
 )
 
 // Register marshaler for Player attribute.
@@ -17,11 +17,11 @@ func init() {
 	internal.AddMarshaler((*Player)(nil), "player")
 }
 
-// Player implements an attribute for associating a thing with a client network
-// connection.
+// Player implements an attribute for associating a Thing with a Writer used to
+// return data to the associated client.
 type Player struct {
 	Attribute
-	conn net.Conn
+	io.Writer
 }
 
 // Some interfaces we want to make sure we implement
@@ -30,13 +30,13 @@ var (
 )
 
 // NewPlayer returns a new Player attribute initialised with the specified
-// network connection.
-func NewPlayer(c net.Conn) *Player {
-	return &Player{Attribute{}, c}
+// Writer which is used to send data back to the associated client.
+func NewPlayer(w io.Writer) *Player {
+	return &Player{Attribute{}, w}
 }
 
 func (p *Player) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", p, p.conn.RemoteAddr())}
+	return []string{DumpFmt("%p %[1]T", p)}
 }
 
 // FindPlayer searches the attributes of the specified Thing for attributes
@@ -63,10 +63,10 @@ func (_ *Player) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 
-// Write writes the specified byte slice to the network connection associated
-// with the Player receiver.
-func (p *Player) Write(b []byte) {
+// Write writes the specified byte slice to the associated client.
+func (p *Player) Write(b []byte) (n int, err error) {
 	if p != nil {
-		p.conn.Write(b)
+		n, err = p.Writer.Write(b)
 	}
+	return
 }
