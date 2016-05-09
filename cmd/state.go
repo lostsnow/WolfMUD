@@ -80,7 +80,9 @@ func NewState(t has.Thing, input string) *state {
 
 	// BUG: Stop words are currently experimental. Use of removeStopWords means
 	// that s.input is no longer the original input anymore, but s.input and
-	// s.words do still match up.
+	// s.words do still match up. Also internal.RemoveStopWords is duplicating
+	// the effort of uppercasing the words which probably needs sorting at some
+	// point?
 	s.input = internal.RemoveStopWords(s.input)
 
 	s.words = make([]string, len(s.input))
