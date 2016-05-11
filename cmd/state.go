@@ -135,6 +135,22 @@ func (s *state) parse(dispatcher func(*state)) {
 	}
 }
 
+// dispatch invokes the handler for a given command. The command is specified
+// by state.cmd which is used to lookup the handler to invoke. dispatch should
+// only be called once any required locks are held. This is usually taken care
+// of by the state.parse method which is normally called by cmd.Parse.
+func dispatch(s *state) {
+
+	handler, valid := handlers[s.cmd]
+
+	// Respond to an invalid command
+	if !valid {
+		s.msg.actor.WriteString("Eh?")
+		return
+	}
+	handler(s)
+}
+
 // messenger is used to send buffered messages to the actor, participant and
 // observers. The participant may be in another location to the actor - such as
 // when throwing something at someone or shooting someone.
