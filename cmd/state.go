@@ -135,6 +135,26 @@ func (s *state) parse(dispatcher func(*state)) {
 	}
 }
 
+// sync is called by parse to do the actual locking and unlocking. Having this
+// separate from parse takes advantage of unwinding the locks using defer. This
+// makes both parse and sync very simple.
+func (s *state) sync(dispatcher func(s *state)) {
+	for _, l := range s.locks {
+		l.Lock()
+		defer l.Unlock()
+	}
+
+	s.allocateBuffers()
+	l := len(s.locks)
+	dispatcher(s)
+
+	// If we don't add any new locks process any pending messages before we
+	// release our locks
+	if l-len(s.locks) == 0 {
+		s.messenger()
+	}
+}
+
 // dispatch invokes the handler for a given command. The command is specified
 // by state.cmd which is used to lookup the handler to invoke. dispatch should
 // only be called once any required locks are held. This is usually taken care
@@ -242,26 +262,6 @@ func (s *state) silent(actor, participant, observers bool, cmd func(*state)) {
 				observer.Truncate(oMark[k])
 			}
 		}
-	}
-}
-
-// sync is called by parse to do the actual locking and unlocking. Having this
-// separate from parse takes advantage of unwinding the locks using defer. This
-// makes both parse and sync very simple.
-func (s *state) sync(dispatcher func(s *state)) {
-	for _, l := range s.locks {
-		l.Lock()
-		defer l.Unlock()
-	}
-
-	s.allocateBuffers()
-	l := len(s.locks)
-	dispatcher(s)
-
-	// If we don't add any new locks process any pending messages before we
-	// release our locks
-	if l-len(s.locks) == 0 {
-		s.messenger()
 	}
 }
 
