@@ -111,14 +111,23 @@ func NewState(t has.Thing, input string) *state {
 	return s
 }
 
-// parse repeatedly calls sync until the list of locks after the call to sync
-// is the same as before the call to sync. sync is always called at least once.
+// parse repeatedly calls sync until it returns true.
 //
-// When sync calls the dispatcher to handle commands the command may determine
-// it needs to hold additional locks. In this case the command calls AddLock
-// for each additional lock it needs and simply returns. parse will detect that
-// the list of locks has changed and call sync again, this time with the new
-// list of locks.
+// When sync handles a command the command may determine it needs to hold
+// additional locks. In this case sync will return false and should be called
+// again. This repeats until the list of locks is complete, the command
+// processed and sync returns true.
+func (s *state) parse() {
+	for !s.sync() {
+	}
+}
+
+// sync is called to do the actual locking/unlocking for commands. Having this
+// separate from takes advantage of unwinding the locks using defer. This makes
+// sync very simple. If the list of locks before and after handling a command
+// are the same we are 'in sync' and had all the locks we needed to process the
+// command. In this case we return true. If more locks need to be acquired we
+// return false and should be called again.
 //
 // NOTE: There is usually at least one lock, added by NewState, which is the
 // containing Inventory of the current actor - if it is locatable.
@@ -127,18 +136,7 @@ func NewState(t has.Thing, input string) *state {
 // lock list can therefore be detected by simply checking the length of the
 // list. If at a later time we need to be able to remove locks as well this
 // simple length check will not be sufficient.
-func (s *state) parse(dispatcher func(*state)) {
-	for l := -1; l != 0; {
-		l = len(s.locks)
-		s.sync(dispatcher)
-		l -= len(s.locks)
-	}
-}
-
-// sync is called by parse to do the actual locking and unlocking. Having this
-// separate from parse takes advantage of unwinding the locks using defer. This
-// makes both parse and sync very simple.
-func (s *state) sync(dispatcher func(s *state)) {
+func (s *state) sync() (inSync bool) {
 	for _, l := range s.locks {
 		l.Lock()
 		defer l.Unlock()
@@ -146,29 +144,21 @@ func (s *state) sync(dispatcher func(s *state)) {
 
 	s.allocateBuffers()
 	l := len(s.locks)
-	dispatcher(s)
 
-	// If we don't add any new locks process any pending messages before we
-	// release our locks
+	switch handler, valid := handlers[s.cmd]; {
+	case valid:
+		handler(s)
+	default:
+		s.msg.actor.WriteString("Eh?")
+	}
+
+	// If we don't add any new locks we are 'in sync'. Therefore set inSync flag
+	// and process any pending messages before all of the locks get released.
 	if l-len(s.locks) == 0 {
+		inSync = true
 		s.messenger()
 	}
-}
-
-// dispatch invokes the handler for a given command. The command is specified
-// by state.cmd which is used to lookup the handler to invoke. dispatch should
-// only be called once any required locks are held. This is usually taken care
-// of by the state.parse method which is normally called by cmd.Parse.
-func dispatch(s *state) {
-
-	handler, valid := handlers[s.cmd]
-
-	// Respond to an invalid command
-	if !valid {
-		s.msg.actor.WriteString("Eh?")
-		return
-	}
-	handler(s)
+	return
 }
 
 // messenger is used to send buffered messages to the actor, participant and

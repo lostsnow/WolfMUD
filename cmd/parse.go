@@ -34,7 +34,7 @@ func init() {
 // is returned.
 func Parse(t has.Thing, input string) error {
 	s := NewState(t, input)
-	s.parse(dispatch)
+	s.parse()
 
 	// If actor is quitting call Close to deallocate all of the Thing Attribute.
 	// We can do that at this point as all message buffers have been written, all
