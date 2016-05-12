@@ -104,9 +104,8 @@ func NewState(t has.Thing, input string) *state {
 	// Need to determine the actor's current location so we can lock it. As
 	// commands frequently need to know the current location also, we stash it in
 	// the state for later reuse.
-	if s.where = attr.FindLocate(t).Where(); s.where != nil {
-		s.AddLock(s.where)
-	}
+	s.where = attr.FindLocate(t).Where()
+	s.AddLock(s.where)
 
 	return s
 }
