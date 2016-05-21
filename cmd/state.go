@@ -69,6 +69,11 @@ type state struct {
 // NewState returns a *state initialised with the passed Thing and input. If
 // the passed Thing is locatable the containing Inventory is added to the lock
 // list, but the lock is not taken at this point.
+//
+// BUG: Stop words are currently experimental. Use of removeStopWords means
+// that s.input is no longer the original input anymore, but s.input and
+// s.words do still match up. Also internal.RemoveStopWords is duplicating the
+// effort of uppercasing the words which probably needs sorting at some point?
 func NewState(t has.Thing, input string) *state {
 
 	s := &state{
@@ -78,27 +83,16 @@ func NewState(t has.Thing, input string) *state {
 
 	s.input = strings.Fields(input)
 
-	// BUG: Stop words are currently experimental. Use of removeStopWords means
-	// that s.input is no longer the original input anymore, but s.input and
-	// s.words do still match up. Also internal.RemoveStopWords is duplicating
-	// the effort of uppercasing the words which probably needs sorting at some
-	// point?
-	s.input = internal.RemoveStopWords(s.input)
+	if len(s.input) > 0 {
+		s.input = internal.RemoveStopWords(s.input)
+		s.words = make([]string, len(s.input))
 
-	s.words = make([]string, len(s.input))
-	for x, o := range s.input {
-		s.words[x] = strings.ToUpper(o)
-	}
+		for x, o := range s.input {
+			s.words[x] = strings.ToUpper(o)
+		}
 
-	// Make sure we don't try to index beyond the
-	// number of words we have and cause a panic
-	switch l := len(s.words); {
-	case l > 1:
 		s.cmd, s.words = s.words[0], s.words[1:]
 		s.input = s.input[1:]
-	case l > 0:
-		s.cmd, s.words = s.words[0], []string{}
-		s.input = []string{}
 	}
 
 	// Need to determine the actor's current location so we can lock it. As
