@@ -6,11 +6,8 @@
 package comms
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/stats"
+	"code.wolfmud.org/WolfMUD.git/frontend"
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bufio"
@@ -30,8 +27,6 @@ const (
 var (
 	defaultPrompt = []byte(">") // Default prompt for client input
 	noPrompt      = []byte{}    // An empty prompt
-
-	start = (*attr.Start)(nil)
 )
 
 // client contains state information about a client connection. The err field
@@ -41,34 +36,11 @@ var (
 // to a switchable, abstract layer so that we can talk to a player, menus,
 // account system etc.
 type client struct {
-	*net.TCPConn            // The client's connection
-	remoteAddr   string     // client's remote address
-	err          chan error // Error channel to sync between input & output
-	player       has.Thing  // The player this client is associated with
-	prompt       []byte     // The current prompt the client is using
-}
-
-// nextPlayerID is used to get the next available unique player ID
-var nextPlayerID <-chan string
-
-// Temporary unique player ID generator used to create "Player x" names and
-// "PLAYERx" aliases until we have accounts up and running
-func init() {
-	c := make(chan string)
-	nextPlayerID = c
-	go func() {
-		playerID := []byte("0000001")
-		for {
-			c <- string(playerID)
-			for p := 6; p >= 0; p-- {
-				playerID[p]++
-				if playerID[p] <= '9' {
-					break
-				}
-				playerID[p] = '0'
-			}
-		}
-	}()
+	*net.TCPConn                  // The client's network connection
+	driver       *frontend.Driver // The current driver in use
+	remoteAddr   string           // Client's remote address
+	err          chan error       // Error channel to sync between input & output
+	prompt       []byte           // The current prompt the client is using
 }
 
 // newClient returns an initialised client for the passed connection.
@@ -81,41 +53,17 @@ func newClient(conn *net.TCPConn) *client {
 	conn.SetWriteBuffer(termColumns * termLines)
 	conn.SetReadBuffer(termColumns)
 
-	id := <-nextPlayerID
-
 	c := &client{
 		TCPConn:    conn,
 		remoteAddr: conn.RemoteAddr().String(),
 		err:        make(chan error, 1),
-		prompt:     noPrompt,
-
-		// Setup test player
-		player: attr.NewThing(
-			attr.NewName("Player "+id),
-			attr.NewDescription("This is an adventurer just like you."),
-			attr.NewAlias("PLAYER"+id),
-			attr.NewInventory(),
-			attr.NewLocate(nil),
-		),
+		prompt:     defaultPrompt,
 	}
 
 	c.err <- nil
 
-	// Add player attribute with reference to client for sending back data
-	c.player.Add(attr.NewPlayer(c))
-
-	c.Write(config.Server.Greeting)
-	c.prompt = defaultPrompt
-
-	// Put player into the world
-	i := start.Pick()
-	i.Lock()
-	i.Add(c.player)
-	stats.Add(c.player)
-	i.Unlock()
-
-	// Describe what they can see
-	cmd.Parse(c.player, "LOOK")
+	c.driver = frontend.NewDriver(c)
+	c.driver.Parse([]byte(""))
 
 	return c
 }
@@ -126,18 +74,18 @@ func (c *client) process() {
 	var (
 		s   = bufio.NewReaderSize(c, termColumns) // Sized network read buffer
 		err error                                 // function local errors
-		in  string                                // Input string from buffer
+		in  []byte                                // Input string from buffer
 	)
 
 	// Main input processing loop, terminates on any error raised not just read
 	// or Parse errors.
 	for c.Error() == nil {
 		c.SetReadDeadline(time.Now().Add(config.Server.IdleTimeout))
-		if in, err = s.ReadString('\n'); err != nil {
+		if in, err = s.ReadBytes('\n'); err != nil {
 			c.SetError(err)
 			continue
 		}
-		if err = cmd.Parse(c.player, in); err != nil {
+		if err = c.driver.Parse(in); err != nil {
 			c.SetError(err)
 		}
 	}
@@ -152,7 +100,7 @@ func (c *client) process() {
 	// if trying to handle a player dispute ;)
 	switch err := c.Error(); {
 	case err == io.EOF:
-		if in != "" {
+		if len(in) != 0 {
 			log.Printf("Connection error: %s %s", c.remoteAddr, err)
 		}
 	case err != nil:
@@ -172,13 +120,11 @@ func (c *client) process() {
 		log.Printf("Connection dropped by: %s", c.remoteAddr)
 	}
 
-	// If player still in the world force them to quit
-	if stats.Find(c.player) {
-		log.Printf("Forcing quit: %s", c.remoteAddr)
-		cmd.Parse(c.player, "QUIT")
-	}
+	// Deallocate current driver
+	c.driver.Close()
+	c.driver = nil
 
-	// Make sure connection closed down
+	// Make sure connection closed down and deallocated
 	if err = c.Close(); err != nil {
 		log.Printf("Error closing connection: %s", err)
 	} else {
@@ -186,16 +132,9 @@ func (c *client) process() {
 	}
 	c.TCPConn = nil
 
-	// Remove Player attribute cyclic reference
-	if a := attr.FindPlayer(c.player); a.Found() {
-		c.player.Remove(a)
-	}
-
-	// Close and drain channel
+	// Close and drain error channel
 	close(c.err)
 	<-c.err
-
-	return
 }
 
 // Write handles output for the network connection.
