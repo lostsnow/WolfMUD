@@ -90,34 +90,20 @@ func (c *client) process() {
 		}
 	}
 
-	// Log reson for ending, notify player if we can
-	//
-	// NOTE: We do not log EOF with no input otherwise the log can get very
-	// noisy. We also report EOF seperatly so we can log the host and socket.
-	//
-	// TODO: Log can still get noisy with errors. Might add a configure knob to
-	// just log quits, timeouts and drops which is what you usually want to know
-	// if trying to handle a player dispute ;)
-	switch err := c.Error(); {
-	case err == io.EOF:
-		if len(in) != 0 {
-			log.Printf("Connection error: %s %s", c.remoteAddr, err)
-		}
-	case err != nil:
-		if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
-			log.Printf("Connection timeout: %s", c.remoteAddr)
+	// If connection time out clear timeout error to notify the client
+	if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
+		<-c.err
+		c.err <- nil
+		c.prompt = noPrompt
+		c.Write([]byte("\n\nIdle connection terminated by server."))
+	}
 
-			// Clear temporary timeout error so that we can say goodbye to the client
-			<-c.err
-			c.err <- nil
-
-			c.prompt = noPrompt
-			c.Write([]byte("\n\nIdle connection terminated by server."))
-		} else {
-			log.Printf("Connection error: %s %s", c.remoteAddr, err)
-		}
-	default:
-		log.Printf("Connection dropped by: %s", c.remoteAddr)
+	// io.EOF does not give address info so handle specially, otherwise just
+	// report the error
+	if err == io.EOF {
+		log.Printf("Connection dropped by remote client: %s", c.remoteAddr)
+	} else {
+		log.Printf("Connection error: %s", err)
 	}
 
 	// Deallocate current driver
