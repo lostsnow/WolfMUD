@@ -95,6 +95,10 @@ func (c *client) process() {
 		}
 	}
 
+	// Deallocate current driver
+	c.driver.Close()
+	c.driver = nil
+
 	// If connection time out clear timeout error to notify the client
 	if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
 		<-c.err
@@ -118,10 +122,6 @@ func (c *client) process() {
 	} else {
 		log.Printf("Connection error: %s", err)
 	}
-
-	// Deallocate current driver
-	c.driver.Close()
-	c.driver = nil
 
 	// Make sure connection closed down and deallocated
 	if err = c.Close(); err != nil {
