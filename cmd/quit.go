@@ -29,7 +29,5 @@ func Quit(s *state) {
 
 	stats.Remove(s.actor)
 
-	s.msg.actor.WriteString("\nBye bye...\n\n")
-
 	s.ok = true
 }

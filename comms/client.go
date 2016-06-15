@@ -29,6 +29,11 @@ var (
 	noPrompt      = []byte{}    // An empty prompt
 )
 
+// This interface lets us assert network or our own errors
+type temporary interface {
+	Temporary() bool
+}
+
 // client contains state information about a client connection. The err field
 // should not be manipulated directly. Instead call Error() and SetError().
 //
@@ -95,7 +100,15 @@ func (c *client) process() {
 		<-c.err
 		c.err <- nil
 		c.prompt = noPrompt
-		c.Write([]byte("\n\nIdle connection terminated by server."))
+		c.Write([]byte("\n\nIdle connection terminated by server.\n"))
+	}
+
+	// If error is temporary clear error and say goodbye to client
+	if oe, ok := err.(temporary); ok && oe.Temporary() {
+		<-c.err
+		c.err <- nil
+		c.prompt = noPrompt
+		c.Write([]byte("\nBye bye...\n\n"))
 	}
 
 	// io.EOF does not give address info so handle specially, otherwise just
