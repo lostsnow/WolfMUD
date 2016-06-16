@@ -16,15 +16,14 @@ import (
 )
 
 type Driver struct {
-	buf    *bytes.Buffer
-	output io.Writer
-	input  []byte
-	next   func()
-	retry  bool
-	write  bool
-	player *attr.Thing
-	name   string
-	err    error
+	buf      *bytes.Buffer
+	output   io.Writer
+	input    []byte
+	nextFunc func()
+	write    bool
+	player   *attr.Thing
+	name     string
+	err      error
 }
 
 func NewDriver(output io.Writer) *Driver {
@@ -33,7 +32,7 @@ func NewDriver(output io.Writer) *Driver {
 		output: output,
 		write:  true,
 	}
-	d.next = d.greetingDisplay
+	d.nextFunc = d.greetingDisplay
 
 	return d
 }
@@ -46,19 +45,12 @@ func (d *Driver) Close() {
 	d.buf = nil
 	d.player = nil
 	d.output = nil
-	d.next = nil
+	d.nextFunc = nil
 }
 
 func (d *Driver) Parse(input []byte) error {
 	d.input = bytes.TrimSpace(input)
-	for d.retry = true; d.retry == true; {
-		d.retry = false
-		mark := d.buf.Len()
-		d.next()
-		if mark-d.buf.Len() != 0 && d.retry {
-			d.buf.Write([]byte("\n\n"))
-		}
-	}
+	d.nextFunc()
 	if d.write {
 		d.output.Write(d.buf.Bytes())
 		d.buf.Reset()
@@ -68,13 +60,12 @@ func (d *Driver) Parse(input []byte) error {
 
 func (d *Driver) greetingDisplay() {
 	d.buf.Write(config.Server.Greeting)
-	d.next = d.nameDisplay
-	d.retry = true
+	d.nameDisplay()
 }
 
 func (d *Driver) nameDisplay() {
 	d.buf.Write([]byte("Enter a name for your character:"))
-	d.next = d.nameProcess
+	d.nextFunc = d.nameProcess
 }
 
 func (d *Driver) nameProcess() {
@@ -83,14 +74,12 @@ func (d *Driver) nameProcess() {
 	}
 	if len(d.input) < 4 {
 		d.buf.Write([]byte("Name needs to be at least 4 characters long."))
-		d.next = d.nameDisplay
-		d.retry = true
+		d.nameDisplay()
 		return
 	}
 
 	d.name = string(d.input)
-	d.next = d.gameSetup
-	d.retry = true
+	d.gameSetup()
 }
 
 func (d *Driver) gameSetup() {
@@ -111,7 +100,7 @@ func (d *Driver) gameSetup() {
 	i.Unlock()
 
 	cmd.Parse(d.player, "LOOK")
-	d.next = d.gameRun
+	d.nextFunc = d.gameRun
 }
 
 func (d *Driver) gameRun() {
