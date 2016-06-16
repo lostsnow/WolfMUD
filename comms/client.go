@@ -23,12 +23,6 @@ const (
 	termLines   = 24
 )
 
-// Values to be treated as constants but we can't define them as constants
-var (
-	defaultPrompt = []byte(">") // Default prompt for client input
-	noPrompt      = []byte{}    // An empty prompt
-)
-
 // This interface lets us assert network or our own errors
 type temporary interface {
 	Temporary() bool
@@ -45,7 +39,6 @@ type client struct {
 	driver       *frontend.Driver // The current driver in use
 	remoteAddr   string           // Client's remote address
 	err          chan error       // Error channel to sync between input & output
-	prompt       []byte           // The current prompt the client is using
 }
 
 // newClient returns an initialised client for the passed connection.
@@ -62,7 +55,6 @@ func newClient(conn *net.TCPConn) *client {
 		TCPConn:    conn,
 		remoteAddr: conn.RemoteAddr().String(),
 		err:        make(chan error, 1),
-		prompt:     defaultPrompt,
 	}
 
 	c.err <- nil
@@ -103,7 +95,6 @@ func (c *client) process() {
 	if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
 		<-c.err
 		c.err <- nil
-		c.prompt = noPrompt
 		c.Write([]byte("\n\nIdle connection terminated by server.\n"))
 	}
 
@@ -111,7 +102,6 @@ func (c *client) process() {
 	if oe, ok := err.(temporary); ok && oe.Temporary() {
 		<-c.err
 		c.err <- nil
-		c.prompt = noPrompt
 		c.Write([]byte("\nBye bye...\n\n"))
 	}
 
@@ -148,10 +138,6 @@ func (c *client) Write(d []byte) (n int, err error) {
 
 	if len(d) != 0 {
 		t = text.Fold(d, termColumns)
-		t = append(t, "\r\n"...)
-		t = append(t, c.prompt...)
-	} else {
-		t = c.prompt
 	}
 
 	c.SetWriteDeadline(time.Now().Add(config.Server.IdleTimeout))

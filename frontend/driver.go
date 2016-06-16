@@ -52,6 +52,10 @@ func (d *Driver) Parse(input []byte) error {
 	d.input = bytes.TrimSpace(input)
 	d.nextFunc()
 	if d.write {
+		if len(d.input) > 0 || d.buf.Len() > 0 {
+			d.buf.WriteByte('\n')
+		}
+		d.buf.WriteByte('>')
 		d.output.Write(d.buf.Bytes())
 		d.buf.Reset()
 	}
