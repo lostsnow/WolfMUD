@@ -15,6 +15,18 @@ import (
 	"io"
 )
 
+// EndOfDataError represents the fact that no more data is expected to be
+// returned. For example the QUIT command has been used.
+type EndOfDataError struct{}
+
+func (e EndOfDataError) Error() string {
+	return "End of data - player quitting"
+}
+
+func (e EndOfDataError) Temporary() bool {
+	return true
+}
+
 type Driver struct {
 	buf      *bytes.Buffer
 	output   io.Writer
@@ -39,7 +51,7 @@ func NewDriver(output io.Writer) *Driver {
 
 func (d *Driver) Close() {
 	if stats.Find(d.player) {
-		d.err = cmd.Parse(d.player, "QUIT")
+		cmd.Parse(d.player, "QUIT")
 	}
 
 	d.buf = nil
@@ -108,5 +120,9 @@ func (d *Driver) gameSetup() {
 }
 
 func (d *Driver) gameRun() {
-	d.err = cmd.Parse(d.player, string(d.input))
+	c := cmd.Parse(d.player, string(d.input))
+	if c == "QUIT" {
+		d.write = true
+		d.err = EndOfDataError{}
+	}
 }
