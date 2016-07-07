@@ -27,6 +27,7 @@ func Quit(s *state) {
 		s.where.Remove(s.actor)
 	}
 
+	s.msg.actor.WriteString("You leave this world behind.")
 	stats.Remove(s.actor)
 
 	s.ok = true
