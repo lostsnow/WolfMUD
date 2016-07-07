@@ -76,16 +76,44 @@ func (d *Driver) Parse(input []byte) error {
 
 func (d *Driver) greetingDisplay() {
 	d.buf.Write(config.Server.Greeting)
-	d.nameDisplay()
+	d.menuDisplay()
+}
+
+func (d *Driver) menuDisplay() {
+	d.buf.Write([]byte(`
+  Main Menu
+  ---------
+
+  1. Enter game
+  0. Quit
+
+Select an option:`))
+	d.nextFunc = d.menuProcess
+}
+
+func (d *Driver) menuProcess() {
+	if len(d.input) == 0 {
+		return
+	}
+	switch string(d.input) {
+	case "1":
+		d.nameDisplay()
+	case "0":
+		d.write = false
+		d.err = EndOfDataError{}
+	default:
+		d.buf.Write([]byte("Invalid option selected."))
+	}
 }
 
 func (d *Driver) nameDisplay() {
-	d.buf.Write([]byte("Enter a name for your character:"))
+	d.buf.Write([]byte("Enter a name for your character or just enter to return to the main menu:"))
 	d.nextFunc = d.nameProcess
 }
 
 func (d *Driver) nameProcess() {
 	if len(d.input) == 0 {
+		d.menuDisplay()
 		return
 	}
 	if len(d.input) < 4 {
@@ -123,6 +151,6 @@ func (d *Driver) gameRun() {
 	c := cmd.Parse(d.player, string(d.input))
 	if c == "QUIT" {
 		d.write = true
-		d.err = EndOfDataError{}
+		d.menuDisplay()
 	}
 }
