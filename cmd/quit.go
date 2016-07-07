@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/stats"
 )
 
@@ -29,6 +30,8 @@ func Quit(s *state) {
 
 	s.msg.actor.WriteString("You leave this world behind.")
 	stats.Remove(s.actor)
+
+	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)
 
 	s.ok = true
 }

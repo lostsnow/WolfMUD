@@ -18,4 +18,18 @@ type Player interface {
 	// Player should implement a standard Write method to send data back to the
 	// associated client.
 	io.Writer
+
+	// SetPromptStyle is used to set the current prompt style and returns the
+	// previous prompt style. This is so the previous prompt style can be
+	// restored if required later on.
+	SetPromptStyle(new PromptStyle) (old PromptStyle)
 }
+
+type PromptStyle int
+
+const (
+	StyleNone PromptStyle = iota
+	StyleBrief
+	StyleShort
+	StyleLong
+)
