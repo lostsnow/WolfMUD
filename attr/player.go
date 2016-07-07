@@ -65,6 +65,10 @@ func (_ *Player) Unmarshal(data []byte) has.Attribute {
 
 // Write writes the specified byte slice to the associated client.
 func (p *Player) Write(b []byte) (n int, err error) {
+	if p == nil {
+		return
+	}
+
 	if len(b) > 0 {
 		b = append(b, '\n')
 	}
