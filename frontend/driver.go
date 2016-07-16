@@ -150,15 +150,17 @@ func (d *Driver) passwordProcess() {
 		return
 	}
 
-	d.name = recordjar.Decode.String(data["NAME"])
+	// Assemble player
+	d.player = attr.NewThing()
+	d.player.(*attr.Thing).Unmarshal(0, data)
+	d.player.Add(attr.NewLocate(nil))
+	d.player.Add(attr.NewPlayer(d.output))
 
-	tmp := attr.NewThing()
-	tmp.Unmarshal(0, data)
-	log.Printf("[DEBUG] %#v", tmp)
-
+	// Greet returning player
 	d.buf.WriteString("Welcome back ")
-	d.buf.WriteString(d.name)
+	d.buf.WriteString(attr.FindName(d.player).Name("Someone"))
 	d.buf.WriteString("!\n")
+
 	d.menuDisplay()
 }
 
