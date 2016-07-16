@@ -9,10 +9,19 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/stats"
 
 	"bytes"
+	"crypto/md5"
+	"crypto/sha512"
+	"encoding/base64"
+	"encoding/hex"
 	"io"
+	"log"
+	"os"
+	"path/filepath"
 )
 
 // EndOfDataError represents the fact that no more data is expected to be
@@ -33,8 +42,9 @@ type Driver struct {
 	input    []byte
 	nextFunc func()
 	write    bool
-	player   *attr.Thing
+	player   has.Thing
 	name     string
+	account  string
 	err      error
 }
 
@@ -74,10 +84,85 @@ func (d *Driver) Parse(input []byte) error {
 	return d.err
 }
 
+// GREETING
+
 func (d *Driver) greetingDisplay() {
 	d.buf.Write(config.Server.Greeting)
+	d.accountDisplay()
+}
+
+// ACCOUNT
+
+func (d *Driver) accountDisplay() {
+	d.buf.WriteString("Please enter your account ID or just press enter to create a new account:")
+	d.nextFunc = d.accountProcess
+}
+
+func (d *Driver) accountProcess() {
+	if len(d.input) == 0 {
+		d.buf.WriteString("Account creation unavailable.\n")
+		d.accountDisplay()
+		return
+	}
+
+	hash := md5.Sum(d.input)
+	d.account = hex.EncodeToString(hash[:])
+	d.passwordDisplay()
+}
+
+// PASSWORD
+
+func (d *Driver) passwordDisplay() {
+	d.buf.WriteString("Please enter the password for your account or just press enter to abort:")
+	d.nextFunc = d.passwordProcess
+}
+
+func (d *Driver) passwordProcess() {
+	if len(d.input) == 0 {
+		d.buf.WriteString("No Password given.\n")
+		d.accountDisplay()
+		return
+	}
+
+	// Can we get the account file?
+	p := filepath.Join(config.Server.DataDir, "players", d.account+".wrj")
+	f, err := os.Open(p)
+	if err != nil {
+		log.Printf("Error opening account: %s", err)
+		d.buf.WriteString("Acount ID or password is incorrect.\n")
+		d.accountDisplay()
+		return
+	}
+
+	jar := recordjar.Read(f, "description")
+	if err := f.Close(); err != nil {
+		log.Printf("Error closing account: %s", err)
+		d.buf.WriteString("Acount ID or password is incorrect.\n")
+		d.accountDisplay()
+		return
+	}
+
+	data := jar[0]
+	hash := sha512.Sum512(append(data["SALT"], d.input...))
+	if (base64.URLEncoding.EncodeToString(hash[:])) != string(data["PASSWORD"]) {
+		d.buf.WriteString("Acount ID or password is incorrect.\n")
+		d.accountDisplay()
+		return
+	}
+
+	d.name = recordjar.Decode.String(data["NAME"])
+
+	tmp := attr.NewThing()
+	tmp.Unmarshal(0, data)
+	log.Printf("[DEBUG] %#v", tmp)
+
+	d.buf.WriteString("Welcome back ")
+	d.buf.WriteString(d.name)
+	d.buf.WriteString("!\n")
 	d.menuDisplay()
 }
+
+// MENU
 
 func (d *Driver) menuDisplay() {
 	d.buf.Write([]byte(`
@@ -97,34 +182,16 @@ func (d *Driver) menuProcess() {
 	}
 	switch string(d.input) {
 	case "1":
-		d.nameDisplay()
+		d.gameSetup()
 	case "0":
 		d.write = false
 		d.err = EndOfDataError{}
 	default:
-		d.buf.Write([]byte("Invalid option selected."))
+		d.buf.WriteString("Invalid option selected.")
 	}
 }
 
-func (d *Driver) nameDisplay() {
-	d.buf.Write([]byte("Enter a name for your character or just enter to return to the main menu:"))
-	d.nextFunc = d.nameProcess
-}
-
-func (d *Driver) nameProcess() {
-	if len(d.input) == 0 {
-		d.menuDisplay()
-		return
-	}
-	if len(d.input) < 4 {
-		d.buf.Write([]byte("Name needs to be at least 4 characters long."))
-		d.nameDisplay()
-		return
-	}
-
-	d.name = string(d.input)
-	d.gameSetup()
-}
+// GAME
 
 func (d *Driver) gameSetup() {
 	d.player = attr.NewThing(
