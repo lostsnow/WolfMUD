@@ -20,20 +20,10 @@ func init() {
 }
 
 // Parse initiates processing of the input string for the specified Thing. The
-// input string is expected to be either a players input or possibly a scripted
-// command. If there is to be no more data - for example because the QUIT
-// command has been issued - an EndOfDataError will be returned. Otherwise nil
-// is returned.
+// input string is expected to be either input from a player or possibly a scripted
+// command. The actual command processed will be returned. For example GET or DROP.
 func Parse(t has.Thing, input string) string {
 	s := NewState(t, input)
 	s.parse()
-
-	// If actor is quitting call Close to deallocate all of the Thing Attribute.
-	// We can do that at this point as all message buffers have been written, all
-	// locks released and the actor removed from the world.
-	if s.cmd == "QUIT" {
-		s.actor.Close()
-	}
-
 	return s.cmd
 }

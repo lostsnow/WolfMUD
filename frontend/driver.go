@@ -60,10 +60,12 @@ func NewDriver(output io.Writer) *Driver {
 }
 
 func (d *Driver) Close() {
+
 	if stats.Find(d.player) {
 		cmd.Parse(d.player, "QUIT")
 	}
 
+	d.write = false
 	d.buf = nil
 	d.player = nil
 	d.output = nil
@@ -186,7 +188,7 @@ func (d *Driver) menuProcess() {
 	case "1":
 		d.gameSetup()
 	case "0":
-		d.write = false
+		d.Close()
 		d.err = EndOfDataError{}
 	default:
 		d.buf.WriteString("Invalid option selected.")
@@ -198,6 +200,7 @@ func (d *Driver) menuProcess() {
 func (d *Driver) gameSetup() {
 
 	d.write = false
+	attr.FindPlayer(d.player).SetPromptStyle(has.StyleBrief)
 
 	i := (*attr.Start)(nil).Pick()
 	i.Lock()
