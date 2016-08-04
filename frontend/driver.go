@@ -196,14 +196,7 @@ func (d *Driver) menuProcess() {
 // GAME
 
 func (d *Driver) gameSetup() {
-	d.player = attr.NewThing(
-		attr.NewName(d.name),
-		attr.NewDescription("This is an adventurer just like you."),
-		attr.NewAlias(d.name),
-		attr.NewInventory(),
-		attr.NewLocate(nil),
-	)
-	d.player.Add(attr.NewPlayer(d.output))
+
 	d.write = false
 
 	i := (*attr.Start)(nil).Pick()
