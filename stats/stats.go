@@ -4,7 +4,7 @@
 // included with the source code.
 
 // Package stats implements periodic collection and display of various -
-// possibly interisting - statistics. A typical reading might be:
+// possibly interesting - statistics. A typical reading might be:
 //
 //	M[   1Mb  -816b ] O[          1564        +0] G[    39     +0] P 11/11
 //
