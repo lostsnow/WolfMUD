@@ -22,7 +22,19 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
+
+// accounts is used to track which accounts are logged in and in use.
+var accounts struct {
+	inuse map[string]struct{}
+	sync.Mutex
+}
+
+// init is used to initialise the map used in account tracking.
+func init() {
+	accounts.inuse = make(map[string]struct{})
+}
 
 // EndOfDataError represents the fact that no more data is expected to be
 // returned. For example the QUIT command has been used.
@@ -64,6 +76,11 @@ func (d *Driver) Close() {
 	if stats.Find(d.player) {
 		cmd.Parse(d.player, "QUIT")
 	}
+
+	// Remove account from inuse list
+	accounts.Lock()
+	delete(accounts.inuse, d.account)
+	accounts.Unlock()
 
 	d.write = false
 	d.buf = nil
@@ -151,6 +168,18 @@ func (d *Driver) passwordProcess() {
 		d.accountDisplay()
 		return
 	}
+
+	// Check if account already in use to prevent multiple logins
+	accounts.Lock()
+	if _, inuse := accounts.inuse[d.account]; inuse {
+		log.Printf("Account already logged in: %s", d.account)
+		d.buf.WriteString("Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n")
+		d.accountDisplay()
+		accounts.Unlock()
+		return
+	}
+	accounts.inuse[d.account] = struct{}{}
+	accounts.Unlock()
 
 	// Assemble player
 	d.player = attr.NewThing()
