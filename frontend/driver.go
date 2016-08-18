@@ -6,22 +6,13 @@
 package frontend
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/stats"
 
 	"bytes"
-	"crypto/md5"
-	"crypto/sha512"
-	"encoding/base64"
-	"encoding/hex"
 	"io"
-	"log"
-	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -108,143 +99,4 @@ func (d *Driver) Parse(input []byte) error {
 func (d *Driver) greetingDisplay() {
 	d.buf.Write(config.Server.Greeting)
 	d.accountDisplay()
-}
-
-// ACCOUNT
-
-func (d *Driver) accountDisplay() {
-	d.buf.WriteString("Please enter your account ID or just press enter to create a new account:")
-	d.nextFunc = d.accountProcess
-}
-
-func (d *Driver) accountProcess() {
-	if len(d.input) == 0 {
-		d.buf.WriteString("Account creation unavailable.\n")
-		d.accountDisplay()
-		return
-	}
-
-	hash := md5.Sum(d.input)
-	d.account = hex.EncodeToString(hash[:])
-	d.passwordDisplay()
-}
-
-// PASSWORD
-
-func (d *Driver) passwordDisplay() {
-	d.buf.WriteString("Please enter the password for your account or just press enter to abort:")
-	d.nextFunc = d.passwordProcess
-}
-
-func (d *Driver) passwordProcess() {
-	if len(d.input) == 0 {
-		d.buf.WriteString("No Password given.\n")
-		d.accountDisplay()
-		return
-	}
-
-	// Can we get the account file?
-	p := filepath.Join(config.Server.DataDir, "players", d.account+".wrj")
-	f, err := os.Open(p)
-	if err != nil {
-		log.Printf("Error opening account: %s", err)
-		d.buf.WriteString("Acount ID or password is incorrect.\n")
-		d.accountDisplay()
-		return
-	}
-
-	jar := recordjar.Read(f, "description")
-	if err := f.Close(); err != nil {
-		log.Printf("Error closing account: %s", err)
-		d.buf.WriteString("Acount ID or password is incorrect.\n")
-		d.accountDisplay()
-		return
-	}
-
-	data := jar[0]
-	hash := sha512.Sum512(append(data["SALT"], d.input...))
-	if (base64.URLEncoding.EncodeToString(hash[:])) != string(data["PASSWORD"]) {
-		d.buf.WriteString("Acount ID or password is incorrect.\n")
-		d.accountDisplay()
-		return
-	}
-
-	// Check if account already in use to prevent multiple logins
-	accounts.Lock()
-	if _, inuse := accounts.inuse[d.account]; inuse {
-		log.Printf("Account already logged in: %s", d.account)
-		d.buf.WriteString("Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n")
-		d.accountDisplay()
-		accounts.Unlock()
-		return
-	}
-	accounts.inuse[d.account] = struct{}{}
-	accounts.Unlock()
-
-	// Assemble player
-	d.player = attr.NewThing()
-	d.player.(*attr.Thing).Unmarshal(0, data)
-	d.player.Add(attr.NewLocate(nil))
-	d.player.Add(attr.NewPlayer(d.output))
-
-	// Greet returning player
-	d.buf.WriteString("Welcome back ")
-	d.buf.WriteString(attr.FindName(d.player).Name("Someone"))
-	d.buf.WriteString("!\n")
-
-	d.menuDisplay()
-}
-
-// MENU
-
-func (d *Driver) menuDisplay() {
-	d.buf.Write([]byte(`
-  Main Menu
-  ---------
-
-  1. Enter game
-  0. Quit
-
-Select an option:`))
-	d.nextFunc = d.menuProcess
-}
-
-func (d *Driver) menuProcess() {
-	if len(d.input) == 0 {
-		return
-	}
-	switch string(d.input) {
-	case "1":
-		d.gameSetup()
-	case "0":
-		d.Close()
-		d.err = EndOfDataError{}
-	default:
-		d.buf.WriteString("Invalid option selected.")
-	}
-}
-
-// GAME
-
-func (d *Driver) gameSetup() {
-
-	d.write = false
-	attr.FindPlayer(d.player).SetPromptStyle(has.StyleBrief)
-
-	i := (*attr.Start)(nil).Pick()
-	i.Lock()
-	i.Add(d.player)
-	stats.Add(d.player)
-	i.Unlock()
-
-	cmd.Parse(d.player, "LOOK")
-	d.nextFunc = d.gameRun
-}
-
-func (d *Driver) gameRun() {
-	c := cmd.Parse(d.player, string(d.input))
-	if c == "QUIT" {
-		d.write = true
-		d.menuDisplay()
-	}
 }
