@@ -26,7 +26,6 @@ func (d *Driver) menuProcess() {
 		d.gameSetup()
 	case "0":
 		d.Close()
-		d.err = EndOfDataError{}
 	default:
 		d.buf.WriteString("Invalid option selected.")
 	}

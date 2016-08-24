@@ -27,15 +27,22 @@ func init() {
 	accounts.inuse = make(map[string]struct{})
 }
 
-// EndOfDataError represents the fact that no more data is expected to be
-// returned. For example the QUIT command has been used.
-type EndOfDataError struct{}
+// driverClosedError represents the fact that Close has been called on a Driver
+// instance releasing it's resources and that the instance should be discarded.
+// As interaction with the error is via the standard error and comms.temporary
+// interfaces it does not need to be exported.
+type driverClosedError struct{}
 
-func (e EndOfDataError) Error() string {
-	return "End of data - player quitting"
+// Error implements the error interface for errors and returns descriptive text
+// for the driverClosedError error.
+func (_ driverClosedError) Error() string {
+	return "frontend driver closed"
 }
 
-func (e EndOfDataError) Temporary() bool {
+// Temporary always returns true for any driverClosedError. A driverClosedError
+// does not bring down the network connection to the player - a comms.client
+// instance can still send and receive network data directly.
+func (_ driverClosedError) Temporary() bool {
 	return true
 }
 
@@ -64,6 +71,9 @@ func NewDriver(output io.Writer) *Driver {
 
 func (d *Driver) Close() {
 
+	d.err = driverClosedError{}
+
+	// If player is still in the game force them to quit
 	if stats.Find(d.player) {
 		cmd.Parse(d.player, "QUIT")
 	}
