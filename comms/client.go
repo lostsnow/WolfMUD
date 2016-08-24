@@ -110,7 +110,7 @@ func (c *client) process() {
 	if err == io.EOF {
 		log.Printf("Connection dropped by remote client: %s", c.remoteAddr)
 	} else {
-		log.Printf("Connection error: %s", err)
+		log.Printf("Connection error: %s, %s", err, c.remoteAddr)
 	}
 
 	// Make sure connection closed down and deallocated
