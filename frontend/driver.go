@@ -51,7 +51,6 @@ type Driver struct {
 	output   io.Writer
 	input    []byte
 	nextFunc func()
-	write    bool
 	player   has.Thing
 	name     string
 	account  string
@@ -62,7 +61,6 @@ func NewDriver(output io.Writer) *Driver {
 	d := &Driver{
 		buf:    new(bytes.Buffer),
 		output: output,
-		write:  true,
 	}
 	d.nextFunc = d.greetingDisplay
 
@@ -83,7 +81,6 @@ func (d *Driver) Close() {
 	delete(accounts.inuse, d.account)
 	accounts.Unlock()
 
-	d.write = false
 	d.buf = nil
 	d.player = nil
 	d.output = nil
@@ -93,7 +90,7 @@ func (d *Driver) Close() {
 func (d *Driver) Parse(input []byte) error {
 	d.input = bytes.TrimSpace(input)
 	d.nextFunc()
-	if d.write {
+	if d.buf != nil {
 		if len(d.input) > 0 || d.buf.Len() > 0 {
 			d.buf.WriteByte('\n')
 		}

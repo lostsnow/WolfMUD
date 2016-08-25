@@ -10,11 +10,13 @@ import (
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/stats"
+
+	"bytes"
 )
 
 func (d *Driver) gameSetup() {
 
-	d.write = false
+	d.buf = nil
 	attr.FindPlayer(d.player).SetPromptStyle(has.StyleBrief)
 
 	i := (*attr.Start)(nil).Pick()
@@ -30,7 +32,7 @@ func (d *Driver) gameSetup() {
 func (d *Driver) gameRun() {
 	c := cmd.Parse(d.player, string(d.input))
 	if c == "QUIT" {
-		d.write = true
+		d.buf = new(bytes.Buffer)
 		d.menuDisplay()
 	}
 }
