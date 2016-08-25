@@ -52,7 +52,6 @@ type Driver struct {
 	input    []byte
 	nextFunc func()
 	player   has.Thing
-	name     string
 	account  string
 	err      error
 }
