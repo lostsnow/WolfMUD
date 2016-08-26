@@ -31,14 +31,22 @@ type temporary interface {
 // client contains state information about a client connection. The err field
 // should not be manipulated directly. Instead call Error() and SetError().
 //
+// The current frontend in use is an anonymous interface as this lets us define
+// what type frontend is - even though we don't have access to the unexported
+// frontend struct from the frontend package.
+//
 // TODO: client is currently talking directly to a player. It should be talking
 // to a switchable, abstract layer so that we can talk to a player, menus,
 // account system etc.
 type client struct {
-	*net.TCPConn                  // The client's network connection
-	driver       *frontend.Driver // The current driver in use
-	remoteAddr   string           // Client's remote address
-	err          chan error       // Error channel to sync between input & output
+	*net.TCPConn            // The client's network connection
+	remoteAddr   string     // Client's remote address
+	err          chan error // Error channel to sync between input & output
+
+	frontend interface { // The current frontend in use
+		Parse([]byte) error
+		Close()
+	}
 }
 
 // newClient returns an initialised client for the passed connection.
@@ -59,8 +67,8 @@ func newClient(conn *net.TCPConn) *client {
 
 	c.err <- nil
 
-	c.driver = frontend.NewDriver(c)
-	c.driver.Parse([]byte(""))
+	c.frontend = frontend.New(c)
+	c.frontend.Parse([]byte(""))
 
 	return c
 }
@@ -82,14 +90,14 @@ func (c *client) process() {
 			c.SetError(err)
 			continue
 		}
-		if err = c.driver.Parse(in); err != nil {
+		if err = c.frontend.Parse(in); err != nil {
 			c.SetError(err)
 		}
 	}
 
-	// Deallocate current driver
-	c.driver.Close()
-	c.driver = nil
+	// Deallocate current frontend
+	c.frontend.Close()
+	c.frontend = nil
 
 	// If connection time out clear timeout error to notify the client
 	if oe, ok := err.(*net.OpError); ok && oe.Timeout() {

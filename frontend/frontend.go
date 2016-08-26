@@ -19,7 +19,7 @@ import (
 // accounts is used to track which (valid) accounts are logged in and in use.
 // It's main purpose is to track logged in account to prevent duplicate logins.
 //
-// NOTE: A Driver.account hash is NOT valid until it has been registered as
+// NOTE: A frontend account hash is NOT valid until it has been registered as
 // being inuse.
 var accounts struct {
 	inuse map[string]struct{}
@@ -31,89 +31,88 @@ func init() {
 	accounts.inuse = make(map[string]struct{})
 }
 
-// driverClosedError represents the fact that Close has been called on a Driver
+// closedError represents the fact that Close has been called on a frontend
 // instance releasing it's resources and that the instance should be discarded.
 // As interaction with the error is via the standard error and comms.temporary
 // interfaces it does not need to be exported.
-type driverClosedError struct{}
+type closedError struct{}
 
 // Error implements the error interface for errors and returns descriptive text
-// for the driverClosedError error.
-func (_ driverClosedError) Error() string {
-	return "frontend driver closed"
+// for the closedError error.
+func (_ closedError) Error() string {
+	return "frontend closed"
 }
 
-// Temporary always returns true for any driverClosedError. A driverClosedError
-// does not bring down the network connection to the player - a comms.client
-// instance can still send and receive network data directly.
-func (_ driverClosedError) Temporary() bool {
+// Temporary always returns true for any closedError. A closedError is
+// considered temporary as recovery is easy - create a new frontend instance.
+func (_ closedError) Temporary() bool {
 	return true
 }
 
 // NOTE: The account hash is NOT considered a valid account until it is
 // registered as inuse in the frontent.accounts tracking map. I.E. we may have
 // the account but not the password yet.
-type Driver struct {
+type frontend struct {
 	buf      *bytes.Buffer // Buffered text written to output when next prompt written
 	output   io.Writer     // Writer to send output text to
 	input    []byte        // The input text we are currently processing
-	nextFunc func()        // The next driver function to call to process current input
+	nextFunc func()        // The next frontend function to call to process current input
 	player   has.Thing     // The current player instance (may be ingame or not)
 	account  string        // The current account hash
 	err      error         // Contains the first error to occur else nil
 }
 
-func NewDriver(output io.Writer) *Driver {
-	d := &Driver{
+func New(output io.Writer) *frontend {
+	f := &frontend{
 		buf:    new(bytes.Buffer),
 		output: output,
 	}
-	d.nextFunc = d.greetingDisplay
-	return d
+	f.nextFunc = f.greetingDisplay
+	return f
 }
 
-func (d *Driver) Close() {
+func (f *frontend) Close() {
 
 	// Just return if we already have an error
-	if d.err != nil {
+	if f.err != nil {
 		return
 	}
-	d.err = driverClosedError{}
+	f.err = closedError{}
 
 	// If player is still in the game force them to quit
-	if stats.Find(d.player) {
-		cmd.Parse(d.player, "QUIT")
+	if stats.Find(f.player) {
+		cmd.Parse(f.player, "QUIT")
 	}
 
 	// Remove account from inuse list
 	accounts.Lock()
-	delete(accounts.inuse, d.account)
+	delete(accounts.inuse, f.account)
 	accounts.Unlock()
 
 	// Free up resources
-	d.buf = nil
-	d.player = nil
-	d.output = nil
-	d.nextFunc = nil
+	f.buf = nil
+	f.player = nil
+	f.output = nil
+	f.nextFunc = nil
 }
 
-func (d *Driver) Parse(input []byte) error {
-	d.input = bytes.TrimSpace(input)
-	d.nextFunc()
-	if d.buf != nil {
-		if len(d.input) > 0 || d.buf.Len() > 0 {
-			d.buf.WriteByte('\n')
+func (f *frontend) Parse(input []byte) error {
+	f.input = bytes.TrimSpace(input)
+	f.nextFunc()
+	if f.buf != nil {
+		if len(f.input) > 0 || f.buf.Len() > 0 {
+			f.buf.WriteByte('\n')
 		}
-		d.buf.WriteByte('>')
-		d.output.Write(d.buf.Bytes())
-		d.buf.Reset()
+		f.buf.WriteByte('>')
+		f.output.Write(f.buf.Bytes())
+		f.buf.Reset()
 	}
-	return d.err
+	return f.err
 }
 
 // GREETING
 
-func (d *Driver) greetingDisplay() {
-	d.buf.Write(config.Server.Greeting)
-	d.accountDisplay()
+func (f *frontend) greetingDisplay() {
+	f.buf.Write(config.Server.Greeting)
+	f.accountDisplay()
 }

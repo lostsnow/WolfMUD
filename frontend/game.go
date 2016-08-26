@@ -14,25 +14,25 @@ import (
 	"bytes"
 )
 
-func (d *Driver) gameSetup() {
+func (f *frontend) gameSetup() {
 
-	d.buf = nil
-	attr.FindPlayer(d.player).SetPromptStyle(has.StyleBrief)
+	f.buf = nil
+	attr.FindPlayer(f.player).SetPromptStyle(has.StyleBrief)
 
 	i := (*attr.Start)(nil).Pick()
 	i.Lock()
-	i.Add(d.player)
-	stats.Add(d.player)
+	i.Add(f.player)
+	stats.Add(f.player)
 	i.Unlock()
 
-	cmd.Parse(d.player, "LOOK")
-	d.nextFunc = d.gameRun
+	cmd.Parse(f.player, "LOOK")
+	f.nextFunc = f.gameRun
 }
 
-func (d *Driver) gameRun() {
-	c := cmd.Parse(d.player, string(d.input))
+func (f *frontend) gameRun() {
+	c := cmd.Parse(f.player, string(f.input))
 	if c == "QUIT" {
-		d.buf = new(bytes.Buffer)
-		d.menuDisplay()
+		f.buf = new(bytes.Buffer)
+		f.menuDisplay()
 	}
 }

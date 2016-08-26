@@ -5,8 +5,8 @@
 
 package frontend
 
-func (d *Driver) menuDisplay() {
-	d.buf.Write([]byte(`
+func (f *frontend) menuDisplay() {
+	f.buf.Write([]byte(`
   Main Menu
   ---------
 
@@ -14,19 +14,19 @@ func (d *Driver) menuDisplay() {
   0. Quit
 
 Select an option:`))
-	d.nextFunc = d.menuProcess
+	f.nextFunc = f.menuProcess
 }
 
-func (d *Driver) menuProcess() {
-	if len(d.input) == 0 {
+func (f *frontend) menuProcess() {
+	if len(f.input) == 0 {
 		return
 	}
-	switch string(d.input) {
+	switch string(f.input) {
 	case "1":
-		d.gameSetup()
+		f.gameSetup()
 	case "0":
-		d.Close()
+		f.Close()
 	default:
-		d.buf.WriteString("Invalid option selected.")
+		f.buf.WriteString("Invalid option selected.")
 	}
 }

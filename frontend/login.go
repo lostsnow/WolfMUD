@@ -19,84 +19,84 @@ import (
 	"path/filepath"
 )
 
-func (d *Driver) accountDisplay() {
-	d.buf.WriteString("Please enter your account ID or just press enter to create a new account:")
-	d.nextFunc = d.accountProcess
+func (f *frontend) accountDisplay() {
+	f.buf.WriteString("Please enter your account ID or just press enter to create a new account:")
+	f.nextFunc = f.accountProcess
 }
 
-func (d *Driver) accountProcess() {
-	if len(d.input) == 0 {
-		d.buf.WriteString("Account creation unavailable.\n")
-		d.accountDisplay()
+func (f *frontend) accountProcess() {
+	if len(f.input) == 0 {
+		f.buf.WriteString("Account creation unavailable.\n")
+		f.accountDisplay()
 		return
 	}
 
-	hash := md5.Sum(d.input)
-	d.account = hex.EncodeToString(hash[:])
-	d.passwordDisplay()
+	hash := md5.Sum(f.input)
+	f.account = hex.EncodeToString(hash[:])
+	f.passwordDisplay()
 }
 
-func (d *Driver) passwordDisplay() {
-	d.buf.WriteString("Please enter the password for your account or just press enter to abort:")
-	d.nextFunc = d.passwordProcess
+func (f *frontend) passwordDisplay() {
+	f.buf.WriteString("Please enter the password for your account or just press enter to abort:")
+	f.nextFunc = f.passwordProcess
 }
 
-func (d *Driver) passwordProcess() {
-	if len(d.input) == 0 {
-		d.buf.WriteString("No Password given.\n")
-		d.accountDisplay()
+func (f *frontend) passwordProcess() {
+	if len(f.input) == 0 {
+		f.buf.WriteString("No Password given.\n")
+		f.accountDisplay()
 		return
 	}
 
 	// Can we get the account file?
-	p := filepath.Join(config.Server.DataDir, "players", d.account+".wrj")
-	f, err := os.Open(p)
+	p := filepath.Join(config.Server.DataDir, "players", f.account+".wrj")
+	wrj, err := os.Open(p)
 	if err != nil {
 		log.Printf("Error opening account: %s", err)
-		d.buf.WriteString("Acount ID or password is incorrect.\n")
-		d.accountDisplay()
+		f.buf.WriteString("Acount ID or password is incorrect.\n")
+		f.accountDisplay()
 		return
 	}
 
-	jar := recordjar.Read(f, "description")
-	if err := f.Close(); err != nil {
+	jar := recordjar.Read(wrj, "description")
+	if err := wrj.Close(); err != nil {
 		log.Printf("Error closing account: %s", err)
-		d.buf.WriteString("Acount ID or password is incorrect.\n")
-		d.accountDisplay()
+		f.buf.WriteString("Acount ID or password is incorrect.\n")
+		f.accountDisplay()
 		return
 	}
 
 	data := jar[0]
-	hash := sha512.Sum512(append(data["SALT"], d.input...))
+	hash := sha512.Sum512(append(data["SALT"], f.input...))
 	if (base64.URLEncoding.EncodeToString(hash[:])) != string(data["PASSWORD"]) {
-		d.buf.WriteString("Acount ID or password is incorrect.\n")
-		d.accountDisplay()
+		f.buf.WriteString("Acount ID or password is incorrect.\n")
+		f.accountDisplay()
 		return
 	}
 	jar = jar[1:]
 
 	// Check if account already in use to prevent multiple logins
 	accounts.Lock()
-	if _, inuse := accounts.inuse[d.account]; inuse {
-		log.Printf("Account already logged in: %s", d.account)
-		d.buf.WriteString("Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n")
-		d.accountDisplay()
+	if _, inuse := accounts.inuse[f.account]; inuse {
+		log.Printf("Account already logged in: %s", f.account)
+		f.buf.WriteString("Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n")
+		f.accountDisplay()
 		accounts.Unlock()
 		return
 	}
-	accounts.inuse[d.account] = struct{}{}
+	accounts.inuse[f.account] = struct{}{}
 	accounts.Unlock()
 
 	// Assemble player
-	d.player = attr.NewThing()
-	d.player.(*attr.Thing).Unmarshal(0, jar[0])
-	d.player.Add(attr.NewLocate(nil))
-	d.player.Add(attr.NewPlayer(d.output))
+	f.player = attr.NewThing()
+	f.player.(*attr.Thing).Unmarshal(0, jar[0])
+	f.player.Add(attr.NewLocate(nil))
+	f.player.Add(attr.NewPlayer(f.output))
 
 	// Greet returning player
-	d.buf.WriteString("Welcome back ")
-	d.buf.WriteString(attr.FindName(d.player).Name("Someone"))
-	d.buf.WriteString("!\n")
+	f.buf.WriteString("Welcome back ")
+	f.buf.WriteString(attr.FindName(f.player).Name("Someone"))
+	f.buf.WriteString("!\n")
 
-	d.menuDisplay()
+	f.menuDisplay()
 }
