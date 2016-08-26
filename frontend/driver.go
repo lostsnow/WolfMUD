@@ -16,7 +16,11 @@ import (
 	"sync"
 )
 
-// accounts is used to track which accounts are logged in and in use.
+// accounts is used to track which (valid) accounts are logged in and in use.
+// It's main purpose is to track logged in account to prevent duplicate logins.
+//
+// NOTE: A Driver.account hash is NOT valid until it has been registered as
+// being inuse.
 var accounts struct {
 	inuse map[string]struct{}
 	sync.Mutex
@@ -46,14 +50,17 @@ func (_ driverClosedError) Temporary() bool {
 	return true
 }
 
+// NOTE: The account hash is NOT considered a valid account until it is
+// registered as inuse in the frontent.accounts tracking map. I.E. we may have
+// the account but not the password yet.
 type Driver struct {
-	buf      *bytes.Buffer
-	output   io.Writer
-	input    []byte
-	nextFunc func()
-	player   has.Thing
-	account  string
-	err      error
+	buf      *bytes.Buffer // Buffered text written to output when next prompt written
+	output   io.Writer     // Writer to send output text to
+	input    []byte        // The input text we are currently processing
+	nextFunc func()        // The next driver function to call to process current input
+	player   has.Thing     // The current player instance (may be ingame or not)
+	account  string        // The current account hash
+	err      error         // Contains the first error to occur else nil
 }
 
 func NewDriver(output io.Writer) *Driver {
@@ -62,12 +69,15 @@ func NewDriver(output io.Writer) *Driver {
 		output: output,
 	}
 	d.nextFunc = d.greetingDisplay
-
 	return d
 }
 
 func (d *Driver) Close() {
 
+	// Just return if we already have an error
+	if d.err != nil {
+		return
+	}
 	d.err = driverClosedError{}
 
 	// If player is still in the game force them to quit
@@ -80,6 +90,7 @@ func (d *Driver) Close() {
 	delete(accounts.inuse, d.account)
 	accounts.Unlock()
 
+	// Free up resources
 	d.buf = nil
 	d.player = nil
 	d.output = nil
