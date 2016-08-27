@@ -26,10 +26,10 @@ func (f *frontend) gameSetup() {
 	i.Unlock()
 
 	cmd.Parse(f.player, "LOOK")
-	f.nextFunc = f.gameRun
+	f.nextFunc = f.gameProcess
 }
 
-func (f *frontend) gameRun() {
+func (f *frontend) gameProcess() {
 	c := cmd.Parse(f.player, string(f.input))
 	if c == "QUIT" {
 		f.buf = new(bytes.Buffer)
