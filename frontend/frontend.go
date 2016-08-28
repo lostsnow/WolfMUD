@@ -109,10 +109,3 @@ func (f *frontend) Parse(input []byte) error {
 	}
 	return f.err
 }
-
-// GREETING
-
-func (f *frontend) greetingDisplay() {
-	f.buf.Write(config.Server.Greeting)
-	f.accountDisplay()
-}
