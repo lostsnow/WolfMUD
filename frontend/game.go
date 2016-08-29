@@ -14,6 +14,10 @@ import (
 	"bytes"
 )
 
+// gameInit is used to place the player into the game world. As the game
+// backend has it's own output handling we remove the frontend.buf buffer to
+// prevent duplicate output. The buffer is restored by gameProcess when the
+// player quits the game world.
 func (f *frontend) gameInit() {
 
 	f.buf = nil
@@ -29,6 +33,9 @@ func (f *frontend) gameInit() {
 	f.nextFunc = f.gameProcess
 }
 
+// gameProcess hands input to the game backend for processing while the player
+// is in the game. When the player quits the game the frontend.buf buffer is
+// restored - see gameInit.
 func (f *frontend) gameProcess() {
 	c := cmd.Parse(f.player, string(f.input))
 	if c == "QUIT" {
