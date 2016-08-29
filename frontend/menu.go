@@ -23,7 +23,7 @@ func (f *frontend) menuProcess() {
 	}
 	switch string(f.input) {
 	case "1":
-		f.gameSetup()
+		f.gameInit()
 	case "0":
 		f.Close()
 	default:

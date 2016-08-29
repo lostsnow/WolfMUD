@@ -14,7 +14,7 @@ import (
 	"bytes"
 )
 
-func (f *frontend) gameSetup() {
+func (f *frontend) gameInit() {
 
 	f.buf = nil
 	attr.FindPlayer(f.player).SetPromptStyle(has.StyleBrief)
