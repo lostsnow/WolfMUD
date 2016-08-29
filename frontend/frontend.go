@@ -3,11 +3,34 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
+// Package frontend provides interactive processing of front end pages and
+// access to the backend game. Note that a 'page' can be anything from a menu
+// of options to choose from to a simple request for a password.
+//
+// The frontend is responsible for coordinating the display of pages to a user
+// and processing their responses. These pages cover logging into the server,
+// account creation, player creation and other non in-game activities. When the
+// player is in-game the frontend will simply pass any input through to the
+// game backend for processing.
+//
+// Pages typically have a pair of methods - a display part and a processing
+// part. For example accountDisplay and accountProcess. Sometimes there is only
+// a display part, for example greetingDisplay.
+//
+// The current state is held in an instance of frontend. With frontend.nextFunc
+// being the next method to call when input is received - usually an xxxProcess
+// method.
+//
+// Each time input is received Parse will be called. The method in nextFunc
+// will be called to handle the input. nextFunc should then call the next
+// xxxDisplay method to send a response to the input processing and setup
+// nextFunc with the method that will process the next input received. Any
+// buffered response will then be sent back before Parse exits. Parse will then
+// be called again when more input is received.
 package frontend
 
 import (
 	"code.wolfmud.org/WolfMUD.git/cmd"
-	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/stats"
 
@@ -49,19 +72,26 @@ func (_ closedError) Temporary() bool {
 	return true
 }
 
+// frontend represents the current frontend state for a given io.Writer - this
+// is typically from a player's network connection.
+//
 // NOTE: The account hash is NOT considered a valid account until it is
 // registered as inuse in the frontent.accounts tracking map. I.E. we may have
 // the account but not the password yet.
 type frontend struct {
-	buf      *bytes.Buffer // Buffered text written to output when next prompt written
 	output   io.Writer     // Writer to send output text to
+	buf      *bytes.Buffer // Buffered text written to output when next prompt written
 	input    []byte        // The input text we are currently processing
-	nextFunc func()        // The next frontend function to call to process current input
+	nextFunc func()        // The next frontend function to be called by Parse
 	player   has.Thing     // The current player instance (may be ingame or not)
-	account  string        // The current account hash
-	err      error         // Contains the first error to occur else nil
+	account  string        // The current account hash (also key to accounts)
+	err      error         // First error to occur else nil
 }
 
+// New returns an instance of frontend initialised with the given io.Writer.
+// The io.Writer is used to send responses back from calling Parse. The new
+// frontend is initialised with an output buffer and nextFunc setup to call
+// greetingDisplay.
 func New(output io.Writer) *frontend {
 	f := &frontend{
 		buf:    new(bytes.Buffer),
@@ -71,6 +101,9 @@ func New(output io.Writer) *frontend {
 	return f
 }
 
+// Close makes sure the player is no longer 'in game' and frees up resources
+// held the the instance of frontent. If the player is 'in game' a "QUIT"
+// command will be issued.
 func (f *frontend) Close() {
 
 	// Just return if we already have an error
@@ -96,9 +129,24 @@ func (f *frontend) Close() {
 	f.nextFunc = nil
 }
 
+// Parse is the main input/output processing method for frontend. The input is
+// stripped of leading and trailing whitespace before being stored in the
+// frontend state. Any response from processing the input is written to the
+// io.Writer passed to the initial New function that created the frontend. If
+// the frontend is closed during processing a closedError will be returned else
+// nil.
 func (f *frontend) Parse(input []byte) error {
+
+	// If we already have an error just return it
+	if f.err != nil {
+		return f.err
+	}
+
+	// Trim whitespace from input and process it
 	f.input = bytes.TrimSpace(input)
 	f.nextFunc()
+
+	// If we have an output buffer write out it content
 	if f.buf != nil {
 		if len(f.input) > 0 || f.buf.Len() > 0 {
 			f.buf.WriteByte('\n')
