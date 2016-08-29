@@ -5,6 +5,8 @@
 
 package frontend
 
+// menuDisplay shows the main menu of options available once a player is logged
+// into the system.
 func (f *frontend) menuDisplay() {
 	f.buf.Write([]byte(`
   Main Menu
@@ -17,6 +19,8 @@ Select an option:`))
 	f.nextFunc = f.menuProcess
 }
 
+// menuProcess validates the menu option take by the player and takes action
+// accordingly.
 func (f *frontend) menuProcess() {
 	if len(f.input) == 0 {
 		return
