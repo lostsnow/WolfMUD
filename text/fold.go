@@ -25,10 +25,10 @@ const (
 	lines = 24 // Starting number of lines for page initial buffer sizing
 )
 
-// Carriage return/line feed for network data
 var (
-	lf   = []byte("\n")
-	crlf = []byte("\r\n")
+	lf   = []byte("\n")   // End of line used internally
+	crlf = []byte("\r\n") // End of line for network data
+	esc  = '\033'         // Escape control code, same as 0x1b or ^[
 )
 
 // Fold takes a string and reformats it so lines have a maximum length of the
@@ -65,9 +65,26 @@ func Fold(in []byte, width int) []byte {
 	var (
 		wordLen, lineLen, pageLen = 0, 0, 0 // word, line and output length in runes
 		blank                     = true    // true when line is empty or only blanks
+		control                   = false   // true when processing a control sequence
 	)
 
 	for _, r := range bytes.Runes(in) {
+
+		// Are we starting a control sequence?
+		if r == esc {
+			control = true
+		}
+
+		// Control codes are zero width and do not add to the length of the word
+		// but are written out. Any character in the range 0x40 - 0x7E (ASCII '@'
+		// through to ASCII '~') ends a control sequence.
+		if control {
+			word.WriteRune(r)
+			if '@' <= r && r <= '~' {
+				control = false
+			}
+			continue
+		}
 
 		if (r != ' ' && r != '\n') || (r == ' ' && blank == true) {
 			word.WriteRune(r)
