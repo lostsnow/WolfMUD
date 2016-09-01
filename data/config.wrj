@@ -20,6 +20,13 @@
 	Inventory.Compact:		 8
 	Inventory.CrowdSize:	10
 //
+// Login configuration
+//
+// NOTE: Lengths are minimums
+//
+	Login.AccountLength:	10
+	Login.PasswordLength: 10
+//
 // Initial client connection greeting
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe

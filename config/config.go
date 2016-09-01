@@ -55,6 +55,15 @@ var Inventory = struct {
 	CrowdSize: 10,
 }
 
+// Login default configuration
+var Login = struct {
+	AccountLength  int
+	PasswordLength int
+}{
+	AccountLength:  10,
+	PasswordLength: 10,
+}
+
 // Load loads the configuration file and overrides the default configuration
 // values with any values found.
 func Load() {
@@ -99,6 +108,12 @@ func Load() {
 			Inventory.Compact = recordjar.Decode.Integer(data)
 		case "INVENTORY.CROWDSIZE":
 			Inventory.CrowdSize = recordjar.Decode.Integer(data)
+
+		// Login settings
+		case "LOGIN.ACCOUNTLENGTH":
+			Login.AccountLength = recordjar.Decode.Integer(data)
+		case "LOGIN.PASSWORDLENGTH":
+			Login.PasswordLength = recordjar.Decode.Integer(data)
 
 		// Unknow setting
 		default:
