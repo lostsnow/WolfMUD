@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 
+	"bytes"
 	"crypto/md5"
 	"crypto/sha512"
 	"encoding/base64"
@@ -22,7 +23,7 @@ import (
 // accountDisplay asks for the player's account ID so that they can log into
 // the system.
 func (f *frontend) accountDisplay() {
-	f.buf.WriteString("Please enter your account ID or just press enter to create a new account:")
+	f.buf.WriteString("Enter your account ID or just press enter to create a new account, enter QUIT to leave the server:")
 	f.nextFunc = f.accountProcess
 }
 
@@ -32,6 +33,11 @@ func (f *frontend) accountProcess() {
 	if len(f.input) == 0 {
 		f.buf.WriteString("Account creation unavailable.\n")
 		f.accountDisplay()
+		return
+	}
+
+	if bytes.Equal(f.input, []byte("QUIT")) {
+		f.Close()
 		return
 	}
 
