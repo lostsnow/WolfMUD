@@ -72,6 +72,26 @@ func (_ closedError) Temporary() bool {
 	return true
 }
 
+// buffer is our extended version of a bytes.Buffer so that we can add some
+// convience methods.
+type buffer struct {
+	*bytes.Buffer
+}
+
+// WriteJoin takes a number of strings and writes them into the buffer. It's a
+// convenience method to save writing multiple WriteString statements and an
+// alternative to additional allocations due to concatenation.
+//
+// The return value n is the total length of all s, in bytes; err is always nil.
+// The underlying bytes.Buffer may panic if it becomes too large.
+func (b *buffer) WriteJoin(s ...string) (n int, err error) {
+	for _, s := range s {
+		x, _ := b.WriteString(s)
+		n += x
+	}
+	return n, nil
+}
+
 // frontend represents the current frontend state for a given io.Writer - this
 // is typically from a player's network connection.
 //
@@ -79,13 +99,13 @@ func (_ closedError) Temporary() bool {
 // registered as inuse in the frontent.accounts tracking map. I.E. we may have
 // the account but not the password yet.
 type frontend struct {
-	output   io.Writer     // Writer to send output text to
-	buf      *bytes.Buffer // Buffered text written to output when next prompt written
-	input    []byte        // The input text we are currently processing
-	nextFunc func()        // The next frontend function to be called by Parse
-	player   has.Thing     // The current player instance (may be ingame or not)
-	account  string        // The current account hash (also key to accounts)
-	err      error         // First error to occur else nil
+	output   io.Writer // Writer to send output text to
+	buf      *buffer   // Buffered text written to output when next prompt written
+	input    []byte    // The input text we are currently processing
+	nextFunc func()    // The next frontend function to be called by Parse
+	player   has.Thing // The current player instance (may be ingame or not)
+	account  string    // The current account hash (also key to accounts)
+	err      error     // First error to occur else nil
 }
 
 // New returns an instance of frontend initialised with the given io.Writer.
@@ -94,7 +114,7 @@ type frontend struct {
 // greetingDisplay.
 func New(output io.Writer) *frontend {
 	f := &frontend{
-		buf:    new(bytes.Buffer),
+		buf:    &buffer{new(bytes.Buffer)},
 		output: output,
 	}
 	f.nextFunc = f.greetingDisplay

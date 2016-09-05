@@ -39,7 +39,7 @@ func (f *frontend) gameInit() {
 func (f *frontend) gameProcess() {
 	c := cmd.Parse(f.player, string(f.input))
 	if c == "QUIT" {
-		f.buf = new(bytes.Buffer)
+		f.buf = &buffer{new(bytes.Buffer)}
 		f.menuDisplay()
 	}
 }
