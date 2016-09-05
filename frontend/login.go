@@ -48,7 +48,7 @@ func (f *frontend) accountProcess() {
 
 // passwordDisplay asks for the player's password for their account ID.
 func (f *frontend) passwordDisplay() {
-	f.buf.WriteString("Please enter the password for your account or just press enter to abort:")
+	f.buf.WriteString("Enter the password for your account ID or just press enter to cancel:")
 	f.nextFunc = f.passwordProcess
 }
 
@@ -62,7 +62,7 @@ func (f *frontend) passwordProcess() {
 
 	// If no password given go back and ask for an account ID.
 	if len(f.input) == 0 {
-		f.buf.WriteString("No Password given.\n")
+		f.buf.WriteString("Login cancelled.\n")
 		f.accountDisplay()
 		return
 	}
