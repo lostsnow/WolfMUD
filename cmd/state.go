@@ -17,7 +17,7 @@ import (
 // buffer is our extended version of a bytes.Buffer so that we can add some
 // convience methods.
 type buffer struct {
-	bytes.Buffer
+	*bytes.Buffer
 }
 
 // WriteJoin takes a number of strings and writes them into the buffer. It's a
@@ -315,15 +315,15 @@ func (s *state) AddLock(i has.Inventory) {
 // reasonable.
 func (s *state) allocateBuffers() {
 	if s.msg.actor == nil {
-		s.msg.actor = &buffer{Buffer: *bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-		s.msg.participant = &buffer{Buffer: *bytes.NewBuffer([]byte{})}
+		s.msg.actor = &buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
+		s.msg.participant = &buffer{Buffer: bytes.NewBuffer([]byte{})}
 		s.msg.observers = make(map[has.Inventory]*buffer)
 		s.msg.participant.WriteByte(byte('\n'))
 	}
 
 	for _, l := range s.locks {
 		if _, ok := s.msg.observers[l]; !ok {
-			s.msg.observers[l] = &buffer{Buffer: *bytes.NewBuffer([]byte{})}
+			s.msg.observers[l] = &buffer{Buffer: bytes.NewBuffer([]byte{})}
 			s.msg.observers[l].WriteByte('\n')
 		}
 	}
