@@ -24,21 +24,21 @@ type decoder struct{}
 var Decode = decoder{}
 
 // String returns the []bytes data as a string.
-func (d decoder) String(data []byte) string {
+func (decoder) String(data []byte) string {
 	return string(data)
 }
 
 // Keyword returns the []bytes data as an uppercased string. This is helpful
 // for keeping IDs and references consistent and independent of how they appear
 // in e.g. data files.
-func (d decoder) Keyword(data []byte) string {
+func (decoder) Keyword(data []byte) string {
 	return strings.ToUpper(string(data))
 }
 
 // KeywordList returns the []byte data as an uppercased slice of strings. The
 // data is split on whitespace, extra whitespace is stripped and the individual
 // 'words' are returned in the string slice.
-func (d decoder) KeywordList(data []byte) []string {
+func (decoder) KeywordList(data []byte) []string {
 	return strings.Fields(strings.ToUpper(string(data)))
 }
 
@@ -51,7 +51,7 @@ func (d decoder) KeywordList(data []byte) []string {
 //
 // Results in two pairs [2]string{"E", "L3"} and [2]string{"SE", "L4"}. Here
 // the separator used is → but any non-unicode letter or digit may be used.
-func (d decoder) PairList(data []byte) (pairs [][2]string) {
+func (decoder) PairList(data []byte) (pairs [][2]string) {
 	for _, pair := range strings.Fields(string(data)) {
 		runes := []rune(pair)
 		for i, r := range runes {
@@ -66,15 +66,15 @@ func (d decoder) PairList(data []byte) (pairs [][2]string) {
 
 // Bytes returns a copy of the []byte data. Important so we don't accidentally
 // pin a larger backing array in memory via the slice.
-func (d decoder) Bytes(dataIn []byte) []byte {
+func (decoder) Bytes(dataIn []byte) []byte {
 	dataOut := make([]byte, len(dataIn), len(dataIn))
 	copy(dataOut, dataIn)
 	return dataOut
 }
 
-// Duration return the []byte data as a time.Duration. The data is parsed using
-// time.ParseDuration and will default to 0 if the data cannot be parsed.
-func (d decoder) Duration(data []byte) (t time.Duration) {
+// Duration returns the []byte data as a time.Duration. The data is parsed
+// using time.ParseDuration and will default to 0 if the data cannot be parsed.
+func (decoder) Duration(data []byte) (t time.Duration) {
 	var err error
 	if t, err = time.ParseDuration(string(data)); err != nil {
 		log.Printf("Duration field has invalid value %q, using default: %s", data, t)
@@ -85,7 +85,7 @@ func (d decoder) Duration(data []byte) (t time.Duration) {
 // Boolean returns the []byte data as a boolean value. The data is parsed using
 // strconv.ParseBool and will default to false if the data cannot be parsed.
 // Using strconv.parseBool allows true and false to be represented in many ways.
-func (d decoder) Boolean(data []byte) (b bool) {
+func (decoder) Boolean(data []byte) (b bool) {
 	var err error
 	if b, err = strconv.ParseBool(string(data)); err != nil {
 		log.Printf("Boolean field has invalid value %q, using default: %t", data, b)
@@ -95,7 +95,7 @@ func (d decoder) Boolean(data []byte) (b bool) {
 
 // Integer returns the []byte data as an integer value. The []byte is parsed
 // using strconv.Atoi and will default to 0 if the data cannot be parsed.
-func (d decoder) Integer(data []byte) (i int) {
+func (decoder) Integer(data []byte) (i int) {
 	var err error
 	if i, err = strconv.Atoi(string(data)); err != nil {
 		log.Printf("Integer field has invalid value %q, using default: %d", data, i)
