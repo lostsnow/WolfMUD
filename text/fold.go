@@ -37,12 +37,12 @@ var (
 // displayed. This is because the required information is actually contained in
 // the font files of the font in use at the 'client' end.
 //
-// It is expected the incoming end of lines are Unix linefeeds (LF, \n) only
-// and will be output as carridge return and linefeed pairs (CR+LF, \r\n) for
-// Telnet. For more information see RFC 854 - Telnet Protocol Specification.
-//
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
+//
+// It is expected that the incoming end of lines are Unix linefeeds (LF, \n)
+// only and will be output as carridge return and linefeed pairs (CR+LF, \r\n)
+// for Telnet. For more information see RFC854 - Telnet Protocol Specification.
 func Fold(in []byte, width int) []byte {
 
 	// Can we take a short cut? Counting bytes is fine although we may end up
