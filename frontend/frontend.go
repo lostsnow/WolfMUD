@@ -62,13 +62,13 @@ type closedError struct{}
 
 // Error implements the error interface for errors and returns descriptive text
 // for the closedError error.
-func (_ closedError) Error() string {
+func (closedError) Error() string {
 	return "frontend closed"
 }
 
 // Temporary always returns true for any closedError. A closedError is
 // considered temporary as recovery is easy - create a new frontend instance.
-func (_ closedError) Temporary() bool {
+func (closedError) Temporary() bool {
 	return true
 }
 
