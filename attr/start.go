@@ -60,7 +60,7 @@ func (n *Start) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Start attribute.
-func (_ *Start) Unmarshal(data []byte) has.Attribute {
+func (*Start) Unmarshal(data []byte) has.Attribute {
 	return NewStart()
 }
 
@@ -69,7 +69,7 @@ func (s *Start) Dump() []string {
 }
 
 // Pick returns the Inventory of a randomly selected starting location.
-func (_ *Start) Pick() has.Inventory {
+func (*Start) Pick() has.Inventory {
 	s := registry[rand.Intn(len(registry))]
 	return FindInventory(s.Parent())
 }

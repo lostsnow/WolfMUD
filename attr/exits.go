@@ -149,7 +149,7 @@ func (e *Exits) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Exits attribute.
-func (_ *Exits) Unmarshal(data []byte) has.Attribute {
+func (*Exits) Unmarshal(data []byte) has.Attribute {
 	return NewExits()
 }
 
@@ -272,7 +272,7 @@ func (e *Exits) List() string {
 //
 // If the direction name given cannot be normalized, maybe because it is
 // invalid, a non-nil error will be returned.
-func (_ *Exits) NormalizeDirection(name string) (direction byte, err error) {
+func (*Exits) NormalizeDirection(name string) (direction byte, err error) {
 
 	// Common case quick path - upper, lower or title cased input
 	if d, valid := directionIndex[name]; valid {
@@ -293,7 +293,7 @@ func (_ *Exits) NormalizeDirection(name string) (direction byte, err error) {
 
 // ToName returns the lowercased long name of a direction or an empty string if
 // the direction is invalid.
-func (_ *Exits) ToName(direction byte) (name string) {
+func (*Exits) ToName(direction byte) (name string) {
 	if direction >= 0 && direction < exitCount {
 		return directionNames[direction]
 	}

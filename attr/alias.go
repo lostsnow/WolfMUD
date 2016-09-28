@@ -76,7 +76,7 @@ func (a *Alias) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Alias attribute.
-func (_ *Alias) Unmarshal(data []byte) has.Attribute {
+func (*Alias) Unmarshal(data []byte) has.Attribute {
 	return NewAlias(recordjar.Decode.KeywordList(data)...)
 }
 

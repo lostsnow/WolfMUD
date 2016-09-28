@@ -90,13 +90,13 @@ func (n *Narrative) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Narrative attribute.
-func (_ *Narrative) Unmarshal(data []byte) has.Attribute {
+func (*Narrative) Unmarshal(data []byte) has.Attribute {
 	return NewNarrative()
 }
 
 // ImplementsNarrative is a marker method so that we can specifically identify
 // a Narrative.
-func (_ *Narrative) ImplementsNarrative() {}
+func (*Narrative) ImplementsNarrative() {}
 
 func (n *Narrative) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T", n))

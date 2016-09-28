@@ -60,7 +60,7 @@ func (l *Locate) Found() bool {
 // Unmarshal is used to turn the passed data into a new Locate attribute. At
 // the moment Locate attributes are created internally so return an untyped nil
 // so we get ignored.
-func (_ *Locate) Unmarshal(data []byte) has.Attribute {
+func (*Locate) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 

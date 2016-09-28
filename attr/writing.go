@@ -60,7 +60,7 @@ func (w *Writing) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Writing attribute.
-func (_ *Writing) Unmarshal(data []byte) has.Attribute {
+func (*Writing) Unmarshal(data []byte) has.Attribute {
 	return NewWriting(recordjar.Decode.String(data))
 }
 

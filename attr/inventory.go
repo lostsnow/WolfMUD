@@ -87,7 +87,7 @@ func FindInventory(t has.Thing) has.Inventory {
 }
 
 // Unmarshal is used to turn the passed data into a new Inventory attribute.
-func (_ *Inventory) Unmarshal(data []byte) has.Attribute {
+func (*Inventory) Unmarshal(data []byte) has.Attribute {
 	return NewInventory()
 }
 

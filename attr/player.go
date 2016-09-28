@@ -79,7 +79,7 @@ func (p *Player) buildPrompt() []byte {
 // Unmarshal is used to turn the passed data into a new Player attribute. At
 // the moment Player attributes are created internally so return an untyped nil
 // so we get ignored.
-func (_ *Player) Unmarshal(data []byte) has.Attribute {
+func (*Player) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 

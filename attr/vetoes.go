@@ -65,7 +65,7 @@ func (v *Vetoes) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Vetoes attribute.
-func (_ *Vetoes) Unmarshal(data []byte) has.Attribute {
+func (*Vetoes) Unmarshal(data []byte) has.Attribute {
 	return NewVetoes()
 }
 

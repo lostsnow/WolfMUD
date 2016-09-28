@@ -54,7 +54,7 @@ func (d *Description) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Description attribute.
-func (_ *Description) Unmarshal(data []byte) has.Attribute {
+func (*Description) Unmarshal(data []byte) has.Attribute {
 	return NewDescription(recordjar.Decode.String(data))
 }
 

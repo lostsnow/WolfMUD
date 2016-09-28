@@ -67,7 +67,7 @@ func (n *Name) Found() bool {
 }
 
 // Unmarshal is used to turn the passed data into a new Name attribute.
-func (_ *Name) Unmarshal(data []byte) has.Attribute {
+func (*Name) Unmarshal(data []byte) has.Attribute {
 	return NewName(recordjar.Decode.String(data))
 }
 
