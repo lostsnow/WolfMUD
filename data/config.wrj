@@ -26,6 +26,7 @@
 //
 	Login.AccountLength:	10
 	Login.PasswordLength: 10
+	Login.SaltLength:			32
 //
 // Initial client connection greeting
 

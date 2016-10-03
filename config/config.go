@@ -59,9 +59,11 @@ var Inventory = struct {
 var Login = struct {
 	AccountLength  int
 	PasswordLength int
+	SaltLength     int
 }{
 	AccountLength:  10,
 	PasswordLength: 10,
+	SaltLength:     32,
 }
 
 // Load loads the configuration file and overrides the default configuration
@@ -114,6 +116,8 @@ func Load() {
 			Login.AccountLength = recordjar.Decode.Integer(data)
 		case "LOGIN.PASSWORDLENGTH":
 			Login.PasswordLength = recordjar.Decode.Integer(data)
+		case "LOGIN.SALTLENGTH":
+			Login.SaltLength = recordjar.Decode.Integer(data)
 
 		// Unknow setting
 		default:
