@@ -31,8 +31,7 @@ func (f *frontend) accountDisplay() {
 // an account ID hash. At this point it is not validated yet just stored.
 func (f *frontend) accountProcess() {
 	if len(f.input) == 0 {
-		f.buf.WriteString("Account creation unavailable.\n")
-		f.accountDisplay()
+		f.explainAccountDisplay()
 		return
 	}
 
