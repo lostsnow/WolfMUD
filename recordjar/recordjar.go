@@ -159,3 +159,49 @@ func Read(in io.Reader, freetext string) Jar {
 
 	return j
 }
+
+// Write writes out a Record Jar to the specified io.Writer. It also takes as
+// input the fieldname used for the free text block in the jar.
+//
+// For details of the recordjar format see the separate package documentation.
+//
+// TODO: Add wrapping of long values.
+func (j Jar) Write(out io.Writer, freetext string) {
+
+	freetext = (string)(bytes.ToTitle([]byte(freetext)))
+
+	var (
+		maxLen int
+		buf    bytes.Buffer
+	)
+
+	for _, rec := range j {
+		maxLen = 0
+		for field, _ := range rec {
+			if field == freetext {
+				continue
+			}
+			if len(field) > maxLen {
+				maxLen = len(field)
+			}
+		}
+		maxLen++
+		for field, data := range rec {
+			if field == freetext {
+				continue
+			}
+			buf.Write(bytes.Repeat([]byte(" "), maxLen-len(field)))
+			buf.Write(bytes.Title(bytes.ToLower([]byte(field))))
+			buf.WriteString(": ")
+			buf.Write(data)
+			buf.WriteString("\n")
+		}
+		if data, ok := rec[freetext]; ok {
+			buf.WriteString("\n")
+			buf.Write(data)
+			buf.WriteString("\n")
+		}
+		buf.WriteString("%%\n")
+		buf.WriteTo(out)
+	}
+}
