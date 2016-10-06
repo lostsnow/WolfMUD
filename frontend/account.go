@@ -42,14 +42,14 @@ func (f *frontend) newAccountDisplay() {
 // an account ID hash. At this point it is not validated yet, just stored.
 func (f *frontend) newAccountProcess() {
 	if len(f.input) == 0 {
-		f.buf.WriteString("Account creation cancelled.\n")
+		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
 		return
 	}
 
 	if len(f.input) < config.Login.AccountLength {
 		l := strconv.Itoa(config.Login.AccountLength)
-		f.buf.WriteJoin("Account ID is too short. Needs to be ", l, " characters or longer.\n")
+		f.buf.WriteJoin("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
 		f.newAccountDisplay()
 		return
 	}
@@ -70,14 +70,14 @@ func (f *frontend) newPasswordDisplay() {
 // stored in the current state.
 func (f *frontend) newPasswordProcess() {
 	if len(f.input) == 0 {
-		f.buf.WriteString("Account creation cancelled.\n")
+		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
 		return
 	}
 
 	if len(f.input) < config.Login.PasswordLength {
 		l := strconv.Itoa(config.Login.PasswordLength)
-		f.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n")
+		f.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n\n")
 		f.newPasswordDisplay()
 		return
 	}
@@ -101,7 +101,7 @@ func (f *frontend) confirmPasswordDisplay() {
 // new password already stored in the current state.
 func (f *frontend) confirmPasswordProcess() {
 	if len(f.input) == 0 {
-		f.buf.WriteString("Account creation cancelled.\n")
+		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
 		return
 	}
@@ -109,7 +109,7 @@ func (f *frontend) confirmPasswordProcess() {
 	hash := sha512.Sum512(append(f.stash["SALT"], f.input...))
 
 	if !bytes.Equal(hash[:], f.stash["HASH"]) {
-		f.buf.WriteJoin("Passwords do not match, please try again.\n")
+		f.buf.WriteJoin("Passwords do not match, please try again.\n\n")
 		f.newPasswordDisplay()
 		return
 	}
@@ -125,13 +125,13 @@ func (f *frontend) nameDisplay() {
 // nameProcess verifies the player name and stores it in the current state.
 func (f *frontend) nameProcess() {
 	if len(f.input) == 0 {
-		f.buf.WriteString("Account creation cancelled.\n")
+		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
 		return
 	}
 
 	if len(f.input) < 3 {
-		f.buf.WriteJoin("The name '", string(f.input), "' is too short.\n")
+		f.buf.WriteJoin("The name '", string(f.input), "' is too short.\n\n")
 		f.nameDisplay()
 		return
 	}
@@ -154,7 +154,7 @@ func (f *frontend) genderProcess() {
 	case "F", "FEMALE":
 		f.stash["GENDER"] = []byte("FEMALE")
 	default:
-		f.buf.WriteString("Please specify male or female.\n")
+		f.buf.WriteString("Please specify male or female.\n\n")
 		f.genderDisplay()
 		return
 	}
@@ -220,7 +220,7 @@ func (f *frontend) write() {
 
 	// Check if account ID is already registered
 	if _, err := os.Stat(real); !os.IsNotExist(err) {
-		f.buf.WriteString("The account ID you used is not available.\n")
+		f.buf.WriteString("The account ID you used is not available.\n\n")
 		f.accountDisplay()
 		return
 	}
