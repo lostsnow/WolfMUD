@@ -62,7 +62,7 @@ func Read(in io.Reader, freetext string) Jar {
 		raw, err = b.ReadBytes('\n')
 		line = bytes.TrimSpace(raw)
 
-		// Work our our field and data parts
+		// Work out our field and data parts
 		tokens = splitLine.FindSubmatch(line)
 		switch len(tokens) {
 		case 3:
@@ -102,7 +102,7 @@ func Read(in io.Reader, freetext string) Jar {
 			// If all the whitespace was stripped from the raw line output a blank line
 			case len(raw) != 0 && len(line) == 0:
 				// Check if previous line is terminated, if not terminate it
-				if l := len(r[lastField]); l != 0 && r[lastField][l-1] != '\n' {
+				if l := len(r[freetext]); l != 0 && r[freetext][l-1] != '\n' {
 					data = []byte("\n\n")
 				} else {
 					data = []byte("\n")
@@ -110,7 +110,7 @@ func Read(in io.Reader, freetext string) Jar {
 
 			// If raw line started with whitespace keep it but strip from the right still
 			case bytes.HasPrefix(raw, []byte(" ")) || bytes.HasPrefix(raw, []byte("\t")):
-				if l := len(r[lastField]); l != 0 && r[lastField][l-1] != '\n' {
+				if l := len(r[freetext]); l != 0 && r[freetext][l-1] != '\n' {
 					data = []byte("\n")
 					data = append(data, bytes.TrimRightFunc(raw, unicode.IsSpace)...)
 				} else {
