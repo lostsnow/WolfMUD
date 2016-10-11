@@ -243,6 +243,8 @@ func (f *frontend) write() {
 	}
 	log.Printf("New account created: %s", real)
 
+	accounts.inuse[f.account] = struct{}{}
+
 	// Assemble player
 	f.player = attr.NewThing()
 	f.player.(*attr.Thing).Unmarshal(1, rec)
