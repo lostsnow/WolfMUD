@@ -40,16 +40,14 @@ import (
 )
 
 // accounts is used to track which (valid) accounts are logged in and in use.
-// It's main purpose is to track logged in account to prevent duplicate logins.
-//
-// NOTE: A frontend account hash is NOT valid until it has been registered as
-// being inuse.
+// It's main purpose is to track logged in account IDs to prevent duplicate
+// logins.
 var accounts struct {
 	inuse map[string]struct{}
 	sync.Mutex
 }
 
-// init is used to initialise the map used in account tracking.
+// init is used to initialise the map used in account ID tracking.
 func init() {
 	accounts.inuse = make(map[string]struct{})
 }
