@@ -41,22 +41,19 @@ func (f *frontend) newAccountDisplay() {
 // newAccountProcess takes the current input and stores it in the current state as
 // an account ID hash. At this point it is not validated yet, just stored.
 func (f *frontend) newAccountProcess() {
-	if len(f.input) == 0 {
+	switch l := len(f.input); {
+	case l == 0:
 		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
-		return
-	}
-
-	if len(f.input) < config.Login.AccountLength {
+	case l < config.Login.AccountLength:
 		l := strconv.Itoa(config.Login.AccountLength)
 		f.buf.WriteJoin("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
 		f.newAccountDisplay()
-		return
+	default:
+		hash := md5.Sum(f.input)
+		f.account = hex.EncodeToString(hash[:])
+		f.newPasswordDisplay()
 	}
-
-	hash := md5.Sum(f.input)
-	f.account = hex.EncodeToString(hash[:])
-	f.newPasswordDisplay()
 }
 
 // newPasswordDisplay asks for a password to associate with the account ID.
@@ -69,26 +66,21 @@ func (f *frontend) newPasswordDisplay() {
 // state as a hash. The hash is calculated with a random salt that is also
 // stored in the current state.
 func (f *frontend) newPasswordProcess() {
-	if len(f.input) == 0 {
+	switch l := len(f.input); {
+	case l == 0:
 		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
-		return
-	}
-
-	if len(f.input) < config.Login.PasswordLength {
+	case l < config.Login.PasswordLength:
 		l := strconv.Itoa(config.Login.PasswordLength)
 		f.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n\n")
 		f.newPasswordDisplay()
-		return
+	default:
+		salt := salt(config.Login.SaltLength)
+		hash := sha512.Sum512(append(salt, f.input...))
+		f.stash["SALT"] = salt
+		f.stash["HASH"] = hash[:]
+		f.confirmPasswordDisplay()
 	}
-
-	salt := salt(config.Login.SaltLength)
-	hash := sha512.Sum512(append(salt, f.input...))
-
-	f.stash["SALT"] = salt
-	f.stash["HASH"] = hash[:]
-
-	f.confirmPasswordDisplay()
 }
 
 // confirmPasswordDisplay asks for the password to be typed again for confirmation.
@@ -100,20 +92,19 @@ func (f *frontend) confirmPasswordDisplay() {
 // confirmPasswordProcess verifies that the confirmation password matches the
 // new password already stored in the current state.
 func (f *frontend) confirmPasswordProcess() {
-	if len(f.input) == 0 {
+	switch l := len(f.input); {
+	case l == 0:
 		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
-		return
+	default:
+		hash := sha512.Sum512(append(f.stash["SALT"], f.input...))
+		if !bytes.Equal(hash[:], f.stash["HASH"]) {
+			f.buf.WriteJoin("Passwords do not match, please try again.\n\n")
+			f.newPasswordDisplay()
+			return
+		}
+		f.nameDisplay()
 	}
-
-	hash := sha512.Sum512(append(f.stash["SALT"], f.input...))
-
-	if !bytes.Equal(hash[:], f.stash["HASH"]) {
-		f.buf.WriteJoin("Passwords do not match, please try again.\n\n")
-		f.newPasswordDisplay()
-		return
-	}
-	f.nameDisplay()
 }
 
 // nameDisplay asks for a player name.
@@ -124,20 +115,17 @@ func (f *frontend) nameDisplay() {
 
 // nameProcess verifies the player name and stores it in the current state.
 func (f *frontend) nameProcess() {
-	if len(f.input) == 0 {
+	switch l := len(f.input); {
+	case l == 0:
 		f.buf.WriteString("Account creation cancelled.\n\n")
 		f.accountDisplay()
-		return
-	}
-
-	if len(f.input) < 3 {
+	case l < 3:
 		f.buf.WriteJoin("The name '", string(f.input), "' is too short.\n\n")
 		f.nameDisplay()
-		return
+	default:
+		f.stash["NAME"] = f.input
+		f.genderDisplay()
 	}
-
-	f.stash["NAME"] = f.input
-	f.genderDisplay()
 }
 
 // genderDisplay asks for the gender of the player.
@@ -151,15 +139,14 @@ func (f *frontend) genderProcess() {
 	switch string(bytes.ToUpper(f.input)) {
 	case "M", "MALE":
 		f.stash["GENDER"] = []byte("MALE")
+		f.write()
 	case "F", "FEMALE":
 		f.stash["GENDER"] = []byte("FEMALE")
+		f.write()
 	default:
 		f.buf.WriteString("Please specify male or female.\n\n")
 		f.genderDisplay()
-		return
 	}
-
-	f.write()
 }
 
 // salt returns a []byte containing the given length of random ASCII

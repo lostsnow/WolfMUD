@@ -30,19 +30,16 @@ func (f *frontend) accountDisplay() {
 // accountProcess takes the current input and stores it in the current state as
 // an account ID hash. At this point it is not validated yet just stored.
 func (f *frontend) accountProcess() {
-	if len(f.input) == 0 {
+	switch {
+	case len(f.input) == 0:
 		f.explainAccountDisplay()
-		return
-	}
-
-	if bytes.Equal(f.input, []byte("QUIT")) {
+	case bytes.Equal(f.input, []byte("QUIT")):
 		f.Close()
-		return
+	default:
+		hash := md5.Sum(f.input)
+		f.account = hex.EncodeToString(hash[:])
+		f.passwordDisplay()
 	}
-
-	hash := md5.Sum(f.input)
-	f.account = hex.EncodeToString(hash[:])
-	f.passwordDisplay()
 }
 
 // passwordDisplay asks for the player's password for their account ID.
