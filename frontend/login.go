@@ -67,7 +67,7 @@ func (f *frontend) passwordProcess() {
 	}
 
 	// Can we open the account file? The filename is the MD5 hash of the account
-	// ID. That way the filename is of a know format [0-9a-f]{32}\.wrj and we
+	// ID. That way the filename is of a known format [0-9a-f]{32}\.wrj and we
 	// don't have to trust user input for filenames hitting the filesystem.
 	p := filepath.Join(config.Server.DataDir, "players", f.account+".wrj")
 	wrj, err := os.Open(p)
