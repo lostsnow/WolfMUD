@@ -27,13 +27,18 @@ import (
 // account and player creation.
 type account struct {
 	*frontend
+	account  string
+	password [sha512.Size]byte
+	salt     []byte
+	name     string
+	gender   string
 }
 
 // NewAccount returns an account with the specified frontend embedded. The
 // returned account can be used for processing the creation new accounts and
 // players.
 func NewAccount(f *frontend) (a *account) {
-	a = &account{f}
+	a = &account{frontend: f}
 	a.explainAccountDisplay()
 	return
 }
@@ -90,10 +95,8 @@ func (a *account) newPasswordProcess() {
 		a.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n\n")
 		a.newPasswordDisplay()
 	default:
-		salt := salt(config.Login.SaltLength)
-		hash := sha512.Sum512(append(salt, a.input...))
-		a.stash["SALT"] = salt
-		a.stash["HASH"] = hash[:]
+		a.salt = salt(config.Login.SaltLength)
+		a.password = sha512.Sum512(append(a.salt, a.input...))
 		a.confirmPasswordDisplay()
 	}
 }
@@ -112,8 +115,8 @@ func (a *account) confirmPasswordProcess() {
 		a.buf.WriteString("Account creation cancelled.\n\n")
 		NewLogin(a.frontend)
 	default:
-		hash := sha512.Sum512(append(a.stash["SALT"], a.input...))
-		if !bytes.Equal(hash[:], a.stash["HASH"]) {
+		hash := sha512.Sum512(append(a.salt, a.input...))
+		if hash != a.password {
 			a.buf.WriteJoin("Passwords do not match, please try again.\n\n")
 			a.newPasswordDisplay()
 			return
@@ -138,14 +141,14 @@ func (a *account) nameProcess() {
 		a.buf.WriteJoin("The name '", string(a.input), "' is too short.\n\n")
 		a.nameDisplay()
 	default:
-		a.stash["NAME"] = a.input
+		a.name = string(a.input)
 		a.genderDisplay()
 	}
 }
 
 // genderDisplay asks for the gender of the player.
 func (a *account) genderDisplay() {
-	a.buf.WriteJoin("Would you like ", string(a.stash["NAME"]), " to be male or female?")
+	a.buf.WriteJoin("Would you like ", a.name, " to be male or female?")
 	a.nextFunc = a.genderProcess
 }
 
@@ -155,10 +158,10 @@ func (a *account) genderProcess() {
 	case "":
 		return
 	case "M", "MALE":
-		a.stash["GENDER"] = []byte("MALE")
+		a.gender = "MALE"
 		a.write()
 	case "F", "FEMALE":
-		a.stash["GENDER"] = []byte("FEMALE")
+		a.gender = "FEMALE"
 		a.write()
 	default:
 		a.buf.WriteString("Please specify male or female.\n\n")
@@ -197,19 +200,19 @@ func (a *account) write() {
 	jar := recordjar.Jar{}
 
 	// Create account record
-	hash := base64.URLEncoding.EncodeToString(a.stash["HASH"])
+	hash := base64.URLEncoding.EncodeToString(a.password[:])
 	rec := recordjar.Record{}
 	rec["ACCOUNT"] = recordjar.Encode.String(a.account)
 	rec["PASSWORD"] = recordjar.Encode.String(hash)
-	rec["SALT"] = recordjar.Encode.Bytes(a.stash["SALT"])
+	rec["SALT"] = recordjar.Encode.Bytes(a.salt)
 	rec["CREATED"] = recordjar.Encode.DateTime(time.Now())
 	jar = append(jar, rec)
 
 	// Create player record
 	rec = recordjar.Record{}
-	rec["NAME"] = recordjar.Encode.Bytes(a.stash["NAME"])
-	rec["ALIAS"] = recordjar.Encode.Keyword(string(a.stash["NAME"]))
-	rec["GENDER"] = recordjar.Encode.Keyword(string(a.stash["GENDER"]))
+	rec["NAME"] = recordjar.Encode.String(a.name)
+	rec["ALIAS"] = recordjar.Encode.Keyword(a.name)
+	rec["GENDER"] = recordjar.Encode.Keyword(a.gender)
 	rec["REF"] = recordjar.Encode.Keyword("R1")
 	rec["INVENTORY"] = recordjar.Encode.KeywordList([]string{})
 	rec["DESCRIPTION"] = recordjar.Encode.String("This is an adventurer, just like you!")
@@ -247,7 +250,8 @@ func (a *account) write() {
 	}
 	log.Printf("New account created: %s", real)
 
-	accounts.inuse[a.account] = struct{}{}
+	a.frontend.account = a.account
+	accounts.inuse[a.frontend.account] = struct{}{}
 
 	// Assemble player
 	a.player = attr.NewThing()
