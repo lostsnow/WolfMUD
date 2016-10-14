@@ -98,14 +98,13 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 // registered as inuse in the frontent.accounts tracking map. I.E. we may have
 // the account but not the password yet.
 type frontend struct {
-	output   io.Writer         // Writer to send output text to
-	buf      *buffer           // Buffered text written to output when next prompt written
-	input    []byte            // The input text we are currently processing
-	nextFunc func()            // The next frontend function called by Parse
-	player   has.Thing         // The current player instance (ingame or not)
-	stash    map[string][]byte // Temporary saved values
-	account  string            // The current account hash (also key to accounts)
-	err      error             // First error to occur else nil
+	output   io.Writer // Writer to send output text to
+	buf      *buffer   // Buffered text written to output when next prompt written
+	input    []byte    // The input text we are currently processing
+	nextFunc func()    // The next frontend function called by Parse
+	player   has.Thing // The current player instance (ingame or not)
+	account  string    // The current account hash (also key to accounts)
+	err      error     // First error to occur else nil
 }
 
 // New returns an instance of frontend initialised with the given io.Writer.
@@ -116,7 +115,6 @@ func New(output io.Writer) *frontend {
 	f := &frontend{
 		buf:    &buffer{new(bytes.Buffer)},
 		output: output,
-		stash:  make(map[string][]byte),
 	}
 	f.nextFunc = f.greetingDisplay
 	return f
