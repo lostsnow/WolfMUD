@@ -23,129 +23,146 @@ import (
 	"time"
 )
 
+// account embeds a frontend instance adding fields and methods specific to
+// account and player creation.
+type account struct {
+	*frontend
+}
+
+// NewAccount returns an account with the specified frontend embedded. The
+// returned account can be used for processing the creation new accounts and
+// players.
+func NewAccount(f *frontend) (a *account) {
+	a = &account{f}
+	a.explainAccountDisplay()
+	return
+}
+
 // explainAccountDisplay displays the requirements for new account IDs. It is
 // separated from newAccountDisplay so that if there is a problem we can ask
 // for the new account ID again without having to have the explanation.
-func (f *frontend) explainAccountDisplay() {
+func (a *account) explainAccountDisplay() {
 	l := strconv.Itoa(config.Login.AccountLength)
-	f.buf.WriteJoin("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n\n")
-	f.newAccountDisplay()
+	a.buf.WriteJoin("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n\n")
+	a.newAccountDisplay()
 }
 
 // newAccountDisplay asks the player for a new account ID
-func (f *frontend) newAccountDisplay() {
-	f.buf.WriteString("Enter text to use for your account ID or just press enter to cancel:")
-	f.nextFunc = f.newAccountProcess
+func (a *account) newAccountDisplay() {
+	a.buf.WriteString("Enter text to use for your account ID or just press enter to cancel:")
+	a.nextFunc = a.newAccountProcess
 }
 
 // newAccountProcess takes the current input and stores it in the current state as
 // an account ID hash. At this point it is not validated yet, just stored.
-func (f *frontend) newAccountProcess() {
-	switch l := len(f.input); {
+func (a *account) newAccountProcess() {
+	switch l := len(a.input); {
 	case l == 0:
-		f.buf.WriteString("Account creation cancelled.\n\n")
-		f.accountDisplay()
+		a.buf.WriteString("Account creation cancelled.\n\n")
+		NewLogin(a.frontend)
 	case l < config.Login.AccountLength:
 		l := strconv.Itoa(config.Login.AccountLength)
-		f.buf.WriteJoin("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
-		f.newAccountDisplay()
+		a.buf.WriteJoin("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
+		a.newAccountDisplay()
 	default:
-		hash := md5.Sum(f.input)
-		f.account = hex.EncodeToString(hash[:])
-		f.newPasswordDisplay()
+		hash := md5.Sum(a.input)
+		a.account = hex.EncodeToString(hash[:])
+		a.newPasswordDisplay()
 	}
 }
 
 // newPasswordDisplay asks for a password to associate with the account ID.
-func (f *frontend) newPasswordDisplay() {
-	f.buf.WriteString("Enter a password to use for your account ID or just press enter to cancel:")
-	f.nextFunc = f.newPasswordProcess
+func (a *account) newPasswordDisplay() {
+	a.buf.WriteString("Enter a password to use for your account ID or just press enter to cancel:")
+	a.nextFunc = a.newPasswordProcess
 }
 
 // newPasswordProcess takes the current input and stores it in the current
 // state as a hash. The hash is calculated with a random salt that is also
 // stored in the current state.
-func (f *frontend) newPasswordProcess() {
-	switch l := len(f.input); {
+func (a *account) newPasswordProcess() {
+	switch l := len(a.input); {
 	case l == 0:
-		f.buf.WriteString("Account creation cancelled.\n\n")
-		f.accountDisplay()
+		a.buf.WriteString("Account creation cancelled.\n\n")
+		NewLogin(a.frontend)
 	case l < config.Login.PasswordLength:
 		l := strconv.Itoa(config.Login.PasswordLength)
-		f.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n\n")
-		f.newPasswordDisplay()
+		a.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n\n")
+		a.newPasswordDisplay()
 	default:
 		salt := salt(config.Login.SaltLength)
-		hash := sha512.Sum512(append(salt, f.input...))
-		f.stash["SALT"] = salt
-		f.stash["HASH"] = hash[:]
-		f.confirmPasswordDisplay()
+		hash := sha512.Sum512(append(salt, a.input...))
+		a.stash["SALT"] = salt
+		a.stash["HASH"] = hash[:]
+		a.confirmPasswordDisplay()
 	}
 }
 
 // confirmPasswordDisplay asks for the password to be typed again for confirmation.
-func (f *frontend) confirmPasswordDisplay() {
-	f.buf.WriteString("Enter your password again to confirm or just press enter to cancel:")
-	f.nextFunc = f.confirmPasswordProcess
+func (a *account) confirmPasswordDisplay() {
+	a.buf.WriteString("Enter your password again to confirm or just press enter to cancel:")
+	a.nextFunc = a.confirmPasswordProcess
 }
 
 // confirmPasswordProcess verifies that the confirmation password matches the
 // new password already stored in the current state.
-func (f *frontend) confirmPasswordProcess() {
-	switch l := len(f.input); {
+func (a *account) confirmPasswordProcess() {
+	switch l := len(a.input); {
 	case l == 0:
-		f.buf.WriteString("Account creation cancelled.\n\n")
-		f.accountDisplay()
+		a.buf.WriteString("Account creation cancelled.\n\n")
+		NewLogin(a.frontend)
 	default:
-		hash := sha512.Sum512(append(f.stash["SALT"], f.input...))
-		if !bytes.Equal(hash[:], f.stash["HASH"]) {
-			f.buf.WriteJoin("Passwords do not match, please try again.\n\n")
-			f.newPasswordDisplay()
+		hash := sha512.Sum512(append(a.stash["SALT"], a.input...))
+		if !bytes.Equal(hash[:], a.stash["HASH"]) {
+			a.buf.WriteJoin("Passwords do not match, please try again.\n\n")
+			a.newPasswordDisplay()
 			return
 		}
-		f.nameDisplay()
+		a.nameDisplay()
 	}
 }
 
 // nameDisplay asks for a player name.
-func (f *frontend) nameDisplay() {
-	f.buf.WriteString("Enter a name for your character or just press enter to cancel:")
-	f.nextFunc = f.nameProcess
+func (a *account) nameDisplay() {
+	a.buf.WriteString("Enter a name for your character or just press enter to cancel:")
+	a.nextFunc = a.nameProcess
 }
 
 // nameProcess verifies the player name and stores it in the current state.
-func (f *frontend) nameProcess() {
-	switch l := len(f.input); {
+func (a *account) nameProcess() {
+	switch l := len(a.input); {
 	case l == 0:
-		f.buf.WriteString("Account creation cancelled.\n\n")
-		f.accountDisplay()
+		a.buf.WriteString("Account creation cancelled.\n\n")
+		NewLogin(a.frontend)
 	case l < 3:
-		f.buf.WriteJoin("The name '", string(f.input), "' is too short.\n\n")
-		f.nameDisplay()
+		a.buf.WriteJoin("The name '", string(a.input), "' is too short.\n\n")
+		a.nameDisplay()
 	default:
-		f.stash["NAME"] = f.input
-		f.genderDisplay()
+		a.stash["NAME"] = a.input
+		a.genderDisplay()
 	}
 }
 
 // genderDisplay asks for the gender of the player.
-func (f *frontend) genderDisplay() {
-	f.buf.WriteJoin("Would you like ", string(f.stash["NAME"]), " to be male or female?")
-	f.nextFunc = f.genderProcess
+func (a *account) genderDisplay() {
+	a.buf.WriteJoin("Would you like ", string(a.stash["NAME"]), " to be male or female?")
+	a.nextFunc = a.genderProcess
 }
 
 // genderProcess verifies the gender and stores it in the current state.
-func (f *frontend) genderProcess() {
-	switch string(bytes.ToUpper(f.input)) {
+func (a *account) genderProcess() {
+	switch string(bytes.ToUpper(a.input)) {
+	case "":
+		return
 	case "M", "MALE":
-		f.stash["GENDER"] = []byte("MALE")
-		f.write()
+		a.stash["GENDER"] = []byte("MALE")
+		a.write()
 	case "F", "FEMALE":
-		f.stash["GENDER"] = []byte("FEMALE")
-		f.write()
+		a.stash["GENDER"] = []byte("FEMALE")
+		a.write()
 	default:
-		f.buf.WriteString("Please specify male or female.\n\n")
-		f.genderDisplay()
+		a.buf.WriteString("Please specify male or female.\n\n")
+		a.genderDisplay()
 	}
 }
 
@@ -176,30 +193,30 @@ func salt(l int) []byte {
 // write creates the player data file and writes it out to the filesystem. The
 // player data file is written to DataDir/players where DataDir is set via the
 // config.Server.DataDir configuration setting.
-func (f *frontend) write() {
+func (a *account) write() {
 	jar := recordjar.Jar{}
 
 	// Create account record
-	hash := base64.URLEncoding.EncodeToString(f.stash["HASH"])
+	hash := base64.URLEncoding.EncodeToString(a.stash["HASH"])
 	rec := recordjar.Record{}
-	rec["ACCOUNT"] = recordjar.Encode.String(f.account)
+	rec["ACCOUNT"] = recordjar.Encode.String(a.account)
 	rec["PASSWORD"] = recordjar.Encode.String(hash)
-	rec["SALT"] = recordjar.Encode.Bytes(f.stash["SALT"])
+	rec["SALT"] = recordjar.Encode.Bytes(a.stash["SALT"])
 	rec["CREATED"] = recordjar.Encode.DateTime(time.Now())
 	jar = append(jar, rec)
 
 	// Create player record
 	rec = recordjar.Record{}
-	rec["NAME"] = recordjar.Encode.Bytes(f.stash["NAME"])
-	rec["ALIAS"] = recordjar.Encode.Keyword(string(f.stash["NAME"]))
-	rec["GENDER"] = recordjar.Encode.Keyword(string(f.stash["GENDER"]))
+	rec["NAME"] = recordjar.Encode.Bytes(a.stash["NAME"])
+	rec["ALIAS"] = recordjar.Encode.Keyword(string(a.stash["NAME"]))
+	rec["GENDER"] = recordjar.Encode.Keyword(string(a.stash["GENDER"]))
 	rec["REF"] = recordjar.Encode.Keyword("R1")
 	rec["INVENTORY"] = recordjar.Encode.KeywordList([]string{})
 	rec["DESCRIPTION"] = recordjar.Encode.String("This is an adventurer, just like you!")
 	jar = append(jar, rec)
 
-	temp := filepath.Join(config.Server.DataDir, "players", f.account+".tmp")
-	real := filepath.Join(config.Server.DataDir, "players", f.account+".wrj")
+	temp := filepath.Join(config.Server.DataDir, "players", a.account+".tmp")
+	real := filepath.Join(config.Server.DataDir, "players", a.account+".wrj")
 
 	// Lock accounts to prevent races while manipulating files
 	accounts.Lock()
@@ -207,8 +224,8 @@ func (f *frontend) write() {
 
 	// Check if account ID is already registered
 	if _, err := os.Stat(real); !os.IsNotExist(err) {
-		f.buf.WriteString("The account ID you used is not available.\n\n")
-		f.accountDisplay()
+		a.buf.WriteString("The account ID you used is not available.\n\n")
+		NewLogin(a.frontend)
 		return
 	}
 
@@ -230,18 +247,18 @@ func (f *frontend) write() {
 	}
 	log.Printf("New account created: %s", real)
 
-	accounts.inuse[f.account] = struct{}{}
+	accounts.inuse[a.account] = struct{}{}
 
 	// Assemble player
-	f.player = attr.NewThing()
-	f.player.(*attr.Thing).Unmarshal(1, rec)
-	f.player.Add(attr.NewLocate(nil))
-	f.player.Add(attr.NewPlayer(f.output))
+	a.player = attr.NewThing()
+	a.player.(*attr.Thing).Unmarshal(1, rec)
+	a.player.Add(attr.NewLocate(nil))
+	a.player.Add(attr.NewPlayer(a.output))
 
 	// Greet new player
-	f.buf.WriteString("Welcome ")
-	f.buf.WriteString(attr.FindName(f.player).Name("Someone"))
-	f.buf.WriteString("!\n")
+	a.buf.WriteString("Welcome ")
+	a.buf.WriteString(attr.FindName(a.player).Name("Someone"))
+	a.buf.WriteString("!\n")
 
-	f.menuDisplay()
+	NewMenu(a.frontend)
 }

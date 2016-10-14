@@ -5,10 +5,24 @@
 
 package frontend
 
+// menu embeds a frontend instance adding fields and methods specific to
+// the main menu.
+type menu struct {
+	*frontend
+}
+
+// NewMenu returns a menu with the specified frontend embedded. The returned
+// menu can be used for processing the main menu and it's options.
+func NewMenu(f *frontend) (m *menu) {
+	m = &menu{f}
+	m.menuDisplay()
+	return
+}
+
 // menuDisplay shows the main menu of options available once a player is logged
 // into the system.
-func (f *frontend) menuDisplay() {
-	f.buf.Write([]byte(`
+func (m *menu) menuDisplay() {
+	m.buf.Write([]byte(`
   Main Menu
   ---------
 
@@ -16,21 +30,20 @@ func (f *frontend) menuDisplay() {
   0. Quit
 
 Select an option:`))
-	f.nextFunc = f.menuProcess
+	m.nextFunc = m.menuProcess
 }
 
 // menuProcess validates the menu option take by the player and takes action
 // accordingly.
-func (f *frontend) menuProcess() {
-	if len(f.input) == 0 {
+func (m *menu) menuProcess() {
+	switch string(m.input) {
+	case "":
 		return
-	}
-	switch string(f.input) {
 	case "1":
-		f.gameInit()
+		NewGame(m.frontend)
 	case "0":
-		f.Close()
+		m.Close()
 	default:
-		f.buf.WriteString("Invalid option selected.")
+		m.buf.WriteString("Invalid option selected.")
 	}
 }

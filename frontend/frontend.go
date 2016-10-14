@@ -31,6 +31,7 @@ package frontend
 
 import (
 	"code.wolfmud.org/WolfMUD.git/cmd"
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/stats"
 
@@ -176,4 +177,18 @@ func (f *frontend) Parse(input []byte) error {
 		f.buf.Reset()
 	}
 	return f.err
+}
+
+// greetingDisplay displays the welcome message to players when they first
+// connect to the server. The text displayed is stored in the server
+// configuration file free text area. For more information on specifying the
+// welcome message see the config package.
+//
+// The greeting does not have it's own source file or a NewGreeting function
+// like other frontend helpers such as account or login as might be expected.
+// This is due to the fact that frontend needs to initialise nextFunc with a
+// func() type and greetingDisplay seems a logical choice.
+func (f *frontend) greetingDisplay() {
+	f.buf.Write(config.Server.Greeting)
+	NewLogin(f)
 }
