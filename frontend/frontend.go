@@ -165,7 +165,7 @@ func (f *frontend) Parse(input []byte) error {
 	f.input = bytes.TrimSpace(input)
 	f.nextFunc()
 
-	// If we have an output buffer write out it content
+	// If we have an output buffer write out its content
 	if f.buf != nil {
 		if len(f.input) > 0 || f.buf.Len() > 0 {
 			f.buf.WriteByte('\n')
