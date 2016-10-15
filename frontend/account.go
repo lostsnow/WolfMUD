@@ -201,21 +201,23 @@ func (a *account) write() {
 
 	// Create account record
 	hash := base64.URLEncoding.EncodeToString(a.password[:])
-	rec := recordjar.Record{}
-	rec["ACCOUNT"] = recordjar.Encode.String(a.account)
-	rec["PASSWORD"] = recordjar.Encode.String(hash)
-	rec["SALT"] = recordjar.Encode.Bytes(a.salt)
-	rec["CREATED"] = recordjar.Encode.DateTime(time.Now())
+	rec := recordjar.Record{
+		"ACCOUNT":  recordjar.Encode.String(a.account),
+		"PASSWORD": recordjar.Encode.String(hash),
+		"SALT":     recordjar.Encode.Bytes(a.salt),
+		"CREATED":  recordjar.Encode.DateTime(time.Now()),
+	}
 	jar = append(jar, rec)
 
 	// Create player record
-	rec = recordjar.Record{}
-	rec["NAME"] = recordjar.Encode.String(a.name)
-	rec["ALIAS"] = recordjar.Encode.Keyword(a.name)
-	rec["GENDER"] = recordjar.Encode.Keyword(a.gender)
-	rec["REF"] = recordjar.Encode.Keyword("R1")
-	rec["INVENTORY"] = recordjar.Encode.KeywordList([]string{})
-	rec["DESCRIPTION"] = recordjar.Encode.String("This is an adventurer, just like you!")
+	rec = recordjar.Record{
+		"NAME":        recordjar.Encode.String(a.name),
+		"ALIAS":       recordjar.Encode.Keyword(a.name),
+		"GENDER":      recordjar.Encode.Keyword(a.gender),
+		"REF":         recordjar.Encode.Keyword("R1"),
+		"INVENTORY":   recordjar.Encode.KeywordList([]string{}),
+		"DESCRIPTION": recordjar.Encode.String("This is an adventurer, just like you!"),
+	}
 	jar = append(jar, rec)
 
 	temp := filepath.Join(config.Server.DataDir, "players", a.account+".tmp")
