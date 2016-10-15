@@ -73,7 +73,7 @@ func (l *login) passwordProcess() {
 	// If no password given go back and ask for an account ID.
 	if len(l.input) == 0 {
 		l.buf.WriteString("Login cancelled.\n\n")
-		l.accountDisplay()
+		NewLogin(l.frontend)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (l *login) passwordProcess() {
 	if err != nil {
 		log.Printf("Error opening account: %s", err)
 		l.buf.WriteString("Acount ID or password is incorrect.\n\n")
-		l.accountDisplay()
+		NewLogin(l.frontend)
 		return
 	}
 
@@ -94,7 +94,7 @@ func (l *login) passwordProcess() {
 	if err := wrj.Close(); err != nil {
 		log.Printf("Error closing account: %s", err)
 		l.buf.WriteString("Acount ID or password is incorrect.\n\n")
-		l.accountDisplay()
+		NewLogin(l.frontend)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (l *login) passwordProcess() {
 	if len(jar) < 2 {
 		log.Printf("Account file corrupted: %s.wrj", l.account)
 		l.buf.WriteString("Sorry, there is a problem with your account, please contact the admins.\n\n")
-		l.accountDisplay()
+		NewLogin(l.frontend)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (l *login) passwordProcess() {
 	if (base64.URLEncoding.EncodeToString(hash[:])) != password {
 		log.Printf("Password invalid for: %s.wrj", l.account)
 		l.buf.WriteString("Acount ID or password is incorrect.\n\n")
-		l.accountDisplay()
+		NewLogin(l.frontend)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (l *login) passwordProcess() {
 	if _, inuse := accounts.inuse[l.account]; inuse {
 		log.Printf("Account already logged in: %s", l.account)
 		l.buf.WriteString("Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n\n")
-		l.accountDisplay()
+		NewLogin(l.frontend)
 		accounts.Unlock()
 		return
 	}
