@@ -14,7 +14,7 @@ type menu struct {
 // NewMenu returns a menu with the specified frontend embedded. The returned
 // menu can be used for processing the main menu and it's options.
 func NewMenu(f *frontend) (m *menu) {
-	m = &menu{f}
+	m = &menu{frontend: f}
 	m.menuDisplay()
 	return
 }

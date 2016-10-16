@@ -29,7 +29,7 @@ type login struct {
 // NewLogin returns a login with the specified frontend embedded. The returned
 // login can be used for processing the logging in of accounts.
 func NewLogin(f *frontend) (l *login) {
-	l = &login{f}
+	l = &login{frontend: f}
 	l.accountDisplay()
 	return
 }

@@ -26,7 +26,7 @@ type game struct {
 // NewGame returns a game with the specified frontend embedded. The returned
 // game can be used for processing communication to the actual game.
 func NewGame(f *frontend) (g *game) {
-	g = &game{f, nil}
+	g = &game{frontend: f}
 	g.gameInit()
 	return
 }
