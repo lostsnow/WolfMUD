@@ -24,6 +24,7 @@ import (
 // account logins.
 type login struct {
 	*frontend
+	account string
 }
 
 // NewLogin returns a login with the specified frontend embedded. The returned
@@ -134,6 +135,7 @@ func (l *login) passwordProcess() {
 		accounts.Unlock()
 		return
 	}
+	l.frontend.account = l.account
 	accounts.inuse[l.account] = struct{}{}
 	accounts.Unlock()
 
