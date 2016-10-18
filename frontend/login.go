@@ -52,7 +52,7 @@ func (l *login) accountProcess() {
 	switch {
 	case len(l.input) == 0:
 		NewAccount(l.frontend)
-	case bytes.Equal(l.input, []byte("QUIT")):
+	case bytes.Equal(bytes.ToUpper(l.input), []byte("QUIT")):
 		l.Close()
 	default:
 		hash := md5.Sum(l.input)
