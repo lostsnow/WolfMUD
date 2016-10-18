@@ -65,7 +65,7 @@ func (closedError) Error() string {
 	return "frontend closed"
 }
 
-// Temporary always returns true for any closedError. A closedError is
+// Temporary always returns true for a frontend.Error. A frontend.Error is
 // considered temporary as recovery is easy - create a new frontend instance.
 func (closedError) Temporary() bool {
 	return true
@@ -93,10 +93,6 @@ func (b *buffer) WriteJoin(s ...string) (n int, err error) {
 
 // frontend represents the current frontend state for a given io.Writer - this
 // is typically from a player's network connection.
-//
-// NOTE: The account hash is NOT considered a valid account until it is
-// registered as inuse in the frontent.accounts tracking map. I.E. we may have
-// the account but not the password yet.
 type frontend struct {
 	output   io.Writer // Writer to send output text to
 	buf      *buffer   // Buffered text written to output when next prompt written
@@ -152,8 +148,8 @@ func (f *frontend) Close() {
 // stripped of leading and trailing whitespace before being stored in the
 // frontend state. Any response from processing the input is written to the
 // io.Writer passed to the initial New function that created the frontend. If
-// the frontend is closed during processing a closedError will be returned else
-// nil.
+// the frontend is closed during processing a frontend.Error will be returned
+// else nil.
 func (f *frontend) Parse(input []byte) error {
 
 	// If we already have an error just return it
