@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -42,6 +43,9 @@ func NewAccount(f *frontend) (a *account) {
 	a.explainAccountDisplay()
 	return
 }
+
+// verifyName is used to test that a players name only uses the letters A-Z,a-z.
+var verifyName = regexp.MustCompile(`^[a-zA-Z]+$`)
 
 // explainAccountDisplay displays the requirements for new account IDs. It is
 // separated from newAccountDisplay so that if there is a problem we can ask
@@ -139,6 +143,9 @@ func (a *account) nameProcess() {
 		NewLogin(a.frontend)
 	case l < 3:
 		a.buf.WriteJoin("The name '", string(a.input), "' is too short.\n\n")
+		a.nameDisplay()
+	case verifyName.Find(a.input) == nil:
+		a.buf.WriteJoin("A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n\n")
 		a.nameDisplay()
 	default:
 		a.name = string(a.input)
