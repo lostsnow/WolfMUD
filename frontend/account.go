@@ -35,7 +35,7 @@ type account struct {
 }
 
 // NewAccount returns an account with the specified frontend embedded. The
-// returned account can be used for processing the creation new accounts and
+// returned account can be used for processing the creation of new accounts and
 // players.
 func NewAccount(f *frontend) (a *account) {
 	a = &account{frontend: f}
@@ -45,7 +45,7 @@ func NewAccount(f *frontend) (a *account) {
 
 // explainAccountDisplay displays the requirements for new account IDs. It is
 // separated from newAccountDisplay so that if there is a problem we can ask
-// for the new account ID again without having to have the explanation.
+// for the new account ID again without having to have the explanation as well.
 func (a *account) explainAccountDisplay() {
 	l := strconv.Itoa(config.Login.AccountLength)
 	a.buf.WriteJoin("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n\n")
@@ -58,8 +58,8 @@ func (a *account) newAccountDisplay() {
 	a.nextFunc = a.newAccountProcess
 }
 
-// newAccountProcess takes the current input and stores it in the current state as
-// an account ID hash. At this point it is not validated yet, just stored.
+// newAccountProcess takes the current input and stores it as an account ID
+// hash. We don't know if it's already taken yet, we are just storing it.
 func (a *account) newAccountProcess() {
 	switch l := len(a.input); {
 	case l == 0:
