@@ -54,7 +54,7 @@ func (a *account) explainAccountDisplay() {
 
 // newAccountDisplay asks the player for a new account ID
 func (a *account) newAccountDisplay() {
-	a.buf.WriteString("Enter text to use for your account ID or just press enter to cancel:")
+	a.buf.WriteString("Enter text to use for your new account ID or just press enter to cancel:")
 	a.nextFunc = a.newAccountProcess
 }
 
