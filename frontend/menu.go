@@ -33,8 +33,9 @@ Select an option:`))
 	m.nextFunc = m.menuProcess
 }
 
-// menuProcess validates the menu option take by the player and takes action
-// accordingly.
+// menuProcess takes the curernt input and processes it as a menu option. If
+// the option is valid the corresponding action is taken. If the option is not
+// valid the player is notified and we wait for another option to be chosen.
 func (m *menu) menuProcess() {
 	switch string(m.input) {
 	case "":
