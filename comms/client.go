@@ -54,7 +54,7 @@ func newClient(conn *net.TCPConn) *client {
 
 	// Setup connection parameters
 	conn.SetKeepAlive(true)
-	conn.SetLinger(0)
+	conn.SetLinger(10)
 	conn.SetNoDelay(false)
 	conn.SetWriteBuffer(termColumns * termLines)
 	conn.SetReadBuffer(termColumns)
