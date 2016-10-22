@@ -99,19 +99,13 @@ func (c *client) process() {
 	c.frontend.Close()
 	c.frontend = nil
 
-	// If connection time out clear timeout error to notify the client
-	if oe, ok := err.(*net.OpError); ok && oe.Timeout() {
-		<-c.err
-		c.err <- nil
+	// If connection timed out notify the client
+	if oe, ok := c.Error().(*net.OpError); ok && oe.Timeout() {
 		c.Write([]byte("\n\nIdle connection terminated by server.\n"))
 	}
 
-	// If error is temporary clear error and say goodbye to client
-	if oe, ok := err.(temporary); ok && oe.Temporary() {
-		<-c.err
-		c.err <- nil
-		c.Write([]byte("\nBye bye...\n\n"))
-	}
+	// Say goodbye to client
+	c.Write([]byte("\nBye bye...\n\n"))
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
