@@ -130,46 +130,49 @@ func Load() {
 
 // openConfig tries to locate and open the configuration file to use. By
 // default it will use the path specified on the command line. As a fallback it
-// will use the current directory. If the path does not specify a filename the
-// default config.wrj will be used. If a configuration file is found and
-// accessible a *os.File to it will be returned with a nil error. If not found
-// a nil pointer and a non-nil error will be returned.
-func openConfig() (f *os.File, err error) {
+// will use the data directory in the current directory. If the path does not
+// specify a filename the default config.wrj will be used. If a configuration
+// file is found and accessible a *os.File to it will be returned with a nil
+// error. If not found a nil pointer and a non-nil error will be returned.
+func openConfig() (config *os.File, err error) {
 
 	// Has user supplied path ± specific file?
 	flag.Parse()
-	d := flag.Arg(0)
+	dir, file := filepath.Split(flag.Arg(0))
 
-	// If no user supplied path ± file use the current working directory
-	if d == "" {
-		if d, err = os.Getwd(); err != nil {
+	// Is the file actually a directory without a final separator?
+	if file != "" && filepath.Ext(file) != ".wrj" {
+		dir = filepath.Join(dir, file)
+		file = ""
+	}
+
+	// If no user supplied path use the data directory in the current working
+	// directory
+	if dir == "" {
+		if dir, err = os.Getwd(); err != nil {
 			return nil, err
 		}
+		dir = filepath.Join(dir, "data")
 	}
 
-	// Make sure path ± file is good
-	if d, err = filepath.Abs(d); err != nil {
+	// If no configuration file provided use the default
+	if file == "" {
+		file = "config.wrj"
+	}
+
+	// Make sure path + file is good
+	path := filepath.Join(dir, file)
+	if path, err = filepath.Abs(path); err != nil {
 		return nil, err
-	}
-
-	// Try getting information on path ± file
-	var info os.FileInfo
-	if info, err = os.Stat(d); err != nil {
-		return nil, err
-	}
-
-	// If we just have a path add default filename
-	if info.IsDir() {
-		d = filepath.Join(d, "config.wrj")
 	}
 
 	// Try and open configuration file
-	if f, err = os.Open(d); err != nil {
+	if config, err = os.Open(path); err != nil {
 		return nil, err
 	}
 
-	log.Printf("Found configuration file: %s", d)
-	return f, nil
+	log.Printf("Found configuration file: %s", path)
+	return config, nil
 }
 
 // findData tries to locate the data directory relative to the configuration
