@@ -76,22 +76,25 @@ func newClient(conn *net.TCPConn) *client {
 // process handles input from the network connection.
 func (c *client) process() {
 
-	var (
-		s   = bufio.NewReaderSize(c, termColumns) // Sized network read buffer
-		err error                                 // function local errors
-		in  []byte                                // Input string from buffer
-	)
-
 	// Main input processing loop, terminates on any error raised not just read
 	// or Parse errors.
-	for c.Error() == nil {
-		c.SetReadDeadline(time.Now().Add(config.Server.IdleTimeout))
-		if in, err = s.ReadBytes('\n'); err != nil {
-			c.SetError(err)
-			continue
-		}
-		if err = c.frontend.Parse(in); err != nil {
-			c.SetError(err)
+	{
+		// Variables for use in the loop only hence the scoping outer braces
+		var (
+			s   = bufio.NewReaderSize(c, termColumns) // Sized network read buffer
+			err error                                 // function local errors
+			in  []byte                                // Input string from buffer
+		)
+
+		for c.Error() == nil {
+			c.SetReadDeadline(time.Now().Add(config.Server.IdleTimeout))
+			if in, err = s.ReadBytes('\n'); err != nil {
+				c.SetError(err)
+				continue
+			}
+			if err = c.frontend.Parse(in); err != nil {
+				c.SetError(err)
+			}
 		}
 	}
 
@@ -109,14 +112,14 @@ func (c *client) process() {
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
-	if err == io.EOF {
+	if c.Error() == io.EOF {
 		log.Printf("Connection dropped by remote client: %s", c.remoteAddr)
 	} else {
-		log.Printf("Connection error: %s, %s", err, c.remoteAddr)
+		log.Printf("Connection error: %s, %s", c.Error(), c.remoteAddr)
 	}
 
 	// Make sure connection closed down and deallocated
-	if err = c.Close(); err != nil {
+	if err := c.Close(); err != nil {
 		log.Printf("Error closing connection: %s", err)
 	} else {
 		log.Printf("Connection closed: %s", c.remoteAddr)
