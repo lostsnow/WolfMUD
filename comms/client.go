@@ -137,9 +137,11 @@ func (c *client) process() {
 // Write handles output for the network connection.
 func (c *client) Write(d []byte) (n int, err error) {
 
-	// Don't try doing anything if we already have errors
-	if c.Error() != nil {
-		return
+	// If we already have a non-temporary error do nothing
+	if e := c.Error(); e != nil {
+		if e, ok := e.(temporary); !ok || !e.Temporary() {
+			return
+		}
 	}
 
 	var t []byte
