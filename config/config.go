@@ -17,6 +17,7 @@ import (
 
 	"flag"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -68,7 +69,13 @@ var Login = struct {
 
 // Load loads the configuration file and overrides the default configuration
 // values with any values found.
-func Load() {
+func init() {
+
+	// Setup global logging format
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	// Seed default random source
+	rand.Seed(time.Now().UnixNano())
 
 	f, err := openConfig()
 

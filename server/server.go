@@ -10,20 +10,9 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/zones"
-
-	"log"
-	"math/rand"
-	"time"
 )
 
 func main() {
-
-	// Seed default random source
-	rand.Seed(time.Now().UnixNano())
-
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-
-	config.Load()
 	stats.Start()
 	zones.Load()
 	comms.Listen(config.Server.Host, config.Server.Port)
