@@ -67,8 +67,13 @@ func newClient(conn *net.TCPConn) *client {
 
 	c.err <- nil
 
-	c.frontend = frontend.New(c)
-	c.frontend.Parse([]byte(""))
+	c.leaseAcquire()
+
+	// Setup frontend if no error acquiring a lease
+	if c.Error() == nil {
+		c.frontend = frontend.New(c)
+		c.frontend.Parse([]byte(""))
+	}
 
 	return c
 }
@@ -98,13 +103,20 @@ func (c *client) process() {
 		}
 	}
 
-	// Deallocate current frontend
-	c.frontend.Close()
-	c.frontend = nil
+	// Deallocate current frontend if we have one
+	if c.frontend != nil {
+		c.frontend.Close()
+		c.frontend = nil
+	}
 
 	// If connection timed out notify the client
 	if oe, ok := c.Error().(*net.OpError); ok && oe.Timeout() {
 		c.Write([]byte("\n\nIdle connection terminated by server.\n"))
+	}
+
+	// Notify if server too busy to accept more players
+	if _, ok := c.Error().(noLeaseError); ok {
+		c.Write([]byte("\nServer too busy. Please come back in a short while.\n"))
 	}
 
 	// Say goodbye to client
@@ -125,6 +137,8 @@ func (c *client) process() {
 		log.Printf("Connection closed: %s", c.remoteAddr)
 	}
 	c.TCPConn = nil
+
+	c.leaseRelease()
 
 	// Close and drain error channel
 	close(c.err)
