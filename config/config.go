@@ -29,12 +29,14 @@ var Server = struct {
 	Port        string        // Port for server to listen on
 	Greeting    []byte        // Connection greeting
 	IdleTimeout time.Duration // Idle connection disconnect time
+	MaxPlayers  int           // Max number of players allowed to login at once
 	DataDir     string        // Main data directory
 }{
 	Host:        "127.0.0.1",
 	Port:        "4001",
 	Greeting:    []byte(""),
 	IdleTimeout: 10 * time.Minute,
+	MaxPlayers:  1024,
 	DataDir:     ".",
 }
 
@@ -103,6 +105,8 @@ func init() {
 			Server.Port = recordjar.Decode.String(data)
 		case "SERVER.IDLETIMEOUT":
 			Server.IdleTimeout = recordjar.Decode.Duration(data)
+		case "SERVER.MAXPLAYERS":
+			Server.MaxPlayers = recordjar.Decode.Integer(data)
 		case "SERVER.GREETING":
 			Server.Greeting = recordjar.Decode.Bytes(data)
 

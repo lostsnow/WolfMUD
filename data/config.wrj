@@ -9,6 +9,7 @@
 	Server.Host:				127.0.0.1
 	Server.Port:				4001
 	Server.IdleTimeout: 10m
+  Server.MaxPlayers:  1024
 //
 // Stats configuration
 //
