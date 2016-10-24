@@ -176,7 +176,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 
 	for _, rec := range j {
 		maxLen = 0
-		for field, _ := range rec {
+		for field := range rec {
 			if field == freetext {
 				continue
 			}
