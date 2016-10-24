@@ -71,7 +71,6 @@ func Read(in io.Reader, freetext string) Jar {
 			field, data = "", tokens[1]
 		default:
 			panic("should not happen!")
-			continue
 		}
 
 		// Ignore comments if not processing the free text block
