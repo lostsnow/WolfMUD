@@ -34,14 +34,16 @@ func Listen(host, port string) {
 	log.Printf("Accepting connections on: %s", addr)
 
 	for {
-		if conn, err := listener.AcceptTCP(); err != nil {
+		conn, err := listener.AcceptTCP()
+		if err != nil {
 			log.Printf("Error accepting connection: %s", err)
-			return
-		} else {
-			log.Printf("Connection from: %s", conn.RemoteAddr())
-			c := newClient(conn)
-			go c.process()
+			continue
 		}
+
+		log.Printf("Connection from: %s", conn.RemoteAddr())
+		c := newClient(conn)
+		go c.process()
+
 		runtime.Gosched()
 	}
 }
