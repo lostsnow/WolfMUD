@@ -59,7 +59,7 @@ func Commands(s *state) {
 
 	// If we have a partial row we need to account for it
 	if len(cmds) > rowCount*columnCount {
-		rowCount += 1
+		rowCount++
 	}
 
 	// Calculate maximum padding length we will need. We can reslice this for
