@@ -254,7 +254,7 @@ func (a *account) write() {
 	// should be an atomic operation but is dependant on the underlying file
 	// system and operating system being used.
 	if err := os.Rename(temp, real); err != nil {
-		log.Printf("Error renaming account: %s, %d, %s", temp, real, err)
+		log.Printf("Error renaming account: %s, %s, %s", temp, real, err)
 		return
 	}
 	log.Printf("New account created: %s", real)
