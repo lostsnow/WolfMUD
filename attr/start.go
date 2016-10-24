@@ -55,8 +55,8 @@ func FindStart(t has.Thing) has.Start {
 }
 
 // Found returns false if the receiver is nil otherwise true.
-func (n *Start) Found() bool {
-	return n != nil
+func (s *Start) Found() bool {
+	return s != nil
 }
 
 // Unmarshal is used to turn the passed data into a new Start attribute.
