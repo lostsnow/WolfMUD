@@ -69,11 +69,6 @@ type state struct {
 // NewState returns a *state initialised with the passed Thing and input. If
 // the passed Thing is locatable the containing Inventory is added to the lock
 // list, but the lock is not taken at this point.
-//
-// BUG: Stop words are currently experimental. Use of removeStopWords means
-// that s.input is no longer the original input anymore, but s.input and
-// s.words do still match up. Also internal.RemoveStopWords is duplicating the
-// effort of uppercasing the words which probably needs sorting at some point?
 func NewState(t has.Thing, input string) *state {
 
 	s := &state{
@@ -81,6 +76,25 @@ func NewState(t has.Thing, input string) *state {
 		locks: make([]has.Inventory, 0, 2), // Common case is only 1 or 2 locks
 	}
 
+	s.tokenizeInput(input)
+
+	// Need to determine the actor's current location so we can lock it. As
+	// commands frequently need to know the current location also, we stash it in
+	// the state for later reuse.
+	s.where = attr.FindLocate(t).Where()
+	s.AddLock(s.where)
+
+	return s
+}
+
+// tokenizeInput takes the given string and breaks it into tokens which are
+// stored in the current state.
+//
+// BUG: Stop words are currently experimental. Use of removeStopWords means
+// that s.input is no longer the original input anymore, but s.input and
+// s.words do still match up. Also internal.RemoveStopWords is duplicating the
+// effort of uppercasing the words which probably needs sorting at some point?
+func (s *state) tokenizeInput(input string) {
 	s.input = strings.Fields(input)
 
 	if len(s.input) > 0 {
@@ -94,14 +108,6 @@ func NewState(t has.Thing, input string) *state {
 		s.cmd, s.words = s.words[0], s.words[1:]
 		s.input = s.input[1:]
 	}
-
-	// Need to determine the actor's current location so we can lock it. As
-	// commands frequently need to know the current location also, we stash it in
-	// the state for later reuse.
-	s.where = attr.FindLocate(t).Where()
-	s.AddLock(s.where)
-
-	return s
 }
 
 // parse repeatedly calls sync until it returns true.
