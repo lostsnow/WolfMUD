@@ -144,12 +144,7 @@ func (s *state) sync() (inSync bool) {
 	s.allocateBuffers()
 	l := len(s.locks)
 
-	switch handler, valid := handlers[s.cmd]; {
-	case valid:
-		handler(s)
-	default:
-		s.msg.actor.WriteString("Eh?")
-	}
+	s.handleCommand()
 
 	// If we don't add any new locks we are 'in sync'. Therefore set inSync flag
 	// and process any pending messages before all of the locks get released.
@@ -158,6 +153,20 @@ func (s *state) sync() (inSync bool) {
 		s.messenger()
 	}
 	return
+}
+
+// handleCommand runs the registered handler for the current state command. If
+// a handler cannot be found a message will be written to the actor's output
+// buffer.
+//
+// BUG(diddymus): Should this be moved into handler.go?
+func (s *state) handleCommand() {
+	switch handler, valid := handlers[s.cmd]; {
+	case valid:
+		handler(s)
+	default:
+		s.msg.actor.WriteString("Eh?")
+	}
 }
 
 // messenger is used to send buffered messages to the actor, participant and
