@@ -81,6 +81,17 @@ func newClient(conn *net.TCPConn) *client {
 // process handles input from the network connection.
 func (c *client) process() {
 
+	// If a client goroutine panics try not to bring down the whole server down
+	// unless in debug mode
+	defer func() {
+		if !config.Server.Debug {
+			if err := recover(); err != nil {
+				log.Printf("CLIENT PANICKED: %s", err)
+			}
+		}
+		c.close()
+	}()
+
 	// Main input processing loop, terminates on any error raised not just read
 	// or Parse errors.
 	{
@@ -102,20 +113,40 @@ func (c *client) process() {
 			}
 		}
 	}
+}
+
+// close shuts down a client cleanly, closes network connections and
+// deallocates resources.
+func (c *client) close() {
+
+	idle, busy := false, false
+
+	// Idle timeout?
+	if oe, ok := c.Error().(*net.OpError); ok && oe.Timeout() {
+		idle = true
+	}
+
+	// Server busy?
+	if _, ok := c.Error().(noLeaseError); ok {
+		busy = true
+	}
 
 	// Deallocate current frontend if we have one
 	if c.frontend != nil {
+		if idle {
+			c.Write([]byte("\n")) // Move off prompt line
+		}
 		c.frontend.Close()
 		c.frontend = nil
 	}
 
 	// If connection timed out notify the client
-	if oe, ok := c.Error().(*net.OpError); ok && oe.Timeout() {
-		c.Write([]byte("\n\nIdle connection terminated by server.\n"))
+	if idle {
+		c.Write([]byte("\nIdle connection terminated by server.\n"))
 	}
 
 	// Notify if server too busy to accept more players
-	if _, ok := c.Error().(noLeaseError); ok {
+	if busy {
 		c.Write([]byte("\nServer too busy. Please come back in a short while.\n"))
 	}
 
