@@ -169,20 +169,28 @@ func (s *state) handleCommand() {
 	}
 }
 
-// script executes the given input as a command using the current state. The
+// script executes the given input as a command using the current state.
+// Messages are only sent to the actor, participant and any observers if the
+// relevant actor, participant or observers parameter is set to true. The
 // script method should only be called by commands that want to execute
 // sub-commands. For example a 'GIVE ITEM' command might be implemented by
 // scripting together a 'DROP ITEM' and a 'GET ITEM' - thereby reusing the code
-// implement for the DROP and GET commands.
+// implementing the DROP and GET commands.
 //
 // The command we are scripting will be processed with the current state,
-// including any currently held locks and any currently written to message
-// buffers. The value of s.ok will the result of the scripted command.
+// including any currently held locks and any current message buffers. The
+// value of s.ok will be the result of the scripted command.
 //
 // For convenience, and to avoid concatenation when building commands to be
 // scripted, the input string can be passed in as multiple strings that will
 // joined together automatically with space separators.
-func (s *state) script(inputs ...string) {
+//
+// TODO: Suppression of messages is not very efficient as any messages are
+// still 'sent' and we just chop them off again by truncating the buffers.
+// Ideally we should stop the buffers from being written to in the first place.
+//
+// BUG(diddymus): We don't treat observer differently to observers - should we?
+func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	input := strings.Join(inputs, " ")
 
@@ -190,25 +198,64 @@ func (s *state) script(inputs ...string) {
 
 	a := s.msg.actor.Len()
 	p := s.msg.participant.Len()
-	o := s.msg.observer.Len()
+	o := make(map[has.Inventory]int)
+	for k, observer := range s.msg.observers {
+		o[k] = observer.Len()
+	}
 
 	s.tokenizeInput(input)
 	s.ok = false
 	s.handleCommand()
 
-	// If anything is written to the buffers during processing append a newline
-	// to the buffer. This will cause each action to start on it's own line.
+	// If anything is written to the buffers during processing:
+	// 	- append a newline to the buffer if output not suppressed. This will
+	// 		cause each action to start on it's own line.
+	// 	- if messages are suppressed for a buffer truncate back to initial
+	// 		length.
 	if a != s.msg.actor.Len() {
-		s.msg.actor.WriteString("\n")
+		if actor {
+			s.msg.actor.WriteString("\n")
+		} else {
+			s.msg.actor.Truncate(a)
+		}
 	}
 	if p != s.msg.participant.Len() {
-		s.msg.participant.WriteString("\n")
+		if participant {
+			s.msg.participant.WriteString("\n")
+		} else {
+			s.msg.participant.Truncate(p)
+		}
 	}
-	if o != s.msg.observer.Len() {
-		s.msg.observer.WriteString("\n")
+	for k, observer := range s.msg.observers {
+		if o[k] != s.msg.observer.Len() {
+			if observers {
+				s.msg.observer.WriteString("\n")
+			} else {
+				observer.Truncate(o[k])
+			}
+		}
 	}
 
 	s.input, s.words, s.cmd = i, w, c // Restore state
+}
+
+// scriptAll is a helper method that is equivalent to calling script with no
+// messages suppressed for the actor, participant or observers.
+func (s *state) scriptAll(input ...string) {
+	s.script(true, true, true, input...)
+}
+
+// scriptAll is a helper method that is equivalent to calling script with all
+// messages suppressed.
+func (s *state) scriptNone(input ...string) {
+	s.script(false, false, false, input...)
+}
+
+// scriptAll is a helper method that is equivalent to calling script with
+// messages suppressed for any participant or observers. Only the actor will
+// receive any messages.
+func (s *state) scriptActor(input ...string) {
+	s.script(true, false, false, input...)
 }
 
 // messenger is used to send buffered messages to the actor, participant and

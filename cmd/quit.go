@@ -29,7 +29,7 @@ func Quit(s *state) {
 	for _, t := range from.Contents() {
 		if alias := attr.FindAlias(t); alias.Found() {
 			aliases := alias.Aliases()
-			s.script("DROP", aliases[0])
+			s.scriptAll("DROP", aliases[0])
 		}
 	}
 
