@@ -14,4 +14,8 @@ type Alias interface {
 	// HasAlias returns true if the alias passed is a valid alias, otherwise
 	// false.
 	HasAlias(alias string) (found bool)
+
+	// Aliases returns all of the aliases as a []string or am empty slice if
+	// there are no aliases.
+	Aliases() []string
 }

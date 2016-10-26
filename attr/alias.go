@@ -100,3 +100,14 @@ func (a *Alias) HasAlias(alias string) (found bool) {
 	}
 	return
 }
+
+// Aliases returns a []string of all the aliases for an Alias attribute. If
+// there are no aliases an empty slice will be returned.
+func (a *Alias) Aliases() (aliases []string) {
+	if a != nil {
+		for alias := range a.aliases {
+			aliases = append(aliases, alias)
+		}
+	}
+	return
+}
