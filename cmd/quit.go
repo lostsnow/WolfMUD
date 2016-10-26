@@ -22,6 +22,17 @@ func Quit(s *state) {
 
 	who := attr.FindName(s.actor).Name("someone")
 
+	// Drop any items we are carrying.
+	//
+	// NOTE: In future this needs to be updated to only drop temporary items.
+	from := attr.FindInventory(s.actor)
+	for _, t := range from.Contents() {
+		if alias := attr.FindAlias(t); alias.Found() {
+			aliases := alias.Aliases()
+			s.script("DROP", aliases[0])
+		}
+	}
+
 	// Remove the player from the world
 	if s.where != nil {
 		s.msg.observer.WriteJoin(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
