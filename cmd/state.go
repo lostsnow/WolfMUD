@@ -169,6 +169,48 @@ func (s *state) handleCommand() {
 	}
 }
 
+// script executes the given input as a command using the current state. The
+// script method should only be called by commands that want to execute
+// sub-commands. For example a 'GIVE ITEM' command might be implemented by
+// scripting together a 'DROP ITEM' and a 'GET ITEM' - thereby reusing the code
+// implement for the DROP and GET commands.
+//
+// The command we are scripting will be processed with the current state,
+// including any currently held locks and any currently written to message
+// buffers. The value of s.ok will the result of the scripted command.
+//
+// For convenience, and to avoid concatenation when building commands to be
+// scripted, the input string can be passed in as multiple strings that will
+// joined together automatically with space separators.
+func (s *state) script(inputs ...string) {
+
+	input := strings.Join(inputs, " ")
+
+	i, w, c := s.input, s.words, s.cmd // Save state
+
+	a := s.msg.actor.Len()
+	p := s.msg.participant.Len()
+	o := s.msg.observer.Len()
+
+	s.tokenizeInput(input)
+	s.ok = false
+	s.handleCommand()
+
+	// If anything is written to the buffers during processing append a newline
+	// to the buffer. This will cause each action to start on it's own line.
+	if a != s.msg.actor.Len() {
+		s.msg.actor.WriteString("\n")
+	}
+	if p != s.msg.participant.Len() {
+		s.msg.participant.WriteString("\n")
+	}
+	if o != s.msg.observer.Len() {
+		s.msg.observer.WriteString("\n")
+	}
+
+	s.input, s.words, s.cmd = i, w, c // Restore state
+}
+
 // messenger is used to send buffered messages to the actor, participant and
 // observers. The participant may be in another location to the actor - such as
 // when throwing something at someone or shooting someone.
