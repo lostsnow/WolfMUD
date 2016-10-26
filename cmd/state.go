@@ -296,62 +296,6 @@ func (s *state) messenger() {
 	s.deallocateBuffers()
 }
 
-// silent allows a command to be processed without sending messages to specific
-// targets. The passed actor, participant and observers flags can be set to
-// prevent messages from being sent to specific targets.
-//
-// TODO: This is a simple but not a very efficient way to implement this as the
-// message are still 'sent' and we just chop them off again by truncating the
-// buffers. Ideally we should stop the buffers from being written to in the
-// first place.
-//
-// BUG(diddymus): We don't treat observer differently to observers - should we?
-func (s *state) silent(actor, participant, observers bool, cmd func(*state)) {
-
-	// If no flags set we can just process the command normally...
-	if !actor && !participant && !observers {
-		cmd(s)
-		return
-	}
-
-	var (
-		aMark int
-		pMark int
-		oMark map[has.Inventory]int
-	)
-
-	// Mark the current length of the buffers we want to silence
-	if actor {
-		aMark = s.msg.actor.Len()
-	}
-	if participant {
-		pMark = s.msg.participant.Len()
-	}
-	if observers {
-		oMark = make(map[has.Inventory]int, len(s.msg.observers))
-		for k, observer := range s.msg.observers {
-			oMark[k] = observer.Len()
-		}
-	}
-
-	cmd(s)
-
-	// Truncate the buffers back to their marked length for buffers we silenced
-	if actor && aMark != s.msg.actor.Len() {
-		s.msg.actor.Truncate(aMark)
-	}
-	if participant && pMark != s.msg.participant.Len() {
-		s.msg.participant.Truncate(pMark)
-	}
-	if observers {
-		for k, observer := range s.msg.observers {
-			if oMark[k] != observer.Len() {
-				observer.Truncate(oMark[k])
-			}
-		}
-	}
-}
-
 // CanLock returns true if the specified Inventory is in the list of locks and
 // could be locked, otherwise false. It does NOT determine if the lock is
 // currently held or not.
