@@ -202,8 +202,20 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	a := s.msg.actor.Len()
 	p := s.msg.participant.Len()
 	o := make(map[has.Inventory]int)
-	for k, observer := range s.msg.observers {
-		o[k] = observer.Len()
+	for where, observer := range s.msg.observers {
+		o[where] = observer.Len()
+	}
+
+	if a > 0 {
+		s.msg.actor.WriteString("\n")
+	}
+	if p > 0 {
+		s.msg.participant.WriteString("\n")
+	}
+	for where, o := range o {
+		if o > 0 {
+			s.msg.observers[where].WriteString("\n")
+		}
 	}
 
 	s.tokenizeInput(input)
@@ -215,28 +227,21 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	// 		cause each action to start on it's own line.
 	// 	- if messages are suppressed for a buffer truncate back to initial
 	// 		length.
-	if a != s.msg.actor.Len() {
-		if actor {
-			s.msg.actor.WriteString("\n")
-		} else {
-			s.msg.actor.Truncate(a)
-		}
+	if l := s.msg.actor.Len(); actor && (l-a > 1) {
+		a = l
 	}
-	if p != s.msg.participant.Len() {
-		if participant {
-			s.msg.participant.WriteString("\n")
-		} else {
-			s.msg.participant.Truncate(p)
-		}
+	s.msg.actor.Truncate(a)
+
+	if l := s.msg.participant.Len(); participant && (l-p > 1) {
+		p = l
 	}
-	for k, observer := range s.msg.observers {
-		if o[k] != s.msg.observer.Len() {
-			if observers {
-				s.msg.observer.WriteString("\n")
-			} else {
-				observer.Truncate(o[k])
-			}
+	s.msg.participant.Truncate(p)
+
+	for where, observer := range s.msg.observers {
+		if l := observer.Len(); observers && (l-o[where] > 1) {
+			o[where] = l
 		}
+		observer.Truncate(o[where])
 	}
 
 	s.input, s.words, s.cmd = i, w, c // Restore state
