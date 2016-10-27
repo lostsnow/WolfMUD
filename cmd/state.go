@@ -46,9 +46,9 @@ type state struct {
 	actor       has.Thing     // The Thing executing the command
 	where       has.Inventory // Where the actor currently is
 	participant has.Thing     // The other Thing participating in the command
-	input       []string      // The original input of the actor
+	input       []string      // The original input of the actor minus cmd
 	cmd         string        // The current command being processed
-	words       []string      // Input split into uppercased words
+	words       []string      // Input as uppercased words, less stopwords
 	ok          bool          // Flag to indicate if command was successful
 
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
@@ -87,21 +87,24 @@ func NewState(t has.Thing, input string) *state {
 	return s
 }
 
-// tokenizeInput takes the given string and breaks it into tokens which are
-// stored in the current state.
+// tokenizeInput takes the given string and breaks it into uppercased words
+// which are stored in the current state. After processing s.cmd will contain
+// the leading command, uppercased. s.input will contain the original input
+// minus the leading s.cmd. s.words will contain the input, uppercased with
+// stopwords and the leading s.cmd removed. For example:
 //
-// BUG: Stop words are currently experimental. Use of removeStopWords means
-// that s.input is no longer the original input anymore, but s.input and
-// s.words do still match up. Also internal.RemoveStopWords is duplicating the
-// effort of uppercasing the words which probably needs sorting at some point?
+//	input = "Say I'm in need of help!"
+//	s.cmd = "SAY"
+//	s.input = []string{"I'm", "in", "need", "of", "help!"}
+//	s.words = []string{"I'M", "NEED", "HELP!"}
+//
 func (s *state) tokenizeInput(input string) {
 	s.input = strings.Fields(input)
 
 	if len(s.input) > 0 {
-		s.input = internal.RemoveStopWords(s.input)
-		s.words = make([]string, len(s.input))
+		s.words = internal.RemoveStopWords(s.input)
 
-		for x, o := range s.input {
+		for x, o := range s.words {
 			s.words[x] = strings.ToUpper(o)
 		}
 
