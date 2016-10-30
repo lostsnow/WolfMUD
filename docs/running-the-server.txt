@@ -1,0 +1,79 @@
+
+NAME
+
+  server - run a WolfMUD server instance
+
+SYNOPSIS
+
+  server [DATA_DIR][configuration_file]
+
+DESCRIPTION
+
+  Run a WolfMUD game server.
+
+  server
+    The name of the executable, on Windows substitude instances of server with
+    server.exe
+
+  DATA_DIR
+    Optional relative or absolute path to the data directory. If not specified
+    the data directory in the current directory will be looked for and the
+    configuration file is assumed to be named config.wrj
+
+  configuration_file
+    Optional relative or absolute path to a specific configuration file. In
+    this case DATA_DIR will be the directory the configuration file is in.
+
+EXAMPLES
+
+  server
+    Run the server using the data directory in the current directory as the
+    DATA_DIR and using the default configuration file config.wrj
+
+  server example.wrj
+    Run the server using the current directory as the DATA_DIR and using the
+    specified configuration file example.wrj
+
+  server /home/diddymus/WolfMUD/data
+    Run the server using the directory /home/diddymus/WolfMUD/data as the
+    DATA_DIR and using the default configuration file config.wrj
+
+  server /home/diddymus/WolfMUD/data/example.wrj
+    Run the server using the directory /home/diddymus/WolfMUD/data as the
+    DATA_DIR and using the specified configuration file example.wrj
+
+  server ../src/code.wolfmud.org/WolfMUD.git/data
+    Run the server using the relative directory
+    ../src/code.wolfmud.org/WolfMUD.git/data as the DATA_DIR and using the
+    default configuration file config.wrj
+
+FILES
+
+  DATA_DIR/
+    Can be any directory holding WolfMUD data files.
+
+  DATA_DIR/config.wrj
+    Default configuration file.
+
+  DATA_DIR/zones/*.wrj
+    Directory looked in for zone files. Any files in this directory that end
+    in .wrj will be loaded as zone files.
+
+  DATA_DIR/players/*.wrj
+    Directory looked in for player account files.
+
+SEE ALSO
+
+  configuration-file.txt, zones-files.txt
+
+BUGS
+
+  Some documented, some yet to be written.
+
+COPYRIGHT
+
+  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+

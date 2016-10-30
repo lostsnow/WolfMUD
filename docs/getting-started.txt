@@ -1,0 +1,98 @@
+
+NAME
+
+  Getting started with WolfMUD
+
+DESCRIPTION
+
+  This document describes details for getting started with WolfMUD using one
+  of the binary downloads.
+
+  If you downloaded one of the source code downloads please see the file
+  compiling-from-source.txt
+
+BINARY DOWNLOADS (LINUX)
+
+  If you have downloaded one of the binary downloads for Linux you first need
+  to open a terminal window. Then change to the directory where you unpacked
+  WolfMUD and run the server binary. Assuming you unpacked WolfMUD into your
+  home directory:
+
+    cd ~/WolfMUD
+    ./server
+
+  To connect to the server as a player you can use a TELNET client provided by
+  you Linux distribution. To connect as a player open a terminal and use the
+  command:
+
+    telnet 127.0.0.1 4001
+
+  You should now be connected to your WolfMUD server.
+
+BINARY DOWNLOADS (ARM)
+
+  There are two different binary downloads for Linux on ARM. The arm5 binary
+  should be suitable for all ARM processors, although it will be slower than a
+  build specific to the ARM processor in use as it does floating point
+  computations in software. The arm6 download should be suitable for ARM
+  processors with hardware floating point including the Raspberry Pi. For more
+  information see:
+
+    http://code.google.com/p/go-wiki/wiki/GoArm
+
+  For the both arm5 and arm6 binary downloads follow the directions given in
+  the section BINARY DOWNLOADS (LINUX).
+
+BINARY DOWNLOADS (WINDOWS)
+
+  If you have downloaded one of the binary downloads for Windows simply double
+  click the file server.exe to start the server.
+
+  To connect to the server as a player you can use a TELNET client such as the
+  one provided with Windows. To connect as a player open a command prompt by
+  selecting:
+
+    Start -> Windows System -> Command Prompt
+
+  Alternatively press Win+R to open the run dialog. Enter cmd in the open
+  field and select the OK button.
+
+  In the window that opens type the command:
+
+    telnet 127.0.0.1 4001
+
+  You should now be connected to your WolfMUD server.
+
+ALLOWING OTHER MACHINES TO CONNECT
+
+  By default the server will only be listening on localhost, IP address
+  127.0.0.1, and will only allow client connections from the local machine.
+
+  If you wish to allow connections from remote machines you will need to
+  update the file data/config.wrj with your machine's IP address.
+
+  For example if the IP address of the machine running the server is
+  172.16.1.1 we would update the file data/config.wrj and edit the line:
+
+    Server.Host: 127.0.0.1
+
+  We would change this line to:
+
+    Server.Host: 172.16.1.1
+
+  To connect to the server we would have to use the new IP address in our
+  telnet command as well:
+
+    telnet 172.16.1.1 4001
+
+SEE ALSO
+
+  configuration-file.txt, running-the-server.txt, compiling.txt
+
+COPYRIGHT
+
+  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+

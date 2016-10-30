@@ -1,0 +1,72 @@
+
+NAME
+
+  Compiling WolfMUD from source
+
+DESCRIPTION
+
+  This document describes details for compiling WolfMUD from one of the source
+  code downloads.
+
+  As a prerequisit to compiling WolfMUD you should have downloaded and
+  installed Go from http://golang.org
+
+COMPILING (LINUX)
+
+  The following instructions assume that the WolfMUD source code download has
+  been unpacked into your home directory. If a different location was used you
+  should substitute ~/WolfMUD for the directory where the source code was
+  unpacked.
+
+  To compile WolfMUD for Linux first open a terminal window. Then enter the
+  following:
+
+    cd ~/WolfMUD
+    GOPATH=~/WolfMUD go install ./...
+
+  Once WolfMUD has been compiled the server executable will be in the
+  directory ~/WolfMUD/bin. To run the server change to the bin directory and
+  specify the location of the data files:
+
+    cd ~/WolfMUD/bin
+    ./server ../src/code.wolfmud.org/WolfMUD.git/data
+
+COMPILING (WINDOWS)
+
+  The following instructions assume that the WolfMUD source code download has
+  been unpacked into the directory C:\WolfMUD. If a different location was
+  used you should substitute C:\WolfMUD for the directory where the source
+  code was unpacked.
+
+  To compile WolfMUD for Windows first open a command prompt. This can be done
+  by selecting:
+
+    Start -> Windows System -> Command Prompt
+
+  Alternatively press Win+R to open the run dialog. Enter cmd in the open
+  field and select the OK button.
+
+  At the command prompt enter the following:
+
+    cd C:\WolfMUD
+    set GOPATH=C:\WolfMUD
+    go install ./...
+
+  Once WolfMUD has been compiled the server.exe executable will be in the
+  directory C:\WolfMUD\bin. To run the server change to the bin directory and
+  specify the location of the data files:
+
+    cd C:\WolfMUD\bin
+    .\server.exe ..\src\code.wolfmud.org\WolfMUD.git\data
+
+SEE ALSO
+
+  running-the-server.txt
+
+COPYRIGHT
+
+  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+
