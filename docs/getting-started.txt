@@ -87,7 +87,7 @@ ALLOWING OTHER MACHINES TO CONNECT
 
 SEE ALSO
 
-  configuration-file.txt, running-the-server.txt, compiling.txt
+  configuration-file.txt, running-the-server.txt, compiling-from-source.txt
 
 COPYRIGHT
 
