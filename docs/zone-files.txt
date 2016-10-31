@@ -1,0 +1,237 @@
+
+NAME
+
+  WolfMUD zone files
+
+DESCRIPTION
+
+  This document describes details for the WolfMUD zone files. WolfMUD zone
+  files are written in the WolfMUD record jar format, as described in the
+  document wolfmud-record-format.txt, and have a .wrj extension.
+
+  When started the WolfMUD server will try to load zone files with a .wrj
+  extension from the zones sub directory, located in the server's data
+  directory. For more details see: running-the-server.txt
+
+  Zone files contain an option zone header record giving brief information
+  about the zone such as its name and the name of the author. The rest of the
+  records detail locations and objects within the world.
+
+  The following is an example of a zone file with an optional header record, a
+  location record, a narrative record and an item record:
+
+
+    // Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+    //
+    // Use of this file is governed by the license in the LICENSE file
+    // included with the source code.
+    %%
+          Ref: ZINARA
+         Zone: City of Zinara
+       Author: Andrew 'Diddymus' Rolfe
+
+    This is the city of Zinara.
+    %%
+          Ref: L1
+        Start:
+         Name: Fireplace
+      Aliases: TAVERN FIREPLACE
+        Exits: E→L3 SE→L4 S→L2
+    Inventory: L1N1
+
+    You are in the corner of the common room in the dragon's breath tavern. A
+    fire burns merrily in an ornate fireplace, giving comfort to weary
+    travellers. The fire causes shadows to flicker and dance around the room,
+    changing darkness to light and back again. To the south the common room
+    continues and east the common room leads to the tavern entrance.
+    %%
+          Ref: L1N1
+    Narrative:
+         Name: an ornate fireplace
+        Alias: FIRE FIREPLACE
+
+    This is a very ornate fireplace carved from marble. Either side a dragon
+    curls downward until the head is below the fire looking upward, giving the
+    impression that they are breathing fire.
+    %%
+         Ref: O1
+        Name: a curious brass lattice
+     Aliases: LATTICE
+    Location: L1
+
+    This is a finely crafted, intricate lattice of fine brass wires forming a
+    roughly ball shaped curiosity.
+    %%
+
+FIELD DATA TYPES
+
+  Depending on the field name the format of the data can be required to be in
+  a specific format. This section lists the different formats.
+
+  STRING
+    The data is a simple string of characters.
+
+  KEYWORD
+    The data is a single case insensitive word.
+
+  KEYWORD LIST
+    The data is a list of whitespace separated, case insensitive words.
+
+  PAIR LIST
+    The data is a white space separated list of pairs. Each pair is separated
+    by a non-digit or non-letter character. For example:
+
+      Exits: E→L3 SE→L4 S→L2
+
+    There are three pairs: E→L3, SE→L4 and S→L2. Each pair is separated by '→'
+    which is a non-digit and non-numeric.
+
+ZONE HEADER RECORD
+
+  The zone header record is optional. If present it can contain the following
+  fields:
+
+  AUTHOR: <STRING>
+    The name of the author of the zone.
+
+  REF: <KEYWORD>
+    REF is a reference to the zone. The reference should be unique for each
+    zone available. It is used for ZONELINKS fields so that different zones
+    can be linked together.
+
+  ZONE: <STRING>
+    A brief name for the zone.
+
+  FREE TEXT BLOCK
+    A description for the zone.
+
+ZONE RECORDS
+
+  Additional zone records after the optional zone header record are used to
+  define locations and objects. They are defined by using a combination field
+  types. Different types of objects can be defined by combining different
+  fields together. The following are the different fields that are available:
+
+  ALIAS: <KEYWORD LIST>
+    A list of keywords used by players to interact with something. For
+    example: LATTICE
+
+  EXITS: <PAIR LIST>
+    An EXITS field defines something as a location, allowing for very loose
+    definitions of what a location is. Each pair in the list should consist of
+    a direction followed by a non-digit, non-letter separator followed by a
+    reference to another location. Exit directions can be given in long or
+    short form. The long and short form directions available are: North - N,
+    Northeast - NE, East - E, Southeast - SE, South - S, Southwest - SW, West -
+    W, Northwest - NW, Up - U, Down - D. Directions are case insensitive as
+    are the references. An example might be: E→L3. This implies that going
+    east from the location defining the exits will lead to the location with a
+    REF field of L3. If an invalid reference is given the exit will be
+    ignored. As references are only unique within separate zone files exits
+    between locations in different zones need to use a ZONELINKS field.
+
+    When adding exits it should be noted that they are usually added as
+    opposing pairs. For example: going east from A leads to B, going west from
+    B leads back to A. As the exits are added to A and B independently this
+    need not always be the case.
+
+    If an EXITS field is added to something an inventory will be automatically
+    added as well even if there is no specific INVENTORY field.
+
+  INVENTORY: <KEYWORD LIST>
+    The INVENTORY field defines something as being a container or location. It
+    may be followed by a list of space separated references. Each reference
+    will be looked up and the something it uniquely references will be placed
+    into the inventory. The same reference may appear in multiple INVENTORY in
+    which case a copy of the original something will be made. As an example:
+    INVENTORY: O1 - this says to put the something defined as O1 into this
+    inventory. See also LOCATION.
+
+    It is possible to put containers inside other containers. It is also
+    possible, but very confusing, to put locations inside locations or inside
+    containers. However you cannot put something or a location directly inside
+    itself.
+
+    It is also possible for players to enter containers even though it may not
+    have EXITS defining it as an actual location.
+
+  LOCATION: <KEYWORD LIST>
+    LOCATION fields are used to put something into one or more inventories.
+    Whereas an INVENTORY field says 'put these items here' a LOCATION field
+    says 'put this item there and there'. Both LOCATION and INVENTORY have the
+    same effect but LOCATION allows where something is put to be defined with
+    the actual something, whereas INVENTORY allows you to define what is at a
+    location with the location.
+
+    When deciding whether to use LOCATION or INVENTORY to place things as a
+    rule of thumb use INVENTORY for things unique to a location, such as
+    narratives, and use LOCATION to place things in multiple places.
+
+  NAME: <STRING>
+    A short descriptive name. For example: a curious brass lattice
+
+  NARRATIVE:
+    A NARRATIVE field marks something as being immoveable. Narratives are also
+    not specifically listed in containers or locations with other objects.
+    Narratives can be used to provide additional details about something
+    described in a description. For example a room might say there is a
+    fireplace. By defining the fireplace as a narrative with a name,
+    description and alias, and adding it to the location's inventory the
+    fireplace may be examined by players. Apart from being immoveable and not
+    specifically listed narratives behave like normal objects. For example
+    they can have inventories and contain other objects.
+
+  REF: <KEYWORD>
+    REF is a unique reference to something. It only needs to be unique within
+    the zone file it is defined in. It is helpful if standard reference
+    prefixes are used such as 'L' for locations and 'O' for object. Although
+    this is not essential and not enforced. For example: L1
+
+  START:
+    The START field defines a location as a starting point where players may
+    appear in the world. It is only applicable for records that also define an
+    EXITS field, otherwise it is ignored.
+
+  ZONELINKS: <PAIR LIST>
+    WolfMUD allows worlds to be created as separate zones, possibly authored
+    by different people, which are then linked together using ZONELINKS. Using
+    ZONELINKS also makes it easy to identify the places where zones link
+    together. A ZONELINK works in exactly the same way as an EXITS field. Each
+    pair in the list should consist of a direction followed by a non-digit,
+    non-letter separator followed by a reference to another location. However
+    for ZONELINKS the reference to another location should be a zone unique
+    reference followed by a non-digit, non-letter separator followed by a
+    reference to a location. For example: S→ZINARASOUTH:L1 - this defines a
+    ZONELINKS where going south leads to the location with REF L1 in the zone
+    with REF ZINARASOUTH.
+
+    When adding exits using ZONELINKS it should be noted that they are usually
+    added as opposing pairs. For example: going east from ZONE1:A leads to
+    ZONE2:A, going west from ZONE2:A leads back to ZONE1:A. As the exits are
+    added to ZONE1:A and ZONE2:A independently this need not always be the
+    case.
+
+    When a ZONELINKS field links to something an inventory will be added
+    automatically to the target being linked to even if there is no specific
+    INVENTORY field for the target.
+
+  FREE TEXT BLOCK
+    The free text block is used to define descriptions for things. It's start
+    is signified by a single blank line separating it from preceding fields.
+    The end of the free text block is signified by either a record separator
+    consisting of a line with only two percent signs '%%' or the end of the
+    file is reached. If a record consists of a description only and no fields
+    the preceding blank line is not required. Within a free text block blank
+    lines and leading whitespace is preserved.
+
+SEE ALSO
+
+  configuration-file.txt, wolfmud-record-format.txt, running-the-server.txt
+
+COPYRIGHT
+
+  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+
