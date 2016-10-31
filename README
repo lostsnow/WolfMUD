@@ -1,0 +1,28 @@
+IF YOU HAVE TROUBLE VIEWING THIS OR OTHER FILES PLEASE USE YOUR WEB BROWSER!
+
+
+                               Welcome to WolfMUD
+                            World Of Living Fantasy
+                               http://wolfmud.org
+
+
+                  Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+                              All rights reserved.
+
+
+WolfMUD is an open source, textual, multiplayer, network, adventure game
+codebase.
+
+Please note that WolfMUD is developed on Unix like systems. As a result all
+text (.txt) and WolfMUD data files (.wrj) have Unix line endings. While these
+files are plain text, programs such as Notepad, WritePad or Microsoft Office
+are not suitable for editing them. Instead please use a proper text editor such
+as Vim, Emacs or Notepad++ such as you would use for programming. If you just
+wish to view the files you can open them in a web browser such as Google
+Chrome, Mozilla Firefox or Microsoft Internet Explorer.
+
+If this is your first time using WolfMUD, please read the getting-started.txt
+file in the docs directory.
+
+--
+Diddymus

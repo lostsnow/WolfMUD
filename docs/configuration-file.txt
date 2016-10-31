@@ -1,0 +1,166 @@
+
+NAME
+
+  config.wrj - WolfMUD's default configuration file
+
+SYNOPSIS
+
+  DATA_DIR/config.wrj
+
+DESCRIPTION
+
+  config.wrj is the default configuration file looked for by the WolfMUD
+  server. An alternative file can be passed to the server on the command line
+  making it possible to have multiple configuration files. For example one for
+  a testing configuration and one for a live configuration.
+
+  The configuration file is a plain text file laid out using the WolfMUD
+  record jar format.
+
+FIELDS & VALUES
+
+  Below is a list of expected fields for configuration file the and the values
+  those fields expect. The field names are case insensitive.
+
+
+  Server.Host: IP address | host name
+    The IP address or host name identifying the network interface the server
+    should listen on for incoming client connections. The default is 127.0.0.1
+    for local connections only.
+
+  Server.Port: port number | service name
+    The port the server should listen on for incoming client connections. The
+    port can be specified as an integer number, e.g. 4001, or as a service
+    name, e.g. TELNET.
+
+    Ports in the range 0 to 1024 are usually restricted and require special
+    permissions. For example running a server on port 23 (TELNET) would
+    require special permissions. The default port is 4001.
+
+  Server.IdleTimeout: period
+    The amount of time of inactivity after which the server should close an
+    idle connection. The period can use a combination of hours (h), minutes
+    (m) and seconds (s). The following are examples of valid values: 10s, 10m,
+    1h, 1h30m. The default timeout for idle connections is 10m - 10 minutes.
+
+  Server.MaxPlayers: count
+    The maximum number of players allowed to be connected to the server at the
+    same time. Count can be any integer from 0 to 4,294,967,295 although the
+    number of players a server can actually support will be system specific.
+    The default maximum number of players is 1024.
+
+  Server.Debug: bool
+    Whether the server is running in debug mode or not. Currently this value
+    determines if a panicking client thread will terminate the server or not.
+    If this value is false the server will try to recover panicking clients.
+    The default value is false.
+
+  Stats.Rate: period
+    The period is the frequency at which statistics are collected and
+    displayed by the server. The period can use a combination of hours (h),
+    minutes (m) and seconds (s). The following are examples of valid values:
+    10s, 10m, 1h, 1h30m. The default rate is 10s - every 10 seconds.
+
+  Stats.GC: true | false
+    This value specifies whether garbage collection should be performed just
+    before server statics are collected and displayed. The default value is
+    false. Note that setting this to true causes garbage collection to run at
+    the same frequency as the Stats.Rate period in addition to the normal
+    garbage collection.
+
+  Inventory.Compact:
+    This value causes inventories to be compacted when the difference between
+    their potential capacity and actual usage is over a certain threshold.
+    The threshold is calculated as:
+
+      capacity - 2*length >= Inventory.Compact
+
+    For the default value of 8 the excess capacity will be reclaimed when it
+    is larger than twice the actual length plus 8. The default prevents
+    small inventories from being constantly being reallocated. If there are
+    constantly large numbers of players in many locations increasing this
+    value will reduce reallocations at the expense of increased memory usage.
+
+  Inventory.CrowdSize:
+    This value determines how many players are considered to be a crowd. If
+    there are more than Inventory.CrowdSize players at the same location the
+    location is said to be crowded. If a location is crowded the individual
+    players are not listed, instead players are informed that there is a crowd
+    there. Also if a player performs an action observing players are not
+    notified, but if a player is interacted with directly they will still be
+    notified. The default value for Inventory.CrowdSize is 10.
+
+  Login.AccountLength:
+    This value is the minimum number of characters allowed for account IDs
+    when creating new accounts. The default value is 10.
+
+  Login.PasswordLength:
+    This value is the minimum number of characters allowed for account
+    passwords when creating new accounts. The default value is 10.
+
+  Login.SaltLength:
+    This value is the default length of salts generated for passwords when
+    accounts are created. The default value is 32. You should not need to
+    change this value.
+
+  Free text block:
+    The free text block contains text that is displayed as soon as a player
+    connects to the server.
+
+EXAMPLES
+
+  The example below shows a default configuration file using default values.
+  The example starts with a comment - the line starting with '//' and ends on
+  the end of record marker '%%'.
+
+
+// config.wrj - Default configuration file with default values.
+  Server.Host:          127.0.0.1
+  Server.Port:          4001
+  Server.IdleTimeout:   10m
+  Server.MaxPlayers:    1024
+  Server.Debug:         false
+  Stats.Rate:           10s
+  Stats.GC:             false
+  Inventory.Compact:    8
+  Inventory.CrowdSize:  10
+  Login.AccountLength:  10
+  Login.PasswordLength: 10
+  Login.SaltLength:     32
+
+
+WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+
+    World
+    Of
+    Living
+    Fantasy
+
+Welcome to WolfMUD!
+
+%%
+
+
+FILES
+
+  DATA_DIR/
+    Can be any directory holding WolfMUD data files.
+
+  DATA_DIR/config.wrj
+    Default configuration file.
+
+SEE ALSO
+
+  configuration-file.txt, zones-files.txt
+
+BUGS
+
+  Some documented, some yet to be written.
+
+COPYRIGHT
+
+  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+

@@ -1,26 +1,45 @@
-// Copyright 2013 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
-// Use of this file is governed by the license in the LICENSE file included with
-// the source code.
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
 //
-// config.wrj - Main configuration file
+// config.wrj - Main WolfMUD server configuration file
 //
-// Address and port for server to listen on. Address can be a hostname or
-// literal IP address.  Port can be a raw port number or a service name.
-listen.address:	127.0.0.1
-   listen.port: 4001
+// Server configuration
+	Server.Host:				127.0.0.1
+	Server.Port:				4001
+	Server.IdleTimeout: 10m
+  Server.MaxPlayers:  1024
+  Server.Debug:				false
 //
-// Location of the data directory
-data.dir:	.
+// Stats configuration
 //
-// Memory profiling rate. Set to 0 - zero - to disable.
-mem.profile.rate: 1
+	Stats.Rate:	10s
+	Stats.GC:		false
 //
-// Stats reporting rate. Can be any duration time.ParseDuration can handle.
-// Usually using units of h=hours, m=minutes and s=seconds.
-// For example: 10s, 1m, 1m30s. Set to 0 - zero - to disable.
-stats.rate: 10s
+// Inventory configuration
 //
-// Minimum length of account Id and password
-account.id.min: 10
-account.password.min: 10
+	Inventory.Compact:		 8
+	Inventory.CrowdSize:	10
+//
+// Login configuration
+//
+// NOTE: Lengths are minimums
+//
+	Login.AccountLength:	10
+	Login.PasswordLength: 10
+	Login.SaltLength:			32
+//
+// Initial client connection greeting
+
+
+WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+
+    World
+    Of
+    Living
+    Fantasy
+
+Welcome to WolfMUD!
+
+%%
