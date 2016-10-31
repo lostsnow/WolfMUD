@@ -24,6 +24,8 @@ COMPILING (LINUX)
     cd ~/WolfMUD
     GOPATH=~/WolfMUD go install ./...
 
+RUNNING (LINUX)
+
   Once WolfMUD has been compiled the server executable will be in the
   directory ~/WolfMUD/bin. To run the server change to the bin directory and
   specify the location of the data files:
@@ -51,6 +53,8 @@ COMPILING (WINDOWS)
     cd C:\WolfMUD
     set GOPATH=C:\WolfMUD
     go install ./...
+
+RUNNING (WINDOWS)
 
   Once WolfMUD has been compiled the server.exe executable will be in the
   directory C:\WolfMUD\bin. To run the server change to the bin directory and
