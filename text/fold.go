@@ -86,23 +86,26 @@ func Fold(in []byte, width int) []byte {
 	var (
 		wordLen, lineLen, pageLen = 0, 0, 0 // word, line and output length in runes
 		blank                     = true    // true when line is empty or only blanks
-		control                   = false   // true when processing a control sequence
+		control                   = -1      // >= 0 when processing a control sequence
 	)
 
 	for _, r := range bytes.Runes(in) {
 
 		// Are we starting a control sequence?
 		if r == esc {
-			control = true
+			control = 0
 		}
 
 		// Control codes are zero width and do not add to the length of the word
 		// but are written out. Any character in the range 0x40 - 0x7E (ASCII '@'
 		// through to ASCII '~') ends a control sequence.
-		if control {
+		if control >= 0 {
 			word.WriteRune(r)
-			if '@' <= r && r <= '~' {
-				control = false
+			control++
+
+			// control > 2 prevents checking the CSI "\033[" or ESC + [
+			if control > 2 && ('@' <= r && r <= '~') {
+				control = -1
 			}
 			continue
 		}
