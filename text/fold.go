@@ -32,10 +32,13 @@ var (
 	esc  = '\033'         // Escape control code, same as 0x1b or ^[
 )
 
-// Fold takes a string and reformats it so lines have a maximum length of the
-// passed width. A width of zero or less indicates no folding will be done but
-// line endings will still be changed from Unix '\n' to network '\r\n' line
-// endings.
+// Fold takes a []byte and attempts to reformat it so lines have a maximum
+// length of the passed width. Fold will only split lines on whitespace when
+// reformatting. This may result in lines longer than the given width when a
+// word is too long and cannot be split. A width of zero or less indicates no
+// folding will be done but line endings will still be changed from Unix '\n'
+// to network '\r\n' line endings and trailing whitespace, except line feeds
+// '\n', will be removed.
 //
 // Fold will handle multibyte runes. However it cannot handle 'wide' runes -
 // those that are wider than a normal single character when displayed. This is
@@ -56,10 +59,17 @@ var (
 func Fold(in []byte, width int) []byte {
 
 	// Can we take a short cut? If width is less than 1 output is not wrapped.
-	// Counting bytes is fine although we may end up with a string shorter than
-	// we think it is if there are multibyte runes.
+	// Counting bytes is fine, although we may end up with a string shorter than
+	// we think it is if there are multibyte runes. We also strip off trailing
+	// whitespace except for line feeds '\n'.
 	if width < 1 || len(in) <= width {
-		return bytes.Replace(in, lf, crlf, -1)
+		out := bytes.TrimRightFunc(in, func(r rune) bool {
+			if r == '\n' {
+				return false
+			}
+			return unicode.IsSpace(r)
+		})
+		return bytes.Replace(out, lf, crlf, -1)
 	}
 
 	// Add extra line feed to end of input. Will cause final word and line to be
