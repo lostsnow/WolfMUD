@@ -117,7 +117,7 @@ func Fold(in []byte, width int) []byte {
 			lineLen = reset
 		}
 
-		if lineLen != reset {
+		if wordLen != reset && lineLen != reset {
 			line.WriteByte(' ')
 			lineLen++
 		}
@@ -134,7 +134,7 @@ func Fold(in []byte, width int) []byte {
 				continue
 			}
 
-			if pageLen != reset {
+			if blank || (pageLen != reset && lineLen != reset) {
 				page.Write(crlf)
 				pageLen++
 			}
