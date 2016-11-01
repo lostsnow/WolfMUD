@@ -40,9 +40,9 @@ var (
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
 //
-// It is expected that the incoming end of lines are Unix linefeeds (LF, \n)
-// only and will be output as carridge return and linefeed pairs (CR+LF, \r\n)
-// for Telnet. For more information see RFC854 - Telnet Protocol Specification.
+// It is expected that the end of line markers for incoming data are Unix line
+// feeds (LF, '\n') and outgoing data will have network line endings, carriage
+// return + line feed pairs (CR+LF, '\r\n').
 func Fold(in []byte, width int) []byte {
 
 	// Can we take a short cut? Counting bytes is fine although we may end up
