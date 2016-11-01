@@ -33,10 +33,14 @@ var (
 )
 
 // Fold takes a string and reformats it so lines have a maximum length of the
-// passed width. Fold will handle multibyte runes. However it cannot handle
-// 'wide' runes - those that are wider than a normal single character when
-// displayed. This is because the required information is actually contained in
-// the font files of the font in use at the 'client' end.
+// passed width. A width of zero or less indicates no folding will be done but
+// line endings will still be changed from Unix '\n' to network '\r\n' line
+// endings.
+//
+// Fold will handle multibyte runes. However it cannot handle 'wide' runes -
+// those that are wider than a normal single character when displayed. This is
+// because the required information is actually contained in the font files of
+// the font in use at the 'client' end.
 //
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
@@ -51,9 +55,10 @@ var (
 // return + line feed pairs (CR+LF, '\r\n').
 func Fold(in []byte, width int) []byte {
 
-	// Can we take a short cut? Counting bytes is fine although we may end up
-	// with a string shorter than we think it is if there are multibyte runes.
-	if len(in) <= width {
+	// Can we take a short cut? If width is less than 1 output is not wrapped.
+	// Counting bytes is fine although we may end up with a string shorter than
+	// we think it is if there are multibyte runes.
+	if width < 1 || len(in) <= width {
 		return bytes.Replace(in, lf, crlf, -1)
 	}
 
