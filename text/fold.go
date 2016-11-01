@@ -7,6 +7,7 @@ package text
 
 import (
 	"bytes"
+	"unicode"
 )
 
 // These constants are not really necessary but make the fold code easier to
@@ -39,6 +40,11 @@ var (
 //
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
+//
+// For combining characters Fold will assume combining marks are zero width.
+// For example 'a' plus a combining grave accent U+0061 U+0300 will be counted
+// as a single character. However it is better to use and actual latin small
+// letter a with grave 'à' U+00E0. Either should work as expected.
 //
 // It is expected that the end of line markers for incoming data are Unix line
 // feeds (LF, '\n') and outgoing data will have network line endings, carriage
@@ -83,6 +89,14 @@ func Fold(in []byte, width int) []byte {
 			if '@' <= r && r <= '~' {
 				control = false
 			}
+			continue
+		}
+
+		// Consider non-spacing and enclosing marks as zero width. This allows for
+		// the use of combining marks. For example a lower case 'a' plus combining
+		// grave accent to compose 'à' as well as a literal 'à' will work.
+		if r > '~' && unicode.In(r, unicode.Mn, unicode.Me) {
+			word.WriteRune(r)
 			continue
 		}
 
