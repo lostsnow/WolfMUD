@@ -14,26 +14,6 @@ import (
 	"strings"
 )
 
-// buffer is our extended version of a bytes.Buffer so that we can add some
-// convience methods.
-type buffer struct {
-	*bytes.Buffer
-}
-
-// WriteJoin takes a number of strings and writes them into the buffer. It's a
-// convenience method to save writing multiple WriteString statements and an
-// alternative to additional allocations due to concatenation.
-//
-// The return value n is the total length of all s, in bytes; err is always nil.
-// The underlying bytes.Buffer may panic if it becomes too large.
-func (b *buffer) WriteJoin(s ...string) (n int, err error) {
-	for _, s := range s {
-		x, _ := b.WriteString(s)
-		n += x
-	}
-	return n, nil
-}
-
 // state contains the current parsing state for commands. The state fields may
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
@@ -59,10 +39,10 @@ type state struct {
 	// observers[s.where] - observer and observers[s.where] point to the same
 	// buffer.
 	msg struct {
-		actor       *buffer
-		participant *buffer
-		observer    *buffer
-		observers   map[has.Inventory]*buffer
+		actor       *internal.Buffer
+		participant *internal.Buffer
+		observer    *internal.Buffer
+		observers   map[has.Inventory]*internal.Buffer
 	}
 }
 
@@ -371,15 +351,15 @@ func (s *state) AddLock(i has.Inventory) {
 // reasonable.
 func (s *state) allocateBuffers() {
 	if s.msg.actor == nil {
-		s.msg.actor = &buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-		s.msg.participant = &buffer{Buffer: bytes.NewBuffer([]byte{})}
-		s.msg.observers = make(map[has.Inventory]*buffer)
+		s.msg.actor = &internal.Buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
+		s.msg.participant = &internal.Buffer{Buffer: &bytes.Buffer{}}
+		s.msg.observers = make(map[has.Inventory]*internal.Buffer)
 		s.msg.participant.WriteByte(byte('\n'))
 	}
 
 	for _, l := range s.locks {
 		if _, ok := s.msg.observers[l]; !ok {
-			s.msg.observers[l] = &buffer{Buffer: bytes.NewBuffer([]byte{})}
+			s.msg.observers[l] = &internal.Buffer{Buffer: &bytes.Buffer{}}
 			s.msg.observers[l].WriteByte('\n')
 		}
 	}
