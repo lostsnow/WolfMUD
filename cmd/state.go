@@ -10,7 +10,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 
-	"bytes"
 	"strings"
 )
 
@@ -116,7 +115,7 @@ func (s *state) sync() (inSync bool) {
 		defer l.Unlock()
 	}
 
-	s.allocateBuffers()
+	s.msg.Allocate(s.where, s.locks)
 	l := len(s.locks)
 
 	s.handleCommand()
@@ -273,7 +272,7 @@ func (s *state) messenger() {
 		}
 	}
 
-	s.deallocateBuffers()
+	s.msg.Deallocate()
 }
 
 // CanLock returns true if the specified Inventory is in the list of locks and
@@ -331,41 +330,5 @@ func (s *state) AddLock(i has.Inventory) {
 			s.locks[x] = i
 			break
 		}
-	}
-}
-
-// allocateBuffers sets up the message buffers for the actor, participant and
-// observers. The participant and observers buffers need an initial linefeed to
-// move the cursor off of the client's prompt line - for the actor this is done
-// when they hit enter. The actor's buffer is initially set to half a page
-// (half of 80 columns by 24 lines) as it is common to be sending location
-// descriptions back to the actor. Half a page is arbitrary but seems to be
-// reasonable.
-func (s *state) allocateBuffers() {
-	if s.msg.Actor == nil {
-		s.msg.Actor = &internal.Buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-		s.msg.Participant = &internal.Buffer{Buffer: &bytes.Buffer{}}
-		s.msg.Observers = make(map[has.Inventory]*internal.Buffer)
-		s.msg.Participant.WriteByte(byte('\n'))
-	}
-
-	for _, l := range s.locks {
-		if _, ok := s.msg.Observers[l]; !ok {
-			s.msg.Observers[l] = &internal.Buffer{Buffer: &bytes.Buffer{}}
-			s.msg.Observers[l].WriteByte('\n')
-		}
-	}
-	s.msg.Observer = s.msg.Observers[s.where]
-}
-
-// deallocateBuffers releases the references to message buffers for the actor,
-// participant and observers.
-func (s *state) deallocateBuffers() {
-	s.msg.Actor = nil
-	s.msg.Participant = nil
-	s.msg.Observer = nil
-	for x := range s.msg.Observers {
-		s.msg.Observers[x] = nil
-		delete(s.msg.Observers, x)
 	}
 }

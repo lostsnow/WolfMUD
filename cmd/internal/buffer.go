@@ -44,3 +44,42 @@ func (b *Buffer) WriteStrings(s ...string) (n int, err error) {
 	}
 	return n, nil
 }
+
+// Allocate sets up the message buffers for the actor, participant and
+// observers. The where passed in should be the current location so that
+// Observer can be linked to the correct Observers element. The locks passed in
+// are used to setup a buffer for observers in each location being locked.
+//
+// The participant and observers buffers need an initial linefeed to move the
+// cursor off of the client's prompt line - for the actor this is done when
+// they hit enter. The actor's buffer is initially set to half a page (half of
+// 80 columns by 24 lines) as it is common to be sending location descriptions
+// back to the actor. Half a page is arbitrary but seems to be reasonable.
+func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
+	if m.Actor == nil {
+		m.Actor = &Buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
+		m.Participant = &Buffer{Buffer: &bytes.Buffer{}}
+		m.Observers = make(map[has.Inventory]*Buffer)
+		m.Participant.WriteByte(byte('\n'))
+	}
+
+	for _, l := range locks {
+		if _, ok := m.Observers[l]; !ok {
+			m.Observers[l] = &Buffer{Buffer: &bytes.Buffer{}}
+			m.Observers[l].WriteByte('\n')
+		}
+	}
+	m.Observer = m.Observers[where]
+}
+
+// Deallocate releases the references to message buffers for the actor,
+// participant and observers.
+func (m *Msg) Deallocate() {
+	m.Actor = nil
+	m.Participant = nil
+	m.Observer = nil
+	for where := range m.Observers {
+		m.Observers[where] = nil
+		delete(m.Observers, where)
+	}
+}
