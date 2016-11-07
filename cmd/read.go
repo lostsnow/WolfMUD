@@ -33,7 +33,7 @@ func Read(s *state) {
 
 	// Was item to read found?
 	if what == nil {
-		s.msg.actor.WriteJoin("You see no '", name, "' to read.")
+		s.msg.actor.WriteStrings("You see no '", name, "' to read.")
 		return
 	}
 
@@ -45,14 +45,14 @@ func Read(s *state) {
 
 	// Was writing found?
 	if writing == "" {
-		s.msg.actor.WriteJoin("You see no writing on ", name, " to read.")
+		s.msg.actor.WriteStrings("You see no writing on ", name, " to read.")
 		return
 	}
 
-	s.msg.actor.WriteJoin("You read the writing on ", name, ". It says: ", writing)
+	s.msg.actor.WriteStrings("You read the writing on ", name, ". It says: ", writing)
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin("You see ", who, " read ", name, ".")
+	s.msg.observer.WriteStrings("You see ", who, " read ", name, ".")
 
 	s.ok = true
 }

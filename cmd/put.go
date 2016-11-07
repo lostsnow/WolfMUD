@@ -28,7 +28,7 @@ func Put(s *state) {
 	tWhat := tWhere.Search(tName)
 
 	if tWhat == nil {
-		s.msg.actor.WriteJoin("You have no '", tName, "' to put into anything.")
+		s.msg.actor.WriteStrings("You have no '", tName, "' to put into anything.")
 		return
 	}
 
@@ -37,7 +37,7 @@ func Put(s *state) {
 
 	// Check a container was specified
 	if len(s.words) < 2 {
-		s.msg.actor.WriteJoin("What did you want to put ", tName, " into?")
+		s.msg.actor.WriteStrings("What did you want to put ", tName, " into?")
 		return
 	}
 
@@ -48,7 +48,7 @@ func Put(s *state) {
 
 	// If container not found and we are not somewhere we're not going to find it
 	if cWhat == nil && s.where == nil {
-		s.msg.actor.WriteJoin("There is no '", cName, "' to put ", tName, " into.")
+		s.msg.actor.WriteStrings("There is no '", cName, "' to put ", tName, " into.")
 		return
 	}
 
@@ -59,7 +59,7 @@ func Put(s *state) {
 
 	// Was container found?
 	if cWhat == nil {
-		s.msg.actor.WriteJoin("You see no '", cName, "' to put ", tName, " into.")
+		s.msg.actor.WriteStrings("You see no '", cName, "' to put ", tName, " into.")
 		return
 	}
 
@@ -67,8 +67,8 @@ func Put(s *state) {
 
 	// Unless our name is Klein we can't put something inside itself! ;)
 	if tWhat == cWhat {
-		s.msg.actor.WriteJoin("It might be interesting putting ", tName, " inside itself, but probably paradoxical as well.")
-		s.msg.observer.WriteJoin(who, " seems to be trying to turn ", tName, " into a paradox.")
+		s.msg.actor.WriteStrings("It might be interesting putting ", tName, " inside itself, but probably paradoxical as well.")
+		s.msg.observer.WriteStrings(who, " seems to be trying to turn ", tName, " into a paradox.")
 		return
 	}
 
@@ -78,7 +78,7 @@ func Put(s *state) {
 	// Check container is actually a container with an inventory
 	cWhere := attr.FindInventory(cWhat)
 	if !cWhere.Found() {
-		s.msg.actor.WriteJoin("You cannot put ", tName, " into ", cName, ".")
+		s.msg.actor.WriteStrings("You cannot put ", tName, " into ", cName, ".")
 		return
 	}
 
@@ -96,15 +96,15 @@ func Put(s *state) {
 
 	// Remove item from where it is
 	if tWhere.Remove(tWhat) == nil {
-		s.msg.actor.WriteJoin("Something stops you putting ", tName, " anywhere.")
+		s.msg.actor.WriteStrings("Something stops you putting ", tName, " anywhere.")
 		return
 	}
 
 	// Put item into comtainer
 	cWhere.Add(tWhat)
 
-	s.msg.actor.WriteJoin("You put ", tName, " into ", cName, ".")
+	s.msg.actor.WriteStrings("You put ", tName, " into ", cName, ".")
 
-	s.msg.observer.WriteJoin("You see ", who, " put something into ", cName, ".")
+	s.msg.observer.WriteStrings("You see ", who, " put something into ", cName, ".")
 	s.ok = true
 }

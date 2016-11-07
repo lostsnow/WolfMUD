@@ -52,7 +52,7 @@ func Move(s *state) {
 	// Find out where our exit leads to
 	to := exits.LeadsTo(direction)
 	if to == nil {
-		s.msg.actor.WriteJoin("You can't go ", wayToGo, " from here!")
+		s.msg.actor.WriteStrings("You can't go ", wayToGo, " from here!")
 		return
 	}
 
@@ -79,8 +79,8 @@ func Move(s *state) {
 	name := attr.FindName(s.actor).Name("someone")
 
 	// Broadcast leaving and arrival notifications
-	s.msg.observers[from].WriteJoin("You see ", name, " go ", wayToGo, ".")
-	s.msg.observers[to].WriteJoin("You see ", name, " enter.")
+	s.msg.observers[from].WriteStrings("You see ", name, " go ", wayToGo, ".")
+	s.msg.observers[to].WriteStrings("You see ", name, " enter.")
 
 	// Describe our destination
 	s.scriptActor("LOOK")

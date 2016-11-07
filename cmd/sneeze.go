@@ -40,7 +40,7 @@ func Sneeze(s *state) {
 
 	// Notify observers in same location
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin("You see ", who, " sneeze.")
+	s.msg.observer.WriteStrings("You see ", who, " sneeze.")
 
 	// Notify observers in near by locations
 	for _, e := range locations[1] {

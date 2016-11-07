@@ -26,7 +26,7 @@ func Who(s *state) {
 	}
 
 	for _, player := range players {
-		s.msg.actor.WriteJoin(player, "\n")
+		s.msg.actor.WriteStrings(player, "\n")
 	}
 
 	var (
@@ -40,10 +40,10 @@ func Who(s *state) {
 		end = "s."
 	}
 
-	s.msg.actor.WriteJoin(start, strconv.Itoa(len(players)), " other player", end)
+	s.msg.actor.WriteStrings(start, strconv.Itoa(len(players)), " other player", end)
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin("You see ", who, " concentrate for a moment.")
+	s.msg.observer.WriteStrings("You see ", who, " concentrate for a moment.")
 
 	s.ok = true
 }

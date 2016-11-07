@@ -33,7 +33,7 @@ func Examine(s *state) {
 
 	// Was item to examine eventually found?
 	if what == nil {
-		s.msg.actor.WriteJoin("You see no '", name, "' to examine.")
+		s.msg.actor.WriteStrings("You see no '", name, "' to examine.")
 		return
 	}
 
@@ -46,10 +46,10 @@ func Examine(s *state) {
 	// Get item's proper name
 	name = attr.FindName(what).Name(name)
 
-	s.msg.actor.WriteJoin("You examine ", name, ".")
+	s.msg.actor.WriteStrings("You examine ", name, ".")
 
 	for _, d := range attr.FindAllDescription(what) {
-		s.msg.actor.WriteJoin(" ", d.Description())
+		s.msg.actor.WriteStrings(" ", d.Description())
 	}
 
 	// BUG(diddymus): If you examine another player you can see their inventory
@@ -57,13 +57,13 @@ func Examine(s *state) {
 	// player.
 	if !attr.FindPlayer(what).Found() {
 		if l := attr.FindInventory(what).List(); l != "" {
-			s.msg.actor.WriteJoin(" ", l)
+			s.msg.actor.WriteStrings(" ", l)
 		}
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.observer.WriteJoin(who, " studies ", name, ".")
+	s.msg.observer.WriteStrings(who, " studies ", name, ".")
 
 	s.ok = true
 }

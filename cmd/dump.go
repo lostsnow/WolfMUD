@@ -57,7 +57,7 @@ func Dump(s *state) {
 
 	// Was item to dump eventually found?
 	if what == nil {
-		s.msg.actor.WriteJoin("There is nothing with alias '", name, "' to dump.")
+		s.msg.actor.WriteStrings("There is nothing with alias '", name, "' to dump.")
 		return
 	}
 

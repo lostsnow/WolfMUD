@@ -25,12 +25,12 @@ func Look(s *state) {
 
 	what := s.where.Parent()
 
-	s.msg.actor.WriteJoin("[ ", attr.FindName(what).Name("Somewhere"), " ]\n")
+	s.msg.actor.WriteStrings("[ ", attr.FindName(what).Name("Somewhere"), " ]\n")
 
 	mark := s.msg.actor.Len()
 
 	for _, a := range attr.FindAllDescription(what) {
-		s.msg.actor.WriteJoin(a.Description(), " ")
+		s.msg.actor.WriteStrings(a.Description(), " ")
 	}
 
 	// If we added descriptions chop off space appended to last description
@@ -44,7 +44,7 @@ func Look(s *state) {
 	mark = s.msg.actor.Len()
 
 	if s.where.Crowded() {
-		s.msg.actor.WriteJoin("You see a crowd here.\n")
+		s.msg.actor.WriteStrings("You see a crowd here.\n")
 
 		// NOTE: If location is crowded we don't list the items
 
@@ -63,12 +63,12 @@ func Look(s *state) {
 				continue
 			}
 
-			s.msg.actor.WriteJoin("You see ", attr.FindName(c).Name("someone"), " here.\n")
+			s.msg.actor.WriteStrings("You see ", attr.FindName(c).Name("someone"), " here.\n")
 		}
 
 		// List items here
 		for _, i := range items {
-			s.msg.actor.WriteJoin("You see ", attr.FindName(i).Name("something"), " here.\n")
+			s.msg.actor.WriteStrings("You see ", attr.FindName(i).Name("something"), " here.\n")
 		}
 	}
 
@@ -80,7 +80,7 @@ func Look(s *state) {
 	s.msg.actor.WriteString(attr.FindExits(what).List())
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin(who, " starts looking around.")
+	s.msg.observer.WriteStrings(who, " starts looking around.")
 
 	s.ok = true
 }

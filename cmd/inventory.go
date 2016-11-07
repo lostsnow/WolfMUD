@@ -27,11 +27,11 @@ func Inventory(s *state) {
 
 	// List what we are carrying
 	for _, i := range inv {
-		s.msg.actor.WriteJoin("\n  ", attr.FindName(i).Name("something"))
+		s.msg.actor.WriteStrings("\n  ", attr.FindName(i).Name("something"))
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin("You see ", who, " check over their gear.")
+	s.msg.observer.WriteStrings("You see ", who, " check over their gear.")
 
 	s.ok = true
 }

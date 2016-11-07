@@ -28,7 +28,7 @@ func Drop(s *state) {
 
 	// Are we carrying anything at all?
 	if from.Empty() {
-		s.msg.actor.WriteJoin("You don't have anything to drop.")
+		s.msg.actor.WriteStrings("You don't have anything to drop.")
 		return
 	}
 
@@ -36,7 +36,7 @@ func Drop(s *state) {
 
 	// Was item to drop found?
 	if what == nil {
-		s.msg.actor.WriteJoin("You have no '", name, "' to drop.")
+		s.msg.actor.WriteStrings("You have no '", name, "' to drop.")
 		return
 	}
 
@@ -66,7 +66,7 @@ func Drop(s *state) {
 
 	// Try and remove item from our inventory
 	if from.Remove(what) == nil {
-		s.msg.actor.WriteJoin("You cannot drop ", name, ".")
+		s.msg.actor.WriteStrings("You cannot drop ", name, ".")
 		return
 	}
 
@@ -75,7 +75,7 @@ func Drop(s *state) {
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.actor.WriteJoin("You drop ", name, ".")
-	s.msg.observer.WriteJoin(who, " drops ", name, ".")
+	s.msg.actor.WriteStrings("You drop ", name, ".")
+	s.msg.observer.WriteStrings(who, " drops ", name, ".")
 	s.ok = true
 }

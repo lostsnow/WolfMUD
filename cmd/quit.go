@@ -35,7 +35,7 @@ func Quit(s *state) {
 
 	// Remove the player from the world
 	if s.where != nil {
-		s.msg.observer.WriteJoin(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+		s.msg.observer.WriteStrings(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 		s.where.Remove(s.actor)
 	}
 

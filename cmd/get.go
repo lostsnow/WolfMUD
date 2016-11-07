@@ -34,7 +34,7 @@ func Get(s *state) {
 
 	// Was item to get found?
 	if what == nil {
-		s.msg.actor.WriteJoin("You see no '", name, "' to get.")
+		s.msg.actor.WriteStrings("You see no '", name, "' to get.")
 		return
 	}
 
@@ -70,13 +70,13 @@ func Get(s *state) {
 	// checks as the vetos could give us a better message/reson for not being
 	// able to get the item.
 	if attr.FindNarrative(what).Found() {
-		s.msg.actor.WriteJoin("For some reason you cannot get ", name, ".")
+		s.msg.actor.WriteStrings("For some reason you cannot get ", name, ".")
 		return
 	}
 
 	// If all seems okay try and remove item from where it is
 	if s.where.Remove(what) == nil {
-		s.msg.actor.WriteJoin("You cannot get ", name, ".")
+		s.msg.actor.WriteStrings("You cannot get ", name, ".")
 		return
 	}
 
@@ -85,7 +85,7 @@ func Get(s *state) {
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.actor.WriteJoin("You get ", name, ".")
-	s.msg.observer.WriteJoin("You see ", who, " get ", name, ".")
+	s.msg.actor.WriteStrings("You get ", name, ".")
+	s.msg.observer.WriteStrings("You see ", who, " get ", name, ".")
 	s.ok = true
 }

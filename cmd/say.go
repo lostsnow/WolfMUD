@@ -64,8 +64,8 @@ func Say(s *state) {
 	who := attr.FindName(s.actor).Name("Someone")
 	msg := strings.Join(s.input, " ")
 
-	s.msg.actor.WriteJoin("You say: ", msg)
-	s.msg.observer.WriteJoin(who, " says: ", msg)
+	s.msg.actor.WriteStrings("You say: ", msg)
+	s.msg.observer.WriteStrings(who, " says: ", msg)
 
 	// Notify observers in near by locations
 	for _, e := range locations[1] {
