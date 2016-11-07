@@ -17,7 +17,7 @@ func init() {
 func Get(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.actor.WriteString("You go to get... something?")
+		s.msg.Actor.WriteString("You go to get... something?")
 		return
 	}
 
@@ -25,7 +25,7 @@ func Get(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.actor.WriteString("You cannot get anything here.")
+		s.msg.Actor.WriteString("You cannot get anything here.")
 		return
 	}
 
@@ -34,20 +34,20 @@ func Get(s *state) {
 
 	// Was item to get found?
 	if what == nil {
-		s.msg.actor.WriteStrings("You see no '", name, "' to get.")
+		s.msg.Actor.WriteStrings("You see no '", name, "' to get.")
 		return
 	}
 
 	// Check item not trying to get itself
 	if what == s.actor {
-		s.msg.actor.WriteString("Trying to pick youreself up by your bootlaces?")
+		s.msg.Actor.WriteString("Trying to pick youreself up by your bootlaces?")
 		return
 	}
 
 	// Check we have an inventory so we can carry things
 	to := attr.FindInventory(s.actor)
 	if to == nil {
-		s.msg.actor.WriteString("You can't carry anything!")
+		s.msg.Actor.WriteString("You can't carry anything!")
 		return
 	}
 
@@ -56,13 +56,13 @@ func Get(s *state) {
 
 	// Check the get is not vetoed by the item
 	if veto := attr.FindVetoes(what).Check("GET"); veto != nil {
-		s.msg.actor.WriteString(veto.Message())
+		s.msg.Actor.WriteString(veto.Message())
 		return
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
 	if veto := attr.FindVetoes(s.where.Parent()).Check("GET"); veto != nil {
-		s.msg.actor.WriteString(veto.Message())
+		s.msg.Actor.WriteString(veto.Message())
 		return
 	}
 
@@ -70,13 +70,13 @@ func Get(s *state) {
 	// checks as the vetos could give us a better message/reson for not being
 	// able to get the item.
 	if attr.FindNarrative(what).Found() {
-		s.msg.actor.WriteStrings("For some reason you cannot get ", name, ".")
+		s.msg.Actor.WriteStrings("For some reason you cannot get ", name, ".")
 		return
 	}
 
 	// If all seems okay try and remove item from where it is
 	if s.where.Remove(what) == nil {
-		s.msg.actor.WriteStrings("You cannot get ", name, ".")
+		s.msg.Actor.WriteStrings("You cannot get ", name, ".")
 		return
 	}
 
@@ -85,7 +85,7 @@ func Get(s *state) {
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.actor.WriteStrings("You get ", name, ".")
-	s.msg.observer.WriteStrings("You see ", who, " get ", name, ".")
+	s.msg.Actor.WriteStrings("You get ", name, ".")
+	s.msg.Observer.WriteStrings("You see ", who, " get ", name, ".")
 	s.ok = true
 }

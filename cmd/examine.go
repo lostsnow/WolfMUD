@@ -17,7 +17,7 @@ func init() {
 func Examine(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.actor.WriteString("You examine this and that, find nothing special.")
+		s.msg.Actor.WriteString("You examine this and that, find nothing special.")
 		return
 	}
 
@@ -33,23 +33,23 @@ func Examine(s *state) {
 
 	// Was item to examine eventually found?
 	if what == nil {
-		s.msg.actor.WriteStrings("You see no '", name, "' to examine.")
+		s.msg.Actor.WriteStrings("You see no '", name, "' to examine.")
 		return
 	}
 
 	// Check examine is not vetoed by item
 	if veto := attr.FindVetoes(what).Check("EXAMINE"); veto != nil {
-		s.msg.actor.WriteString(veto.Message())
+		s.msg.Actor.WriteString(veto.Message())
 		return
 	}
 
 	// Get item's proper name
 	name = attr.FindName(what).Name(name)
 
-	s.msg.actor.WriteStrings("You examine ", name, ".")
+	s.msg.Actor.WriteStrings("You examine ", name, ".")
 
 	for _, d := range attr.FindAllDescription(what) {
-		s.msg.actor.WriteStrings(" ", d.Description())
+		s.msg.Actor.WriteStrings(" ", d.Description())
 	}
 
 	// BUG(diddymus): If you examine another player you can see their inventory
@@ -57,13 +57,13 @@ func Examine(s *state) {
 	// player.
 	if !attr.FindPlayer(what).Found() {
 		if l := attr.FindInventory(what).List(); l != "" {
-			s.msg.actor.WriteStrings(" ", l)
+			s.msg.Actor.WriteStrings(" ", l)
 		}
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.observer.WriteStrings(who, " studies ", name, ".")
+	s.msg.Observer.WriteStrings(who, " studies ", name, ".")
 
 	s.ok = true
 }

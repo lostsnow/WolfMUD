@@ -34,16 +34,8 @@ type state struct {
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
 
-	// msg is a collection of buffers for gathering messages to send back as a
-	// result of processing a command. Note observer is setup as an 'alias' for
-	// observers[s.where] - observer and observers[s.where] point to the same
-	// buffer.
-	msg struct {
-		actor       *internal.Buffer
-		participant *internal.Buffer
-		observer    *internal.Buffer
-		observers   map[has.Inventory]*internal.Buffer
-	}
+	// msg contains the message buffers for sending data to different recipients
+	msg internal.Msg
 }
 
 // NewState returns a *state initialised with the passed Thing and input. If
@@ -148,7 +140,7 @@ func (s *state) handleCommand() {
 	case valid:
 		handler(s)
 	default:
-		s.msg.actor.WriteString("Eh?")
+		s.msg.Actor.WriteString("Eh?")
 	}
 }
 
@@ -179,22 +171,22 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	i, w, c := s.input, s.words, s.cmd // Save state
 
-	a := s.msg.actor.Len()
-	p := s.msg.participant.Len()
+	a := s.msg.Actor.Len()
+	p := s.msg.Participant.Len()
 	o := make(map[has.Inventory]int)
-	for where, observer := range s.msg.observers {
+	for where, observer := range s.msg.Observers {
 		o[where] = observer.Len()
 	}
 
 	if a > 0 {
-		s.msg.actor.WriteString("\n")
+		s.msg.Actor.WriteString("\n")
 	}
 	if p > 0 {
-		s.msg.participant.WriteString("\n")
+		s.msg.Participant.WriteString("\n")
 	}
 	for where, o := range o {
 		if o > 0 {
-			s.msg.observers[where].WriteString("\n")
+			s.msg.Observers[where].WriteString("\n")
 		}
 	}
 
@@ -207,17 +199,17 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	// 		cause each action to start on it's own line.
 	// 	- if messages are suppressed for a buffer truncate back to initial
 	// 		length.
-	if l := s.msg.actor.Len(); actor && (l-a > 1) {
+	if l := s.msg.Actor.Len(); actor && (l-a > 1) {
 		a = l
 	}
-	s.msg.actor.Truncate(a)
+	s.msg.Actor.Truncate(a)
 
-	if l := s.msg.participant.Len(); participant && (l-p > 1) {
+	if l := s.msg.Participant.Len(); participant && (l-p > 1) {
 		p = l
 	}
-	s.msg.participant.Truncate(p)
+	s.msg.Participant.Truncate(p)
 
-	for where, observer := range s.msg.observers {
+	for where, observer := range s.msg.Observers {
 		if l := observer.Len(); observers && (l-o[where] > 1) {
 			o[where] = l
 		}
@@ -258,18 +250,18 @@ func (s *state) scriptActor(input ...string) {
 func (s *state) messenger() {
 
 	if s.actor != nil {
-		attr.FindPlayer(s.actor).Write(s.msg.actor.Bytes())
+		attr.FindPlayer(s.actor).Write(s.msg.Actor.Bytes())
 	}
 
-	if s.participant != nil && s.msg.participant.Len() > 1 {
-		attr.FindPlayer(s.participant).Write(s.msg.participant.Bytes())
+	if s.participant != nil && s.msg.Participant.Len() > 1 {
+		attr.FindPlayer(s.participant).Write(s.msg.Participant.Bytes())
 	}
 
-	if len(s.msg.observers) == 0 || s.where == nil {
+	if len(s.msg.Observers) == 0 || s.where == nil {
 		return
 	}
 
-	for where, buffer := range s.msg.observers {
+	for where, buffer := range s.msg.Observers {
 		if where.Crowded() || buffer.Len() == 1 {
 			continue
 		}
@@ -350,30 +342,30 @@ func (s *state) AddLock(i has.Inventory) {
 // descriptions back to the actor. Half a page is arbitrary but seems to be
 // reasonable.
 func (s *state) allocateBuffers() {
-	if s.msg.actor == nil {
-		s.msg.actor = &internal.Buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-		s.msg.participant = &internal.Buffer{Buffer: &bytes.Buffer{}}
-		s.msg.observers = make(map[has.Inventory]*internal.Buffer)
-		s.msg.participant.WriteByte(byte('\n'))
+	if s.msg.Actor == nil {
+		s.msg.Actor = &internal.Buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
+		s.msg.Participant = &internal.Buffer{Buffer: &bytes.Buffer{}}
+		s.msg.Observers = make(map[has.Inventory]*internal.Buffer)
+		s.msg.Participant.WriteByte(byte('\n'))
 	}
 
 	for _, l := range s.locks {
-		if _, ok := s.msg.observers[l]; !ok {
-			s.msg.observers[l] = &internal.Buffer{Buffer: &bytes.Buffer{}}
-			s.msg.observers[l].WriteByte('\n')
+		if _, ok := s.msg.Observers[l]; !ok {
+			s.msg.Observers[l] = &internal.Buffer{Buffer: &bytes.Buffer{}}
+			s.msg.Observers[l].WriteByte('\n')
 		}
 	}
-	s.msg.observer = s.msg.observers[s.where]
+	s.msg.Observer = s.msg.Observers[s.where]
 }
 
 // deallocateBuffers releases the references to message buffers for the actor,
 // participant and observers.
 func (s *state) deallocateBuffers() {
-	s.msg.actor = nil
-	s.msg.participant = nil
-	s.msg.observer = nil
-	for x := range s.msg.observers {
-		s.msg.observers[x] = nil
-		delete(s.msg.observers, x)
+	s.msg.Actor = nil
+	s.msg.Participant = nil
+	s.msg.Observer = nil
+	for x := range s.msg.Observers {
+		s.msg.Observers[x] = nil
+		delete(s.msg.Observers, x)
 	}
 }

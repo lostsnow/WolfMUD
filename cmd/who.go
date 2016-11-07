@@ -21,12 +21,12 @@ func Who(s *state) {
 	players := stats.List(s.actor)
 
 	if len(players) == 0 {
-		s.msg.actor.WriteString("You are all alone in this world.")
+		s.msg.Actor.WriteString("You are all alone in this world.")
 		return
 	}
 
 	for _, player := range players {
-		s.msg.actor.WriteStrings(player, "\n")
+		s.msg.Actor.WriteStrings(player, "\n")
 	}
 
 	var (
@@ -40,10 +40,10 @@ func Who(s *state) {
 		end = "s."
 	}
 
-	s.msg.actor.WriteStrings(start, strconv.Itoa(len(players)), " other player", end)
+	s.msg.Actor.WriteStrings(start, strconv.Itoa(len(players)), " other player", end)
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteStrings("You see ", who, " concentrate for a moment.")
+	s.msg.Observer.WriteStrings("You see ", who, " concentrate for a moment.")
 
 	s.ok = true
 }

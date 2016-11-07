@@ -17,7 +17,7 @@ func init() {
 func Drop(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.actor.WriteString("You go to drop... something?")
+		s.msg.Actor.WriteString("You go to drop... something?")
 		return
 	}
 
@@ -28,7 +28,7 @@ func Drop(s *state) {
 
 	// Are we carrying anything at all?
 	if from.Empty() {
-		s.msg.actor.WriteStrings("You don't have anything to drop.")
+		s.msg.Actor.WriteStrings("You don't have anything to drop.")
 		return
 	}
 
@@ -36,7 +36,7 @@ func Drop(s *state) {
 
 	// Was item to drop found?
 	if what == nil {
-		s.msg.actor.WriteStrings("You have no '", name, "' to drop.")
+		s.msg.Actor.WriteStrings("You have no '", name, "' to drop.")
 		return
 	}
 
@@ -45,19 +45,19 @@ func Drop(s *state) {
 	//
 	// TODO: We could drop and junk item if nowhere instead of aborting?
 	if s.where == nil {
-		s.msg.actor.WriteString("You cannot drop anything here.")
+		s.msg.Actor.WriteString("You cannot drop anything here.")
 		return
 	}
 
 	// Check the drop is not vetoed by the item
 	if veto := attr.FindVetoes(what).Check("DROP"); veto != nil {
-		s.msg.actor.WriteString(veto.Message())
+		s.msg.Actor.WriteString(veto.Message())
 		return
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
 	if veto := attr.FindVetoes(s.where.Parent()).Check("DROP"); veto != nil {
-		s.msg.actor.WriteString(veto.Message())
+		s.msg.Actor.WriteString(veto.Message())
 		return
 	}
 
@@ -66,7 +66,7 @@ func Drop(s *state) {
 
 	// Try and remove item from our inventory
 	if from.Remove(what) == nil {
-		s.msg.actor.WriteStrings("You cannot drop ", name, ".")
+		s.msg.Actor.WriteStrings("You cannot drop ", name, ".")
 		return
 	}
 
@@ -75,7 +75,7 @@ func Drop(s *state) {
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.actor.WriteStrings("You drop ", name, ".")
-	s.msg.observer.WriteStrings(who, " drops ", name, ".")
+	s.msg.Actor.WriteStrings("You drop ", name, ".")
+	s.msg.Observer.WriteStrings(who, " drops ", name, ".")
 	s.ok = true
 }

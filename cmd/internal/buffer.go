@@ -6,6 +6,8 @@
 package internal
 
 import (
+	"code.wolfmud.org/WolfMUD.git/has"
+
 	"bytes"
 )
 
@@ -13,6 +15,20 @@ import (
 // convience methods.
 type Buffer struct {
 	*bytes.Buffer
+}
+
+type Buffers map[has.Inventory]*Buffer
+
+// Msg is a collection of buffers for gathering messages to send back as a
+// result of processing a command.
+//
+// NOTE: Observer is setup as an 'alias' for Observers[s.where] - Observer and
+// Observers[s.where] point to the same buffer.
+type Msg struct {
+	Actor       *Buffer
+	Participant *Buffer
+	Observer    *Buffer
+	Observers   Buffers
 }
 
 // WriteStrings takes a number of strings and writes them into the buffer. It's

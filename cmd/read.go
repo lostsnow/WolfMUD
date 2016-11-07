@@ -17,7 +17,7 @@ func init() {
 func Read(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.actor.WriteString("Did you want to read something specific?")
+		s.msg.Actor.WriteString("Did you want to read something specific?")
 		return
 	}
 
@@ -33,7 +33,7 @@ func Read(s *state) {
 
 	// Was item to read found?
 	if what == nil {
-		s.msg.actor.WriteStrings("You see no '", name, "' to read.")
+		s.msg.Actor.WriteStrings("You see no '", name, "' to read.")
 		return
 	}
 
@@ -45,14 +45,14 @@ func Read(s *state) {
 
 	// Was writing found?
 	if writing == "" {
-		s.msg.actor.WriteStrings("You see no writing on ", name, " to read.")
+		s.msg.Actor.WriteStrings("You see no writing on ", name, " to read.")
 		return
 	}
 
-	s.msg.actor.WriteStrings("You read the writing on ", name, ". It says: ", writing)
+	s.msg.Actor.WriteStrings("You read the writing on ", name, ". It says: ", writing)
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteStrings("You see ", who, " read ", name, ".")
+	s.msg.Observer.WriteStrings("You see ", who, " read ", name, ".")
 
 	s.ok = true
 }
