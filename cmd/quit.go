@@ -39,7 +39,7 @@ func Quit(s *state) {
 		s.where.Remove(s.actor)
 	}
 
-	s.msg.Actor.WriteString("You leave this world behind.")
+	s.msg.Actor.WriteStrings("You leave this world behind.")
 	stats.Remove(s.actor)
 
 	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)

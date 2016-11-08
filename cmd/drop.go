@@ -17,7 +17,7 @@ func init() {
 func Drop(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("You go to drop... something?")
+		s.msg.Actor.WriteStrings("You go to drop... something?")
 		return
 	}
 
@@ -45,19 +45,19 @@ func Drop(s *state) {
 	//
 	// TODO: We could drop and junk item if nowhere instead of aborting?
 	if s.where == nil {
-		s.msg.Actor.WriteString("You cannot drop anything here.")
+		s.msg.Actor.WriteStrings("You cannot drop anything here.")
 		return
 	}
 
 	// Check the drop is not vetoed by the item
 	if veto := attr.FindVetoes(what).Check("DROP"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
 	if veto := attr.FindVetoes(s.where.Parent()).Check("DROP"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 

@@ -17,7 +17,7 @@ func init() {
 func Examine(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("You examine this and that, find nothing special.")
+		s.msg.Actor.WriteStrings("You examine this and that, find nothing special.")
 		return
 	}
 
@@ -39,7 +39,7 @@ func Examine(s *state) {
 
 	// Check examine is not vetoed by item
 	if veto := attr.FindVetoes(what).Check("EXAMINE"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 

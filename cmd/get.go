@@ -17,7 +17,7 @@ func init() {
 func Get(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("You go to get... something?")
+		s.msg.Actor.WriteStrings("You go to get... something?")
 		return
 	}
 
@@ -25,7 +25,7 @@ func Get(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.Actor.WriteString("You cannot get anything here.")
+		s.msg.Actor.WriteStrings("You cannot get anything here.")
 		return
 	}
 
@@ -40,14 +40,14 @@ func Get(s *state) {
 
 	// Check item not trying to get itself
 	if what == s.actor {
-		s.msg.Actor.WriteString("Trying to pick youreself up by your bootlaces?")
+		s.msg.Actor.WriteStrings("Trying to pick youreself up by your bootlaces?")
 		return
 	}
 
 	// Check we have an inventory so we can carry things
 	to := attr.FindInventory(s.actor)
 	if to == nil {
-		s.msg.Actor.WriteString("You can't carry anything!")
+		s.msg.Actor.WriteStrings("You can't carry anything!")
 		return
 	}
 
@@ -56,13 +56,13 @@ func Get(s *state) {
 
 	// Check the get is not vetoed by the item
 	if veto := attr.FindVetoes(what).Check("GET"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
 	if veto := attr.FindVetoes(s.where.Parent()).Check("GET"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 

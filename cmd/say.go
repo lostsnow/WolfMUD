@@ -19,13 +19,13 @@ func init() {
 
 func Say(s *state) {
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("What did you want to say?")
+		s.msg.Actor.WriteStrings("What did you want to say?")
 		return
 	}
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.Actor.WriteString("There is nobody here to talk to.")
+		s.msg.Actor.WriteStrings("There is nobody here to talk to.")
 		return
 	}
 
@@ -38,7 +38,7 @@ func Say(s *state) {
 		}
 	}
 	if !anybodyHere {
-		s.msg.Actor.WriteString("Talking to yourself again?")
+		s.msg.Actor.WriteStrings("Talking to yourself again?")
 		return
 	}
 
@@ -69,7 +69,7 @@ func Say(s *state) {
 
 	// Notify observers in near by locations
 	for _, e := range locations[1] {
-		s.msg.Observers[e].WriteString("You hear talking nearby.")
+		s.msg.Observers[e].WriteStrings("You hear talking nearby.")
 	}
 
 	s.ok = true

@@ -19,7 +19,7 @@ func Look(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.Actor.WriteString("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
+		s.msg.Actor.WriteStrings("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
 		return
 	}
 
@@ -77,7 +77,7 @@ func Look(s *state) {
 		s.msg.Actor.WriteString("\n")
 	}
 
-	s.msg.Actor.WriteString(attr.FindExits(what).List())
+	s.msg.Actor.WriteStrings(attr.FindExits(what).List())
 
 	who := attr.FindName(s.actor).Name("Someone")
 	s.msg.Observer.WriteStrings(who, " starts looking around.")

@@ -17,7 +17,7 @@ func init() {
 func Read(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("Did you want to read something specific?")
+		s.msg.Actor.WriteStrings("Did you want to read something specific?")
 		return
 	}
 

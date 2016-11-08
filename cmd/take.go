@@ -17,7 +17,7 @@ func init() {
 func Take(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("You go to take something out of something else...")
+		s.msg.Actor.WriteStrings("You go to take something out of something else...")
 		return
 	}
 
@@ -94,13 +94,13 @@ func Take(s *state) {
 
 	// Check for veto on item being taken
 	if veto := attr.FindVetoes(tWhat).Check("TAKE", "GET"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 
 	// Check for veto on container
 	if veto := attr.FindVetoes(cWhat).Check("TAKE"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 

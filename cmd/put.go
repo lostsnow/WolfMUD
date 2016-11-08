@@ -17,7 +17,7 @@ func init() {
 func Put(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("You go to put something into something else...")
+		s.msg.Actor.WriteStrings("You go to put something into something else...")
 		return
 	}
 
@@ -84,13 +84,13 @@ func Put(s *state) {
 
 	// Check for veto on item being put into container
 	if veto := attr.FindVetoes(tWhat).Check("DROP", "PUT"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 
 	// Check for veto on container
 	if veto := attr.FindVetoes(cWhat).Check("PUT"); veto != nil {
-		s.msg.Actor.WriteString(veto.Message())
+		s.msg.Actor.WriteStrings(veto.Message())
 		return
 	}
 

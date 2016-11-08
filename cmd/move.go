@@ -28,14 +28,14 @@ func Move(s *state) {
 
 	// A thing can only move itself if it knows where it is
 	if from == nil {
-		s.msg.Actor.WriteString("You are not sure where you are, let alone where you are going!")
+		s.msg.Actor.WriteStrings("You are not sure where you are, let alone where you are going!")
 		return
 	}
 
 	// Is where we are exitable?
 	exits := attr.FindExits(from.Parent())
 	if !exits.Found() {
-		s.msg.Actor.WriteString("You can't see anywhere to go from here.")
+		s.msg.Actor.WriteStrings("You can't see anywhere to go from here.")
 		return
 	}
 
@@ -43,7 +43,7 @@ func Move(s *state) {
 	// another command just passing in the direction.
 	direction, err := exits.NormalizeDirection(s.cmd)
 	if err != nil {
-		s.msg.Actor.WriteString("You wanted to go which way!?")
+		s.msg.Actor.WriteStrings("You wanted to go which way!?")
 		return
 	}
 
@@ -65,7 +65,7 @@ func Move(s *state) {
 	}
 
 	if from.Remove(s.actor) == nil {
-		s.msg.Actor.WriteString("Something stops you from leaving here!")
+		s.msg.Actor.WriteStrings("Something stops you from leaving here!")
 		return
 	}
 

@@ -20,7 +20,7 @@ func init() {
 func Dump(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteString("What do you want to dump?")
+		s.msg.Actor.WriteStrings("What do you want to dump?")
 		return
 	}
 
@@ -61,6 +61,6 @@ func Dump(s *state) {
 		return
 	}
 
-	s.msg.Actor.WriteString(strings.Join(what.Dump(), "\n"))
+	s.msg.Actor.WriteStrings(strings.Join(what.Dump(), "\n"))
 	s.ok = true
 }

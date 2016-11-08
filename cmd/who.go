@@ -21,7 +21,7 @@ func Who(s *state) {
 	players := stats.List(s.actor)
 
 	if len(players) == 0 {
-		s.msg.Actor.WriteString("You are all alone in this world.")
+		s.msg.Actor.WriteStrings("You are all alone in this world.")
 		return
 	}
 
