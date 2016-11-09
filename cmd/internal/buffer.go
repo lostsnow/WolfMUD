@@ -136,9 +136,8 @@ func (b buffers) Silent(new ...bool) (old []bool) {
 }
 
 // Temporary methods to facilitate switch from bytes.Buffer to []bytes
-func (b *buffer) Len() int       { return len(b.buf) }
-func (b *buffer) Bytes() []byte  { return b.buf }
-func (b *buffer) Truncate(l int) { b.buf = b.buf[:l] }
+func (b *buffer) Len() int      { return len(b.buf) }
+func (b *buffer) Bytes() []byte { return b.buf }
 
 // Allocate sets up the message buffers for the actor, participant and
 // observers. The 'where' passed in should be the current location so that

@@ -170,36 +170,19 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	i, w, c := s.input, s.words, s.cmd // Save state
 
-	a := s.msg.Actor.Len()
-	p := s.msg.Participant.Len()
-	o := make(map[has.Inventory]int)
-	for where, observer := range s.msg.Observers {
-		o[where] = observer.Len()
-	}
+	// Set silent mode on buffers storing old modes
+	a := s.msg.Actor.Silent(!actor)
+	p := s.msg.Participant.Silent(!participant)
+	o := s.msg.Observers.Silent(!observers)
 
 	s.tokenizeInput(input)
 	s.ok = false
 	s.handleCommand()
 
-	// If anything is written to the buffers during processing:
-	// 	- if messages are suppressed for a buffer truncate back to initial
-	// 		length.
-	if l := s.msg.Actor.Len(); actor && (l-a > 1) {
-		a = l
-	}
-	s.msg.Actor.Truncate(a)
-
-	if l := s.msg.Participant.Len(); participant && (l-p > 1) {
-		p = l
-	}
-	s.msg.Participant.Truncate(p)
-
-	for where, observer := range s.msg.Observers {
-		if l := observer.Len(); observers && (l-o[where] > 1) {
-			o[where] = l
-		}
-		observer.Truncate(o[where])
-	}
+	// Restore old silent modes
+	s.msg.Actor.Silent(a)
+	s.msg.Participant.Silent(p)
+	s.msg.Observers.Silent(o...)
 
 	s.input, s.words, s.cmd = i, w, c // Restore state
 }
