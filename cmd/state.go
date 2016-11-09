@@ -139,7 +139,7 @@ func (s *state) handleCommand() {
 	case valid:
 		handler(s)
 	default:
-		s.msg.Actor.WriteStrings("Eh?")
+		s.msg.Actor.Send("Eh?")
 	}
 }
 

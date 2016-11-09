@@ -74,7 +74,7 @@ func Commands(s *state) {
 				line = append(line, strings.Repeat("␠", columnWidth-len(cmds[cell]))...)
 			}
 		}
-		s.msg.Actor.WriteStrings(string(line))
+		s.msg.Actor.Send(string(line))
 	}
 
 	s.ok = true

@@ -17,7 +17,7 @@ func init() {
 func Take(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.WriteStrings("You go to take something out of something else...")
+		s.msg.Actor.Send("You go to take something out of something else...")
 		return
 	}
 
@@ -27,7 +27,7 @@ func Take(s *state) {
 	// item would be in the container, if there is no container specified we
 	// cannot find the item and hence resolve the proper name for it.
 	if len(s.words) < 2 {
-		s.msg.Actor.WriteStrings("What did you want to take '", tName, "' out of?")
+		s.msg.Actor.Send("What did you want to take '", tName, "' out of?")
 		return
 	}
 
@@ -43,7 +43,7 @@ func Take(s *state) {
 	// If we have not foun the container and we are nowhere we are not going to
 	// find the container so bail early
 	if cWhat == nil && s.where == nil {
-		s.msg.Actor.WriteStrings("You see no '", cName, "' to take anything from.")
+		s.msg.Actor.Send("You see no '", cName, "' to take anything from.")
 		return
 	}
 
@@ -54,7 +54,7 @@ func Take(s *state) {
 
 	// Was container found?
 	if cWhat == nil {
-		s.msg.Actor.WriteStrings("You see no '", cName, "' to take things out of.")
+		s.msg.Actor.Send("You see no '", cName, "' to take things out of.")
 		return
 	}
 
@@ -64,7 +64,7 @@ func Take(s *state) {
 	// Check container is actually a container with an inventory
 	cWhere := attr.FindInventory(cWhat)
 	if !cWhere.Found() {
-		s.msg.Actor.WriteStrings("You cannot take anything from ", cName)
+		s.msg.Actor.Send("You cannot take anything from ", cName)
 		return
 	}
 
@@ -74,8 +74,8 @@ func Take(s *state) {
 	// Is item to be taken in the container?
 	tWhat := cWhere.Search(tName)
 	if tWhat == nil {
-		s.msg.Actor.WriteStrings(cName, " does not seem to contain ", tName, ".")
-		s.msg.Observer.WriteStrings("You see ", who, " rummage around in ", cName, ".")
+		s.msg.Actor.Send(cName, " does not seem to contain ", tName, ".")
+		s.msg.Observer.Send("You see ", who, " rummage around in ", cName, ".")
 		return
 	}
 
@@ -88,19 +88,19 @@ func Take(s *state) {
 	//
 	// NOTE: We could just drop the item on the floor if it can't be carried.
 	if !tWhere.Found() {
-		s.msg.Actor.WriteStrings("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
+		s.msg.Actor.Send("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
 		return
 	}
 
 	// Check for veto on item being taken
 	if veto := attr.FindVetoes(tWhat).Check("TAKE", "GET"); veto != nil {
-		s.msg.Actor.WriteStrings(veto.Message())
+		s.msg.Actor.Send(veto.Message())
 		return
 	}
 
 	// Check for veto on container
 	if veto := attr.FindVetoes(cWhat).Check("TAKE"); veto != nil {
-		s.msg.Actor.WriteStrings(veto.Message())
+		s.msg.Actor.Send(veto.Message())
 		return
 	}
 
@@ -108,23 +108,23 @@ func Take(s *state) {
 	// checks as the vetos could give us a better message/reson for not being
 	// able to take the item.
 	if attr.FindNarrative(tWhat).Found() {
-		s.msg.Actor.WriteStrings("For some reason you cannot take ", tName, " from ", cName, ".")
-		s.msg.Observer.WriteStrings("You see ", who, " having trouble removing something from ", cName, ".")
+		s.msg.Actor.Send("For some reason you cannot take ", tName, " from ", cName, ".")
+		s.msg.Observer.Send("You see ", who, " having trouble removing something from ", cName, ".")
 		return
 	}
 
 	// Try and remove the item from container
 	if cWhere.Remove(tWhat) == nil {
-		s.msg.Actor.WriteStrings("Something stops you taking ", tName, " from ", cName, "...")
-		s.msg.Observer.WriteStrings("You see ", who, " having trouble removing something from ", cName, ".")
+		s.msg.Actor.Send("Something stops you taking ", tName, " from ", cName, "...")
+		s.msg.Observer.Send("You see ", who, " having trouble removing something from ", cName, ".")
 		return
 	}
 
 	// Put item in taking thing's inventory
 	tWhere.Add(tWhat)
 
-	s.msg.Actor.WriteStrings("You take ", tName, " from ", cName, ".")
-	s.msg.Observer.WriteStrings("You see ", who, " take something from ", cName, ".")
+	s.msg.Actor.Send("You take ", tName, " from ", cName, ".")
+	s.msg.Observer.Send("You see ", who, " take something from ", cName, ".")
 
 	s.ok = true
 }

@@ -35,11 +35,11 @@ func Quit(s *state) {
 
 	// Remove the player from the world
 	if s.where != nil {
-		s.msg.Observer.WriteStrings(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+		s.msg.Observer.Send(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 		s.where.Remove(s.actor)
 	}
 
-	s.msg.Actor.WriteStrings("You leave this world behind.")
+	s.msg.Actor.Send("You leave this world behind.")
 	stats.Remove(s.actor)
 
 	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)

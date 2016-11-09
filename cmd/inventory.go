@@ -19,19 +19,19 @@ func Inventory(s *state) {
 	// Try and find out if we are carrying anything
 	inv := attr.FindInventory(s.actor).Contents()
 	if len(inv) == 0 {
-		s.msg.Actor.WriteStrings("You are not carrying anything.")
+		s.msg.Actor.Send("You are not carrying anything.")
 		return
 	}
 
-	s.msg.Actor.WriteStrings("You are currently carrying:")
+	s.msg.Actor.Send("You are currently carrying:")
 
 	// List what we are carrying
 	for _, i := range inv {
-		s.msg.Actor.WriteStrings("  ", attr.FindName(i).Name("something"))
+		s.msg.Actor.Send("  ", attr.FindName(i).Name("something"))
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.Observer.WriteStrings("You see ", who, " check over their gear.")
+	s.msg.Observer.Send("You see ", who, " check over their gear.")
 
 	s.ok = true
 }

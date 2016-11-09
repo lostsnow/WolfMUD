@@ -43,10 +43,11 @@ type Msg struct {
 	Observers   buffers
 }
 
-// WriteStrings takes a number of strings and writes them into the buffer as a
-// single message. The message will automatically be prefixed with a line feed
-// if required so that the message starts on its own new line.
-func (b *buffer) WriteStrings(s ...string) {
+// Send takes a number of strings and writes them into the buffer as a single
+// message. The message will automatically be prefixed with a line feed if
+// required so that the message starts on its own new line when displayed to
+// the player.
+func (b *buffer) Send(s ...string) {
 	if len(b.buf) != 0 || !b.omitLF {
 		b.buf = append(b.buf, '\n')
 	}
@@ -56,12 +57,12 @@ func (b *buffer) WriteStrings(s ...string) {
 	return
 }
 
-// WriteAppend is similar to WriteStrings but does not put the message on a new
-// line. Instead the message is appended to the current buffer with a single
-// space prefixing it. This is useful when a message needs to be composed in
-// several stages. It is safe to call WriteAppend without having first called
-// WriteStrings.
-func (b *buffer) WriteAppend(s ...string) {
+// Append takes a number of strings and write them into the buffer appending to
+// a previous message. The message is appended to the current buffer with a
+// single space prefixing it. This is useful when a message needs to be
+// composed in several stages. It is safe to call Append without having first
+// called Send - this will cause the first Append to act like an initial Send.
+func (b *buffer) Append(s ...string) {
 	if len(b.buf) == 0 && !b.omitLF {
 		b.buf = append(b.buf, '\n')
 	}
