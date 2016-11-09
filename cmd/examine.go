@@ -48,8 +48,8 @@ func Examine(s *state) {
 
 	s.msg.Actor.WriteStrings("You examine ", name, ".")
 
-	for _, d := range attr.FindAllDescription(what) {
-		s.msg.Actor.WriteStrings(" ", d.Description())
+	for _, a := range attr.FindAllDescription(what) {
+		s.msg.Actor.WriteAppend(a.Description())
 	}
 
 	// BUG(diddymus): If you examine another player you can see their inventory
@@ -57,7 +57,7 @@ func Examine(s *state) {
 	// player.
 	if !attr.FindPlayer(what).Found() {
 		if l := attr.FindInventory(what).List(); l != "" {
-			s.msg.Actor.WriteStrings(" ", l)
+			s.msg.Actor.WriteAppend(l)
 		}
 	}
 

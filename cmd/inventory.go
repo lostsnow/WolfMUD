@@ -27,7 +27,7 @@ func Inventory(s *state) {
 
 	// List what we are carrying
 	for _, i := range inv {
-		s.msg.Actor.WriteStrings("\n  ", attr.FindName(i).Name("something"))
+		s.msg.Actor.WriteStrings("  ", attr.FindName(i).Name("something"))
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")

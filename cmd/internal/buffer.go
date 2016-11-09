@@ -7,23 +7,35 @@ package internal
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
-
-	"bytes"
 )
 
-// buffer is our extended version of a bytes.Buffer so that we can add some
-// convience methods.
+// buffer provides temporary storeage for messages to players. The buffer
+// accumulates messages which can then be sent as single network writes to the
+// players. A buffer can handle insertion of line feeds into messages
+// automatically when required.
+//
+// NOTE: omitLF indicates whether an empty buffer should start with a line feed
+// or not. This should be true for an actor's buffer as they would have moved
+// to a new line when pressing enter to issue a command. For all other buffers
+// it should be false as we need to move them off their prompt line manually.
 type buffer struct {
-	*bytes.Buffer
+	buf    []byte
+	omitLF bool // Omit initial line feed?
 }
 
+// buffers are a collection of buffer indexed by location.
 type buffers map[has.Inventory]*buffer
 
 // Msg is a collection of buffers for gathering messages to send back as a
-// result of processing a command.
+// result of processing a command. Before use a Msg should have Allocate called
+// on it to allocate and setup the buffers internally. After use Deallocate
+// should be called to free up the buffers. The Allocate and Deallocate methods
+// are kept separate so that a Msg can be reused by repeated calls to
+// Allocate/Deallocate.
 //
 // NOTE: Observer is setup as an 'alias' for Observers[s.where] - Observer and
-// Observers[s.where] point to the same buffer.
+// Observers[s.where] point to the same buffer. See the Allocate method for
+// more details.
 type Msg struct {
 	Actor       *buffer
 	Participant *buffer
@@ -31,49 +43,70 @@ type Msg struct {
 	Observers   buffers
 }
 
-// WriteStrings takes a number of strings and writes them into the buffer. It's
-// a convenience method to save writing multiple WriteString statements and an
-// alternative to additional allocations due to concatenation.
-//
-// The return value n is the total length of all s, in bytes; err is always nil.
-// The underlying bytes.Buffer may panic if it becomes too large.
-func (b *buffer) WriteStrings(s ...string) (n int, err error) {
-	for _, s := range s {
-		x, _ := b.WriteString(s)
-		n += x
+// WriteStrings takes a number of strings and writes them into the buffer as a
+// single message. The message will automatically be prefixed with a line feed
+// if required so that the message starts on its own new line.
+func (b *buffer) WriteStrings(s ...string) {
+	if len(b.buf) != 0 || !b.omitLF {
+		b.buf = append(b.buf, '\n')
 	}
-	return n, nil
+	for _, s := range s {
+		b.buf = append(b.buf, s...)
+	}
+	return
 }
 
+// WriteAppend is similar to WriteStrings but does not put the message on a new
+// line. Instead the message is appended to the current buffer with a single
+// space prefixing it. This is useful when a message needs to be composed in
+// several stages. It is safe to call WriteAppend without having first called
+// WriteStrings.
+func (b *buffer) WriteAppend(s ...string) {
+	if len(b.buf) == 0 && !b.omitLF {
+		b.buf = append(b.buf, '\n')
+	}
+	if l := len(b.buf); l != 0 && b.buf[l-1] != '\n' {
+		b.buf = append(b.buf, ' ')
+	}
+	for _, s := range s {
+		b.buf = append(b.buf, s...)
+	}
+	return
+}
+
+// Temporary methods to facilitate switch from bytes.Buffer to []bytes
+func (b *buffer) Len() int       { return len(b.buf) }
+func (b *buffer) Bytes() []byte  { return b.buf }
+func (b *buffer) Truncate(l int) { b.buf = b.buf[:l] }
+
 // Allocate sets up the message buffers for the actor, participant and
-// observers. The where passed in should be the current location so that
+// observers. The 'where' passed in should be the current location so that
 // Observer can be linked to the correct Observers element. The locks passed in
-// are used to setup a buffer for observers in each location being locked.
+// are used to setup a buffer for observers in each of the locations being
+// locked.
 //
-// The participant and observers buffers need an initial linefeed to move the
-// cursor off of the client's prompt line - for the actor this is done when
-// they hit enter. The actor's buffer is initially set to half a page (half of
-// 80 columns by 24 lines) as it is common to be sending location descriptions
-// back to the actor. Half a page is arbitrary but seems to be reasonable.
+// The actor's buffer is initially set to half a page (half of 80 columns by 24
+// lines) as it is common to be sending location descriptions back to the
+// actor. Half a page is arbitrary but seems to be reasonable.
 func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 	if m.Actor == nil {
-		m.Actor = &buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-		m.Participant = &buffer{Buffer: &bytes.Buffer{}}
+		m.Actor = &buffer{buf: make([]byte, 0, (80*24)/2)}
+		m.Actor.omitLF = true
+		m.Participant = &buffer{}
 		m.Observers = make(map[has.Inventory]*buffer)
-		m.Participant.WriteByte(byte('\n'))
 	}
 
 	for _, l := range locks {
 		if _, ok := m.Observers[l]; !ok {
-			m.Observers[l] = &buffer{Buffer: &bytes.Buffer{}}
-			m.Observers[l].WriteByte('\n')
+			m.Observers[l] = &buffer{}
 		}
 	}
 	m.Observer = m.Observers[where]
 }
 
 // Deallocate releases the references to message buffers for the actor,
-// participant and observers.
+// participant and observers. Specific deallocation can help with garbage
+// collection.
 func (m *Msg) Deallocate() {
 	m.Actor = nil
 	m.Participant = nil

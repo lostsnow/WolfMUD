@@ -26,20 +26,21 @@ func Who(s *state) {
 	}
 
 	for _, player := range players {
-		s.msg.Actor.WriteStrings(player, "\n")
+		s.msg.Actor.WriteStrings(player)
 	}
 
 	var (
 		plural = len(players) > 1
-		start  = "\nThere is currently "
+		start  = "There is currently "
 		end    = "."
 	)
 
 	if plural {
-		start = "\nThere are currently "
+		start = "There are currently "
 		end = "s."
 	}
 
+	s.msg.Actor.WriteStrings("")
 	s.msg.Actor.WriteStrings(start, strconv.Itoa(len(players)), " other player", end)
 
 	who := attr.FindName(s.actor).Name("Someone")

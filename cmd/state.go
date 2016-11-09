@@ -177,25 +177,11 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 		o[where] = observer.Len()
 	}
 
-	if a > 0 {
-		s.msg.Actor.WriteString("\n")
-	}
-	if p > 0 {
-		s.msg.Participant.WriteString("\n")
-	}
-	for where, o := range o {
-		if o > 0 {
-			s.msg.Observers[where].WriteString("\n")
-		}
-	}
-
 	s.tokenizeInput(input)
 	s.ok = false
 	s.handleCommand()
 
 	// If anything is written to the buffers during processing:
-	// 	- append a newline to the buffer if output not suppressed. This will
-	// 		cause each action to start on it's own line.
 	// 	- if messages are suppressed for a buffer truncate back to initial
 	// 		length.
 	if l := s.msg.Actor.Len(); actor && (l-a > 1) {
@@ -252,7 +238,7 @@ func (s *state) messenger() {
 		attr.FindPlayer(s.actor).Write(s.msg.Actor.Bytes())
 	}
 
-	if s.participant != nil && s.msg.Participant.Len() > 1 {
+	if s.participant != nil && s.msg.Participant.Len() > 0 {
 		attr.FindPlayer(s.participant).Write(s.msg.Participant.Bytes())
 	}
 
@@ -261,7 +247,7 @@ func (s *state) messenger() {
 	}
 
 	for where, buffer := range s.msg.Observers {
-		if where.Crowded() || buffer.Len() == 1 {
+		if where.Crowded() || buffer.Len() == 0 {
 			continue
 		}
 		msg := buffer.Bytes()
