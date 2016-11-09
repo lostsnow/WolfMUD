@@ -135,6 +135,18 @@ func (b buffers) Silent(new ...bool) (old []bool) {
 	return
 }
 
+// Filter takes a list of Inventories and returns only matching buffer entries
+// as buffers.
+func (b buffers) Filter(limit ...has.Inventory) (filtered buffers) {
+	filtered = make(map[has.Inventory]*buffer)
+	for _, l := range limit {
+		if where, ok := b[l]; ok {
+			filtered[l] = where
+		}
+	}
+	return
+}
+
 // Temporary methods to facilitate switch from bytes.Buffer to []bytes
 func (b *buffer) Len() int      { return len(b.buf) }
 func (b *buffer) Bytes() []byte { return b.buf }
