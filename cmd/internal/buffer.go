@@ -19,8 +19,9 @@ import (
 // to a new line when pressing enter to issue a command. For all other buffers
 // it should be false as we need to move them off their prompt line manually.
 type buffer struct {
-	buf    []byte
-	omitLF bool // Omit initial line feed?
+	buf        []byte
+	omitLF     bool // Omit initial line feed?
+	silentMode bool
 }
 
 // buffers are a collection of buffer indexed by location.
@@ -46,8 +47,12 @@ type Msg struct {
 // Send takes a number of strings and writes them into the buffer as a single
 // message. The message will automatically be prefixed with a line feed if
 // required so that the message starts on its own new line when displayed to
-// the player.
+// the player. If the buffer is in silent mode the buffer will not be modified
+// and the passed strings will be discarded.
 func (b *buffer) Send(s ...string) {
+	if b.silentMode {
+		return
+	}
 	if len(b.buf) != 0 || !b.omitLF {
 		b.buf = append(b.buf, '\n')
 	}
@@ -62,7 +67,12 @@ func (b *buffer) Send(s ...string) {
 // single space prefixing it. This is useful when a message needs to be
 // composed in several stages. It is safe to call Append without having first
 // called Send - this will cause the first Append to act like an initial Send.
+// If the buffer is in silent mode the buffer will not be modified and the
+// passed strings will be discarded.
 func (b *buffer) Append(s ...string) {
+	if b.silentMode {
+		return
+	}
 	if len(b.buf) == 0 && !b.omitLF {
 		b.buf = append(b.buf, '\n')
 	}
@@ -72,6 +82,14 @@ func (b *buffer) Append(s ...string) {
 	for _, s := range s {
 		b.buf = append(b.buf, s...)
 	}
+	return
+}
+
+// Silent sets a buffers silent mode to true or false and returning the old
+// silent mode. When a buffer is in silent mode it will ignore calls to Send
+// and Append.
+func (b *buffer) Silent(new bool) (old bool) {
+	old, b.silentMode = b.silentMode, new
 	return
 }
 
