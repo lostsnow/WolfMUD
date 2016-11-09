@@ -93,6 +93,48 @@ func (b *buffer) Silent(new bool) (old bool) {
 	return
 }
 
+// Send calls buffer.Send for each buffer in the receiver buffers.
+//
+// See buffer.Send for more details.
+func (b buffers) Send(s ...string) {
+	for _, b := range b {
+		b.Send(s...)
+	}
+}
+
+// Append calls buffer.Append for each buffer in the receiver buffers.
+//
+// See buffer.Append for more details.
+func (b buffers) Append(s ...string) {
+	for _, b := range b {
+		b.Append(s...)
+	}
+}
+
+// Silent calls buffer.Silent for each buffer in the receiver buffers. If there
+// are less new state flags passed in than there are buffer in buffers the last
+// flag will be repeated for each remaining buffe. Silent returns the old
+// silent state of each buffer as a []bool.
+//
+// See buffer.Silent for more details.
+func (b buffers) Silent(new ...bool) (old []bool) {
+
+	// Make sure we have enough new flags for each buffer by repeating the last
+	// new flag if required
+	lastNew := new[len(new)-1]
+	for x := len(b) - len(new); x > 0; x-- {
+		new = append(new, lastNew)
+	}
+
+	// Assign each new flag to each buffer
+	x := 0
+	for _, b := range b {
+		old = append(old, b.Silent(new[x]))
+		x++
+	}
+	return
+}
+
 // Temporary methods to facilitate switch from bytes.Buffer to []bytes
 func (b *buffer) Len() int       { return len(b.buf) }
 func (b *buffer) Bytes() []byte  { return b.buf }
