@@ -7,6 +7,8 @@ package internal
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+
+	"io"
 )
 
 // buffer provides temporary storeage for messages to players. The buffer
@@ -100,6 +102,20 @@ func (b *buffer) Silent(new bool) (old bool) {
 // Len returns the number of messages in a buffer.
 func (b *buffer) Len() int {
 	return b.count
+}
+
+// Deliver writes all of the messages in the deliver buffer to the given
+// Writer.
+func (b *buffer) Deliver(w io.Writer) {
+
+	// If there are no messages and buffer isn't the actor's just bail.
+	// For the actor there may be no messages if e.g. they just hit enter, we
+	// still need to deliver nothing to write out a new prompt for them.
+	if b.count == 0 && !b.omitLF {
+		return
+	}
+
+	w.Write(b.buf)
 }
 
 // Send calls buffer.Send for each buffer in the receiver buffers.
