@@ -176,6 +176,9 @@ func (b *buffer) Bytes() []byte { return b.buf }
 // The actor's buffer is initially set to half a page (half of 80 columns by 24
 // lines) as it is common to be sending location descriptions back to the
 // actor. Half a page is arbitrary but seems to be reasonable.
+//
+// NOTE: For crowded locations buffers of observers are automatically put in
+// silent mode.
 func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 	if m.Actor == nil {
 		m.Actor = &buffer{buf: make([]byte, 0, (80*24)/2)}
@@ -187,6 +190,7 @@ func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 	for _, l := range locks {
 		if _, ok := m.Observers[l]; !ok {
 			m.Observers[l] = &buffer{}
+			m.Observers[l].Silent(l.Crowded())
 		}
 	}
 	m.Observer = m.Observers[where]

@@ -213,8 +213,6 @@ func (s *state) scriptActor(input ...string) {
 // For the actor we don't check the buffer length to see if there is anything
 // in it to send. We always send to the actor so that we can redisplay the
 // prompt even if they just hit enter.
-//
-// NOTE: Messages are not broadcast to observers in a crowded location.
 func (s *state) messenger() {
 
 	if s.actor != nil {
@@ -230,7 +228,7 @@ func (s *state) messenger() {
 	}
 
 	for where, buffer := range s.msg.Observers {
-		if where.Crowded() || buffer.Len() == 0 {
+		if buffer.Len() == 0 {
 			continue
 		}
 		msg := buffer.Bytes()
