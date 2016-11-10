@@ -68,9 +68,7 @@ func Say(s *state) {
 	s.msg.Observer.Send(who, " says: ", msg)
 
 	// Notify observers in near by locations
-	for _, e := range locations[1] {
-		s.msg.Observers[e].Send("You hear talking nearby.")
-	}
+	s.msg.Observers.Filter(locations[1]...).Send("You hear talking nearby.")
 
 	s.ok = true
 	return

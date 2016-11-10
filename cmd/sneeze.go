@@ -43,14 +43,10 @@ func Sneeze(s *state) {
 	s.msg.Observer.Send("You see ", who, " sneeze.")
 
 	// Notify observers in near by locations
-	for _, e := range locations[1] {
-		s.msg.Observers[e].Send("You hear a loud sneeze.")
-	}
+	s.msg.Observers.Filter(locations[1]...).Send("You hear a loud sneeze.")
 
 	// Notify observers in further out locations
-	for _, e := range locations[2] {
-		s.msg.Observers[e].Send("You hear a sneeze.")
-	}
+	s.msg.Observers.Filter(locations[2]...).Send("You hear a sneeze.")
 
 	s.ok = true
 }
