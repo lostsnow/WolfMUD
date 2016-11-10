@@ -180,9 +180,6 @@ func (b buffers) Filter(limit ...has.Inventory) (filtered buffers) {
 	return
 }
 
-// Temporary methods to facilitate switch from bytes.Buffer to []bytes
-func (b *buffer) Bytes() []byte { return b.buf }
-
 // Allocate sets up the message buffers for the actor, participant and
 // observers. The 'where' passed in should be the current location so that
 // Observer can be linked to the correct Observers element. The locks passed in
