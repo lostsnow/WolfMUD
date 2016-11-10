@@ -25,20 +25,20 @@ func Look(s *state) {
 
 	what := s.where.Parent()
 
+	// Write the location title
 	s.msg.Actor.Send("[ ", attr.FindName(what).Name("Somewhere"), " ]")
+	s.msg.Actor.Send("")
 
-	for x, a := range attr.FindAllDescription(what) {
-		if x == 0 {
-			s.msg.Actor.Send(a.Description())
-		} else {
-			s.msg.Actor.Append(a.Description())
-		}
+	// Write the location descriptions
+	for _, a := range attr.FindAllDescription(what) {
+		s.msg.Actor.Append(a.Description())
 	}
 
-	// Move off the current line and then write out a blank separator line
+	// Write out a blank line and remember how many message we have sent so far
 	s.msg.Actor.Send("")
 	mark := s.msg.Actor.Len()
 
+	// Write the location contents
 	if s.where.Crowded() {
 		s.msg.Actor.Send("You see a crowd here.")
 
@@ -50,10 +50,12 @@ func Look(s *state) {
 		items := []has.Thing{}
 		for _, c := range s.where.Contents() {
 
-			if c == s.actor { // Don't include the looker in the list
+			// Don't include the actor doing the looking in the list
+			if c == s.actor {
 				continue
 			}
 
+			// If not a player it's an item so remember it instead of displaying it
 			if !attr.FindPlayer(c).Found() {
 				items = append(items, c)
 				continue
@@ -62,19 +64,23 @@ func Look(s *state) {
 			s.msg.Actor.Send("You see ", attr.FindName(c).Name("someone"), " here.")
 		}
 
-		// List items here
+		// Now write out the remembered items
 		for _, i := range items {
 			s.msg.Actor.Send("You see ", attr.FindName(i).Name("something"), " here.")
 		}
 	}
 
-	// If we wrote out any mobiles or items write out a blank separator line
+	// If we wrote any messages since the laste blank line out another blank
+	// line. This prevents two blanks lines from being written if there is
+	// nothing else here.
 	if mark != s.msg.Actor.Len() {
 		s.msg.Actor.Send("")
 	}
 
+	// Write out the exits
 	s.msg.Actor.Send(attr.FindExits(what).List())
 
+	// Notify any observers we are looking around
 	who := attr.FindName(s.actor).Name("Someone")
 	s.msg.Observer.Send(who, " starts looking around.")
 
