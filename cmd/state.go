@@ -216,11 +216,11 @@ func (s *state) scriptActor(input ...string) {
 func (s *state) messenger() {
 
 	if s.actor != nil {
-		attr.FindPlayer(s.actor).Write(s.msg.Actor.Bytes())
+		s.msg.Actor.Deliver(attr.FindPlayer(s.actor))
 	}
 
 	if s.participant != nil && s.msg.Participant.Len() > 0 {
-		attr.FindPlayer(s.participant).Write(s.msg.Participant.Bytes())
+		s.msg.Participant.Deliver(attr.FindPlayer(s.participant))
 	}
 
 	if len(s.msg.Observers) == 0 || s.where == nil {
@@ -231,10 +231,9 @@ func (s *state) messenger() {
 		if buffer.Len() == 0 {
 			continue
 		}
-		msg := buffer.Bytes()
 		for _, c := range where.Contents() {
 			if c != s.actor && c != s.participant {
-				attr.FindPlayer(c).Write(msg)
+				buffer.Deliver(attr.FindPlayer(c))
 			}
 		}
 	}
