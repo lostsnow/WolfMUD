@@ -22,6 +22,7 @@ type buffer struct {
 	buf        []byte
 	omitLF     bool // Omit initial line feed?
 	silentMode bool
+	count      int // Number of messages in a buffer
 }
 
 // buffers are a collection of buffer indexed by location.
@@ -48,7 +49,8 @@ type Msg struct {
 // message. The message will automatically be prefixed with a line feed if
 // required so that the message starts on its own new line when displayed to
 // the player. If the buffer is in silent mode the buffer will not be modified
-// and the passed strings will be discarded.
+// and the passed strings will be discarded. Each time Send is called the
+// message count returned by Len is increased by one.
 func (b *buffer) Send(s ...string) {
 	if b.silentMode {
 		return
@@ -59,6 +61,7 @@ func (b *buffer) Send(s ...string) {
 	for _, s := range s {
 		b.buf = append(b.buf, s...)
 	}
+	b.count++
 	return
 }
 
@@ -68,7 +71,8 @@ func (b *buffer) Send(s ...string) {
 // composed in several stages. It is safe to call Append without having first
 // called Send - this will cause the first Append to act like an initial Send.
 // If the buffer is in silent mode the buffer will not be modified and the
-// passed strings will be discarded.
+// passed strings will be discarded. Append does not increase the message count
+// returned by the Len method.
 func (b *buffer) Append(s ...string) {
 	if b.silentMode {
 		return
@@ -91,6 +95,11 @@ func (b *buffer) Append(s ...string) {
 func (b *buffer) Silent(new bool) (old bool) {
 	old, b.silentMode = b.silentMode, new
 	return
+}
+
+// Len returns the number of messages in a buffer.
+func (b *buffer) Len() int {
+	return b.count
 }
 
 // Send calls buffer.Send for each buffer in the receiver buffers.
@@ -135,6 +144,14 @@ func (b buffers) Silent(new ...bool) (old []bool) {
 	return
 }
 
+// Len returns the number of messages for each buffer in buffers as a []int.
+func (b buffers) Len() (l []int) {
+	for _, b := range b {
+		l = append(l, b.count)
+	}
+	return
+}
+
 // Filter takes a list of Inventories and returns only matching buffer entries
 // as buffers.
 func (b buffers) Filter(limit ...has.Inventory) (filtered buffers) {
@@ -148,7 +165,6 @@ func (b buffers) Filter(limit ...has.Inventory) (filtered buffers) {
 }
 
 // Temporary methods to facilitate switch from bytes.Buffer to []bytes
-func (b *buffer) Len() int      { return len(b.buf) }
 func (b *buffer) Bytes() []byte { return b.buf }
 
 // Allocate sets up the message buffers for the actor, participant and
