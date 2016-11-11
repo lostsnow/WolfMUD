@@ -100,6 +100,18 @@ var testCases = []struct {
 	{"\n", 1, "\r\n"},
 	{"\n", 2, "\r\n"},
 
+	// Hard spaces '␠' U+2420
+	{"␠␠␠", 3, "   "},
+	{"␠␠␠", 2, "   "},
+	{"␠␠␠", 2, "   "},
+	{"␠␠␠WolfMUD", 15, "   WolfMUD"},
+	{"WolfMUD␠␠␠", 15, "WolfMUD   "},
+	{"␠␠␠WolfMUD␠␠␠", 15, "   WolfMUD   "},
+	{"WolfMUD␠␠␠WolfMUD", 8, "WolfMUD   WolfMUD"},
+	{"WolfMUD␠␠␠WolfMUD", 7, "WolfMUD   WolfMUD"},
+	{"WolfMUD␠␠␠WolfMUD", 6, "WolfMUD   WolfMUD"},
+	{"WolfMUD␠␠␠WolfMUD   WolfMUD", 30, "WolfMUD   WolfMUD WolfMUD"},
+
 	// UTF-8 2 bytes 0xc2 0xa3, Unicode U+00A3, £, POUND SIGN
 	{"Unicode \u00A3", 9, "Unicode \u00A3"},
 
