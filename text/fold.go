@@ -7,6 +7,7 @@ package text
 
 import (
 	"bytes"
+	"unicode"
 )
 
 // These constants are not really necessary but make the fold code easier to
@@ -31,24 +32,47 @@ var (
 	esc  = '\033'         // Escape control code, same as 0x1b or ^[
 )
 
-// Fold takes a string and reformats it so lines have a maximum length of the
-// passed width. Fold will handle multibyte runes. However it cannot handle
-// 'wide' runes - those that are wider than a normal single character when
-// displayed. This is because the required information is actually contained in
-// the font files of the font in use at the 'client' end.
+// Fold takes a []byte and attempts to reformat it so lines have a maximum
+// length of the passed width. Fold will only split lines on whitespace when
+// reformatting. This may result in lines longer than the given width when a
+// word is too long and cannot be split. A width of zero or less indicates no
+// folding will be done but line endings will still be changed from Unix '\n'
+// to network '\r\n' line endings and trailing whitespace, except line feeds
+// '\n', will be removed.
+//
+// Fold will handle multibyte runes. However it cannot handle 'wide' runes -
+// those that are wider than a normal single character when displayed. This is
+// because the required information is actually contained in the font files of
+// the font in use at the 'client' end.
 //
 // For example the Chinese for 9 is 九 (U+4E5D). Even in a monospaced font 九
 // will take up the space of two columns.
 //
-// It is expected that the incoming end of lines are Unix linefeeds (LF, \n)
-// only and will be output as carridge return and linefeed pairs (CR+LF, \r\n)
-// for Telnet. For more information see RFC854 - Telnet Protocol Specification.
-func Fold(in []byte, width int) []byte {
+// For combining characters Fold will assume combining marks are zero width.
+// For example 'a' plus a combining grave accent U+0061 U+0300 will be counted
+// as a single character. However it is better to use and actual latin small
+// letter a with grave 'à' U+00E0. Either should work as expected.
+//
+// It is expected that the end of line markers for incoming data are Unix line
+// feeds (LF, '\n') and outgoing data will have network line endings, carriage
+// return + line feed pairs (CR+LF, '\r\n').
+func Fold(in []byte, width int) (out []byte) {
 
-	// Can we take a short cut? Counting bytes is fine although we may end up
-	// with a string shorter than we think it is if there are multibyte runes.
-	if len(in) <= width {
-		return bytes.Replace(in, lf, crlf, -1)
+	// Can we take a short cut? If width is less than 1 output is not wrapped.
+	// Counting bytes is fine, although we may end up with a string shorter than
+	// we think it is if there are multibyte runes. We also strip off trailing
+	// whitespace except for line feeds '\n'.
+	if width < 1 || len(in) <= width {
+		out = bytes.TrimRightFunc(in, func(r rune) bool {
+			if r == '\n' {
+				return false
+			}
+			return unicode.IsSpace(r)
+		})
+		if bytes.Contains(out, []byte("␠")) {
+			out = bytes.Replace(out, []byte("␠"), []byte(" "), -1)
+		}
+		return bytes.Replace(out, lf, crlf, -1)
 	}
 
 	// Add extra line feed to end of input. Will cause final word and line to be
@@ -65,46 +89,56 @@ func Fold(in []byte, width int) []byte {
 	var (
 		wordLen, lineLen, pageLen = 0, 0, 0 // word, line and output length in runes
 		blank                     = true    // true when line is empty or only blanks
-		control                   = false   // true when processing a control sequence
+		control                   = -1      // >= 0 when processing a control sequence
 	)
 
 	for _, r := range bytes.Runes(in) {
 
 		// Are we starting a control sequence?
 		if r == esc {
-			control = true
+			control = 0
 		}
 
 		// Control codes are zero width and do not add to the length of the word
 		// but are written out. Any character in the range 0x40 - 0x7E (ASCII '@'
 		// through to ASCII '~') ends a control sequence.
-		if control {
+		if control >= 0 {
 			word.WriteRune(r)
-			if '@' <= r && r <= '~' {
-				control = false
+			control++
+
+			// control > 2 prevents checking the CSI "\033[" or ESC + [
+			if control > 2 && ('@' <= r && r <= '~') {
+				control = -1
 			}
+			continue
+		}
+
+		// Consider non-spacing and enclosing marks as zero width. This allows for
+		// the use of combining marks. For example a lower case 'a' plus combining
+		// grave accent to compose 'à' as well as a literal 'à' will work.
+		if r > '~' && unicode.In(r, unicode.Mn, unicode.Me) {
+			word.WriteRune(r)
 			continue
 		}
 
 		if (r != ' ' && r != '\n') || (r == ' ' && blank == true) {
 			word.WriteRune(r)
 			wordLen++
-			blank = r == ' '
+			blank = blank && r == ' '
 			continue
 		}
 
 		if lineLen+space+wordLen > width {
-			if pageLen != reset {
+			if pageLen != reset && lineLen != reset {
 				page.Write(crlf)
 				pageLen++
 			}
 			line.WriteTo(page)
 			pageLen += lineLen
 			lineLen = reset
-			blank = true
 		}
 
-		if lineLen != reset {
+		if wordLen != reset && lineLen != reset {
 			line.WriteByte(' ')
 			lineLen++
 		}
@@ -121,7 +155,7 @@ func Fold(in []byte, width int) []byte {
 				continue
 			}
 
-			if pageLen != reset {
+			if blank || (pageLen != reset && lineLen != reset) {
 				page.Write(crlf)
 				pageLen++
 			}
@@ -133,5 +167,9 @@ func Fold(in []byte, width int) []byte {
 
 	}
 
-	return page.Bytes()
+	out = page.Bytes()
+	if bytes.Contains(out, []byte("␠")) {
+		out = bytes.Replace(out, []byte("␠"), []byte(" "), -1)
+	}
+	return
 }

@@ -7,17 +7,18 @@ package text
 
 import (
 	"strings"
+	"sync"
 )
 
 // dictionary procides a convenient list of strings that can be checked to see
 // if it contains a specific string. Checking is case insensative. A dictionary
 // is basically a map with some helpers. A dictionary is typically created once
-// and checked multiple times. If a dictionary is created in an init function
-// or as a package level variable it does not to be locked if used for reading
-// only. Otherise it must be protected with a lock like a normal map would.
-//
-// The values in the map are empty structs which use zero bytes.
-type dictionary map[string]struct{}
+// and checked multiple times. A dictionary is safe to use across multiple
+// goroutines.
+type dictionary struct {
+	words map[string]struct{}
+	sync.RWMutex
+}
 
 // Dictionary returns a new dictionary containing the specified strings. The
 // dictionary can then be checked to see if it contains a specific string (case
@@ -25,10 +26,28 @@ type dictionary map[string]struct{}
 //
 // NOTE: The strings in the dictionary are converted to uppercase.
 func Dictionary(s ...string) (d dictionary) {
-	d = map[string]struct{}{}
+	d = dictionary{words: map[string]struct{}{}}
+	d.Add(s...)
+	return
+}
+
+// Add adds one or more words to the dictionary.
+func (d dictionary) Add(s ...string) {
+	d.Lock()
 	for _, s := range s {
-		d[strings.ToUpper(s)] = struct{}{}
+		d.words[strings.ToUpper(s)] = struct{}{}
 	}
+	d.Unlock()
+	return
+}
+
+// Delete deletes one or more words from the dictionary.
+func (d dictionary) Delete(s ...string) {
+	d.Lock()
+	for _, s := range s {
+		delete(d.words, strings.ToUpper(s))
+	}
+	d.Unlock()
 	return
 }
 
@@ -36,6 +55,8 @@ func Dictionary(s ...string) (d dictionary) {
 // If a match is found true is returned, otherwise false. The search is case
 // insensitive.
 func (d dictionary) Contains(s string) (found bool) {
-	_, found = d[strings.ToUpper(s)]
+	d.RLock()
+	_, found = d.words[strings.ToUpper(s)]
+	d.RUnlock()
 	return
 }
