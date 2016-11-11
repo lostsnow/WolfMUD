@@ -56,19 +56,22 @@ var (
 // It is expected that the end of line markers for incoming data are Unix line
 // feeds (LF, '\n') and outgoing data will have network line endings, carriage
 // return + line feed pairs (CR+LF, '\r\n').
-func Fold(in []byte, width int) []byte {
+func Fold(in []byte, width int) (out []byte) {
 
 	// Can we take a short cut? If width is less than 1 output is not wrapped.
 	// Counting bytes is fine, although we may end up with a string shorter than
 	// we think it is if there are multibyte runes. We also strip off trailing
 	// whitespace except for line feeds '\n'.
 	if width < 1 || len(in) <= width {
-		out := bytes.TrimRightFunc(in, func(r rune) bool {
+		out = bytes.TrimRightFunc(in, func(r rune) bool {
 			if r == '\n' {
 				return false
 			}
 			return unicode.IsSpace(r)
 		})
+		if bytes.Contains(out, []byte("␠")) {
+			out = bytes.Replace(out, []byte("␠"), []byte(" "), -1)
+		}
 		return bytes.Replace(out, lf, crlf, -1)
 	}
 
@@ -164,5 +167,9 @@ func Fold(in []byte, width int) []byte {
 
 	}
 
-	return page.Bytes()
+	out = page.Bytes()
+	if bytes.Contains(out, []byte("␠")) {
+		out = bytes.Replace(out, []byte("␠"), []byte(" "), -1)
+	}
+	return
 }
