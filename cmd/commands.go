@@ -62,21 +62,20 @@ func Commands(s *state) {
 		rowCount++
 	}
 
-	// Calculate maximum padding length we will need. We can reslice this for
-	// different lengths of padding without allocations
-	padding := strings.Repeat(" ", columnWidth)
-
 	// NOTE: cell is not (row * columnCount) + column as we are pivoting the
 	// table so that the commands are alphabetical DOWN the rows not across the
 	// columns.
 	for row := 0; row < rowCount; row++ {
+		line := []byte{}
 		for column := 0; column < columnCount; column++ {
 			cell := (column * rowCount) + row
 			if cell < len(cmds) {
-				s.msg.actor.WriteJoin(cmds[cell], padding[:columnWidth-len(cmds[cell])])
+				line = append(line, cmds[cell]...)
+				line = append(line, strings.Repeat("␠", columnWidth-len(cmds[cell]))...)
 			}
 		}
-		s.msg.actor.WriteString("\n")
+		line = append(line, '\n')
+		s.msg.actor.Write(line)
 	}
 	s.msg.actor.Truncate(s.msg.actor.Len() - 1)
 
