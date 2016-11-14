@@ -52,7 +52,7 @@ var verifyName = regexp.MustCompile(`^[a-zA-Z]+$`)
 // for the new account ID again without having to have the explanation as well.
 func (a *account) explainAccountDisplay() {
 	l := strconv.Itoa(config.Login.AccountLength)
-	a.buf.WriteJoin("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n\n")
+	a.buf.WriteStrings("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n\n")
 	a.newAccountDisplay()
 }
 
@@ -71,7 +71,7 @@ func (a *account) newAccountProcess() {
 		NewLogin(a.frontend)
 	case l < config.Login.AccountLength:
 		l := strconv.Itoa(config.Login.AccountLength)
-		a.buf.WriteJoin("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
+		a.buf.WriteStrings("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
 		a.newAccountDisplay()
 	default:
 		hash := md5.Sum(a.input)
@@ -96,7 +96,7 @@ func (a *account) newPasswordProcess() {
 		NewLogin(a.frontend)
 	case l < config.Login.PasswordLength:
 		l := strconv.Itoa(config.Login.PasswordLength)
-		a.buf.WriteJoin("Password is too short. Needs to be ", l, " characters or longer.\n\n")
+		a.buf.WriteStrings("Password is too short. Needs to be ", l, " characters or longer.\n\n")
 		a.newPasswordDisplay()
 	default:
 		a.salt = salt(config.Login.SaltLength)
@@ -121,7 +121,7 @@ func (a *account) confirmPasswordProcess() {
 	default:
 		hash := sha512.Sum512(append(a.salt, a.input...))
 		if hash != a.password {
-			a.buf.WriteJoin("Passwords do not match, please try again.\n\n")
+			a.buf.WriteStrings("Passwords do not match, please try again.\n\n")
 			a.newPasswordDisplay()
 			return
 		}
@@ -142,10 +142,10 @@ func (a *account) nameProcess() {
 		a.buf.WriteString("Account creation cancelled.\n\n")
 		NewLogin(a.frontend)
 	case l < 3:
-		a.buf.WriteJoin("The name '", string(a.input), "' is too short.\n\n")
+		a.buf.WriteStrings("The name '", string(a.input), "' is too short.\n\n")
 		a.nameDisplay()
 	case verifyName.Find(a.input) == nil:
-		a.buf.WriteJoin("A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n\n")
+		a.buf.WriteStrings("A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n\n")
 		a.nameDisplay()
 	default:
 		a.name = string(a.input)
@@ -155,7 +155,7 @@ func (a *account) nameProcess() {
 
 // genderDisplay asks for the gender of the player.
 func (a *account) genderDisplay() {
-	a.buf.WriteJoin("Would you like ", a.name, " to be male or female?")
+	a.buf.WriteStrings("Would you like ", a.name, " to be male or female?")
 	a.nextFunc = a.genderProcess
 }
 

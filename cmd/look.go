@@ -19,32 +19,28 @@ func Look(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.actor.WriteString("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
+		s.msg.Actor.Send("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
 		return
 	}
 
 	what := s.where.Parent()
 
-	s.msg.actor.WriteJoin("[ ", attr.FindName(what).Name("Somewhere"), " ]\n")
+	// Write the location title
+	s.msg.Actor.Send("[ ", attr.FindName(what).Name("Somewhere"), " ]")
+	s.msg.Actor.Send("")
 
-	mark := s.msg.actor.Len()
-
+	// Write the location descriptions
 	for _, a := range attr.FindAllDescription(what) {
-		s.msg.actor.WriteJoin(a.Description(), " ")
+		s.msg.Actor.Append(a.Description())
 	}
 
-	// If we added descriptions chop off space appended to last description
-	// This is safe as ASCII space is only one byte
-	if mark != s.msg.actor.Len() {
-		s.msg.actor.Truncate(s.msg.actor.Len() - 1)
-	}
+	// Write out a blank line and remember how many message we have sent so far
+	s.msg.Actor.Send("")
+	mark := s.msg.Actor.Len()
 
-	// Move off the current line and then write out a blank separator line
-	s.msg.actor.WriteString("\n\n")
-	mark = s.msg.actor.Len()
-
+	// Write the location contents
 	if s.where.Crowded() {
-		s.msg.actor.WriteJoin("You see a crowd here.\n")
+		s.msg.Actor.Send("You see a crowd here.")
 
 		// NOTE: If location is crowded we don't list the items
 
@@ -54,33 +50,39 @@ func Look(s *state) {
 		items := []has.Thing{}
 		for _, c := range s.where.Contents() {
 
-			if c == s.actor { // Don't include the looker in the list
+			// Don't include the actor doing the looking in the list
+			if c == s.actor {
 				continue
 			}
 
+			// If not a player it's an item so remember it instead of displaying it
 			if !attr.FindPlayer(c).Found() {
 				items = append(items, c)
 				continue
 			}
 
-			s.msg.actor.WriteJoin("You see ", attr.FindName(c).Name("someone"), " here.\n")
+			s.msg.Actor.Send("You see ", attr.FindName(c).Name("someone"), " here.")
 		}
 
-		// List items here
+		// Now write out the remembered items
 		for _, i := range items {
-			s.msg.actor.WriteJoin("You see ", attr.FindName(i).Name("something"), " here.\n")
+			s.msg.Actor.Send("You see ", attr.FindName(i).Name("something"), " here.")
 		}
 	}
 
-	// If we wrote out any mobiles or items write out a blank separator line
-	if mark != s.msg.actor.Len() {
-		s.msg.actor.WriteString("\n")
+	// If we wrote any messages since the laste blank line out another blank
+	// line. This prevents two blanks lines from being written if there is
+	// nothing else here.
+	if mark != s.msg.Actor.Len() {
+		s.msg.Actor.Send("")
 	}
 
-	s.msg.actor.WriteString(attr.FindExits(what).List())
+	// Write out the exits
+	s.msg.Actor.Send(attr.FindExits(what).List())
 
+	// Notify any observers we are looking around
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin(who, " starts looking around.")
+	s.msg.Observer.Send(who, " starts looking around.")
 
 	s.ok = true
 }

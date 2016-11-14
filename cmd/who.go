@@ -21,29 +21,30 @@ func Who(s *state) {
 	players := stats.List(s.actor)
 
 	if len(players) == 0 {
-		s.msg.actor.WriteString("You are all alone in this world.")
+		s.msg.Actor.Send("You are all alone in this world.")
 		return
 	}
 
 	for _, player := range players {
-		s.msg.actor.WriteJoin(player, "\n")
+		s.msg.Actor.Send(player)
 	}
 
 	var (
 		plural = len(players) > 1
-		start  = "\nThere is currently "
+		start  = "There is currently "
 		end    = "."
 	)
 
 	if plural {
-		start = "\nThere are currently "
+		start = "There are currently "
 		end = "s."
 	}
 
-	s.msg.actor.WriteJoin(start, strconv.Itoa(len(players)), " other player", end)
+	s.msg.Actor.Send("")
+	s.msg.Actor.Send(start, strconv.Itoa(len(players)), " other player", end)
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin("You see ", who, " concentrate for a moment.")
+	s.msg.Observer.Send("You see ", who, " concentrate for a moment.")
 
 	s.ok = true
 }
