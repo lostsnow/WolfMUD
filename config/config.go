@@ -20,6 +20,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -85,6 +86,11 @@ func init() {
 
 	if err != nil {
 		log.Printf("Configuration file error: %s", err)
+		return
+	}
+
+	if f == nil {
+		log.Print("No configuration file used. Using defaults.")
 		return
 	}
 
@@ -154,6 +160,10 @@ func openConfig() (config *os.File, err error) {
 	// Has user supplied path ± specific file?
 	flag.Parse()
 	dir, file := filepath.Split(flag.Arg(0))
+
+	if dir == "" && strings.ToUpper(file) == "NONE" {
+		return nil, nil
+	}
 
 	// Is the file actually a directory without a final separator?
 	if file != "" && filepath.Ext(file) != ".wrj" {
