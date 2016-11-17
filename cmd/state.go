@@ -223,10 +223,6 @@ func (s *state) messenger() {
 		s.msg.Participant.Deliver(attr.FindPlayer(s.participant))
 	}
 
-	if len(s.msg.Observers) == 0 || s.where == nil {
-		return
-	}
-
 	for where, buffer := range s.msg.Observers {
 		if buffer.Len() == 0 {
 			continue
