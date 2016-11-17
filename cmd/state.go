@@ -215,16 +215,18 @@ func (s *state) scriptActor(input ...string) {
 // prompt even if they just hit enter.
 func (s *state) messenger() {
 
+	var p has.Player
+
 	if s.actor != nil {
-		s.msg.Actor.Deliver(attr.FindPlayer(s.actor))
+		if p = attr.FindPlayer(s.actor); p.Found() {
+			s.msg.Actor.Deliver(p)
+		}
 	}
 
 	if s.participant != nil && s.msg.Participant.Len() > 0 {
-		s.msg.Participant.Deliver(attr.FindPlayer(s.participant))
-	}
-
-	if len(s.msg.Observers) == 0 || s.where == nil {
-		return
+		if p = attr.FindPlayer(s.participant); p.Found() {
+			s.msg.Participant.Deliver(p)
+		}
 	}
 
 	for where, buffer := range s.msg.Observers {
@@ -233,7 +235,9 @@ func (s *state) messenger() {
 		}
 		for _, c := range where.Contents() {
 			if c != s.actor && c != s.participant {
-				buffer.Deliver(attr.FindPlayer(c))
+				if p = attr.FindPlayer(c); p.Found() {
+					buffer.Deliver(p)
+				}
 			}
 		}
 	}
