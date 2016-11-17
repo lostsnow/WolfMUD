@@ -69,24 +69,42 @@ func (b *buffer) Send(s ...string) {
 	return
 }
 
-// Append takes a number of strings and write them into the buffer appending to
-// a previous message. The message is appended to the current buffer with a
-// single space prefixing it. This is useful when a message needs to be
-// composed in several stages. It is safe to call Append without having first
-// called Send - this will cause the first Append to act like an initial Send.
+// Append takes a number of strings and writes them into the buffer appending
+// to a previous message. The message is appended to the current buffer with a
+// leading single space. Append is useful when a message needs to be composed
+// in several stages. Append does not normally increase the message count
+// returned by Len, but see special cases below.
+//
 // If the buffer is in silent mode the buffer will not be modified and the
-// passed strings will be discarded. Append does not increase the message count
-// returned by the Len method.
+// passed strings will be discarded.
+//
+// Special cases:
+//
+// If Append is called without an initial Send then Append will behave like a
+// Send and also increase the message count by one.
+//
+// If Append is called without an initial Send or after a Send with an empty
+// string the leading space will be omitted. This is so that Send can cause the
+// start a new message but text is only appended by calling Append.
 func (b *buffer) Append(s ...string) {
 	if b.silentMode {
 		return
 	}
-	if len(b.buf) == 0 && !b.omitLF {
-		b.buf = append(b.buf, '\n')
+
+	// If buffer is empty we have to start a new message, otherwise append with a
+	// single space
+	if l := len(b.buf); l == 0 {
+		if !b.omitLF {
+			b.buf = append(b.buf, '\n')
+		}
+		b.count++
+	} else {
+		// We don't append a space right after a line feed
+		if b.buf[l-1] != '\n' {
+			b.buf = append(b.buf, ' ')
+		}
 	}
-	if l := len(b.buf); l != 0 && b.buf[l-1] != '\n' {
-		b.buf = append(b.buf, ' ')
-	}
+
 	for _, s := range s {
 		b.buf = append(b.buf, s...)
 	}
