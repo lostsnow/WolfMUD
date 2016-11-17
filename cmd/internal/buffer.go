@@ -50,9 +50,11 @@ type Msg struct {
 // Send takes a number of strings and writes them into the buffer as a single
 // message. The message will automatically be prefixed with a line feed if
 // required so that the message starts on its own new line when displayed to
-// the player. If the buffer is in silent mode the buffer will not be modified
-// and the passed strings will be discarded. Each time Send is called the
-// message count returned by Len is increased by one.
+// the player. Each time Send is called the message count returned by Len is
+// increased by one.
+//
+// If the buffer is in silent mode the buffer and message count will not be
+// modified and the passed strings will be discarded.
 func (b *buffer) Send(s ...string) {
 	if b.silentMode {
 		return
