@@ -140,7 +140,7 @@ func (b *buffer) Deliver(w io.Writer) {
 
 // Send calls buffer.Send for each buffer in the receiver buffers.
 //
-// See buffer.Send for more details.
+// See also buffer.Send for more details.
 func (b buffers) Send(s ...string) {
 	for _, b := range b {
 		b.Send(s...)
@@ -149,7 +149,7 @@ func (b buffers) Send(s ...string) {
 
 // Append calls buffer.Append for each buffer in the receiver buffers.
 //
-// See buffer.Append for more details.
+// See also buffer.Append for more details.
 func (b buffers) Append(s ...string) {
 	for _, b := range b {
 		b.Append(s...)
