@@ -50,9 +50,11 @@ type Msg struct {
 // Send takes a number of strings and writes them into the buffer as a single
 // message. The message will automatically be prefixed with a line feed if
 // required so that the message starts on its own new line when displayed to
-// the player. If the buffer is in silent mode the buffer will not be modified
-// and the passed strings will be discarded. Each time Send is called the
-// message count returned by Len is increased by one.
+// the player. Each time Send is called the message count returned by Len is
+// increased by one.
+//
+// If the buffer is in silent mode the buffer and message count will not be
+// modified and the passed strings will be discarded.
 func (b *buffer) Send(s ...string) {
 	if b.silentMode {
 		return
@@ -67,24 +69,42 @@ func (b *buffer) Send(s ...string) {
 	return
 }
 
-// Append takes a number of strings and write them into the buffer appending to
-// a previous message. The message is appended to the current buffer with a
-// single space prefixing it. This is useful when a message needs to be
-// composed in several stages. It is safe to call Append without having first
-// called Send - this will cause the first Append to act like an initial Send.
+// Append takes a number of strings and writes them into the buffer appending
+// to a previous message. The message is appended to the current buffer with a
+// leading single space. Append is useful when a message needs to be composed
+// in several stages. Append does not normally increase the message count
+// returned by Len, but see special cases below.
+//
 // If the buffer is in silent mode the buffer will not be modified and the
-// passed strings will be discarded. Append does not increase the message count
-// returned by the Len method.
+// passed strings will be discarded.
+//
+// Special cases:
+//
+// If Append is called without an initial Send then Append will behave like a
+// Send and also increase the message count by one.
+//
+// If Append is called without an initial Send or after a Send with an empty
+// string the leading space will be omitted. This is so that Send can cause the
+// start a new message but text is only appended by calling Append.
 func (b *buffer) Append(s ...string) {
 	if b.silentMode {
 		return
 	}
-	if len(b.buf) == 0 && !b.omitLF {
-		b.buf = append(b.buf, '\n')
+
+	// If buffer is empty we have to start a new message, otherwise append with a
+	// single space
+	if l := len(b.buf); l == 0 {
+		if !b.omitLF {
+			b.buf = append(b.buf, '\n')
+		}
+		b.count++
+	} else {
+		// We don't append a space right after a line feed
+		if b.buf[l-1] != '\n' {
+			b.buf = append(b.buf, ' ')
+		}
 	}
-	if l := len(b.buf); l != 0 && b.buf[l-1] != '\n' {
-		b.buf = append(b.buf, ' ')
-	}
+
 	for _, s := range s {
 		b.buf = append(b.buf, s...)
 	}
@@ -120,7 +140,7 @@ func (b *buffer) Deliver(w io.Writer) {
 
 // Send calls buffer.Send for each buffer in the receiver buffers.
 //
-// See buffer.Send for more details.
+// See also buffer.Send for more details.
 func (b buffers) Send(s ...string) {
 	for _, b := range b {
 		b.Send(s...)
@@ -129,41 +149,46 @@ func (b buffers) Send(s ...string) {
 
 // Append calls buffer.Append for each buffer in the receiver buffers.
 //
-// See buffer.Append for more details.
+// See also buffer.Append for more details.
 func (b buffers) Append(s ...string) {
 	for _, b := range b {
 		b.Append(s...)
 	}
 }
 
-// Silent calls buffer.Silent for each buffer in the receiver buffers. If there
-// are less new state flags passed in than there are buffer in buffers the last
-// flag will be repeated for each remaining buffe. Silent returns the old
-// silent state of each buffer as a []bool.
+// Silent calls buffer.Silent with the passed new flag for each buffer in the
+// receiver buffers. Silent returns two sets of buffers, one for all buffers
+// that were true and one for all buffers that were false. The previous silent
+// state of buffers can be restored by calling Silent with true or false on the
+// returned buffers. For example:
 //
-// See buffer.Silent for more details.
-func (b buffers) Silent(new ...bool) (old []bool) {
-
-	// Make sure we have enough new flags for each buffer by repeating the last
-	// new flag if required
-	lastNew := new[len(new)-1]
-	for x := len(b) - len(new); x > 0; x-- {
-		new = append(new, lastNew)
-	}
-
-	// Assign each new flag to each buffer
-	x := 0
-	for _, b := range b {
-		old = append(old, b.Silent(new[x]))
-		x++
+//	t,f := s.msg.Observers.Silent(true)
+//	:
+//	: // do something
+//	:
+//	t.Silent(true)
+//	f.silent(false)
+//
+// See also buffer.Silent for more details.
+func (b buffers) Silent(new bool) (t buffers, f buffers) {
+	t = make(map[has.Inventory]*buffer)
+	f = make(map[has.Inventory]*buffer)
+	for where, b := range b {
+		if old := b.Silent(new); old {
+			t[where] = b
+		} else {
+			f[where] = b
+		}
 	}
 	return
 }
 
-// Len returns the number of messages for each buffer in buffers as a []int.
-func (b buffers) Len() (l []int) {
-	for _, b := range b {
-		l = append(l, b.count)
+// Len returns the number of messages for each buffer in buffers as a
+// [has.Inventory]int map.
+func (b buffers) Len() (l map[has.Inventory]int) {
+	l = make(map[has.Inventory]int)
+	for where, b := range b {
+		l[where] = b.count
 	}
 	return
 }
@@ -173,8 +198,8 @@ func (b buffers) Len() (l []int) {
 func (b buffers) Filter(limit ...has.Inventory) (filtered buffers) {
 	filtered = make(map[has.Inventory]*buffer)
 	for _, l := range limit {
-		if where, ok := b[l]; ok {
-			filtered[l] = where
+		if _, ok := b[l]; ok {
+			filtered[l] = b[l]
 		}
 	}
 	return

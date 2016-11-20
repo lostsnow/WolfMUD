@@ -173,7 +173,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	// Set silent mode on buffers storing old modes
 	a := s.msg.Actor.Silent(!actor)
 	p := s.msg.Participant.Silent(!participant)
-	o := s.msg.Observers.Silent(!observers)
+	ot, of := s.msg.Observers.Silent(!observers)
 
 	s.tokenizeInput(input)
 	s.ok = false
@@ -182,7 +182,8 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	// Restore old silent modes
 	s.msg.Actor.Silent(a)
 	s.msg.Participant.Silent(p)
-	s.msg.Observers.Silent(o...)
+	ot.Silent(true)
+	of.Silent(false)
 
 	s.input, s.words, s.cmd = i, w, c // Restore state
 }
