@@ -156,26 +156,29 @@ func (b buffers) Append(s ...string) {
 	}
 }
 
-// Silent calls buffer.Silent for each buffer in the receiver buffers. If there
-// are less new state flags passed in than there are buffer in buffers the last
-// flag will be repeated for each remaining buffe. Silent returns the old
-// silent state of each buffer as a []bool.
+// Silent calls buffer.Silent with the passed new flag for each buffer in the
+// receiver buffers. Silent returns two sets of buffers, one for all buffers
+// that were true and one for all buffers that were false. The previous silent
+// state of buffers can be restored by calling Silent with true or false on the
+// returned buffers. For example:
 //
-// See buffer.Silent for more details.
-func (b buffers) Silent(new ...bool) (old []bool) {
-
-	// Make sure we have enough new flags for each buffer by repeating the last
-	// new flag if required
-	lastNew := new[len(new)-1]
-	for x := len(b) - len(new); x > 0; x-- {
-		new = append(new, lastNew)
-	}
-
-	// Assign each new flag to each buffer
-	x := 0
-	for _, b := range b {
-		old = append(old, b.Silent(new[x]))
-		x++
+//	t,f := s.msg.Observers.Silent(true)
+//	:
+//	: // do something
+//	:
+//	t.Silent(true)
+//	f.silent(false)
+//
+// See also buffer.Silent for more details.
+func (b buffers) Silent(new bool) (t buffers, f buffers) {
+	t = make(map[has.Inventory]*buffer)
+	f = make(map[has.Inventory]*buffer)
+	for where, b := range b {
+		if old := b.Silent(new); old {
+			t[where] = b
+		} else {
+			f[where] = b
+		}
 	}
 	return
 }
