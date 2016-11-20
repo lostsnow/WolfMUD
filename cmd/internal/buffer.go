@@ -183,10 +183,12 @@ func (b buffers) Silent(new bool) (t buffers, f buffers) {
 	return
 }
 
-// Len returns the number of messages for each buffer in buffers as a []int.
-func (b buffers) Len() (l []int) {
-	for _, b := range b {
-		l = append(l, b.count)
+// Len returns the number of messages for each buffer in buffers as a
+// [has.Inventory]int map.
+func (b buffers) Len() (l map[has.Inventory]int) {
+	l = make(map[has.Inventory]int)
+	for where, b := range b {
+		l[where] = b.count
 	}
 	return
 }
