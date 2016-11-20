@@ -198,8 +198,8 @@ func (b buffers) Len() (l map[has.Inventory]int) {
 func (b buffers) Filter(limit ...has.Inventory) (filtered buffers) {
 	filtered = make(map[has.Inventory]*buffer)
 	for _, l := range limit {
-		if where, ok := b[l]; ok {
-			filtered[l] = where
+		if _, ok := b[l]; ok {
+			filtered[l] = b[l]
 		}
 	}
 	return
