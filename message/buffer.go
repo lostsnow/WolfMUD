@@ -27,6 +27,16 @@ type buffer struct {
 	count      int // Number of messages in a buffer
 }
 
+// Buffer allows a buffer to be embedded in a struct without exposing buffer
+// itself. A buffer can be created and assigned using NewBuffer.
+type Buffer interface {
+	Send(...string)
+	Append(...string)
+	Silent(bool) bool
+	Len() int
+	Deliver(w io.Writer)
+}
+
 // NewBuffer returns a buffer with omitLF set to true - suitable for use as a
 // standalone buffer.
 func NewBuffer() (b *buffer) {
