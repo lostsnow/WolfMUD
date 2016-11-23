@@ -27,6 +27,14 @@ type buffer struct {
 	count      int // Number of messages in a buffer
 }
 
+// NewBuffer returns a buffer with omitLF set to true - suitable for use as a
+// standalone buffer.
+func NewBuffer() (b *buffer) {
+	b = &buffer{}
+	b.omitLF = true
+	return
+}
+
 // buffers are a collection of buffer indexed by location.
 type buffers map[has.Inventory]*buffer
 
