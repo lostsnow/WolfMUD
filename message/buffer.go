@@ -136,6 +136,13 @@ func (b *buffer) Deliver(w io.Writer) {
 	}
 
 	w.Write(b.buf)
+
+	// Only clear down buffers with omitLF set for reuse as these are intended to
+	// be standalone and reusable.
+	if b.omitLF {
+		b.buf = b.buf[0:0]
+		b.count = 0
+	}
 }
 
 // Send calls buffer.Send for each buffer in the receiver buffers.
