@@ -166,3 +166,10 @@ func (f *frontend) greetingDisplay() {
 	f.buf.Send(string(config.Server.Greeting))
 	NewLogin(f)
 }
+
+// Write writes the specified byte slice to the associated client.
+func (f *frontend) Write(b []byte) (n int, err error) {
+	b = append(b, '>')
+	n, err = f.output.Write(b)
+	return
+}
