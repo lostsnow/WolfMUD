@@ -438,7 +438,7 @@ func TestCombo(t *testing.T) {
 				want := ""
 				count := 0
 				if !silent1 {
-					if len(want) == 0 {
+					if count == 0 {
 						if !omitLF1 {
 							want = want + "\n"
 						}
@@ -447,7 +447,7 @@ func TestCombo(t *testing.T) {
 						}
 					} else {
 						if append1 {
-							if want[len(want)-1] != '\n' {
+							if len(want) != 0 && want[len(want)-1] != '\n' {
 								want = want + " "
 							}
 						} else {
@@ -464,7 +464,7 @@ func TestCombo(t *testing.T) {
 
 				// Manually build want based on current flags for second message
 				if !silent2 {
-					if len(want) == 0 {
+					if count == 0 {
 						if !omitLF2 {
 							want = want + "\n"
 						}
@@ -473,7 +473,7 @@ func TestCombo(t *testing.T) {
 						}
 					} else {
 						if append2 {
-							if want[len(want)-1] != '\n' {
+							if len(want) != 0 && want[len(want)-1] != '\n' {
 								want = want + " "
 							}
 						} else {

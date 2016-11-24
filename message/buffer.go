@@ -55,7 +55,7 @@ func (b *buffer) Send(s ...string) {
 	if b.silentMode {
 		return
 	}
-	if len(b.buf) != 0 || !b.omitLF {
+	if b.count != 0 || !b.omitLF {
 		b.buf = append(b.buf, '\n')
 	}
 	for _, s := range s {
@@ -89,14 +89,14 @@ func (b *buffer) Append(s ...string) {
 
 	// If buffer is empty we have to start a new message, otherwise append with a
 	// single space
-	if l := len(b.buf); l == 0 {
+	if b.count == 0 {
 		if !b.omitLF {
 			b.buf = append(b.buf, '\n')
 		}
 		b.count++
 	} else {
 		// We don't append a space right after a line feed
-		if b.buf[l-1] != '\n' {
+		if l := len(b.buf); l != 0 && b.buf[l-1] != '\n' {
 			b.buf = append(b.buf, ' ')
 		}
 	}
