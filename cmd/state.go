@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
 
+	"io"
 	"strings"
 )
 
@@ -235,13 +236,15 @@ func (s *state) messenger() {
 		if buffer.Len() == 0 {
 			continue
 		}
+		players := []io.Writer{}
 		for _, c := range where.Contents() {
 			if c != s.actor && c != s.participant {
 				if p = attr.FindPlayer(c); p.Found() {
-					buffer.Deliver(p)
+					players = append(players, p)
 				}
 			}
 		}
+		buffer.Deliver(players...)
 	}
 
 	s.msg.Deallocate()

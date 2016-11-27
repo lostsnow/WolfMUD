@@ -89,11 +89,6 @@ func (p *Player) Write(b []byte) (n int, err error) {
 		return
 	}
 
-	// Make sure prompt appears at start of next new line
-	if len(b) > 0 {
-		b = append(b, '\n')
-	}
-
 	b = append(b, p.buildPrompt()...)
 	if p != nil {
 		n, err = p.Writer.Write(b)

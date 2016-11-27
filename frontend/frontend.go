@@ -144,11 +144,7 @@ func (f *frontend) Parse(input []byte) error {
 
 	// If we have a message buffer write out its content and a new prompt
 	if f.buf != nil {
-		if len(f.input) > 0 || f.buf.Len() > 0 {
-			f.buf.Send()
-		}
-		f.buf.Append(">")
-		f.buf.Deliver(f.output)
+		f.buf.Deliver(f)
 	}
 	return f.err
 }

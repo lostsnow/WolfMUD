@@ -32,7 +32,7 @@ type Buffer interface {
 	Append(...string)
 	Silent(bool) bool
 	Len() int
-	Deliver(w io.Writer)
+	Deliver(w ...io.Writer)
 }
 
 // NewBuffer returns a buffer with omitLF set to true - suitable for use as a
@@ -120,23 +120,40 @@ func (b *buffer) Len() int {
 	return b.count
 }
 
-// Deliver writes all of the messages in the deliver buffer to the given
-// Writer.
-func (b *buffer) Deliver(w io.Writer) {
+// Deliver writes all of the messages in the buffer to the passed Writers.
+// After the messages have been delivered the messages and message count will
+// be cleared.
+func (b *buffer) Deliver(w ...io.Writer) {
 
-	// If there are no messages and buffer isn't the actor's just bail.
-	// For the actor there may be no messages if e.g. they just hit enter, we
-	// still need to deliver nothing to write out a new prompt for them.
+	// If there are no messages and buffer isn't the actor's make sure the buffer
+	// is cleared and just bail. For the actor there may be no messages if e.g.
+	// they just hit enter, we still need to deliver nothing to write out a new
+	// prompt for them.
 	if b.count == 0 && !b.omitLF {
+		b.buf = b.buf[0:0]
 		return
 	}
 
-	w.Write(b.buf)
-
-	// Only clear down buffers with omitLF set for reuse as these are intended to
-	// be standalone and reusable.
-	if b.omitLF {
-		b.buf = b.buf[0:0]
-		b.count = 0
+	// Make sure prompt appears at start of next new line
+	if b.count != 0 || !b.omitLF {
+		b.buf = append(b.buf, '\n')
 	}
+
+	// If sending messages to a single writer don't make a copy
+	if len(w) == 1 {
+		w[0].Write(b.buf)
+	}
+
+	// If we have multiple writers write a copy of the buffer to each
+	if len(w) > 1 {
+		for _, w := range w {
+			c := make([]byte, len(b.buf))
+			copy(c, b.buf)
+			w.Write(c)
+		}
+	}
+
+	// Clear down the messages and message count
+	b.buf = b.buf[0:0]
+	b.count = 0
 }
