@@ -8,6 +8,7 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"io"
 )
@@ -70,7 +71,7 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 func (p *Player) buildPrompt() []byte {
 	switch p.PromptStyle {
 	case has.StyleBrief:
-		return []byte(">")
+		return []byte(text.Prompt + ">")
 	default:
 		return []byte{}
 	}
