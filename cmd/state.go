@@ -9,7 +9,9 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/message"
 
+	"io"
 	"strings"
 )
 
@@ -34,7 +36,7 @@ type state struct {
 	locks []has.Inventory // List of locks we want to be holding
 
 	// msg contains the message buffers for sending data to different recipients
-	msg internal.Msg
+	msg message.Msg
 }
 
 // NewState returns a *state initialised with the passed Thing and input. If
@@ -234,13 +236,15 @@ func (s *state) messenger() {
 		if buffer.Len() == 0 {
 			continue
 		}
+		players := []io.Writer{}
 		for _, c := range where.Contents() {
 			if c != s.actor && c != s.participant {
 				if p = attr.FindPlayer(c); p.Found() {
-					buffer.Deliver(p)
+					players = append(players, p)
 				}
 			}
 		}
+		buffer.Deliver(players...)
 	}
 
 	s.msg.Deallocate()

@@ -52,13 +52,13 @@ var verifyName = regexp.MustCompile(`^[a-zA-Z]+$`)
 // for the new account ID again without having to have the explanation as well.
 func (a *account) explainAccountDisplay() {
 	l := strconv.Itoa(config.Login.AccountLength)
-	a.buf.WriteStrings("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n\n")
+	a.buf.Send("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", l, " characters long.\n\nThis is NOT your character's name it is for your account ID for logging in only.\n")
 	a.newAccountDisplay()
 }
 
 // newAccountDisplay asks the player for a new account ID
 func (a *account) newAccountDisplay() {
-	a.buf.WriteString("Enter text to use for your new account ID or just press enter to cancel:")
+	a.buf.Send("Enter text to use for your new account ID or just press enter to cancel:")
 	a.nextFunc = a.newAccountProcess
 }
 
@@ -67,11 +67,11 @@ func (a *account) newAccountDisplay() {
 func (a *account) newAccountProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.WriteString("Account creation cancelled.\n\n")
+		a.buf.Send("Account creation cancelled.\n")
 		NewLogin(a.frontend)
 	case l < config.Login.AccountLength:
 		l := strconv.Itoa(config.Login.AccountLength)
-		a.buf.WriteStrings("Account ID is too short. Needs to be ", l, " characters or longer.\n\n")
+		a.buf.Send("Account ID is too short. Needs to be ", l, " characters or longer.\n")
 		a.newAccountDisplay()
 	default:
 		hash := md5.Sum(a.input)
@@ -82,7 +82,7 @@ func (a *account) newAccountProcess() {
 
 // newPasswordDisplay asks for a password to associate with the account ID.
 func (a *account) newPasswordDisplay() {
-	a.buf.WriteString("Enter a password to use for your account ID or just press enter to cancel:")
+	a.buf.Send("Enter a password to use for your account ID or just press enter to cancel:")
 	a.nextFunc = a.newPasswordProcess
 }
 
@@ -92,11 +92,11 @@ func (a *account) newPasswordDisplay() {
 func (a *account) newPasswordProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.WriteString("Account creation cancelled.\n\n")
+		a.buf.Send("Account creation cancelled.\n")
 		NewLogin(a.frontend)
 	case l < config.Login.PasswordLength:
 		l := strconv.Itoa(config.Login.PasswordLength)
-		a.buf.WriteStrings("Password is too short. Needs to be ", l, " characters or longer.\n\n")
+		a.buf.Send("Password is too short. Needs to be ", l, " characters or longer.\n")
 		a.newPasswordDisplay()
 	default:
 		a.salt = salt(config.Login.SaltLength)
@@ -107,7 +107,7 @@ func (a *account) newPasswordProcess() {
 
 // confirmPasswordDisplay asks for the password to be typed again for confirmation.
 func (a *account) confirmPasswordDisplay() {
-	a.buf.WriteString("Enter your password again to confirm or just press enter to cancel:")
+	a.buf.Send("Enter your password again to confirm or just press enter to cancel:")
 	a.nextFunc = a.confirmPasswordProcess
 }
 
@@ -116,12 +116,12 @@ func (a *account) confirmPasswordDisplay() {
 func (a *account) confirmPasswordProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.WriteString("Account creation cancelled.\n\n")
+		a.buf.Send("Account creation cancelled.\n")
 		NewLogin(a.frontend)
 	default:
 		hash := sha512.Sum512(append(a.salt, a.input...))
 		if hash != a.password {
-			a.buf.WriteStrings("Passwords do not match, please try again.\n\n")
+			a.buf.Send("Passwords do not match, please try again.\n")
 			a.newPasswordDisplay()
 			return
 		}
@@ -131,7 +131,7 @@ func (a *account) confirmPasswordProcess() {
 
 // nameDisplay asks for a player name.
 func (a *account) nameDisplay() {
-	a.buf.WriteString("Enter a name for your character or just press enter to cancel:")
+	a.buf.Send("Enter a name for your character or just press enter to cancel:")
 	a.nextFunc = a.nameProcess
 }
 
@@ -139,13 +139,13 @@ func (a *account) nameDisplay() {
 func (a *account) nameProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.WriteString("Account creation cancelled.\n\n")
+		a.buf.Send("Account creation cancelled.\n")
 		NewLogin(a.frontend)
 	case l < 3:
-		a.buf.WriteStrings("The name '", string(a.input), "' is too short.\n\n")
+		a.buf.Send("The name '", string(a.input), "' is too short.\n")
 		a.nameDisplay()
 	case verifyName.Find(a.input) == nil:
-		a.buf.WriteStrings("A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n\n")
+		a.buf.Send("A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n")
 		a.nameDisplay()
 	default:
 		a.name = string(a.input)
@@ -155,7 +155,7 @@ func (a *account) nameProcess() {
 
 // genderDisplay asks for the gender of the player.
 func (a *account) genderDisplay() {
-	a.buf.WriteStrings("Would you like ", a.name, " to be male or female?")
+	a.buf.Send("Would you like ", a.name, " to be male or female?")
 	a.nextFunc = a.genderProcess
 }
 
@@ -171,7 +171,7 @@ func (a *account) genderProcess() {
 		a.gender = "FEMALE"
 		a.write()
 	default:
-		a.buf.WriteString("Please specify male or female.\n\n")
+		a.buf.Send("Please specify male or female.\n")
 		a.genderDisplay()
 	}
 }
@@ -236,7 +236,7 @@ func (a *account) write() {
 
 	// Check if account ID is already registered
 	if _, err := os.Stat(real); !os.IsNotExist(err) {
-		a.buf.WriteString("The account ID you used is not available.\n\n")
+		a.buf.Send("The account ID you used is not available.\n")
 		NewLogin(a.frontend)
 		return
 	}
@@ -269,9 +269,7 @@ func (a *account) write() {
 	a.player.Add(attr.NewPlayer(a.output))
 
 	// Greet new player
-	a.buf.WriteString("Welcome ")
-	a.buf.WriteString(attr.FindName(a.player).Name("Someone"))
-	a.buf.WriteString("!\n")
+	a.buf.Send("Welcome ", attr.FindName(a.player).Name("Someone"), "!")
 
 	NewMenu(a.frontend)
 }

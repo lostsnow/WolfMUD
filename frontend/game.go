@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/message"
 	"code.wolfmud.org/WolfMUD.git/stats"
 )
 
@@ -20,7 +21,7 @@ type game struct {
 	// Original frontend buffer. It is detatched from the frontend and
 	// referenced here when a player enters the game. When the player exits the
 	// game the buffer is assigned back to the frontend.
-	savedBuf *buffer
+	savedBuf message.Buffer
 }
 
 // NewGame returns a game with the specified frontend embedded. The returned
