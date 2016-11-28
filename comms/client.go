@@ -166,16 +166,19 @@ func (c *client) close() {
 
 	// If connection timed out notify the client
 	if idle {
-		c.Write([]byte("\nIdle connection terminated by server.\n"))
+		c.Write([]byte(text.Bad + "\nIdle connection terminated by server.\n"))
 	}
 
 	// Notify if server too busy to accept more players
 	if busy {
-		c.Write([]byte("\nServer too busy. Please come back in a short while.\n"))
+		c.Write([]byte(text.Bad + "\nServer too busy. Please come back in a short while.\n"))
 	}
 
 	// Say goodbye to client
-	c.Write([]byte("\nBye bye...\n\n"))
+	c.Write([]byte(text.Info + "\nBye bye...\n\n"))
+
+	// Revert to default colors
+	c.Write([]byte(text.Default + text.BGDefault))
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
