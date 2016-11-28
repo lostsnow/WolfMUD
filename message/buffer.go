@@ -134,6 +134,14 @@ func (b *buffer) Deliver(w ...io.Writer) {
 		return
 	}
 
+	// If buffer does not start with an escape sequence insert a reset to
+	// default colors
+	if len(b.buf) > 0 && b.buf[0] != '\033' {
+		b.buf = append(b.buf, "\033[39m"...)
+		copy(b.buf[5:], b.buf[0:len(b.buf)-5])
+		copy(b.buf[0:5], "\033[39m")
+	}
+
 	// Make sure prompt appears at start of next new line
 	if b.count != 0 || !b.omitLF {
 		b.buf = append(b.buf, '\n')

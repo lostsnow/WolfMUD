@@ -14,6 +14,7 @@ package config
 
 import (
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"flag"
 	"log"
@@ -116,7 +117,7 @@ func init() {
 		case "SERVER.MAXPLAYERS":
 			Server.MaxPlayers = recordjar.Decode.Integer(data)
 		case "SERVER.GREETING":
-			Server.Greeting = recordjar.Decode.Bytes(data)
+			Server.Greeting = text.Colorize(recordjar.Decode.Bytes(data))
 		case "SERVER.DEBUG":
 			Server.Debug = recordjar.Decode.Boolean(data)
 

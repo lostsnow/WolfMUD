@@ -35,6 +35,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
 	"code.wolfmud.org/WolfMUD.git/stats"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bytes"
 	"io"
@@ -165,6 +166,7 @@ func (f *frontend) greetingDisplay() {
 
 // Write writes the specified byte slice to the associated client.
 func (f *frontend) Write(b []byte) (n int, err error) {
+	b = append(b, text.Prompt...)
 	b = append(b, '>')
 	n, err = f.output.Write(b)
 	return
