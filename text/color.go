@@ -38,6 +38,12 @@ const (
 	// Setup brown as an alias for yellow
 	Brown   = Yellow
 	BGBrown = BGYellow
+
+	// WolfMUD specific meta colors
+	Good   = Green
+	Info   = Yellow
+	Bad    = Red
+	Prompt = Magenta
 )
 
 // colorTable maps color place holders to color escape sequences. Colorize uses
