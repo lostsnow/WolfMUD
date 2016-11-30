@@ -5,6 +5,10 @@
 
 package frontend
 
+import (
+	"code.wolfmud.org/WolfMUD.git/text"
+)
+
 // menu embeds a frontend instance adding fields and methods specific to
 // the main menu.
 type menu struct {
@@ -45,6 +49,6 @@ func (m *menu) menuProcess() {
 	case "0":
 		m.Close()
 	default:
-		m.buf.Send("Invalid option selected.")
+		m.buf.Send(text.Bad, "Invalid option selected.", text.Default)
 	}
 }
