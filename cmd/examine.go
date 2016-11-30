@@ -17,7 +17,7 @@ func init() {
 func Examine(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.Send("You examine this and that, find nothing special.")
+		s.msg.Actor.SendInfo("You examine this and that, find nothing special.")
 		return
 	}
 
@@ -33,13 +33,13 @@ func Examine(s *state) {
 
 	// Was item to examine eventually found?
 	if what == nil {
-		s.msg.Actor.Send("You see no '", name, "' to examine.")
+		s.msg.Actor.SendBad("You see no '", name, "' to examine.")
 		return
 	}
 
 	// Check examine is not vetoed by item
 	if veto := attr.FindVetoes(what).Check("EXAMINE"); veto != nil {
-		s.msg.Actor.Send(veto.Message())
+		s.msg.Actor.SendBad(veto.Message())
 		return
 	}
 
@@ -63,7 +63,7 @@ func Examine(s *state) {
 
 	who := attr.FindName(s.actor).Name("Someone")
 
-	s.msg.Observer.Send(who, " studies ", name, ".")
+	s.msg.Observer.SendInfo(who, " studies ", name, ".")
 
 	s.ok = true
 }
