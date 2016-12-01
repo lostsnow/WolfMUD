@@ -77,6 +77,14 @@ func (s *state) tokenizeInput(input string) {
 	if len(s.input) > 0 {
 		s.words = internal.RemoveStopWords(s.input)
 
+		// If the input only consists of stop words fake the "Eh?" command being
+		// entered to get an "Eh?" response from handleCommand - "Eh?" is not a
+		// valid command and seems an appropriate choice
+		if len(s.words) == 0 {
+			s.cmd = "Eh?"
+			return
+		}
+
 		for x, o := range s.words {
 			s.words[x] = strings.ToUpper(o)
 		}
