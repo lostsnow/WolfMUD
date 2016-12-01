@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bytes"
 	"crypto/md5"
@@ -77,7 +78,7 @@ func (l *login) passwordProcess() {
 
 	// If no password given go back and ask for an account ID.
 	if len(l.input) == 0 {
-		l.buf.Send("Login cancelled.\n")
+		l.buf.Send(text.Info, "Login cancelled.\n", text.Default)
 		NewLogin(l.frontend)
 		return
 	}
@@ -89,7 +90,7 @@ func (l *login) passwordProcess() {
 	wrj, err := os.Open(p)
 	if err != nil {
 		log.Printf("Error opening account: %s", err)
-		l.buf.Send("Acount ID or password is incorrect.\n")
+		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Default)
 		NewLogin(l.frontend)
 		return
 	}
@@ -98,7 +99,7 @@ func (l *login) passwordProcess() {
 	jar := recordjar.Read(wrj, "description")
 	if err := wrj.Close(); err != nil {
 		log.Printf("Error closing account: %s", err)
-		l.buf.Send("Acount ID or password is incorrect.\n")
+		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Default)
 		NewLogin(l.frontend)
 		return
 	}
@@ -107,7 +108,7 @@ func (l *login) passwordProcess() {
 	// If not something is wrong with the data.
 	if len(jar) < 2 {
 		log.Printf("Account file corrupted: %s.wrj", l.account)
-		l.buf.Send("Sorry, there is a problem with your account, please contact the admins.\n")
+		l.buf.Send(text.Bad, "Sorry, there is a problem with your account, please contact the admins.\n", text.Default)
 		NewLogin(l.frontend)
 		return
 	}
@@ -122,7 +123,7 @@ func (l *login) passwordProcess() {
 	// Check password is valid
 	if (base64.URLEncoding.EncodeToString(hash[:])) != password {
 		log.Printf("Password invalid for: %s.wrj", l.account)
-		l.buf.Send("Acount ID or password is incorrect.\n")
+		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Default)
 		NewLogin(l.frontend)
 		return
 	}
@@ -134,7 +135,7 @@ func (l *login) passwordProcess() {
 	accounts.Lock()
 	if _, inuse := accounts.inuse[l.account]; inuse {
 		log.Printf("Account already logged in: %s", l.account)
-		l.buf.Send("Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n")
+		l.buf.Send(text.Bad, "Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n", text.Default)
 		NewLogin(l.frontend)
 		accounts.Unlock()
 		return
@@ -151,7 +152,7 @@ func (l *login) passwordProcess() {
 	l.player.Add(attr.NewPlayer(l.output))
 
 	// Greet returning player
-	l.buf.Send("Welcome back ", attr.FindName(l.player).Name("Someone"), "!")
+	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Default)
 
 	NewMenu(l.frontend)
 }

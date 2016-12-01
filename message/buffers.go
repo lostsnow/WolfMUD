@@ -7,6 +7,7 @@ package message
 
 import (
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // buffers are a collection of buffer indexed by location.
@@ -18,6 +19,30 @@ type buffers map[has.Inventory]*buffer
 func (b buffers) Send(s ...string) {
 	for _, b := range b {
 		b.Send(s...)
+	}
+}
+
+// SendGood is convenient for sending a message to all buffer in buffers using
+// text.Good for the color.
+func (b buffers) SendGood(s ...string) {
+	for _, b := range b {
+		b.sendColor(text.Good, s...)
+	}
+}
+
+// SendBad is convenient for sending a message to all buffer in buffers using
+// text.Bad for the color.
+func (b buffers) SendBad(s ...string) {
+	for _, b := range b {
+		b.sendColor(text.Bad, s...)
+	}
+}
+
+// SendInfo is convenient for sending a message to all buffer in buffers using
+// text.Info for the color.
+func (b buffers) SendInfo(s ...string) {
+	for _, b := range b {
+		b.sendColor(text.Info, s...)
 	}
 }
 

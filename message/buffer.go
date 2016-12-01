@@ -6,6 +6,8 @@
 package message
 
 import (
+	"code.wolfmud.org/WolfMUD.git/text"
+
 	"io"
 )
 
@@ -64,6 +66,35 @@ func (b *buffer) Send(s ...string) {
 	b.count++
 	return
 }
+
+// sendColor is the same as Send but it also writes a color string such as
+// text.Bad or text.Red before the given strings of the message.
+//
+// The code of this method is copied from Send to avoid allocations prefixing
+// the color string to the strings of the message and then calling Send.
+func (b *buffer) sendColor(c string, s ...string) {
+	if b.silentMode {
+		return
+	}
+	if b.count != 0 || !b.omitLF {
+		b.buf = append(b.buf, '\n')
+	}
+	b.buf = append(b.buf, c...)
+	for _, s := range s {
+		b.buf = append(b.buf, s...)
+	}
+	b.count++
+	return
+}
+
+// SendGood is convenient for sending a message using text.Good as the color.
+func (b *buffer) SendGood(s ...string) { b.sendColor(text.Good, s...) }
+
+// SendBad is convenient for sending a message using text.Bad as the color.
+func (b *buffer) SendBad(s ...string) { b.sendColor(text.Bad, s...) }
+
+// SendInfo is convenient for sending a message using text.Info as the color.
+func (b *buffer) SendInfo(s ...string) { b.sendColor(text.Info, s...) }
 
 // Append takes a number of strings and writes them into the buffer appending
 // to a previous message. The message is appended to the current buffer with a

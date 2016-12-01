@@ -21,7 +21,7 @@ func Who(s *state) {
 	players := stats.List(s.actor)
 
 	if len(players) == 0 {
-		s.msg.Actor.Send("You are all alone in this world.")
+		s.msg.Actor.SendInfo("You are all alone in this world.")
 		return
 	}
 
@@ -44,7 +44,7 @@ func Who(s *state) {
 	s.msg.Actor.Send(start, strconv.Itoa(len(players)), " other player", end)
 
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.Observer.Send("You see ", who, " concentrate for a moment.")
+	s.msg.Observer.SendInfo("You see ", who, " concentrate for a moment.")
 
 	s.ok = true
 }

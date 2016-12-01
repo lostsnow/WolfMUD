@@ -8,6 +8,7 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: ( LOOK | L )
@@ -19,14 +20,14 @@ func Look(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.Actor.Send("[ A Void ]\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\nYou see no immediate exits from here.")
+		s.msg.Actor.Send(text.Cyan, "A Void", text.Default, "\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\n", text.Cyan, "You see no immediate exits from here.", text.Default)
 		return
 	}
 
 	what := s.where.Parent()
 
 	// Write the location title
-	s.msg.Actor.Send("[ ", attr.FindName(what).Name("Somewhere"), " ]")
+	s.msg.Actor.Send(text.Cyan, attr.FindName(what).Name("Somewhere"), text.Default)
 	s.msg.Actor.Send("")
 
 	// Write the location descriptions
@@ -40,7 +41,7 @@ func Look(s *state) {
 
 	// Write the location contents
 	if s.where.Crowded() {
-		s.msg.Actor.Send("You see a crowd here.")
+		s.msg.Actor.Send(text.Green, "You see a crowd here.")
 
 		// NOTE: If location is crowded we don't list the items
 
@@ -61,12 +62,12 @@ func Look(s *state) {
 				continue
 			}
 
-			s.msg.Actor.Send("You see ", attr.FindName(c).Name("someone"), " here.")
+			s.msg.Actor.Send(text.Green, "You see ", attr.FindName(c).Name("someone"), " here.")
 		}
 
 		// Now write out the remembered items
 		for _, i := range items {
-			s.msg.Actor.Send("You see ", attr.FindName(i).Name("something"), " here.")
+			s.msg.Actor.Send(text.Yellow, "You see ", attr.FindName(i).Name("something"), " here.")
 		}
 	}
 
@@ -78,11 +79,11 @@ func Look(s *state) {
 	}
 
 	// Write out the exits
-	s.msg.Actor.Send(attr.FindExits(what).List())
+	s.msg.Actor.Send(text.Cyan, attr.FindExits(what).List())
 
 	// Notify any observers we are looking around
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.Observer.Send(who, " starts looking around.")
+	s.msg.Observer.SendInfo(who, " starts looking around.")
 
 	s.ok = true
 }

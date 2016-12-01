@@ -141,7 +141,7 @@ func (s *state) handleCommand() {
 	case valid:
 		handler(s)
 	default:
-		s.msg.Actor.Send("Eh?")
+		s.msg.Actor.SendBad("Eh?")
 	}
 }
 

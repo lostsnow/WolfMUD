@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bytes"
 	"crypto/md5"
@@ -67,11 +68,11 @@ func (a *account) newAccountDisplay() {
 func (a *account) newAccountProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send("Account creation cancelled.\n")
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
 		NewLogin(a.frontend)
 	case l < config.Login.AccountLength:
 		l := strconv.Itoa(config.Login.AccountLength)
-		a.buf.Send("Account ID is too short. Needs to be ", l, " characters or longer.\n")
+		a.buf.Send(text.Bad, "Account ID is too short. Needs to be ", l, " characters or longer.\n", text.Default)
 		a.newAccountDisplay()
 	default:
 		hash := md5.Sum(a.input)
@@ -92,11 +93,11 @@ func (a *account) newPasswordDisplay() {
 func (a *account) newPasswordProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send("Account creation cancelled.\n")
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
 		NewLogin(a.frontend)
 	case l < config.Login.PasswordLength:
 		l := strconv.Itoa(config.Login.PasswordLength)
-		a.buf.Send("Password is too short. Needs to be ", l, " characters or longer.\n")
+		a.buf.Send(text.Bad, "Password is too short. Needs to be ", l, " characters or longer.\n", text.Default)
 		a.newPasswordDisplay()
 	default:
 		a.salt = salt(config.Login.SaltLength)
@@ -116,12 +117,12 @@ func (a *account) confirmPasswordDisplay() {
 func (a *account) confirmPasswordProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send("Account creation cancelled.\n")
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
 		NewLogin(a.frontend)
 	default:
 		hash := sha512.Sum512(append(a.salt, a.input...))
 		if hash != a.password {
-			a.buf.Send("Passwords do not match, please try again.\n")
+			a.buf.Send(text.Bad, "Passwords do not match, please try again.\n", text.Default)
 			a.newPasswordDisplay()
 			return
 		}
@@ -139,13 +140,13 @@ func (a *account) nameDisplay() {
 func (a *account) nameProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send("Account creation cancelled.\n")
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
 		NewLogin(a.frontend)
 	case l < 3:
-		a.buf.Send("The name '", string(a.input), "' is too short.\n")
+		a.buf.Send(text.Bad, "The name '", string(a.input), "' is too short.\n", text.Default)
 		a.nameDisplay()
 	case verifyName.Find(a.input) == nil:
-		a.buf.Send("A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n")
+		a.buf.Send(text.Bad, "A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n", text.Default)
 		a.nameDisplay()
 	default:
 		a.name = string(a.input)
@@ -171,7 +172,7 @@ func (a *account) genderProcess() {
 		a.gender = "FEMALE"
 		a.write()
 	default:
-		a.buf.Send("Please specify male or female.\n")
+		a.buf.Send(text.Bad, "Please specify male or female.\n", text.Default)
 		a.genderDisplay()
 	}
 }
@@ -236,7 +237,7 @@ func (a *account) write() {
 
 	// Check if account ID is already registered
 	if _, err := os.Stat(real); !os.IsNotExist(err) {
-		a.buf.Send("The account ID you used is not available.\n")
+		a.buf.Send(text.Bad, "The account ID you used is not available.\n", text.Default)
 		NewLogin(a.frontend)
 		return
 	}
@@ -269,7 +270,7 @@ func (a *account) write() {
 	a.player.Add(attr.NewPlayer(a.output))
 
 	// Greet new player
-	a.buf.Send("Welcome ", attr.FindName(a.player).Name("Someone"), "!")
+	a.buf.Send(text.Good, "Welcome ", attr.FindName(a.player).Name("Someone"), "!", text.Default)
 
 	NewMenu(a.frontend)
 }
