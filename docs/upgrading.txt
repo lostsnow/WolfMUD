@@ -1,0 +1,44 @@
+
+NAME
+
+  upgrading - some notes on upgrading from one release of WolfMUD to the next
+
+DESCRIPTION
+
+  ++ PLEASE READ ALL OF THIS DOCUMENT BEFORE UPGRADING YOUR WolfMUD SERVER. ++
+
+  This document describes steps to take when upgrading WolfMUD to a new
+  release so as not to lose player files, customised or modified zones files
+  or configuration changes.
+
+  The important directory is the data directory. For binary downloads it
+  defaults to the data directory in the same folder as the server or
+  server.exe binary. For source downloads or Git cloned repositories it
+  defaults to: src/code.wolfmud.org/WolfMUD.git/data
+
+  Alternatively you may have set up a custom data directory which you specify
+  on the command line when the server is started.
+
+  Wherever your data directory is located it is important to back it up or
+  copy it somewhere safe. For most installations simply renaming the WolfMUD
+  directory to WolfMUD.old is sufficient to back up everything.
+
+  Once the new version of WolfMUD is installed you can delete, or rename for
+  later reference, the default data directory and replace it with the backup
+  or copy you made of your own data directory.
+
+  If any files need to be upgraded, for example new settings in the
+  configuration file or new fields in player or zone files, the server will
+  check the files when the server is started and perform upgrades as required.
+
+SEE ALSO
+
+  running-the-server.txt
+
+COPYRIGHT
+
+  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+
