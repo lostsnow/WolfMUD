@@ -33,7 +33,9 @@ import (
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/message"
 	"code.wolfmud.org/WolfMUD.git/stats"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bytes"
 	"io"
@@ -71,45 +73,25 @@ func (closedError) Temporary() bool {
 	return true
 }
 
-// buffer is our extended version of a bytes.Buffer so that we can add some
-// convience methods.
-type buffer struct {
-	*bytes.Buffer
-}
-
-// WriteJoin takes a number of strings and writes them into the buffer. It's a
-// convenience method to save writing multiple WriteString statements and an
-// alternative to additional allocations due to concatenation.
-//
-// The return value n is the total length of all s, in bytes; err is always nil.
-// The underlying bytes.Buffer may panic if it becomes too large.
-func (b *buffer) WriteJoin(s ...string) (n int, err error) {
-	for _, s := range s {
-		x, _ := b.WriteString(s)
-		n += x
-	}
-	return n, nil
-}
-
 // frontend represents the current frontend state for a given io.Writer - this
 // is typically from a player's network connection.
 type frontend struct {
-	output   io.Writer // Writer to send output text to
-	buf      *buffer   // Buffered text written to output when next prompt written
-	input    []byte    // The input text we are currently processing
-	nextFunc func()    // The next frontend function called by Parse
-	player   has.Thing // The current player instance (ingame or not)
-	account  string    // The current account hash (also key to accounts)
-	err      error     // First error to occur else nil
+	output   io.Writer      // Writer to send output text to
+	buf      message.Buffer // Buffered messages written with next prompt
+	input    []byte         // The input text we are currently processing
+	nextFunc func()         // The next frontend function called by Parse
+	player   has.Thing      // The current player instance (ingame or not)
+	account  string         // The current account hash (also key to accounts)
+	err      error          // First error to occur else nil
 }
 
 // New returns an instance of frontend initialised with the given io.Writer.
 // The io.Writer is used to send responses back from calling Parse. The new
-// frontend is initialised with an output buffer and nextFunc setup to call
+// frontend is initialised with a message buffer and nextFunc setup to call
 // greetingDisplay.
 func New(output io.Writer) *frontend {
 	f := &frontend{
-		buf:    &buffer{new(bytes.Buffer)},
+		buf:    message.NewBuffer(),
 		output: output,
 	}
 	f.nextFunc = f.greetingDisplay
@@ -161,14 +143,9 @@ func (f *frontend) Parse(input []byte) error {
 	f.input = bytes.TrimSpace(input)
 	f.nextFunc()
 
-	// If we have an output buffer write out its content
+	// If we have a message buffer write out its content and a new prompt
 	if f.buf != nil {
-		if len(f.input) > 0 || f.buf.Len() > 0 {
-			f.buf.WriteByte('\n')
-		}
-		f.buf.WriteByte('>')
-		f.output.Write(f.buf.Bytes())
-		f.buf.Reset()
+		f.buf.Deliver(f)
 	}
 	return f.err
 }
@@ -183,6 +160,14 @@ func (f *frontend) Parse(input []byte) error {
 // This is due to the fact that frontend needs to initialise nextFunc with a
 // func() type and greetingDisplay seems a logical choice.
 func (f *frontend) greetingDisplay() {
-	f.buf.Write(config.Server.Greeting)
+	f.buf.Send(string(config.Server.Greeting))
 	NewLogin(f)
+}
+
+// Write writes the specified byte slice to the associated client.
+func (f *frontend) Write(b []byte) (n int, err error) {
+	b = append(b, text.Prompt...)
+	b = append(b, '>')
+	n, err = f.output.Write(b)
+	return
 }

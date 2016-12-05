@@ -36,21 +36,17 @@ func Sneeze(s *state) {
 	}
 
 	// Notify actor
-	s.msg.actor.WriteString("You sneeze. Aaahhhccchhhooo!")
+	s.msg.Actor.SendGood("You sneeze. Aaahhhccchhhooo!")
 
 	// Notify observers in same location
 	who := attr.FindName(s.actor).Name("Someone")
-	s.msg.observer.WriteJoin("You see ", who, " sneeze.")
+	s.msg.Observer.SendInfo("You see ", who, " sneeze.")
 
 	// Notify observers in near by locations
-	for _, e := range locations[1] {
-		s.msg.observers[e].WriteString("You hear a loud sneeze.")
-	}
+	s.msg.Observers.Filter(locations[1]...).SendInfo("You hear a loud sneeze.")
 
 	// Notify observers in further out locations
-	for _, e := range locations[2] {
-		s.msg.observers[e].WriteString("You hear a sneeze.")
-	}
+	s.msg.Observers.Filter(locations[2]...).SendInfo("You hear a sneeze.")
 
 	s.ok = true
 }

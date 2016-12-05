@@ -20,7 +20,7 @@ func init() {
 func Dump(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.actor.WriteString("What do you want to dump?")
+		s.msg.Actor.Send("What do you want to dump?")
 		return
 	}
 
@@ -57,10 +57,10 @@ func Dump(s *state) {
 
 	// Was item to dump eventually found?
 	if what == nil {
-		s.msg.actor.WriteJoin("There is nothing with alias '", name, "' to dump.")
+		s.msg.Actor.Send("There is nothing with alias '", name, "' to dump.")
 		return
 	}
 
-	s.msg.actor.WriteString(strings.Join(what.Dump(), "\n"))
+	s.msg.Actor.Send(strings.Join(what.Dump(), "\n"))
 	s.ok = true
 }

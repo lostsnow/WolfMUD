@@ -5,6 +5,10 @@
 
 package frontend
 
+import (
+	"code.wolfmud.org/WolfMUD.git/text"
+)
+
 // menu embeds a frontend instance adding fields and methods specific to
 // the main menu.
 type menu struct {
@@ -22,14 +26,14 @@ func NewMenu(f *frontend) (m *menu) {
 // menuDisplay shows the main menu of options available once a player is logged
 // into the system.
 func (m *menu) menuDisplay() {
-	m.buf.Write([]byte(`
+	m.buf.Send(`
   Main Menu
   ---------
 
   1. Enter game
   0. Quit
 
-Select an option:`))
+Select an option:`)
 	m.nextFunc = m.menuProcess
 }
 
@@ -45,6 +49,6 @@ func (m *menu) menuProcess() {
 	case "0":
 		m.Close()
 	default:
-		m.buf.WriteString("Invalid option selected.")
+		m.buf.Send(text.Bad, "Invalid option selected.", text.Default)
 	}
 }

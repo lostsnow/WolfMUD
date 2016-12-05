@@ -38,6 +38,12 @@ const (
 	// Setup brown as an alias for yellow
 	Brown   = Yellow
 	BGBrown = BGYellow
+
+	// WolfMUD specific meta colors
+	Good   = Green
+	Info   = Yellow
+	Bad    = Red
+	Prompt = Magenta
 )
 
 // colorTable maps color place holders to color escape sequences. Colorize uses
@@ -86,15 +92,26 @@ var colorTable = map[string]string{
 // is initially started. In code it is better to use the ANSI escape sequence
 // constants directly.
 func Colorize(in []byte) []byte {
-	out := make([]byte, len(in), len(in))
+	out := make([]byte, len(in))
 	copy(out, in)
 
+	if bytes.IndexByte(out, ']') == -1 {
+		return out
+	}
+
+	p := 0
 	for color, code := range colorTable {
 		// Quick exit? Check for ']' as '[' also in replacement text
 		if bytes.IndexByte(out, ']') == -1 {
 			break
 		}
-		out = bytes.Replace(out, []byte(color), []byte(code), -1)
+		// Shortcut id we can't find an instance of the current color?
+		if p = bytes.Index(out, []byte(color)); p == -1 {
+			continue
+		}
+		// If no shortcut available we can still use the position of the check to
+		// shorten the length of the slice we are doing replacements on
+		out = append(out[:p], bytes.Replace(out[p:], []byte(color), []byte(code), -1)...)
 	}
 	return out
 }

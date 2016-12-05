@@ -28,14 +28,14 @@ func Move(s *state) {
 
 	// A thing can only move itself if it knows where it is
 	if from == nil {
-		s.msg.actor.WriteString("You are not sure where you are, let alone where you are going!")
+		s.msg.Actor.SendInfo("You are not sure where you are, let alone where you are going!")
 		return
 	}
 
 	// Is where we are exitable?
 	exits := attr.FindExits(from.Parent())
 	if !exits.Found() {
-		s.msg.actor.WriteString("You can't see anywhere to go from here.")
+		s.msg.Actor.SendInfo("You can't see anywhere to go from here.")
 		return
 	}
 
@@ -43,7 +43,7 @@ func Move(s *state) {
 	// another command just passing in the direction.
 	direction, err := exits.NormalizeDirection(s.cmd)
 	if err != nil {
-		s.msg.actor.WriteString("You wanted to go which way!?")
+		s.msg.Actor.SendBad("You wanted to go which way!?")
 		return
 	}
 
@@ -52,7 +52,7 @@ func Move(s *state) {
 	// Find out where our exit leads to
 	to := exits.LeadsTo(direction)
 	if to == nil {
-		s.msg.actor.WriteJoin("You can't go ", wayToGo, " from here!")
+		s.msg.Actor.SendBad("You can't go ", wayToGo, " from here!")
 		return
 	}
 
@@ -65,7 +65,7 @@ func Move(s *state) {
 	}
 
 	if from.Remove(s.actor) == nil {
-		s.msg.actor.WriteString("Something stops you from leaving here!")
+		s.msg.Actor.SendBad("Something stops you from leaving here!")
 		return
 	}
 
@@ -73,14 +73,14 @@ func Move(s *state) {
 
 	// Re-point where we are and re-alias observer
 	s.where = to
-	s.msg.observer = s.msg.observers[s.where]
+	s.msg.Observer = s.msg.Observers[s.where]
 
 	// Get actors name
 	name := attr.FindName(s.actor).Name("someone")
 
 	// Broadcast leaving and arrival notifications
-	s.msg.observers[from].WriteJoin("You see ", name, " go ", wayToGo, ".")
-	s.msg.observers[to].WriteJoin("You see ", name, " enter.")
+	s.msg.Observers[from].SendInfo("You see ", name, " go ", wayToGo, ".")
+	s.msg.Observers[to].SendInfo("You see ", name, " enter.")
 
 	// Describe our destination
 	s.scriptActor("LOOK")

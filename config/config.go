@@ -14,12 +14,14 @@ package config
 
 import (
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 
 	"flag"
 	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -88,6 +90,11 @@ func init() {
 		return
 	}
 
+	if f == nil {
+		log.Print("No configuration file used. Using defaults.")
+		return
+	}
+
 	Server.DataDir = filepath.Dir(f.Name())
 	log.Printf("Loading: %s", f.Name())
 
@@ -110,7 +117,7 @@ func init() {
 		case "SERVER.MAXPLAYERS":
 			Server.MaxPlayers = recordjar.Decode.Integer(data)
 		case "SERVER.GREETING":
-			Server.Greeting = recordjar.Decode.Bytes(data)
+			Server.Greeting = text.Colorize(recordjar.Decode.Bytes(data))
 		case "SERVER.DEBUG":
 			Server.Debug = recordjar.Decode.Boolean(data)
 
@@ -154,6 +161,10 @@ func openConfig() (config *os.File, err error) {
 	// Has user supplied path ± specific file?
 	flag.Parse()
 	dir, file := filepath.Split(flag.Arg(0))
+
+	if dir == "" && strings.ToUpper(file) == "NONE" {
+		return nil, nil
+	}
 
 	// Is the file actually a directory without a final separator?
 	if file != "" && filepath.Ext(file) != ".wrj" {

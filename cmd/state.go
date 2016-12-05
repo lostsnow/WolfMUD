@@ -9,30 +9,11 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/message"
 
-	"bytes"
+	"io"
 	"strings"
 )
-
-// buffer is our extended version of a bytes.Buffer so that we can add some
-// convience methods.
-type buffer struct {
-	*bytes.Buffer
-}
-
-// WriteJoin takes a number of strings and writes them into the buffer. It's a
-// convenience method to save writing multiple WriteString statements and an
-// alternative to additional allocations due to concatenation.
-//
-// The return value n is the total length of all s, in bytes; err is always nil.
-// The underlying bytes.Buffer may panic if it becomes too large.
-func (b *buffer) WriteJoin(s ...string) (n int, err error) {
-	for _, s := range s {
-		x, _ := b.WriteString(s)
-		n += x
-	}
-	return n, nil
-}
 
 // state contains the current parsing state for commands. The state fields may
 // be modified directly except for locks. The AddLocks method should be used to
@@ -54,16 +35,8 @@ type state struct {
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
 
-	// msg is a collection of buffers for gathering messages to send back as a
-	// result of processing a command. Note observer is setup as an 'alias' for
-	// observers[s.where] - observer and observers[s.where] point to the same
-	// buffer.
-	msg struct {
-		actor       *buffer
-		participant *buffer
-		observer    *buffer
-		observers   map[has.Inventory]*buffer
-	}
+	// msg contains the message buffers for sending data to different recipients
+	msg message.Msg
 }
 
 // NewState returns a *state initialised with the passed Thing and input. If
@@ -103,6 +76,14 @@ func (s *state) tokenizeInput(input string) {
 
 	if len(s.input) > 0 {
 		s.words = internal.RemoveStopWords(s.input)
+
+		// If the input only consists of stop words fake the "Eh?" command being
+		// entered to get an "Eh?" response from handleCommand - "Eh?" is not a
+		// valid command and seems an appropriate choice
+		if len(s.words) == 0 {
+			s.cmd = "Eh?"
+			return
+		}
 
 		for x, o := range s.words {
 			s.words[x] = strings.ToUpper(o)
@@ -144,7 +125,7 @@ func (s *state) sync() (inSync bool) {
 		defer l.Unlock()
 	}
 
-	s.allocateBuffers()
+	s.msg.Allocate(s.where, s.locks)
 	l := len(s.locks)
 
 	s.handleCommand()
@@ -168,7 +149,7 @@ func (s *state) handleCommand() {
 	case valid:
 		handler(s)
 	default:
-		s.msg.actor.WriteString("Eh?")
+		s.msg.Actor.SendBad("Eh?")
 	}
 }
 
@@ -199,50 +180,20 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	i, w, c := s.input, s.words, s.cmd // Save state
 
-	a := s.msg.actor.Len()
-	p := s.msg.participant.Len()
-	o := make(map[has.Inventory]int)
-	for where, observer := range s.msg.observers {
-		o[where] = observer.Len()
-	}
-
-	if a > 0 {
-		s.msg.actor.WriteString("\n")
-	}
-	if p > 0 {
-		s.msg.participant.WriteString("\n")
-	}
-	for where, o := range o {
-		if o > 0 {
-			s.msg.observers[where].WriteString("\n")
-		}
-	}
+	// Set silent mode on buffers storing old modes
+	a := s.msg.Actor.Silent(!actor)
+	p := s.msg.Participant.Silent(!participant)
+	ot, of := s.msg.Observers.Silent(!observers)
 
 	s.tokenizeInput(input)
 	s.ok = false
 	s.handleCommand()
 
-	// If anything is written to the buffers during processing:
-	// 	- append a newline to the buffer if output not suppressed. This will
-	// 		cause each action to start on it's own line.
-	// 	- if messages are suppressed for a buffer truncate back to initial
-	// 		length.
-	if l := s.msg.actor.Len(); actor && (l-a > 1) {
-		a = l
-	}
-	s.msg.actor.Truncate(a)
-
-	if l := s.msg.participant.Len(); participant && (l-p > 1) {
-		p = l
-	}
-	s.msg.participant.Truncate(p)
-
-	for where, observer := range s.msg.observers {
-		if l := observer.Len(); observers && (l-o[where] > 1) {
-			o[where] = l
-		}
-		observer.Truncate(o[where])
-	}
+	// Restore old silent modes
+	s.msg.Actor.Silent(a)
+	s.msg.Participant.Silent(p)
+	ot.Silent(true)
+	of.Silent(false)
 
 	s.input, s.words, s.cmd = i, w, c // Restore state
 }
@@ -273,35 +224,38 @@ func (s *state) scriptActor(input ...string) {
 // For the actor we don't check the buffer length to see if there is anything
 // in it to send. We always send to the actor so that we can redisplay the
 // prompt even if they just hit enter.
-//
-// NOTE: Messages are not broadcast to observers in a crowded location.
 func (s *state) messenger() {
 
+	var p has.Player
+
 	if s.actor != nil {
-		attr.FindPlayer(s.actor).Write(s.msg.actor.Bytes())
+		if p = attr.FindPlayer(s.actor); p.Found() {
+			s.msg.Actor.Deliver(p)
+		}
 	}
 
-	if s.participant != nil && s.msg.participant.Len() > 1 {
-		attr.FindPlayer(s.participant).Write(s.msg.participant.Bytes())
+	if s.participant != nil && s.msg.Participant.Len() > 0 {
+		if p = attr.FindPlayer(s.participant); p.Found() {
+			s.msg.Participant.Deliver(p)
+		}
 	}
 
-	if len(s.msg.observers) == 0 || s.where == nil {
-		return
-	}
-
-	for where, buffer := range s.msg.observers {
-		if where.Crowded() || buffer.Len() == 1 {
+	for where, buffer := range s.msg.Observers {
+		if buffer.Len() == 0 {
 			continue
 		}
-		msg := buffer.Bytes()
+		players := []io.Writer{}
 		for _, c := range where.Contents() {
 			if c != s.actor && c != s.participant {
-				attr.FindPlayer(c).Write(msg)
+				if p = attr.FindPlayer(c); p.Found() {
+					players = append(players, p)
+				}
 			}
 		}
+		buffer.Deliver(players...)
 	}
 
-	s.deallocateBuffers()
+	s.msg.Deallocate()
 }
 
 // CanLock returns true if the specified Inventory is in the list of locks and
@@ -359,41 +313,5 @@ func (s *state) AddLock(i has.Inventory) {
 			s.locks[x] = i
 			break
 		}
-	}
-}
-
-// allocateBuffers sets up the message buffers for the actor, participant and
-// observers. The participant and observers buffers need an initial linefeed to
-// move the cursor off of the client's prompt line - for the actor this is done
-// when they hit enter. The actor's buffer is initially set to half a page
-// (half of 80 columns by 24 lines) as it is common to be sending location
-// descriptions back to the actor. Half a page is arbitrary but seems to be
-// reasonable.
-func (s *state) allocateBuffers() {
-	if s.msg.actor == nil {
-		s.msg.actor = &buffer{Buffer: bytes.NewBuffer(make([]byte, 0, (80*24)/2))}
-		s.msg.participant = &buffer{Buffer: bytes.NewBuffer([]byte{})}
-		s.msg.observers = make(map[has.Inventory]*buffer)
-		s.msg.participant.WriteByte(byte('\n'))
-	}
-
-	for _, l := range s.locks {
-		if _, ok := s.msg.observers[l]; !ok {
-			s.msg.observers[l] = &buffer{Buffer: bytes.NewBuffer([]byte{})}
-			s.msg.observers[l].WriteByte('\n')
-		}
-	}
-	s.msg.observer = s.msg.observers[s.where]
-}
-
-// deallocateBuffers releases the references to message buffers for the actor,
-// participant and observers.
-func (s *state) deallocateBuffers() {
-	s.msg.actor = nil
-	s.msg.participant = nil
-	s.msg.observer = nil
-	for x := range s.msg.observers {
-		s.msg.observers[x] = nil
-		delete(s.msg.observers, x)
 	}
 }

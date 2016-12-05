@@ -1,0 +1,63 @@
+														 Change Log for WolfMUD
+
+This document details the main highlights for each release of WolfMUD. For
+detailed information on changes please see the WolfMUD git repository:
+
+						 git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
+
+
+v0.0.2 Released Monday 5th December, 2016
+==============================================================================
+
+Added
+
+	- Text folding now has support for Unicode combining characters.
+	- Added NONE as a runtime option to not load any configuration file.
+		See docs/running-the-server.txt for details.
+	- New messages package containing message buffers.
+	- Message buffers now support a silent mode.
+	- Commands now send coloured messages:
+			- Red: Something bad / undesirable happened
+			- Green: Something good / desirable happened
+			- Yellow: Something informational happened
+	- Server greeting can now contain embeded colour codes.
+	- Added initial tests for text and message packages.
+	- New docs/upgrading.txt
+
+Changed
+
+	- Improved performance of embedded colour codes.
+	- text.Dictionary map now protected by sync.Mutex.
+	- Message buffers moved from cmd/state to new message package.
+	- Message buffers reimplemented, no longer based on bytes.Buffer.
+	- Message buffers now use Send and Append methods instead of WriteJoin.
+	- cmd/state and frontend both use new message package for buffers.
+	- state.script method uses new message buffers.
+
+Fixed
+
+	- Fixed an issue with TELNET clients sending unprocessed strings containing
+		DEL (ASCII 0x7F or \b) characters. Using delete in Windows TELNET client
+		now works as expected.
+	- Text folding should only preserve leading whitespace.
+	- Fixed a panic in text.Fold with a width less than 1.
+	- Fixed a panic if player only enters stop words.
+
+Known bugs
+
+	- An extra blank line is sometimes appended to the end of the greeting
+		displayed when players connect. This seems to be an issue in the recordjar
+		package.
+	- If Send or Append is used to start a message and only a colour is written a
+		subsequent Append will cause a space to be present at the start of the
+		message.
+
+Security
+
+	- None :)
+
+
+v0.0.1 Released Monday 31st October, 2016
+==============================================================================
+
+	Initial release.

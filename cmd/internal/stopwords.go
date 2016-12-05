@@ -29,7 +29,7 @@ var stopWords = text.Dictionary(
 //
 // becomes:
 //
-//	take orange bag
+//	take apple bag
 //
 func RemoveStopWords(in []string) (out []string) {
 	for _, word := range in {

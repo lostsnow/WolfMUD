@@ -31,6 +31,6 @@ func init() {
 }
 
 func Version(s *state) {
-	s.msg.actor.WriteString(version)
+	s.msg.Actor.SendInfo(version)
 	s.ok = true
 }

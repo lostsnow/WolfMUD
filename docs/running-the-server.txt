@@ -16,13 +16,16 @@ DESCRIPTION
     server.exe
 
   DATA_DIR
-    Optional relative or absolute path to the data directory. If not specified
-    the data directory in the current directory will be looked for and the
-    configuration file is assumed to be named config.wrj
+    Optional relative or absolute path to the data directory. The default
+    value is ./data i.e. data in the current path.
 
   configuration_file
-    Optional relative or absolute path to a specific configuration file. In
-    this case DATA_DIR will be the directory the configuration file is in.
+    Optional name of a specific configuration file. The configuration file
+    will be looked for in DATA_DIR. The default value is config.wrj
+
+    As a special case NONE may be specified for the configuration file,
+    without a DATA_DIR to load the server's default, built in configuration.
+    This is only useful for testing.
 
 EXAMPLES
 
@@ -46,6 +49,10 @@ EXAMPLES
     Run the server using the relative directory
     ../src/code.wolfmud.org/WolfMUD.git/data as the DATA_DIR and using the
     default configuration file config.wrj
+
+  server NONE
+    Run the server using the default, built in configuration. This is only
+    useful for testing.
 
 FILES
 

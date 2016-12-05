@@ -19,13 +19,13 @@ func init() {
 
 func Say(s *state) {
 	if len(s.words) == 0 {
-		s.msg.actor.WriteString("What did you want to say?")
+		s.msg.Actor.SendInfo("What did you want to say?")
 		return
 	}
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.actor.WriteString("There is nobody here to talk to.")
+		s.msg.Actor.SendInfo("There is nobody here to talk to.")
 		return
 	}
 
@@ -38,7 +38,7 @@ func Say(s *state) {
 		}
 	}
 	if !anybodyHere {
-		s.msg.actor.WriteString("Talking to yourself again?")
+		s.msg.Actor.SendInfo("Talking to yourself again?")
 		return
 	}
 
@@ -64,13 +64,11 @@ func Say(s *state) {
 	who := attr.FindName(s.actor).Name("Someone")
 	msg := strings.Join(s.input, " ")
 
-	s.msg.actor.WriteJoin("You say: ", msg)
-	s.msg.observer.WriteJoin(who, " says: ", msg)
+	s.msg.Actor.SendGood("You say: ", msg)
+	s.msg.Observer.SendInfo(who, " says: ", msg)
 
 	// Notify observers in near by locations
-	for _, e := range locations[1] {
-		s.msg.observers[e].WriteString("You hear talking nearby.")
-	}
+	s.msg.Observers.Filter(locations[1]...).SendInfo("You hear talking nearby.")
 
 	s.ok = true
 	return

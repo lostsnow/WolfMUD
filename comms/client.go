@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"bufio"
+	"bytes"
 	"io"
 	"log"
 	"net"
@@ -108,11 +109,34 @@ func (c *client) process() {
 				c.SetError(err)
 				continue
 			}
+			in = fixDEL(in)
 			if err = c.frontend.Parse(in); err != nil {
 				c.SetError(err)
 			}
 		}
 	}
+}
+
+// fixDEL is used to delete characters when the input contains literal DEL
+// characters (ASCII 0x7f or "\b"). This is the case when using a client that
+// does not support line editing, for example a plain Windows TELNET client.
+//
+// For example if you type "ABD" then delete the "D" and enter "C" the data
+// sent to the server would be "ABD\bC" if there is no line editing support.
+// With line editing "ABC" would be sent to the server.
+//
+// Calling fixDEL on the data will interpret the DEL characters so that, for
+// example, "ABD\bC" becomes "ABC".
+func fixDEL(in []byte) (out []byte) {
+	// Trim leading deletes that are not deleting anything
+	out = bytes.TrimLeft(in, "\b")
+
+	// Remove DEL and preceding character it deletes
+	for i := bytes.IndexByte(out, '\b'); i != -1; {
+		out = append(out[:i-1], out[i+1:]...)
+		i = bytes.IndexByte(out, '\b')
+	}
+	return
 }
 
 // close shuts down a client cleanly, closes network connections and
@@ -142,16 +166,19 @@ func (c *client) close() {
 
 	// If connection timed out notify the client
 	if idle {
-		c.Write([]byte("\nIdle connection terminated by server.\n"))
+		c.Write([]byte(text.Bad + "\nIdle connection terminated by server.\n"))
 	}
 
 	// Notify if server too busy to accept more players
 	if busy {
-		c.Write([]byte("\nServer too busy. Please come back in a short while.\n"))
+		c.Write([]byte(text.Bad + "\nServer too busy. Please come back in a short while.\n"))
 	}
 
 	// Say goodbye to client
-	c.Write([]byte("\nBye bye...\n\n"))
+	c.Write([]byte(text.Info + "\nBye bye...\n\n"))
+
+	// Revert to default colors
+	c.Write([]byte(text.Default + text.BGDefault))
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
