@@ -49,6 +49,6 @@ func (m *menu) menuProcess() {
 	case "0":
 		m.Close()
 	default:
-		m.buf.Send(text.Bad, "Invalid option selected.", text.Default)
+		m.buf.Send(text.Bad, "Invalid option selected.", text.Reset)
 	}
 }

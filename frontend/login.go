@@ -78,7 +78,7 @@ func (l *login) passwordProcess() {
 
 	// If no password given go back and ask for an account ID.
 	if len(l.input) == 0 {
-		l.buf.Send(text.Info, "Login cancelled.\n", text.Default)
+		l.buf.Send(text.Info, "Login cancelled.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
 	}
@@ -90,7 +90,7 @@ func (l *login) passwordProcess() {
 	wrj, err := os.Open(p)
 	if err != nil {
 		log.Printf("Error opening account: %s", err)
-		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Default)
+		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
 	}
@@ -99,7 +99,7 @@ func (l *login) passwordProcess() {
 	jar := recordjar.Read(wrj, "description")
 	if err := wrj.Close(); err != nil {
 		log.Printf("Error closing account: %s", err)
-		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Default)
+		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
 	}
@@ -108,7 +108,7 @@ func (l *login) passwordProcess() {
 	// If not something is wrong with the data.
 	if len(jar) < 2 {
 		log.Printf("Account file corrupted: %s.wrj", l.account)
-		l.buf.Send(text.Bad, "Sorry, there is a problem with your account, please contact the admins.\n", text.Default)
+		l.buf.Send(text.Bad, "Sorry, there is a problem with your account, please contact the admins.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
 	}
@@ -123,7 +123,7 @@ func (l *login) passwordProcess() {
 	// Check password is valid
 	if (base64.URLEncoding.EncodeToString(hash[:])) != password {
 		log.Printf("Password invalid for: %s.wrj", l.account)
-		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Default)
+		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
 	}
@@ -135,7 +135,7 @@ func (l *login) passwordProcess() {
 	accounts.Lock()
 	if _, inuse := accounts.inuse[l.account]; inuse {
 		log.Printf("Account already logged in: %s", l.account)
-		l.buf.Send(text.Bad, "Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n", text.Default)
+		l.buf.Send(text.Bad, "Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n", text.Reset)
 		NewLogin(l.frontend)
 		accounts.Unlock()
 		return
@@ -152,7 +152,7 @@ func (l *login) passwordProcess() {
 	l.player.Add(attr.NewPlayer(l.output))
 
 	// Greet returning player
-	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Default)
+	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Reset)
 
 	NewMenu(l.frontend)
 }

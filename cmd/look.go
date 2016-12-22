@@ -20,14 +20,14 @@ func Look(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {
-		s.msg.Actor.Send(text.Cyan, "A Void", text.Default, "\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\n", text.Cyan, "You see no immediate exits from here.", text.Default)
+		s.msg.Actor.Send(text.Cyan, "A Void", text.Reset, "\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\n", text.Cyan, "You see no immediate exits from here.", text.Reset)
 		return
 	}
 
 	what := s.where.Parent()
 
 	// Write the location title
-	s.msg.Actor.Send(text.Cyan, attr.FindName(what).Name("Somewhere"), text.Default)
+	s.msg.Actor.Send(text.Cyan, attr.FindName(what).Name("Somewhere"), text.Reset)
 	s.msg.Actor.Send("")
 
 	// Write the location descriptions
