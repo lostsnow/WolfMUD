@@ -6,6 +6,15 @@ detailed information on changes please see the WolfMUD git repository:
 						 git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.3 Released Friday 23rd December, 2016
+==============================================================================
+
+Fixed
+
+	- Colour bleeding issues fixed (Mainly Windows TELNET)
+	- Multiple description sequence fixed so that main descriptions come first.
+
+
 v0.0.2 Released Monday 5th December, 2016
 ==============================================================================
 
