@@ -178,7 +178,7 @@ func (c *client) close() {
 	c.Write([]byte(text.Info + "\nBye bye...\n\n"))
 
 	// Revert to default colors
-	c.Write([]byte(text.Default + text.BGDefault))
+	c.Write([]byte(text.Reset))
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error

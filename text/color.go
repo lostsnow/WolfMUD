@@ -14,6 +14,7 @@ import (
 // to calling Colorize with embedded colour place holders due to the slower
 // performance of Colorize.
 const (
+	Reset     = "\033[0m"
 	Bold      = "\033[1m"
 	Normal    = "\033[22m"
 	Black     = "\033[30m"
@@ -24,7 +25,6 @@ const (
 	Magenta   = "\033[35m"
 	Cyan      = "\033[36m"
 	White     = "\033[37m"
-	Default   = "\033[39m"
 	BGBlack   = "\033[40m"
 	BGRed     = "\033[41m"
 	BGGreen   = "\033[42m"
@@ -33,7 +33,6 @@ const (
 	BGMagenta = "\033[45m"
 	BGCyan    = "\033[46m"
 	BGWhite   = "\033[47m"
-	BGDefault = "\033[49m"
 
 	// Setup brown as an alias for yellow
 	Brown   = Yellow
@@ -50,6 +49,7 @@ const (
 // this map to to substitute color placeholders of the form [COLOR] with the
 // matching ANSI escape sequence.
 var colorTable = map[string]string{
+	"[RESET]":     Reset,
 	"[BOLD]":      Bold,
 	"[NORMAL]":    Normal,
 	"[BLACK]":     Black,
@@ -61,7 +61,6 @@ var colorTable = map[string]string{
 	"[MAGENTA]":   Magenta,
 	"[CYAN]":      Cyan,
 	"[WHITE]":     White,
-	"[DEFAULT]":   Default,
 	"[BGBLACK]":   BGBlack,
 	"[BGRED]":     BGRed,
 	"[BGGREEN]":   BGGreen,
@@ -71,7 +70,6 @@ var colorTable = map[string]string{
 	"[BGMAGENTA]": BGMagenta,
 	"[BGCYAN]":    BGCyan,
 	"[BGWHITE]":   BGWhite,
-	"[BGDEFAULT]": BGDefault,
 }
 
 // Colorize returns a []byte with color place holders replaced with their ANSI

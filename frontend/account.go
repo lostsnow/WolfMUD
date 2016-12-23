@@ -68,11 +68,11 @@ func (a *account) newAccountDisplay() {
 func (a *account) newAccountProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Reset)
 		NewLogin(a.frontend)
 	case l < config.Login.AccountLength:
 		l := strconv.Itoa(config.Login.AccountLength)
-		a.buf.Send(text.Bad, "Account ID is too short. Needs to be ", l, " characters or longer.\n", text.Default)
+		a.buf.Send(text.Bad, "Account ID is too short. Needs to be ", l, " characters or longer.\n", text.Reset)
 		a.newAccountDisplay()
 	default:
 		hash := md5.Sum(a.input)
@@ -93,11 +93,11 @@ func (a *account) newPasswordDisplay() {
 func (a *account) newPasswordProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Reset)
 		NewLogin(a.frontend)
 	case l < config.Login.PasswordLength:
 		l := strconv.Itoa(config.Login.PasswordLength)
-		a.buf.Send(text.Bad, "Password is too short. Needs to be ", l, " characters or longer.\n", text.Default)
+		a.buf.Send(text.Bad, "Password is too short. Needs to be ", l, " characters or longer.\n", text.Reset)
 		a.newPasswordDisplay()
 	default:
 		a.salt = salt(config.Login.SaltLength)
@@ -117,12 +117,12 @@ func (a *account) confirmPasswordDisplay() {
 func (a *account) confirmPasswordProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Reset)
 		NewLogin(a.frontend)
 	default:
 		hash := sha512.Sum512(append(a.salt, a.input...))
 		if hash != a.password {
-			a.buf.Send(text.Bad, "Passwords do not match, please try again.\n", text.Default)
+			a.buf.Send(text.Bad, "Passwords do not match, please try again.\n", text.Reset)
 			a.newPasswordDisplay()
 			return
 		}
@@ -140,13 +140,13 @@ func (a *account) nameDisplay() {
 func (a *account) nameProcess() {
 	switch l := len(a.input); {
 	case l == 0:
-		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Default)
+		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Reset)
 		NewLogin(a.frontend)
 	case l < 3:
-		a.buf.Send(text.Bad, "The name '", string(a.input), "' is too short.\n", text.Default)
+		a.buf.Send(text.Bad, "The name '", string(a.input), "' is too short.\n", text.Reset)
 		a.nameDisplay()
 	case verifyName.Find(a.input) == nil:
-		a.buf.Send(text.Bad, "A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n", text.Default)
+		a.buf.Send(text.Bad, "A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name. \n", text.Reset)
 		a.nameDisplay()
 	default:
 		a.name = string(a.input)
@@ -172,7 +172,7 @@ func (a *account) genderProcess() {
 		a.gender = "FEMALE"
 		a.write()
 	default:
-		a.buf.Send(text.Bad, "Please specify male or female.\n", text.Default)
+		a.buf.Send(text.Bad, "Please specify male or female.\n", text.Reset)
 		a.genderDisplay()
 	}
 }
@@ -237,7 +237,7 @@ func (a *account) write() {
 
 	// Check if account ID is already registered
 	if _, err := os.Stat(real); !os.IsNotExist(err) {
-		a.buf.Send(text.Bad, "The account ID you used is not available.\n", text.Default)
+		a.buf.Send(text.Bad, "The account ID you used is not available.\n", text.Reset)
 		NewLogin(a.frontend)
 		return
 	}
@@ -270,7 +270,7 @@ func (a *account) write() {
 	a.player.Add(attr.NewPlayer(a.output))
 
 	// Greet new player
-	a.buf.Send(text.Good, "Welcome ", attr.FindName(a.player).Name("Someone"), "!", text.Default)
+	a.buf.Send(text.Good, "Welcome ", attr.FindName(a.player).Name("Someone"), "!", text.Reset)
 
 	NewMenu(a.frontend)
 }

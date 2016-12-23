@@ -16,6 +16,7 @@ var testCasesSubstitute = []struct {
 	want string
 }{
 	// Simple substitutions
+	{"[RESET]", "\033[0m"},
 	{"[BOLD]", "\033[1m"},
 	{"[NORMAL]", "\033[22m"},
 	{"[BLACK]", "\033[30m"},
@@ -27,7 +28,6 @@ var testCasesSubstitute = []struct {
 	{"[MAGENTA]", "\033[35m"},
 	{"[CYAN]", "\033[36m"},
 	{"[WHITE]", "\033[37m"},
-	{"[DEFAULT]", "\033[39m"},
 	{"[BGBLACK]", "\033[40m"},
 	{"[BGRED]", "\033[41m"},
 	{"[BGGREEN]", "\033[42m"},
@@ -37,14 +37,13 @@ var testCasesSubstitute = []struct {
 	{"[BGMAGENTA]", "\033[45m"},
 	{"[BGCYAN]", "\033[46m"},
 	{"[BGWHITE]", "\033[47m"},
-	{"[BGDEFAULT]", "\033[49m"},
 
 	// Multiple substitutions
 	{"[RED][GREEN][YELLOW]", "\033[31m\033[32m\033[33m"},
 	{"[[RED][GREEN][YELLOW]", "[\033[31m\033[32m\033[33m"},
 	{
-		"[BLACK]R[RED]A[GREEN]I[YELLOW]N[BLUE]B[MAGENTA]O[CYAN]W[WHITE]![DEFAULT]",
-		"\033[30mR\033[31mA\033[32mI\033[33mN\033[34mB\033[35mO\033[36mW\033[37m!\033[39m",
+		"[BLACK]R[RED]A[GREEN]I[YELLOW]N[BLUE]B[MAGENTA]O[CYAN]W[WHITE]![RESET]",
+		"\033[30mR\033[31mA\033[32mI\033[33mN\033[34mB\033[35mO\033[36mW\033[37m!\033[0m",
 	},
 
 	// Nested and mismatched square braces
@@ -66,8 +65,8 @@ func TestColorize(t *testing.T) {
 }
 
 var benchmarkCasesSubstitute = []string{
-	"[RED]WolfMUD[DEFAULT]",
-	"[BLACK] R [RED] A [GREEN] I [YELLOW] N [BLUE] B [MAGENTA] O [CYAN] W [WHITE] ! [DEFAULT]",
+	"[RED]WolfMUD[RESET]",
+	"[BLACK] R [RED] A [GREEN] I [YELLOW] N [BLUE] B [MAGENTA] O [CYAN] W [WHITE] ! [RESET]",
 	`[CYAN][ Fireplace ][WHITE]
 You are in the corner of the common room in the dragon's breath tavern. A fire
 burns merrily in an ornate fireplace, giving comfort to weary travellers. The
