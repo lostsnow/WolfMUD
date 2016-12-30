@@ -151,6 +151,8 @@ func (b *buffer) Len() int {
 	return b.count
 }
 
+var resetLen = len(text.Reset)
+
 // Deliver writes all of the messages in the buffer to the passed Writers.
 // After the messages have been delivered the messages and message count will
 // be cleared.
@@ -168,9 +170,9 @@ func (b *buffer) Deliver(w ...io.Writer) {
 	// If buffer does not start with an escape sequence insert a reset to
 	// default colors
 	if len(b.buf) > 0 && b.buf[0] != '\033' {
-		b.buf = append(b.buf, "\033[39m"...)
-		copy(b.buf[5:], b.buf[0:len(b.buf)-5])
-		copy(b.buf[0:5], "\033[39m")
+		b.buf = append(b.buf, text.Reset...)
+		copy(b.buf[resetLen:], b.buf[0:len(b.buf)-resetLen])
+		copy(b.buf[0:resetLen], text.Reset)
 	}
 
 	// Make sure prompt appears at start of next new line
