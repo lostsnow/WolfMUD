@@ -64,6 +64,17 @@ func (decoder) PairList(data []byte) (pairs [][2]string) {
 	return
 }
 
+// StringList returns the []byte date as a []string by splitting the data on a
+// colon separator.
+func (decoder) StringList(data []byte) (s []string) {
+	for _, t := range strings.Split(string(data), ":") {
+		if w := strings.TrimSpace(t); w != "" {
+			s = append(s, w)
+		}
+	}
+	return
+}
+
 // Bytes returns a copy of the []byte data. Important so we don't accidentally
 // pin a larger backing array in memory via the slice.
 func (decoder) Bytes(dataIn []byte) []byte {
