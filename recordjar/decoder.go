@@ -97,6 +97,25 @@ func (decoder) KeyedString(data []byte) (pair [2]string) {
 	return
 }
 
+// KeyedStringList splits the []byte on a colon (:) separator and passes each
+// result through KeyedString. KeyedStringList is a shorthand for combining
+// StringList and KeyedString. For example the follow RecordJar record's data:
+//
+//	Vetoes:	GET→You can't get it.
+//				: DROP→You can't drop it.
+//
+// Would produce a slice with two entries:
+//
+//	[2]string{"GET", "You can't get it."}
+//	[2]string{"DROP", "You can't drop it."}
+//
+func (decoder) KeyedStringList(data []byte) (list [][2]string) {
+	for _, w := range Decode.StringList(data) {
+		list = append(list, Decode.KeyedString([]byte(w)))
+	}
+	return
+}
+
 // Bytes returns a copy of the []byte data. Important so we don't accidentally
 // pin a larger backing array in memory via the slice.
 func (decoder) Bytes(dataIn []byte) []byte {
