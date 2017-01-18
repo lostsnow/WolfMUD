@@ -86,6 +86,36 @@ FIELD DATA TYPES
     There are three pairs: E→L3, SE→L4 and S→L2. Each pair is separated by '→'
     which is a non-digit and non-numeric.
 
+  STRING LIST
+    The data is separated into strings using a colon (:) as a separator. For
+    example:
+
+      Actions: The rabbit hops around a bit.
+             : You see the rabbit twitch its little nose, Ahh...
+
+    This defines two actions.
+
+  KEYED STRING
+    The data is separated into a keyword and a string. The keyword should be a
+    single word followed by a non-letter and non-numeric separator. For
+    example:
+
+      Vetoes: GET→You cannot get it!
+
+    This defines a veto with the keyword 'GET' and the string "You cannot get
+    it!". The separator used is the '→' character.
+
+  KEYED STRING LIST
+    The data is a list of keyed strings. This combines the STRING LIST and
+    KEYED STRING types. For example:
+
+      Vetoes: GET→You cannot get it!
+            : PUT→It does not want to be put anywhere!
+
+    This defines two vetoes separated by a colon. Each veto is a keyword
+    followed by a string. The keyword and string are separated using the '→'
+    character.
+
 ZONE HEADER RECORD
 
   The zone header record is optional. If present it can contain the following
