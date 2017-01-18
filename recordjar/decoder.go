@@ -75,6 +75,28 @@ func (decoder) StringList(data []byte) (s []string) {
 	return
 }
 
+// KeyedString returns the []byte data as an uppercassed keywrd and a string.
+// The keyword is split from the beginning of the []byte on the first
+// non-unicode letter or digit. For example:
+//
+//	 input: []byte("GET→You can't get it.")
+//	output: [2]string{"GET", "You can't get it."}
+//
+// Here the separator used is → but any non-unicode letter or digit may be
+// used.
+func (decoder) KeyedString(data []byte) (pair [2]string) {
+	runes := []rune(string(data))
+	for i, r := range runes {
+		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) {
+			key := strings.TrimSpace(strings.ToUpper(string(runes[:i])))
+			data := strings.TrimSpace(string(runes[i+1:]))
+			pair = [2]string{key, data}
+			break
+		}
+	}
+	return
+}
+
 // Bytes returns a copy of the []byte data. Important so we don't accidentally
 // pin a larger backing array in memory via the slice.
 func (decoder) Bytes(dataIn []byte) []byte {
