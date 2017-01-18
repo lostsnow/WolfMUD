@@ -64,6 +64,58 @@ func (decoder) PairList(data []byte) (pairs [][2]string) {
 	return
 }
 
+// StringList returns the []byte date as a []string by splitting the data on a
+// colon separator.
+func (decoder) StringList(data []byte) (s []string) {
+	for _, t := range strings.Split(string(data), ":") {
+		if w := strings.TrimSpace(t); w != "" {
+			s = append(s, w)
+		}
+	}
+	return
+}
+
+// KeyedString returns the []byte data as an uppercassed keywrd and a string.
+// The keyword is split from the beginning of the []byte on the first
+// non-unicode letter or digit. For example:
+//
+//	 input: []byte("GET→You can't get it.")
+//	output: [2]string{"GET", "You can't get it."}
+//
+// Here the separator used is → but any non-unicode letter or digit may be
+// used.
+func (decoder) KeyedString(data []byte) (pair [2]string) {
+	runes := []rune(string(data))
+	for i, r := range runes {
+		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) {
+			key := strings.TrimSpace(strings.ToUpper(string(runes[:i])))
+			data := strings.TrimSpace(string(runes[i+1:]))
+			pair = [2]string{key, data}
+			break
+		}
+	}
+	return
+}
+
+// KeyedStringList splits the []byte on a colon (:) separator and passes each
+// result through KeyedString. KeyedStringList is a shorthand for combining
+// StringList and KeyedString. For example the follow RecordJar record's data:
+//
+//	Vetoes:	GET→You can't get it.
+//				: DROP→You can't drop it.
+//
+// Would produce a slice with two entries:
+//
+//	[2]string{"GET", "You can't get it."}
+//	[2]string{"DROP", "You can't drop it."}
+//
+func (decoder) KeyedStringList(data []byte) (list [][2]string) {
+	for _, w := range Decode.StringList(data) {
+		list = append(list, Decode.KeyedString([]byte(w)))
+	}
+	return
+}
+
 // Bytes returns a copy of the []byte data. Important so we don't accidentally
 // pin a larger backing array in memory via the slice.
 func (decoder) Bytes(dataIn []byte) []byte {

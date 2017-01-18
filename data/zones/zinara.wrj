@@ -616,6 +616,8 @@ accommodation for the gate-warden on duty. The only exit is north.
 Narrative:
      Name: an ornate fireplace
     Alias: FIRE FIREPLACE
+   Vetoes: GET→For some inexplicable reason you can't just rip out the
+           fireplace and take it!
 
 This is a very ornate fireplace carved from marble. Either side a dragon curls
 downward until the head is below the fire looking upward, giving the impression
@@ -660,7 +662,7 @@ away at it.
   Narrative:
        Name: a rock
       Alias: ROCK
-
+     Vetoes: GET→The rock seems quite immovable.
 
 This is a dull grey rock about three feet high and a foot across at the base. As
 it rises it tapers to a rounded point. Near its base you notice there is a small
@@ -671,6 +673,7 @@ Narrative:
      Name: a small crack in the rock
     Alias: CRACK
 Inventory: O6
+   Vetoes: GET→The small crack in the rock is is not a portable crack...
 
 This is a small crack near the base of the rock.
 %%
