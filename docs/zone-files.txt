@@ -222,6 +222,17 @@ ZONE RECORDS
     appear in the world. It is only applicable for records that also define an
     EXITS field, otherwise it is ignored.
 
+  VETOES: <KEYED STRING LIST>
+    The VETOES field defines commands that cannot be used on an object and
+    reasons why. For example:
+
+      VETOES: GET→You cannot get the magical stone.
+            : EXAMINE→You try to examine the magical stone but doing so makes
+              your eyes water and sting.
+
+    If added to the definition of 'a magical stone' this would prevent it from
+    being taken or examined, giving the specified reasons for each.
+
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored
     by different people, which are then linked together using ZONELINKS. Using
