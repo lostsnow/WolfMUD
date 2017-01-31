@@ -151,7 +151,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			// config.Inventory.Compact stops us shrinking small buffers all the time
 			// where the gain is minimal.
 			if l, c := len(i.contents), cap(i.contents); (c - l - l) >= config.Inventory.Compact {
-				i.contents = append(make([]has.Thing, 0, l), i.contents[:]...)
+				i.contents = append(make([]has.Thing, 0, l), i.contents...)
 			}
 
 			// TODO: Need to check for players or mobiles
