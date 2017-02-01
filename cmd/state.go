@@ -39,6 +39,22 @@ type state struct {
 	msg message.Msg
 }
 
+// Parse initiates processing of the input string for the specified Thing. The
+// input string is expected to be either input from a player or possibly a
+// scripted command. The actual command processed will be returned. For example
+// GET or DROP.
+//
+// When sync handles a command the command may determine it needs to hold
+// additional locks. In this case sync will return false and should be called
+// again. This repeats until the list of locks is complete, the command
+// processed and sync returns true.
+func Parse(t has.Thing, input string) string {
+	s := newState(t, input)
+	for !s.sync() {
+	}
+	return s.cmd
+}
+
 // newState returns a *state initialised with the passed Thing and input. If
 // the passed Thing is locatable the containing Inventory is added to the lock
 // list, but the lock is not taken at this point.
@@ -92,22 +108,6 @@ func (s *state) tokenizeInput(input string) {
 		s.cmd, s.words = s.words[0], s.words[1:]
 		s.input = s.input[1:]
 	}
-}
-
-// Parse initiates processing of the input string for the specified Thing. The
-// input string is expected to be either input from a player or possibly a
-// scripted command. The actual command processed will be returned. For example
-// GET or DROP.
-//
-// When sync handles a command the command may determine it needs to hold
-// additional locks. In this case sync will return false and should be called
-// again. This repeats until the list of locks is complete, the command
-// processed and sync returns true.
-func Parse(t has.Thing, input string) string {
-	s := newState(t, input)
-	for !s.sync() {
-	}
-	return s.cmd
 }
 
 // sync is called to do the actual locking/unlocking for commands. Having this
