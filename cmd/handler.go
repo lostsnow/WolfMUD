@@ -9,6 +9,16 @@ import (
 	"strings"
 )
 
+// init adds a handler for an empty command. The handler just acknowledges the
+// empty command was processed by setting state.ok to true. We should not get
+// empty commands from players as Parse screens them out. However other
+// commands and possibly scripted commands might manually create a state
+// accidentally with no command. Without this handler we would return the same
+// as for an unknown or invalid command.
+func init() {
+	AddHandler(func(s *state) { s.ok = true }, "")
+}
+
 // handlers is a list of commands and their handlers. AddHandler should be used
 // to add new handlers. parser.dispatch uses this list to lookup the correct
 // handler to invoke for a given command.
