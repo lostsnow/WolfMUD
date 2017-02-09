@@ -19,8 +19,9 @@ import (
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
 //
-// NOTE: where is only set when the state is created. If the actor moves to
-// another location where should be updated as well.
+// NOTE: the where field is only set when the state is created. If the actor
+// moves to another location the where field should be updated as well. See the
+// move command for such an example.
 //
 // TODO: Need to document msg buffers properly
 type state struct {
