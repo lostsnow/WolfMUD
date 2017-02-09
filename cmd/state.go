@@ -31,6 +31,7 @@ type state struct {
 	cmd         string        // The current command being processed
 	words       []string      // Input as uppercased words, less stopwords
 	ok          bool          // Flag to indicate if command was successful
+	scripting   bool          // Is state in scripting mode?
 
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
@@ -40,9 +41,11 @@ type state struct {
 }
 
 // Parse initiates processing of the input string for the specified Thing. The
-// input string is expected to be either input from a player or possibly a
-// scripted command. The actual command processed will be returned. For example
-// GET or DROP.
+// input string is expected to be input from a player. The actual command
+// processed will be returned. For example GET or DROP.
+//
+// Parse runs with state.scripting set to false, disallowing scripting specific
+// commands from being executed by players directly.
 //
 // When sync handles a command the command may determine it needs to hold
 // additional locks. In this case sync will return false and should be called
@@ -50,6 +53,17 @@ type state struct {
 // processed and sync returns true.
 func Parse(t has.Thing, input string) string {
 	s := newState(t, input)
+	for !s.sync() {
+	}
+	return s.cmd
+}
+
+// Script processes the input string the same as Parse. However Script runs
+// with the state.scripting flag set to true, permitting scripting specific
+// commands to be executed.
+func Script(t has.Thing, input string) string {
+	s := newState(t, input)
+	s.scripting = true
 	for !s.sync() {
 	}
 	return s.cmd
@@ -148,8 +162,17 @@ func (s *state) sync() (inSync bool) {
 // a handler cannot be found a message will be written to the actor's output
 // buffer.
 //
+// handleCommand will only allow scripting specific commands to be executed if
+// the state.scripting field is set to true.
+//
 // BUG(diddymus): Should this be moved into handler.go?
 func (s *state) handleCommand() {
+
+	if len(s.cmd) > 0 && s.cmd[0] == '$' && !s.scripting {
+		s.msg.Actor.SendBad("Ehh?")
+		return
+	}
+
 	switch handler, valid := handlers[s.cmd]; {
 	case valid:
 		handler(s)
@@ -174,6 +197,9 @@ func (s *state) handleCommand() {
 // scripted, the input string can be passed in as multiple strings that will
 // joined together automatically with space separators.
 //
+// script will automatically set and restore the state.scripting flag allowing
+// scripting specific commands to be executed.
+//
 // TODO: Suppression of messages is not very efficient as any messages are
 // still 'sent' and we just chop them off again by truncating the buffers.
 // Ideally we should stop the buffers from being written to in the first place.
@@ -183,7 +209,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	input := strings.Join(inputs, " ")
 
-	i, w, c := s.input, s.words, s.cmd // Save state
+	i, w, c, sc := s.input, s.words, s.cmd, s.scripting // Save state
 
 	// Set silent mode on buffers storing old modes
 	a := s.msg.Actor.Silent(!actor)
@@ -192,6 +218,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	s.tokenizeInput(input)
 	s.ok = false
+	s.scripting = true
 	s.handleCommand()
 
 	// Restore old silent modes
@@ -200,7 +227,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	ot.Silent(true)
 	of.Silent(false)
 
-	s.input, s.words, s.cmd = i, w, c // Restore state
+	s.input, s.words, s.cmd, s.scripting = i, w, c, sc // Restore state
 }
 
 // scriptAll is a helper method that is equivalent to calling script with no
