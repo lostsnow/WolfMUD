@@ -318,6 +318,11 @@ func (z *zone) linkupInventory(jar recordjar.Jar) {
 				log.Printf("Ref %s: Cannot put something into its own inventory", ref)
 				continue
 			}
+			if _, ok := z.things[r]; !ok {
+				log.Printf("Ref %s: Cannot put into inventory %s, ref not found", r, ref)
+				continue
+			}
+
 			i.Add(z.things[r])
 		}
 	}
