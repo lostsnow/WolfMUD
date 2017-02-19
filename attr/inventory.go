@@ -118,8 +118,8 @@ func (i *Inventory) Add(t has.Thing) {
 		i.split++
 	} else {
 		i.contents = append(i.contents, t)
-		FindLocate(t).SetWhere(i)
 	}
+	FindLocate(t).SetWhere(i)
 
 	// TODO: Need to check for players or mobiles
 	if FindPlayer(t).Found() {
