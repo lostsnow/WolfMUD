@@ -25,14 +25,14 @@ type dictionary struct {
 // insensitive) by calling the Contains method.
 //
 // NOTE: The strings in the dictionary are converted to uppercase.
-func Dictionary(s ...string) (d dictionary) {
-	d = dictionary{words: map[string]struct{}{}}
+func Dictionary(s ...string) (d *dictionary) {
+	d = &dictionary{words: map[string]struct{}{}}
 	d.Add(s...)
 	return
 }
 
 // Add adds one or more words to the dictionary.
-func (d dictionary) Add(s ...string) {
+func (d *dictionary) Add(s ...string) {
 	d.Lock()
 	for _, s := range s {
 		d.words[strings.ToUpper(s)] = struct{}{}
@@ -42,7 +42,7 @@ func (d dictionary) Add(s ...string) {
 }
 
 // Delete deletes one or more words from the dictionary.
-func (d dictionary) Delete(s ...string) {
+func (d *dictionary) Delete(s ...string) {
 	d.Lock()
 	for _, s := range s {
 		delete(d.words, strings.ToUpper(s))
@@ -54,7 +54,7 @@ func (d dictionary) Delete(s ...string) {
 // Contains searches the dictionary to see if it contains the specified string.
 // If a match is found true is returned, otherwise false. The search is case
 // insensitive.
-func (d dictionary) Contains(s string) (found bool) {
+func (d *dictionary) Contains(s string) (found bool) {
 	d.RLock()
 	_, found = d.words[strings.ToUpper(s)]
 	d.RUnlock()
