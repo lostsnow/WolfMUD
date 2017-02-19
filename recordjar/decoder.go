@@ -53,7 +53,7 @@ func (decoder) KeywordList(data []byte) []string {
 // the separator used is → but any non-unicode letter or digit may be used.
 func (decoder) PairList(data []byte) (pairs [][2]string) {
 	for _, pair := range strings.Fields(string(data)) {
-		runes := []rune(pair)
+		runes := []rune(strings.ToUpper(pair))
 		for i, r := range runes {
 			if !unicode.IsDigit(r) && !unicode.IsLetter(r) {
 				pairs = append(pairs, [2]string{string(runes[:i]), string(runes[i+1:])})
