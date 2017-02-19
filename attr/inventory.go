@@ -199,6 +199,20 @@ func (i *Inventory) Contents() []has.Thing {
 	return l
 }
 
+// Narratives returns a 'copy' of the Inventory narrative contents. That is a
+// copy of the slice containing has.Thing interface headers. Therefore the
+// Inventory narratives may be indirectly manipulated through the copy but
+// changes to the actual slice are not possible - use the Add and Remove
+// methods instead.
+func (i *Inventory) Narratives() []has.Thing {
+	if i == nil {
+		return []has.Thing{}
+	}
+	l := make([]has.Thing, i.split)
+	copy(l, i.contents[:i.split])
+	return l
+}
+
 // List returns a string describing the non-narrative contents of an Inventory.
 // The format of the string is dependant on the number of items. If the
 // Inventory is empty:
