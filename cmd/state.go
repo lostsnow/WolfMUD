@@ -8,12 +8,17 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
+	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
 
 	"io"
 	"strings"
 )
+
+func init() {
+	event.Script = Script
+}
 
 // state contains the current parsing state for commands. The state fields may
 // be modified directly except for locks. The AddLocks method should be used to
