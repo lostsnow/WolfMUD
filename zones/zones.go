@@ -186,6 +186,9 @@ func (z *zone) zoneBookkeeping(jar recordjar.Jar) {
 	log.Printf("Checking exits...")
 	z.checkExitsHaveInventory()
 
+	log.Printf("Checking doors...")
+	z.checkDoorsHaveLocate()
+
 	log.Printf("Linking exits...")
 	z.linkupExits(jar)
 
@@ -235,6 +238,19 @@ func (z *zone) checkExitsHaveInventory() {
 		}
 		// Add required Inventory
 		t.Add(attr.NewInventory())
+	}
+}
+
+// checkDoorsHaveLocate makes sure that all Things with a Door attribute also
+// have a Locate attribute. This is so that a Door can notify observers of
+// state changes.
+func (z *zone) checkDoorsHaveLocate() {
+	for _, t := range z.things {
+		if !attr.FindDoor(t).Found() {
+			continue
+		}
+		// Add required Locate
+		t.Add(attr.NewLocate(nil))
 	}
 }
 
