@@ -146,6 +146,33 @@ ZONE RECORDS
     A list of keywords used by players to interact with something. For
     example: LATTICE
 
+  DOOR: <PAIR LIST>
+    A DOOR field defines anything door-like that can block a direction of
+    travel. For example a door, a gate, a panel or a bookcase. The pairs
+    that are valid for a DOOR are:
+
+      EXIT→<direction>
+      RESET→<period>
+      OPEN→<boolean>
+
+    For example:
+
+      DOOR: EXIT→E RESET→2m OPEN→false
+
+    EXIT defines the direction that is blocked when the DOOR is closed. The
+    direction can be specified in long or short form (SEE EXITS). If an EXIT
+    is not specified the DOOR will not block travel but can still be open and
+    closed - perhaps it's just leaning against a wall? :)
+
+    OPEN defines whether the door is initially open or closed. If omitted
+    defaults to false (closed).
+
+    RESET defines the delay after which the door should automatically be reset
+    to its initial state of open or closed - as defined by OPEN above. The
+    period should be given in the form: 0h0m0s for example "30s" for 30
+    seconds. A value equivalent to a duration of zero length disables the
+    automatic reset. For example 0h, 0m or 0s. If omitted defaults to 0s.
+
   EXITS: <PAIR LIST>
     An EXITS field defines something as a location, allowing for very loose
     definitions of what a location is. Each pair in the list should consist of
