@@ -28,4 +28,10 @@ type Thing interface {
 
 	// Close is used to clean-up/release references to all Attribute for a Thing.
 	Close()
+
+	// Copy produces another, possibly inexact, instance of a Thing. The
+	// differences may be due to unique IDs, locks and other data that should not
+	// be copied between instances. The copy will contain a copy of all of the
+	// attributes and possibly other Things associated with the Thing as well.
+	Copy() Thing
 }

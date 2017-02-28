@@ -13,6 +13,11 @@ package has
 //
 // Its default implementation is the attr.Attribute type. For the different
 // attributes available see the attr package.
+//
+// NOTE: the default implementation attr.Attribute does NOT provide a default
+// Copy implementation. Each attribute must implement its own Copy method. This
+// is due to the fact that other attributes will know best how to create copies
+// based on their own implementation.
 type Attribute interface {
 	Dump() []string
 
@@ -30,4 +35,12 @@ type Attribute interface {
 
 	// SetParent sets the Thing to which the Attribute has been added.
 	SetParent(Thing)
+
+	// Copy produces another, possibly inexact, instance of an Attribute. The
+	// differences may be due to unique IDs, locks and other data that should not
+	// be copied between instances.
+	//
+	// NOTE: The default implementation attr.Attribute does NOT implement Copy.
+	// See main interface comments and attr.Attribute.
+	Copy() Attribute
 }

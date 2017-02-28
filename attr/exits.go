@@ -406,3 +406,17 @@ func (e *Exits) Surrounding() []has.Inventory {
 	}
 	return exits
 }
+
+// Copy returns a copy of the Exits receiver.
+func (e *Exits) Copy() has.Attribute {
+	if e == nil {
+		return (*Exits)(nil)
+	}
+	ne := NewExits()
+	for d, e := range e.exits {
+		if e != nil {
+			ne.exits[d] = e
+		}
+	}
+	return ne
+}

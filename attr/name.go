@@ -89,3 +89,11 @@ func (n *Name) Name(preset string) string {
 		return n.name
 	}
 }
+
+// Copy returns a copy of the Name receiver.
+func (n *Name) Copy() has.Attribute {
+	if n == nil {
+		return (*Name)(nil)
+	}
+	return NewName(n.name)
+}

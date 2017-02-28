@@ -279,3 +279,19 @@ func (i *Inventory) Empty() bool {
 	}
 	return true
 }
+
+// Copy returns a copy of the Inventory receiver. The copy will be made
+// recursively copying the complete content of the Inventory as well.
+//
+// BUG(diddymus): There are no checks made for cyclic references which could
+// send us into infinite recursion.
+func (i *Inventory) Copy() has.Attribute {
+	if i == nil {
+		return (*Inventory)(nil)
+	}
+	ni := NewInventory()
+	for _, a := range i.contents {
+		ni.Add(a.Copy())
+	}
+	return ni
+}

@@ -111,3 +111,11 @@ func (a *Alias) Aliases() (aliases []string) {
 	}
 	return
 }
+
+// Copy returns a copy of the Alias receiver.
+func (a *Alias) Copy() has.Attribute {
+	if a == nil {
+		return (*Alias)(nil)
+	}
+	return NewAlias(a.Aliases()...)
+}
