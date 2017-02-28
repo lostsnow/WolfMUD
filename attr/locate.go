@@ -92,3 +92,11 @@ func (l *Locate) SetWhere(i has.Inventory) {
 		l.where = i
 	}
 }
+
+// Copy returns a copy of the Locate receiver.
+func (l *Locate) Copy() has.Attribute {
+	if l == nil {
+		return (*Locate)(nil)
+	}
+	return NewLocate(l.where)
+}
