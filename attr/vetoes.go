@@ -106,6 +106,18 @@ func (v *Vetoes) Check(cmd ...string) has.Veto {
 	return nil
 }
 
+// Copy returns a copy of the Vetoes receiver.
+func (v *Vetoes) Copy() has.Attribute {
+	if v == nil {
+		return (*Vetoes)(nil)
+	}
+	nv := make([]has.Veto, 0, len(v.vetoes))
+	for _, v := range v.vetoes {
+		nv = append(nv, NewVeto(v.Command(), v.Message()))
+	}
+	return NewVetoes(nv...)
+}
+
 // Veto implements a veto for a specific command. Veto need to be added to a
 // Vetoes list using NewVetoes.
 type Veto struct {
