@@ -73,3 +73,11 @@ func (d *Description) Dump() []string {
 func (d *Description) Description() string {
 	return d.description
 }
+
+// Copy returns a copy of the Description receiver.
+func (d *Description) Copy() has.Attribute {
+	if d == nil {
+		return (*Description)(nil)
+	}
+	return NewDescription(d.description)
+}
