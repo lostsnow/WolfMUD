@@ -184,3 +184,13 @@ func (d *Door) Close() {
 		d.Cancel = event.Queue(d.Parent(), "OPEN DOOR", d.reset)
 	}
 }
+
+// Copy returns a copy of the Door receiver. Copy will only copy a specific
+// Door not an original and 'other side' pair - they have to be copied
+// separately if required.
+func (d *Door) Copy() has.Attribute {
+	if d == nil {
+		return (*Door)(nil)
+	}
+	return NewDoor(d.direction, d.initOpen, d.reset)
+}
