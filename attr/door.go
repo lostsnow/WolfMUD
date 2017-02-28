@@ -145,8 +145,8 @@ func (d *Door) Closed() bool {
 
 // Open changes a Door state from closed to open. If there is a pending event
 // to open the door it will be cancelled. If the door should automatically
-// close again an event to "CLOSE DOOR" will be queued. If the door is already
-// open Open results in a NOOP.
+// close again an event to "CLOSE <door>" will be queued. If the door is
+// already open calling Open does nothing.
 func (d *Door) Open() {
 	if d.open {
 		return
@@ -159,15 +159,25 @@ func (d *Door) Open() {
 
 	d.open = true
 
+	a := FindAlias(d.Parent())
+	if !a.Found() {
+		return
+	}
+
+	aliases := a.Aliases()
+	if len(aliases) == 0 {
+		return
+	}
+
 	if d.reset != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "CLOSE DOOR", d.reset)
+		d.Cancel = event.Queue(d.Parent(), "CLOSE "+aliases[0], d.reset)
 	}
 }
 
 // Close changes a Door state from open to closed. If there is a pending event
 // to close the door it will be cancelled. If the door should automatically
-// open again an event to "OPEN DOOR" will be queued. If the door is already
-// closed Close results in a NOOP.
+// open again an event to "OPEN <door>" will be queued. If the door is already
+// closed calling Close does nothing.
 func (d *Door) Close() {
 	if !d.open {
 		return
@@ -180,8 +190,18 @@ func (d *Door) Close() {
 
 	d.open = false
 
+	a := FindAlias(d.Parent())
+	if !a.Found() {
+		return
+	}
+
+	aliases := a.Aliases()
+	if len(aliases) == 0 {
+		return
+	}
+
 	if d.reset != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "OPEN DOOR", d.reset)
+		d.Cancel = event.Queue(d.Parent(), "OPEN "+aliases[0], d.reset)
 	}
 }
 
