@@ -14,6 +14,11 @@ import (
 // Attribute implements a stub for other attributes. Any types providing
 // attributes can embed this type instead of implementing their own Parent and
 // SetParent methods.
+//
+// NOTE: Attribute does NOT provide a default Copy implementation. Each
+// attribute must implement its own Copy method. This is due to the fact that
+// other attributes will know best how to create copies based on their own
+// implementation.
 type Attribute struct {
 	parent has.Thing
 }
