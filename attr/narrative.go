@@ -102,3 +102,11 @@ func (n *Narrative) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T", n))
 	return buff
 }
+
+// Copy returns a copy of the Narrative receiver.
+func (n *Narrative) Copy() has.Attribute {
+	if n == nil {
+		return (*Narrative)(nil)
+	}
+	return NewNarrative()
+}
