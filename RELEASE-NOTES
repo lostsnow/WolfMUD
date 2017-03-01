@@ -6,6 +6,59 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.4 Released Thursday 2nd March, 2017
+==============================================================================
+
+Added
+
+  - Test cases added for rewritten recordjar.Read method.
+  - New recordjar data types: StringList, KeyedString, KeyedStringList. See
+    docs/zone-files.txt for details.
+  - Zone files can now contain vetoes.
+  - cmd.state has a new Script method for scripting commands. Commands only
+    usable in scripting mode denoted by prefixing the command with a '$'
+    symbol.
+  - New script only $POOF command to announce players joining game.
+  - attr.Inventory gained a Narratives method to retrieve narrative items.
+  - new event package for asynchronous scripted commands.
+  - text package gained a new TitleFirst method to uppercase the dirst rune in
+    a string.
+  - All attributes and attr.Thing now have a Copy method. The Copy method has
+    also been added to the has.Attribute and has.Thing interfaces.
+  - New Door attribute added so that doors can be defined in zone files. See
+    docs/zone-files.txt for details.
+  - Added the tavern door and shed door to data/zones/zinara.wrj as example
+    doors.
+  - New OPEN and CLOSE commands to open and close doors.
+
+Changed
+
+  - Rewritten recordjar.Read method to be simpler and have fewer corner cases.
+  - EXAMINE command can now be vetoed.
+  - zones package now adds a Locate attribute to Things with a Door attribute.
+  - zones package now creates the 'other side' of doors when a Thing has a Door
+    attribute.
+  - Update COMMANDS command to not report scripting only commands starting with
+    a '$' symbol.
+  - MOVE command can now be vetoed.
+
+Fixed
+
+  - Another colour bleeding issue fixed.
+  - Nil panic fixed when loading zones and populating inventories with an
+    invalid ref.
+  - Passing of a copied mutex in text.Dictionary.
+  - recordjar.decoder should uppercase returned key and data as documented.
+  - attr.inventory Add method should always call SetWhere if Locate attribute
+    is found.
+
+Known bugs
+
+  - Adding a Door attribute to a non-narrative, e.g. directly to a location or
+    a moveable item, can result in strange and unexpected behaviour.
+  - The new Thing and Attribute copy mechanism does not check for cyclic
+    dependencies.
+
 v0.0.3 Released Friday 23rd December, 2016
 ==============================================================================
 
