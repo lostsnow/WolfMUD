@@ -24,4 +24,8 @@ type Door interface {
 
 	// Closed returns true if the state of a Door is closed, otherwise false.
 	Closed() bool
+
+	// Direction returns the direction the door is blocking when closed. The
+	// return values match the constants defined in attr.Exits.
+	Direction() byte
 }

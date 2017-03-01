@@ -111,6 +111,12 @@ func (s *state) dump() (buff []string) {
 	return
 }
 
+// Direction returns the direction of the exit being blocked. The returned
+// value matches the constants defined in attr.Exits.
+func (d *Door) Direction() byte {
+	return d.direction
+}
+
 func (d *Door) Description() string {
 	if d.open {
 		return "It is open."
