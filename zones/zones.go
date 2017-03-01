@@ -198,6 +198,9 @@ func (z *zone) zoneBookkeeping(jar recordjar.Jar) {
 	log.Printf("Populating things...")
 	z.linkupThings(jar)
 
+	log.Printf("Checking other side...")
+	z.checkDoorsHaveOtherSide()
+
 }
 
 // createVoid makes a default zone with a starting location which can be used
@@ -251,6 +254,19 @@ func (z *zone) checkDoorsHaveLocate() {
 		}
 		// Add required Locate
 		t.Add(attr.NewLocate(nil))
+	}
+}
+
+// checkDoorsHaveOtherSide creates the 'other side' of a door for Things with a
+// Door attribute.
+func (z *zone) checkDoorsHaveOtherSide() {
+	for _, t := range z.things {
+		d := attr.FindDoor(t)
+		if !d.Found() {
+			continue
+		}
+		// Add 'other side' of the door
+		d.OtherSide()
 	}
 }
 
