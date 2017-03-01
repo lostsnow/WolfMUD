@@ -47,6 +47,16 @@ func Move(s *state) {
 		return
 	}
 
+	// Check direction is not vetoed by any narratives here. Currently We only
+	// check narratives for performance reasons.
+	canVeto := from.Narratives()
+	for _, t := range canVeto {
+		if veto := attr.FindVetoes(t).Check(s.cmd); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
+	}
+
 	wayToGo := exits.ToName(direction)
 
 	// Find out where our exit leads to
