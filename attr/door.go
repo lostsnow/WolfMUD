@@ -26,10 +26,17 @@ func init() {
 // bookcases and other such obstacles.
 type Door struct {
 	Attribute
-	direction byte          // Exit door blocks (See attr.Exit constants)
-	reset     time.Duration // Duration until door resets to initial state
-	initOpen  bool          // Initial state
-	open      bool          // Current state
+	direction byte // Exit door blocks (See attr.Exit constants)
+	*state
+}
+
+// state represents the current state of a Door. It is shared between the
+// original Door and the 'other side' Door so that they will open, close and
+// reset together.
+type state struct {
+	reset    time.Duration // Duration until door resets to initial state
+	initOpen bool          // Initial state
+	open     bool          // Current state
 	event.Cancel
 }
 
@@ -46,7 +53,7 @@ var (
 // duration to wait before resetting the door to its initial state - open or
 // closed as specified by open.
 func NewDoor(direction byte, open bool, reset time.Duration) *Door {
-	return &Door{Attribute{}, direction, reset, open, open, nil}
+	return &Door{Attribute{}, direction, &state{reset, open, open, nil}}
 }
 
 // FindDoor searches the attributes of the specified Thing for attributes that
@@ -89,9 +96,19 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 	return door
 }
 
-func (d *Door) Dump() []string {
+func (d *Door) Dump() (buff []string) {
 	e := NewExits()
-	return []string{DumpFmt("%p %[1]T Exit: %q Reset: %q Open: %t (%t)", d, e.ToName(d.direction), d.reset, d.open, d.initOpen)}
+	buff = append(buff, DumpFmt("%p %[1]T Exit: %q", d, e.ToName(d.direction)))
+	for _, line := range d.state.dump() {
+		buff = append(buff, DumpFmt("%s", line))
+	}
+	return
+}
+
+func (s *state) dump() (buff []string) {
+	buff = append(buff, DumpFmt("%p %[1]T Reset: %q Init: %t Open: %t", s, s.reset, s.initOpen, s.open))
+	buff = append(buff, DumpFmt("%p %[1]T", s.Cancel))
+	return
 }
 
 func (d *Door) Description() string {
