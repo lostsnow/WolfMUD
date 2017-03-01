@@ -173,6 +173,10 @@ ZONE RECORDS
     seconds. A value equivalent to a duration of zero length disables the
     automatic reset. For example 0h, 0m or 0s. If omitted defaults to 0s.
 
+    NOTE: A DOOR attribute should only be added to narrative items in a
+    location. Adding a DOOR directly to a location or a moveable item may
+    result in unexpected/odd behaviour.
+
   EXITS: <PAIR LIST>
     An EXITS field defines something as a location, allowing for very loose
     definitions of what a location is. Each pair in the list should consist of
