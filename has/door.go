@@ -28,4 +28,7 @@ type Door interface {
 	// Direction returns the direction the door is blocking when closed. The
 	// return values match the constants defined in attr.Exits.
 	Direction() byte
+
+	// OtherSide creates the opposing side of a Door.
+	OtherSide()
 }

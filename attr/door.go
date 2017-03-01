@@ -52,8 +52,74 @@ var (
 // the door is initially open (true) or closed (false). The reset is the
 // duration to wait before resetting the door to its initial state - open or
 // closed as specified by open.
+//
+// This actually only creates one side of a door. To create the 'other side' of
+// the door Door.OtherSide should be called.
 func NewDoor(direction byte, open bool, reset time.Duration) *Door {
 	return &Door{Attribute{}, direction, &state{reset, open, open, nil}}
+}
+
+// OtherSide creates the 'other side' of a Door and places it in the World. The
+// 'other side' will be placed in the Inventory found by following the exit
+// that is being blocked by the original Door. Creating the 'other side' will
+// fail if:
+//
+//  - The original Door attribute has not been added to a Thing
+//  - The parent Thing of the original Door is not in an Inventory (e.g. location)
+//  - The parent Thing of the Inventory the parent Thing of the Door is in has
+//    no Exits
+//  - There is no exit in the direction the door is supposed to be blocking
+//
+// For more details see the attr.Door type.
+func (d *Door) OtherSide() {
+
+	// Find parent Thing of original Door
+	p := d.Parent()
+	if p == nil {
+		log.Printf("Door attribute has no parent")
+		return
+	}
+
+	// Try and get original's proper name
+	n := FindName(p).Name("'door'")
+
+	// Create 'other side' of the door as a duplicate Thing
+	t := p.Copy()
+
+	// Find the door on the 'other side'
+	o := FindDoor(t).(*Door)
+
+	// Share its state with the original door. It is important that the two Door
+	// share state so that they open, close and reset together.
+	o.state = d.state
+
+	// Point the 'other side' of the door in the opposing direction
+	o.direction = Return(d.direction)
+
+	// Find out where the original door is
+	w := FindLocate(d.Parent()).Where()
+	if w == nil {
+		log.Printf("Parent of door %q is nowhere, cannot create other side", n)
+		return
+	}
+
+	// Find exits for where the door is
+	e := FindExits(w.Parent())
+	if !e.Found() {
+		log.Printf("Parent of door %q has no exits, cannot create other side", n)
+		return
+	}
+
+	// Find opossing location's inventory
+	i := e.LeadsTo(d.direction)
+	if i == nil {
+		log.Printf("There is no exit %q for Door %q to block, cannot add other side", e.ToName(d.direction), n)
+		return
+	}
+
+	// Add 'other side' to opossing location's inventory
+	i.Add(t)
+
 }
 
 // FindDoor searches the attributes of the specified Thing for attributes that
