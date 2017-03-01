@@ -24,6 +24,51 @@ func init() {
 // Door implements an attribute for blocking exits. Doors are the most common
 // way of blocking an exit but this attribute may relate to gates, grills,
 // bookcases and other such obstacles.
+//
+// A complete working door consists of two Thing each with a Door attribute.
+// One is the original door and the other is the 'other side'. The original
+// Door is added to the location with the exit to be blocked, the 'other side'
+// is added to the location the exit to be blocked leads to. Taking the tavern
+// entrance in data/zones/zinara.wrj as an example:
+//
+//             _________________________________________
+//            |L3                  |L5                  |
+//            |    Tavern          #   Between Tavern   |
+//                 Entrance        #   & Bakery
+//                                 #
+//                 (Door)          #   ('Other Side')
+//            |                    #                    |   # = a door
+//            |__                __|__                __|
+//
+//
+// Here we have locations L3 (Tavern Entrance) and L5 (Between Tavern *
+// Bakery). Between them is the Tavern door. It is defined as:
+//
+//  %%
+//        Ref: L3N1
+//  Narrative:
+//       Name: the tavern door
+//    Aliases: DOOR
+//       Door: EXIT→E RESET→1m
+//
+//  This is a sturdy wooden door with a simple latch.
+//  %%
+//
+// This adds a Thing reprsenting the door to L3 and blocks the exit going east
+// (EXIT→E) to L5. During zone loading and Unmarshaling OtherSide is called on
+// the original door Thing. This creates another Thing used for the 'Other
+// Side'. It is added to the location found by taking the exit the original
+// door is blocking, in this case we are blocking the east exit which leads to
+// L5. The 'Other Side' is added to L5 and is setup to block the returning
+// exit, in this case west - back to L3. Now in L3 if we do 'EXAMINE DOOR' we
+// are examining the original, in L5 we are examining the 'Other Side' which
+// appears to be the same door. Because the original and 'Other Side' share
+// state be can also issue 'OPEN DOOR' or 'CLOSE DOOR' in either L3 or L5.
+//
+// NOTE: For now a Door attribute should only be added to a Thing with a
+// Narrative attribute that is placed at a location. Adding a Door attribute to
+// a location directly or to a moveable object will result in odd - possibly
+// interesting -  behaviour.
 type Door struct {
 	Attribute
 	direction byte // Exit door blocks (See attr.Exit constants)
@@ -191,7 +236,7 @@ func (d *Door) Description() string {
 }
 
 // Check will veto passing through a Door dynamically based on the command
-// (direction) given and the current state.
+// (direction) given and the current state of the Door - open or closed.
 func (d *Door) Check(cmd ...string) has.Veto {
 
 	// If door is open we won't veto
