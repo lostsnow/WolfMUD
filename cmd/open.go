@@ -22,6 +22,7 @@ func Open(s *state) {
 	}
 
 	name := s.words[0]
+	from := s.where
 
 	// Search for item to open in the inventory where we are
 	what := s.where.Search(name)
@@ -47,14 +48,28 @@ func Open(s *state) {
 		return
 	}
 
+	// Find out where the door leads to
+	exits := attr.FindExits(from.Parent())
+	to := exits.LeadsTo(door.Direction())
+
+	// Are we locking where the door leads to yet? If not add it to the locks and
+	// simply return. The parser will detect the locks have changed and reprocess
+	// the command with the new locks held.
+	if !s.CanLock(to) {
+		s.AddLock(to)
+		return
+	}
+
 	door.Open()
 
 	if s.actor == what {
-		s.msg.Observer.SendInfo(text.TitleFirst(name), " closes.")
+		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " opens.")
+		s.msg.Observers[from].SendInfo(text.TitleFirst(name), " opens.")
 	} else {
 		who := attr.FindName(s.actor).Name("Someone")
 		s.msg.Actor.SendGood("You open ", name, ".")
-		s.msg.Observer.SendInfo(who, " opens ", name, ".")
+		s.msg.Observers[from].SendInfo(who, " opens ", name, ".")
+		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " opens.")
 	}
 
 	s.ok = true
