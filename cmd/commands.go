@@ -27,9 +27,9 @@ func Commands(s *state) {
 	pos, ommit := 0, 0
 	for cmd := range handlers {
 
-		// Ommit empty handler if installed and
-		// special commands starting with '#'
-		if cmd == "" || cmd[0] == '#' {
+		// Ommit empty handler if installed and special commands starting with '#'
+		// and scripting commands starting with '$'
+		if cmd == "" || cmd[0] == '#' || cmd[0] == '$' {
 			ommit++
 			continue
 		}

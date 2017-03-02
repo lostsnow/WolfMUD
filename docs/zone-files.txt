@@ -86,6 +86,36 @@ FIELD DATA TYPES
     There are three pairs: E→L3, SE→L4 and S→L2. Each pair is separated by '→'
     which is a non-digit and non-numeric.
 
+  STRING LIST
+    The data is separated into strings using a colon (:) as a separator. For
+    example:
+
+      Actions: The rabbit hops around a bit.
+             : You see the rabbit twitch its little nose, Ahh...
+
+    This defines two actions.
+
+  KEYED STRING
+    The data is separated into a keyword and a string. The keyword should be a
+    single word followed by a non-letter and non-numeric separator. For
+    example:
+
+      Vetoes: GET→You cannot get it!
+
+    This defines a veto with the keyword 'GET' and the string "You cannot get
+    it!". The separator used is the '→' character.
+
+  KEYED STRING LIST
+    The data is a list of keyed strings. This combines the STRING LIST and
+    KEYED STRING types. For example:
+
+      Vetoes: GET→You cannot get it!
+            : PUT→It does not want to be put anywhere!
+
+    This defines two vetoes separated by a colon. Each veto is a keyword
+    followed by a string. The keyword and string are separated using the '→'
+    character.
+
 ZONE HEADER RECORD
 
   The zone header record is optional. If present it can contain the following
@@ -115,6 +145,37 @@ ZONE RECORDS
   ALIAS: <KEYWORD LIST>
     A list of keywords used by players to interact with something. For
     example: LATTICE
+
+  DOOR: <PAIR LIST>
+    A DOOR field defines anything door-like that can block a direction of
+    travel. For example a door, a gate, a panel or a bookcase. The pairs
+    that are valid for a DOOR are:
+
+      EXIT→<direction>
+      RESET→<period>
+      OPEN→<boolean>
+
+    For example:
+
+      DOOR: EXIT→E RESET→2m OPEN→false
+
+    EXIT defines the direction that is blocked when the DOOR is closed. The
+    direction can be specified in long or short form (SEE EXITS). If an EXIT
+    is not specified the DOOR will not block travel but can still be open and
+    closed - perhaps it's just leaning against a wall? :)
+
+    OPEN defines whether the door is initially open or closed. If omitted
+    defaults to false (closed).
+
+    RESET defines the delay after which the door should automatically be reset
+    to its initial state of open or closed - as defined by OPEN above. The
+    period should be given in the form: 0h0m0s for example "30s" for 30
+    seconds. A value equivalent to a duration of zero length disables the
+    automatic reset. For example 0h, 0m or 0s. If omitted defaults to 0s.
+
+    NOTE: A DOOR attribute should only be added to narrative items in a
+    location. Adding a DOOR directly to a location or a moveable item may
+    result in unexpected/odd behaviour.
 
   EXITS: <PAIR LIST>
     An EXITS field defines something as a location, allowing for very loose
@@ -191,6 +252,17 @@ ZONE RECORDS
     The START field defines a location as a starting point where players may
     appear in the world. It is only applicable for records that also define an
     EXITS field, otherwise it is ignored.
+
+  VETOES: <KEYED STRING LIST>
+    The VETOES field defines commands that cannot be used on an object and
+    reasons why. For example:
+
+      VETOES: GET→You cannot get the magical stone.
+            : EXAMINE→You try to examine the magical stone but doing so makes
+              your eyes water and sting.
+
+    If added to the definition of 'a magical stone' this would prevent it from
+    being taken or examined, giving the specified reasons for each.
 
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored

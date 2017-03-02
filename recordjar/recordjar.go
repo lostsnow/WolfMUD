@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"io"
 	"regexp"
+	"strings"
 	"unicode"
 )
 
@@ -34,12 +35,27 @@ var (
 // For details of the recordjar format see the separate package documentation.
 func Read(in io.Reader, freetext string) Jar {
 
-	b := bufio.NewReader(in)
-	j := Jar{}
-	r := Record{}
+	// work variables for the current field and it's data
+	var (
+		b         *bufio.Reader // Buffered reader for the input
+		j         Jar           // Jar being built
+		r         Record        // Current jar record
+		raw       []byte        // Current raw line
+		line      []byte        // Current clean (trimmed) line
+		tokens    [][]byte      // Line split into field / data tokens
+		field     string        // Current field name
+		data      []byte        // Current data
+		ok        bool          // Map key checking flag
+		blankLine bool          // Flag when previous line is blank
+		err       error
+	)
+
+	b = bufio.NewReader(in)
+	j = Jar{}
+	r = Record{}
 
 	// Make sure the name to use for the free text block is uppercased.
-	freetext = (string)(bytes.ToUpper([]byte(freetext)))
+	freetext = strings.ToUpper(freetext)
 
 	// Start off assuming last field seen was the special freetext field. If the
 	// record does not actually start with free text then the field name found
@@ -47,114 +63,97 @@ func Read(in io.Reader, freetext string) Jar {
 	// of just a free text block without having to precede it with a blank line.
 	lastField := freetext
 
-	// work variables for the current field and it's data
-	var (
-		raw    []byte   // Current raw line
-		line   []byte   // Current clean (trimmed) line
-		tokens [][]byte // Line split into field / data tokens
-		field  string   // Current field name
-		data   []byte   // Current data
-		ok     bool     // Map key checking flag
-		err    error
-	)
+	// Helper: if current record not empty add it to the jar and create a new
+	// record. Also reset lastField to the free text block field - see above.
+	addJar := func() {
+		if len(r) > 0 {
+			j = append(j, r)
+			r = Record{}
+		}
+		lastField = freetext
+		blankLine = false
+	}
 
-	for {
+	// Main processing loop
+	for err == nil {
+
 		raw, err = b.ReadBytes('\n')
-		line = bytes.TrimSpace(raw)
 
-		// Work out our field and data parts
-		tokens = splitLine.FindSubmatch(line)
-		switch len(tokens) {
-		case 3:
-			field, data = string(bytes.ToUpper(tokens[1])), tokens[2]
-		case 2:
-			field, data = "", tokens[1]
-		default:
-			panic("should not happen!")
-		}
-
-		// Ignore comments if not processing the free text block
+		// If not processing freetext block
 		if _, ok = r[freetext]; !ok {
-			if field == "" && bytes.HasPrefix(data, comment) {
-				continue
-			}
-		}
 
-		// If not processing the free text block do we need to start it? There is
-		// no point starting a free block at EOF so just exit out of the loop.
-		if _, ok = r[freetext]; !ok {
-			if field == "" && len(data) == 0 {
-				if err == io.EOF {
-					break
-				}
-				r[freetext] = []byte{}
-				continue
-			}
-		}
+			line = bytes.TrimSpace(raw)
 
-		// Special handling of comments and leading whitespace when processing the
-		// free text block
-		if _, ok = r[freetext]; ok {
-			field = freetext
 			switch {
-
-			// If all the whitespace was stripped from the raw line output a blank line
-			case len(raw) != 0 && len(line) == 0:
-				// Check if previous line is terminated, if not terminate it
-				if l := len(r[freetext]); l != 0 && r[freetext][l-1] != '\n' {
-					data = []byte("\n\n")
-				} else {
-					data = []byte("\n")
+			case len(line) == 0:
+				// Ignore blank lines caused by errors, otherwise start free text block.
+				// Also need to check if first line is a blank line in which case we
+				// include it in the freetextblock and not as a separator.
+				if err == nil {
+					r[freetext] = []byte{}
+					blankLine = lastField == freetext
 				}
-
-			// If raw line started with whitespace keep it but strip from the right still
-			case bytes.HasPrefix(raw, []byte(" ")) || bytes.HasPrefix(raw, []byte("\t")):
-				if l := len(r[freetext]); l != 0 && r[freetext][l-1] != '\n' {
-					data = []byte("\n")
-					data = append(data, bytes.TrimRightFunc(raw, unicode.IsSpace)...)
-				} else {
-					data = bytes.TrimRightFunc(raw, unicode.IsSpace)
-				}
-
+				continue
+			case bytes.HasPrefix(line, comment):
+				continue
+			case bytes.Equal(line, separator):
+				addJar()
+				continue
 			}
-		}
 
-		// If we find a record separator start new record after adding current
-		// record to the jar - but don't add empty records to the jar.
-		if bytes.Equal(line, separator) {
-			if len(r) > 0 {
-				j = append(j, r)
-				r = Record{}
+			tokens = splitLine.FindSubmatch(line)
+			field, data = string(bytes.ToUpper(tokens[1])), tokens[2]
+
+			// If we have no field name and we are processing the freetext block the
+			// free text block started on the first line of the record. So we have to
+			// store the line for the free text block with only the right side
+			// stripped of whitespace.
+			if field == "" && lastField == freetext {
+				r[freetext] = bytes.TrimRightFunc(raw, unicode.IsSpace)
+				continue
 			}
-			lastField = freetext
-			continue
-		}
 
-		// Record a change in the field name. If it doesn't change we are appending
-		// data to the last field seen so append a space to it's data first - as
-		// long as the previous value does not end with a newline or the new data
-		// starts with a newline, otherwise we get trailing whitespace.
-		if field != "" && field != lastField {
-			lastField = field
+			if field != "" {
+				lastField = field
+			}
+
+			if _, ok = r[lastField]; ok {
+				r[lastField] = append(r[lastField], ' ')
+			}
+			r[lastField] = append(r[lastField], data...)
+
 		} else {
-			if l := len(r[lastField]); l != 0 && r[lastField][l-1] != '\n' {
-				if d := len(data); d != 0 && data[0] != '\n' {
-					r[lastField] = append(r[lastField], ' ')
-				}
+			// Processing freetext block if we get here
+
+			// Only trim right to keep leading whitespace...
+			line = bytes.TrimRightFunc(raw, unicode.IsSpace)
+
+			// ... but trim left to check for a record separator
+			if bytes.Equal(bytes.TrimLeftFunc(line, unicode.IsSpace), separator) {
+				addJar()
+				continue
 			}
+
+			// If previous line was blank or current line is empty or starts with
+			// whitespace append a line feed
+			if blankLine || len(line) == 0 || bytes.IndexFunc(line, unicode.IsSpace) == 0 {
+				r[freetext] = append(r[freetext], '\n')
+			}
+
+			blankLine = len(line) == 0
+
+			// If didn't append a line feed and we already have text append a space
+			if l := len(r[freetext]); l != 0 && r[freetext][l-1] != '\n' {
+				r[freetext] = append(r[freetext], ' ')
+			}
+
+			// Append actual line data
+			r[freetext] = append(r[freetext], line...)
 		}
 
-		r[lastField] = append(r[lastField], data...)
-
-		if err != nil {
-			break
-		}
 	}
 
-	// Add last record to the jar as long as the record isn't empty
-	if len(r) > 0 {
-		j = append(j, r)
-	}
+	addJar() // Add last record to the jar
 
 	return j
 }

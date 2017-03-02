@@ -73,3 +73,11 @@ func (*Start) Pick() has.Inventory {
 	s := registry[rand.Intn(len(registry))]
 	return FindInventory(s.Parent())
 }
+
+// Copy returns a copy of the Start receiver.
+func (s *Start) Copy() has.Attribute {
+	if s == nil {
+		return (*Start)(nil)
+	}
+	return NewStart()
+}

@@ -36,7 +36,7 @@ func TestGroupSend(t *testing.T) {
 		for _, b := range bufs {
 			{
 				have := collectDelivery(b)
-				want := "\nHello World!\n"
+				want := "\x1b[0m\nHello World!\n"
 
 				if !bytes.Equal(have, []byte(want)) {
 					t.Errorf("GroupSend %d buffers have: %+q want: %+q", c, have, want)
@@ -61,7 +61,7 @@ func TestGroupSendAppend(t *testing.T) {
 		for _, b := range bufs {
 			{
 				have := collectDelivery(b)
-				want := "\nHello World!\n"
+				want := "\x1b[0m\nHello World!\n"
 
 				if !bytes.Equal(have, []byte(want)) {
 					t.Errorf("GroupSendAppend %d buffers have: %+q want: %+q", c, have, want)

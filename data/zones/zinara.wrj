@@ -32,10 +32,11 @@ You are in a small, cosy common room in the dragon's breath tavern. Looking
 around you see a few chairs and tables for patrons. To the east you see a bar
 and to the north there is the glow of a fire.
 %%
-    Ref: L3
-   Name: Tavern entrance
-Aliases: TAVERN ENTRANCE
-  Exits: E→L5 S→L4 SW→L2 W→L1
+      Ref: L3
+     Name: Tavern entrance
+  Aliases: TAVERN ENTRANCE
+    Exits: E→L5 S→L4 SW→L2 W→L1
+Inventory: L3N1
 
 You are in the entryway to the dragon's breath tavern. To the west you see an
 inviting fireplace and south an even more inviting bar. Eastward a door leads
@@ -322,7 +323,7 @@ continues south or you can go north into the gardens.
      Name: Secluded path by shed
   Aliases: GARDENS PATH SECLUDED
     Exits: N→L35 S→L37
-Inventory: L36N1 L36N2
+Inventory: L36N1 L36N2 L36N3
 
 You are on a small secluded gravel path screened off from the formal gardens by
 large bushes. To the south is a small shed with its door facing you. A rock has
@@ -616,6 +617,8 @@ accommodation for the gate-warden on duty. The only exit is north.
 Narrative:
      Name: an ornate fireplace
     Alias: FIRE FIREPLACE
+   Vetoes: GET→For some inexplicable reason you can't just rip out the
+           fireplace and take it!
 
 This is a very ornate fireplace carved from marble. Either side a dragon curls
 downward until the head is below the fire looking upward, giving the impression
@@ -637,6 +640,14 @@ Narrative:
 
 Well you suppose these are tables. If so it was a blind carpenter who had had a
 very bad day.
+%%
+      Ref: L3N1
+Narrative:
+     Name: the tavern door
+  Aliases: DOOR
+     Door: EXIT→E RESET→1m
+
+This is a sturdy wooden door with a simple latch.
 %%
       Ref: L4N1
 Narrative:
@@ -660,7 +671,7 @@ away at it.
   Narrative:
        Name: a rock
       Alias: ROCK
-
+     Vetoes: GET→The rock seems quite immovable.
 
 This is a dull grey rock about three feet high and a foot across at the base. As
 it rises it tapers to a rounded point. Near its base you notice there is a small
@@ -671,8 +682,17 @@ Narrative:
      Name: a small crack in the rock
     Alias: CRACK
 Inventory: O6
+   Vetoes: GET→The small crack in the rock is is not a portable crack...
 
 This is a small crack near the base of the rock.
+%%
+      Ref: L36N3
+Narrative:
+     Name: the shed door
+  Aliases: DOOR
+     Door: EXIT→S RESET→1m
+
+This is a simple wooden door.
 %%
       Ref: L38N1
 Narrative:

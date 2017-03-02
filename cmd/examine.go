@@ -38,7 +38,7 @@ func Examine(s *state) {
 	}
 
 	// Check examine is not vetoed by item
-	if veto := attr.FindVetoes(what).Check("EXAMINE"); veto != nil {
+	if veto := attr.FindVetoes(what).Check("EXAMINE", "EXAM"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}

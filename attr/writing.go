@@ -84,3 +84,11 @@ func (w *Writing) Writing() (writing string) {
 func (w *Writing) Description() string {
 	return "It has something written on it."
 }
+
+// Copy returns a copy of the Writing receiver.
+func (w *Writing) Copy() has.Attribute {
+	if w == nil {
+		return (*Writing)(nil)
+	}
+	return NewWriting(w.writing)
+}

@@ -23,6 +23,9 @@ type Inventory interface {
 	// Contents returns a []Thing representing the contents of the Inventory.
 	Contents() []Thing
 
+	// Narratives returns a []Thing representing the narratives of the Inventory.
+	Narratives() []Thing
+
 	// Crowded returns true if the Inventory is considered crowded otherwise
 	// false. Definition of crowded is implementation dependant.
 	Crowded() bool

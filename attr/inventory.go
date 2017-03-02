@@ -118,8 +118,8 @@ func (i *Inventory) Add(t has.Thing) {
 		i.split++
 	} else {
 		i.contents = append(i.contents, t)
-		FindLocate(t).SetWhere(i)
 	}
+	FindLocate(t).SetWhere(i)
 
 	// TODO: Need to check for players or mobiles
 	if FindPlayer(t).Found() {
@@ -151,7 +151,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			// config.Inventory.Compact stops us shrinking small buffers all the time
 			// where the gain is minimal.
 			if l, c := len(i.contents), cap(i.contents); (c - l - l) >= config.Inventory.Compact {
-				i.contents = append(make([]has.Thing, 0, l), i.contents[:]...)
+				i.contents = append(make([]has.Thing, 0, l), i.contents...)
 			}
 
 			// TODO: Need to check for players or mobiles
@@ -196,6 +196,20 @@ func (i *Inventory) Contents() []has.Thing {
 	}
 	l := make([]has.Thing, len(i.contents)-i.split)
 	copy(l, i.contents[i.split:])
+	return l
+}
+
+// Narratives returns a 'copy' of the Inventory narrative contents. That is a
+// copy of the slice containing has.Thing interface headers. Therefore the
+// Inventory narratives may be indirectly manipulated through the copy but
+// changes to the actual slice are not possible - use the Add and Remove
+// methods instead.
+func (i *Inventory) Narratives() []has.Thing {
+	if i == nil {
+		return []has.Thing{}
+	}
+	l := make([]has.Thing, i.split)
+	copy(l, i.contents[:i.split])
 	return l
 }
 
@@ -264,4 +278,20 @@ func (i *Inventory) Empty() bool {
 		return len(i.contents)-i.split == 0
 	}
 	return true
+}
+
+// Copy returns a copy of the Inventory receiver. The copy will be made
+// recursively copying the complete content of the Inventory as well.
+//
+// BUG(diddymus): There are no checks made for cyclic references which could
+// send us into infinite recursion.
+func (i *Inventory) Copy() has.Attribute {
+	if i == nil {
+		return (*Inventory)(nil)
+	}
+	ni := NewInventory()
+	for _, a := range i.contents {
+		ni.Add(a.Copy())
+	}
+	return ni
 }

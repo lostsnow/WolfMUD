@@ -96,3 +96,15 @@ func (p *Player) Write(b []byte) (n int, err error) {
 	}
 	return
 }
+
+// Copy returns a copy of the Player receiver.
+//
+// NOTE: The copy will use the same io.Writer as the original.
+func (p *Player) Copy() has.Attribute {
+	if p == nil {
+		return (*Player)(nil)
+	}
+	np := NewPlayer(p.Writer)
+	np.SetPromptStyle(p.PromptStyle)
+	return np
+}

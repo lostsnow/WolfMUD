@@ -55,7 +55,7 @@ func TestSimpleSend(t *testing.T) {
 		{
 			[]message{
 				{[]string{"Hello World!"}, noLF, noisy},
-			}, 1, "Hello World!\n",
+			}, 1, "\x1b[0mHello World!\n",
 		},
 		{
 			[]message{
@@ -65,7 +65,7 @@ func TestSimpleSend(t *testing.T) {
 		{
 			[]message{
 				{[]string{"Hello World!"}, LF, noisy},
-			}, 1, "\nHello World!\n",
+			}, 1, "\x1b[0m\nHello World!\n",
 		},
 
 		// Two messages
@@ -79,7 +79,7 @@ func TestSimpleSend(t *testing.T) {
 			[]message{
 				{[]string{"Hello"}, noLF, silent},
 				{[]string{"World!"}, noLF, noisy},
-			}, 1, "World!\n",
+			}, 1, "\x1b[0mWorld!\n",
 		},
 		{
 			[]message{
@@ -91,31 +91,31 @@ func TestSimpleSend(t *testing.T) {
 			[]message{
 				{[]string{"Hello"}, noLF, silent},
 				{[]string{"World!"}, LF, noisy},
-			}, 1, "\nWorld!\n",
+			}, 1, "\x1b[0m\nWorld!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy},
 				{[]string{"World!"}, noLF, silent},
-			}, 1, "Hello\n",
+			}, 1, "\x1b[0mHello\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy},
 				{[]string{"World!"}, noLF, noisy},
-			}, 2, "Hello\nWorld!\n",
+			}, 2, "\x1b[0mHello\nWorld!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy},
 				{[]string{"World!"}, LF, silent},
-			}, 1, "Hello\n",
+			}, 1, "\x1b[0mHello\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy},
 				{[]string{"World!"}, LF, noisy},
-			}, 2, "Hello\nWorld!\n",
+			}, 2, "\x1b[0mHello\nWorld!\n",
 		},
 		{
 			[]message{
@@ -127,7 +127,7 @@ func TestSimpleSend(t *testing.T) {
 			[]message{
 				{[]string{"Hello"}, LF, silent},
 				{[]string{"World!"}, noLF, noisy},
-			}, 1, "World!\n",
+			}, 1, "\x1b[0mWorld!\n",
 		},
 		{
 			[]message{
@@ -139,31 +139,31 @@ func TestSimpleSend(t *testing.T) {
 			[]message{
 				{[]string{"Hello"}, LF, silent},
 				{[]string{"World!"}, LF, noisy},
-			}, 1, "\nWorld!\n",
+			}, 1, "\x1b[0m\nWorld!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, LF, noisy},
 				{[]string{"World!"}, noLF, silent},
-			}, 1, "\nHello\n",
+			}, 1, "\x1b[0m\nHello\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, LF, noisy},
 				{[]string{"World!"}, noLF, noisy},
-			}, 2, "\nHello\nWorld!\n",
+			}, 2, "\x1b[0m\nHello\nWorld!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, LF, noisy},
 				{[]string{"World!"}, LF, silent},
-			}, 1, "\nHello\n",
+			}, 1, "\x1b[0m\nHello\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, LF, noisy},
 				{[]string{"World!"}, LF, noisy},
-			}, 2, "\nHello\nWorld!\n",
+			}, 2, "\x1b[0m\nHello\nWorld!\n",
 		},
 	}
 
@@ -242,7 +242,7 @@ func TestSendAppend(t *testing.T) {
 		{
 			[]message{
 				{[]string{"Hello World!"}, noLF, noisy, append},
-			}, 1, "Hello World!\n",
+			}, 1, "\x1b[0mHello World!\n",
 		},
 		{
 			[]message{
@@ -252,12 +252,12 @@ func TestSendAppend(t *testing.T) {
 		{
 			[]message{
 				{[]string{"Hello World!"}, LF, noisy, append},
-			}, 1, "\nHello World!\n",
+			}, 1, "\x1b[0m\nHello World!\n",
 		},
 		{
 			[]message{
 				{[]string{""}, LF, noisy, append},
-			}, 1, "\n\n",
+			}, 1, "\x1b[0m\n\n",
 		},
 
 		// Two messages
@@ -265,25 +265,25 @@ func TestSendAppend(t *testing.T) {
 			[]message{
 				{[]string{"Hello"}, noLF, noisy, append},
 				{[]string{"World!"}, noLF, noisy, append},
-			}, 1, "Hello World!\n",
+			}, 1, "\x1b[0mHello World!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, LF, noisy, append},
 				{[]string{"World!"}, LF, noisy, append},
-			}, 1, "\nHello World!\n",
+			}, 1, "\x1b[0m\nHello World!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy, send},
 				{[]string{"World!"}, noLF, noisy, append},
-			}, 1, "Hello World!\n",
+			}, 1, "\x1b[0mHello World!\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, LF, noisy, send},
 				{[]string{"World!"}, LF, noisy, append},
-			}, 1, "\nHello World!\n",
+			}, 1, "\x1b[0m\nHello World!\n",
 		},
 
 		// Three messages
@@ -292,21 +292,21 @@ func TestSendAppend(t *testing.T) {
 				{[]string{"Hello"}, noLF, noisy, send},
 				{[]string{"World"}, noLF, noisy, append},
 				{[]string{"!"}, noLF, noisy, append},
-			}, 1, "Hello World !\n",
+			}, 1, "\x1b[0mHello World !\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy, append},
 				{[]string{"World"}, noLF, noisy, append},
 				{[]string{"!"}, noLF, noisy, append},
-			}, 1, "Hello World !\n",
+			}, 1, "\x1b[0mHello World !\n",
 		},
 		{
 			[]message{
 				{[]string{"Hello"}, noLF, noisy, append},
 				{[]string{"World"}, noLF, silent, append},
 				{[]string{"!"}, noLF, noisy, append},
-			}, 1, "Hello !\n",
+			}, 1, "\x1b[0mHello !\n",
 		},
 
 		// Four messages
@@ -316,7 +316,7 @@ func TestSendAppend(t *testing.T) {
 				{[]string{"World!"}, noLF, noisy, append},
 				{[]string{"Hello"}, noLF, noisy, send},
 				{[]string{"World!"}, noLF, noisy, append},
-			}, 2, "Hello World!\nHello World!\n",
+			}, 2, "\x1b[0mHello World!\nHello World!\n",
 		},
 		{
 			[]message{
@@ -324,7 +324,7 @@ func TestSendAppend(t *testing.T) {
 				{[]string{"World!"}, LF, noisy, append},
 				{[]string{"Hello"}, LF, noisy, send},
 				{[]string{"World!"}, LF, noisy, append},
-			}, 2, "\nHello World!\nHello World!\n",
+			}, 2, "\x1b[0m\nHello World!\nHello World!\n",
 		},
 		{
 			[]message{
@@ -332,7 +332,7 @@ func TestSendAppend(t *testing.T) {
 				{[]string{"World!"}, LF, noisy, append},
 				{[]string{"Hello"}, LF, noisy, send},
 				{[]string{"World!"}, LF, noisy, append},
-			}, 2, "\nWorld!\nHello World!\n",
+			}, 2, "\x1b[0m\nWorld!\nHello World!\n",
 		},
 
 		// Location example
@@ -341,7 +341,7 @@ func TestSendAppend(t *testing.T) {
 				{[]string{"[ Somewhere ]"}, LF, noisy, send},
 				{[]string{""}, LF, noisy, send},
 				{[]string{"This is somewhere."}, LF, noisy, append},
-			}, 2, "\n[ Somewhere ]\nThis is somewhere.\n",
+			}, 2, "\x1b[0m\n[ Somewhere ]\nThis is somewhere.\n",
 		},
 	}
 
@@ -489,6 +489,9 @@ func TestCombo(t *testing.T) {
 				}
 				if count == 0 && !omitLF2 {
 				} else {
+					if len(want) > 0 && want[0] != '\x1b' {
+						want = "\x1b[0m" + want
+					}
 					if count != 0 || !omitLF2 {
 						want = want + "\n"
 					}

@@ -8,6 +8,7 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
+	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
 
@@ -15,12 +16,17 @@ import (
 	"strings"
 )
 
+func init() {
+	event.Script = Script
+}
+
 // state contains the current parsing state for commands. The state fields may
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
 //
-// NOTE: where is only set when the state is created. If the actor moves to
-// another location where should be updated as well.
+// NOTE: the where field is only set when the state is created. If the actor
+// moves to another location the where field should be updated as well. See the
+// move command for such an example.
 //
 // TODO: Need to document msg buffers properly
 type state struct {
@@ -31,6 +37,7 @@ type state struct {
 	cmd         string        // The current command being processed
 	words       []string      // Input as uppercased words, less stopwords
 	ok          bool          // Flag to indicate if command was successful
+	scripting   bool          // Is state in scripting mode?
 
 	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
 	locks []has.Inventory // List of locks we want to be holding
@@ -39,10 +46,39 @@ type state struct {
 	msg message.Msg
 }
 
-// NewState returns a *state initialised with the passed Thing and input. If
+// Parse initiates processing of the input string for the specified Thing. The
+// input string is expected to be input from a player. The actual command
+// processed will be returned. For example GET or DROP.
+//
+// Parse runs with state.scripting set to false, disallowing scripting specific
+// commands from being executed by players directly.
+//
+// When sync handles a command the command may determine it needs to hold
+// additional locks. In this case sync will return false and should be called
+// again. This repeats until the list of locks is complete, the command
+// processed and sync returns true.
+func Parse(t has.Thing, input string) string {
+	s := newState(t, input)
+	for !s.sync() {
+	}
+	return s.cmd
+}
+
+// Script processes the input string the same as Parse. However Script runs
+// with the state.scripting flag set to true, permitting scripting specific
+// commands to be executed.
+func Script(t has.Thing, input string) string {
+	s := newState(t, input)
+	s.scripting = true
+	for !s.sync() {
+	}
+	return s.cmd
+}
+
+// newState returns a *state initialised with the passed Thing and input. If
 // the passed Thing is locatable the containing Inventory is added to the lock
 // list, but the lock is not taken at this point.
-func NewState(t has.Thing, input string) *state {
+func newState(t has.Thing, input string) *state {
 
 	s := &state{
 		actor: t,
@@ -94,17 +130,6 @@ func (s *state) tokenizeInput(input string) {
 	}
 }
 
-// parse repeatedly calls sync until it returns true.
-//
-// When sync handles a command the command may determine it needs to hold
-// additional locks. In this case sync will return false and should be called
-// again. This repeats until the list of locks is complete, the command
-// processed and sync returns true.
-func (s *state) parse() {
-	for !s.sync() {
-	}
-}
-
 // sync is called to do the actual locking/unlocking for commands. Having this
 // separate from takes advantage of unwinding the locks using defer. This makes
 // sync very simple. If the list of locks before and after handling a command
@@ -112,7 +137,7 @@ func (s *state) parse() {
 // command. In this case we return true. If more locks need to be acquired we
 // return false and should be called again.
 //
-// NOTE: There is usually at least one lock, added by NewState, which is the
+// NOTE: There is usually at least one lock, added by newState, which is the
 // containing Inventory of the current actor - if it is locatable.
 //
 // NOTE: At the moment locks are only added - using AddLock. A change in the
@@ -143,8 +168,17 @@ func (s *state) sync() (inSync bool) {
 // a handler cannot be found a message will be written to the actor's output
 // buffer.
 //
+// handleCommand will only allow scripting specific commands to be executed if
+// the state.scripting field is set to true.
+//
 // BUG(diddymus): Should this be moved into handler.go?
 func (s *state) handleCommand() {
+
+	if len(s.cmd) > 0 && s.cmd[0] == '$' && !s.scripting {
+		s.msg.Actor.SendBad("Ehh?")
+		return
+	}
+
 	switch handler, valid := handlers[s.cmd]; {
 	case valid:
 		handler(s)
@@ -169,6 +203,9 @@ func (s *state) handleCommand() {
 // scripted, the input string can be passed in as multiple strings that will
 // joined together automatically with space separators.
 //
+// script will automatically set and restore the state.scripting flag allowing
+// scripting specific commands to be executed.
+//
 // TODO: Suppression of messages is not very efficient as any messages are
 // still 'sent' and we just chop them off again by truncating the buffers.
 // Ideally we should stop the buffers from being written to in the first place.
@@ -178,7 +215,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	input := strings.Join(inputs, " ")
 
-	i, w, c := s.input, s.words, s.cmd // Save state
+	i, w, c, sc := s.input, s.words, s.cmd, s.scripting // Save state
 
 	// Set silent mode on buffers storing old modes
 	a := s.msg.Actor.Silent(!actor)
@@ -187,6 +224,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 
 	s.tokenizeInput(input)
 	s.ok = false
+	s.scripting = true
 	s.handleCommand()
 
 	// Restore old silent modes
@@ -195,7 +233,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	ot.Silent(true)
 	of.Silent(false)
 
-	s.input, s.words, s.cmd = i, w, c // Restore state
+	s.input, s.words, s.cmd, s.scripting = i, w, c, sc // Restore state
 }
 
 // scriptAll is a helper method that is equivalent to calling script with no

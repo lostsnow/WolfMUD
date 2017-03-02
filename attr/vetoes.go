@@ -8,6 +8,7 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
 
 	"strings"
 )
@@ -66,7 +67,11 @@ func (v *Vetoes) Found() bool {
 
 // Unmarshal is used to turn the passed data into a new Vetoes attribute.
 func (*Vetoes) Unmarshal(data []byte) has.Attribute {
-	return NewVetoes()
+	veto := []has.Veto{}
+	for _, data := range recordjar.Decode.KeyedStringList(data) {
+		veto = append(veto, NewVeto(data[0], data[1]))
+	}
+	return NewVetoes(veto...)
 }
 
 func (v *Vetoes) Dump() (buff []string) {
@@ -99,6 +104,18 @@ func (v *Vetoes) Check(cmd ...string) has.Veto {
 		}
 	}
 	return nil
+}
+
+// Copy returns a copy of the Vetoes receiver.
+func (v *Vetoes) Copy() has.Attribute {
+	if v == nil {
+		return (*Vetoes)(nil)
+	}
+	nv := make([]has.Veto, 0, len(v.vetoes))
+	for _, v := range v.vetoes {
+		nv = append(nv, NewVeto(v.Command(), v.Message()))
+	}
+	return NewVetoes(nv...)
 }
 
 // Veto implements a veto for a specific command. Veto need to be added to a

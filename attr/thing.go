@@ -138,3 +138,19 @@ func (t *Thing) Dump() (buff []string) {
 func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
+
+// Copy returns a copy of the Thing receiver. The copy will be made recursivly
+// copying all associated Attribute and Thing.
+//
+// BUG(diddymus): There are no checks made for cyclic references which could
+// send us into infinite recursion.
+func (t *Thing) Copy() has.Thing {
+	if t == nil {
+		return (*Thing)(nil)
+	}
+	na := make([]has.Attribute, len(t.attrs), len(t.attrs))
+	for i, a := range t.attrs {
+		na[i] = a.Copy()
+	}
+	return NewThing(na...)
+}

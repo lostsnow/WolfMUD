@@ -47,7 +47,7 @@ func (g *game) gameInit() {
 	stats.Add(g.player)
 	i.Unlock()
 
-	cmd.Parse(g.player, "LOOK")
+	cmd.Script(g.player, "$POOF")
 	g.nextFunc = g.gameProcess
 }
 
