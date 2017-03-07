@@ -304,7 +304,7 @@ func (d *Door) Open() {
 	}
 
 	if d.reset != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "CLOSE "+aliases[0], d.reset)
+		d.Cancel = event.Queue(d.Parent(), "CLOSE "+aliases[0], d.reset, 0)
 	}
 }
 
@@ -335,7 +335,7 @@ func (d *Door) Close() {
 	}
 
 	if d.reset != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "OPEN "+aliases[0], d.reset)
+		d.Cancel = event.Queue(d.Parent(), "OPEN "+aliases[0], d.reset, 0)
 	}
 }
 

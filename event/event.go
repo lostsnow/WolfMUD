@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -24,11 +25,16 @@ var Script func(t has.Thing, input string) string
 // Cancel channel should be closed to cancel the pending event that was queued.
 type Cancel chan<- struct{}
 
-// Queue schedules a scripted event to happen after the given delay period.
-// The command specified in the input will run wih access to scripting only
+// Queue schedules a scripted event to happen after the given delay period. The
+// command specified in the input will run with access to scripting only
 // commands starting with a '$' symbol. The event can be cancelled by closing
-// the returned Cancel channel.
-func Queue(thing has.Thing, input string, delay time.Duration) Cancel {
+// the returned Cancel channel. The thing is the Thing for which the input will
+// be scripted. The input is the command to script. The delay is the period
+// after which the command will be run. The jitter is a random amount that can
+// be added to the delay. So the actual delay for an event will be between
+// delay and delay+jitter. For a totally random event delay can be 0s. The
+// minimum period+jitter will be 1 second, adjusted if required.
+func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Duration) Cancel {
 
 	// Manually find the proper name of the thing instead of using attr.FindName
 	// to avoid cyclic imports with the attr and cmd packages.
@@ -41,9 +47,27 @@ func Queue(thing has.Thing, input string, delay time.Duration) Cancel {
 
 	cancel := make(chan struct{})
 
+	// Calculate delay in seconds.
+	ds := int64(delay / time.Second)
+
+	// Calculate jitter in seconds and pick random jitter
+	rj := int64(0)
+	if jitter != 0 {
+		js := int64(jitter / time.Second)
+		if js > 0 {
+			rj = rand.Int63n(js)
+		}
+	}
+
+	// Calc total delay as delay + random jitter in seconds, minimum 1 second
+	td := time.Duration(ds+rj) * time.Second
+	if td < 1*time.Second {
+		td = 1 * time.Second
+	}
+
 	go func() {
-		t := time.NewTimer(delay)
-		log.Printf("Event queued for %q in %s: %s", name, delay, input)
+		t := time.NewTimer(td)
+		log.Printf("Event queued for %q in %s: %s", name, td, input)
 		select {
 		case <-cancel:
 			log.Printf("Event cancelled for %q: %s", name, input)
@@ -51,7 +75,7 @@ func Queue(thing has.Thing, input string, delay time.Duration) Cancel {
 				<-t.C
 			}
 		case <-t.C:
-			log.Printf("Even delivered for %q: %s", name, input)
+			log.Printf("Event delivered for %q: %s", name, input)
 			Script(thing, input)
 		}
 	}()
