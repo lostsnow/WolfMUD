@@ -645,7 +645,7 @@ very bad day.
 Narrative:
      Name: the tavern door
   Aliases: DOOR
-     Door: EXIT→E RESET→1m
+     Door: EXIT→E RESET→1m JITTER→1m
 
 This is a sturdy wooden door with a simple latch.
 %%

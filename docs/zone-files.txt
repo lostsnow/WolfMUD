@@ -153,11 +153,12 @@ ZONE RECORDS
 
       EXIT→<direction>
       RESET→<period>
+      JITTER→<period>
       OPEN→<boolean>
 
     For example:
 
-      DOOR: EXIT→E RESET→2m OPEN→false
+      DOOR: EXIT→E RESET→2m JITTER→1m OPEN→false
 
     EXIT defines the direction that is blocked when the DOOR is closed. The
     direction can be specified in long or short form (SEE EXITS). If an EXIT
@@ -172,6 +173,15 @@ ZONE RECORDS
     period should be given in the form: 0h0m0s for example "30s" for 30
     seconds. A value equivalent to a duration of zero length disables the
     automatic reset. For example 0h, 0m or 0s. If omitted defaults to 0s.
+
+    JITTER defines a maximum random amount of time to add to the RESET delay.
+    That is, the actual delay will be between RESET and RESET+JITTER. In the
+    example a JITTER of 1m will causing the DOOR to reset after a delay of
+    between 2 and 3 minutes (between 2m and 2m+1m). A JITTER of 0s adds no
+    randomness to the RESET delay. If omitted defaults to 0s.
+
+    If RESET and JITTER are both set to 0s the DOOR will not automatically
+    reset to its initial state.
 
     NOTE: A DOOR attribute should only be added to narrative items in a
     location. Adding a DOOR directly to a location or a moveable item may

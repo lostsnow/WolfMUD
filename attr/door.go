@@ -49,12 +49,12 @@ func init() {
 //  Narrative:
 //       Name: the tavern door
 //    Aliases: DOOR
-//       Door: EXIT→E RESET→1m
+//       Door: EXIT→E RESET→1m JITTER→1m
 //
 //  This is a sturdy wooden door with a simple latch.
 //  %%
 //
-// This adds a Thing reprsenting the door to L3 and blocks the exit going east
+// This adds a Thing representing the door to L3 and blocks the exit going east
 // (EXIT→E) to L5. During zone loading and Unmarshaling OtherSide is called on
 // the original door Thing. This creates another Thing used for the 'Other
 // Side'. It is added to the location found by taking the exit the original
@@ -64,6 +64,11 @@ func init() {
 // are examining the original, in L5 we are examining the 'Other Side' which
 // appears to be the same door. Because the original and 'Other Side' share
 // state be can also issue 'OPEN DOOR' or 'CLOSE DOOR' in either L3 or L5.
+//
+// When the door is not in it's initial state it will reset after a delay of
+// between 1 and 2 minutes. That is, sometime between delay and delay+jitter.
+//
+// If delay and jitter are both zero the door will not reset automatically.
 //
 // NOTE: For now a Door attribute should only be added to a Thing with a
 // Narrative attribute that is placed at a location. Adding a Door attribute to
@@ -80,6 +85,7 @@ type Door struct {
 // reset together.
 type state struct {
 	reset    time.Duration // Duration until door resets to initial state
+	jitter   time.Duration // Modify reset by up to jitter amount
 	initOpen bool          // Initial state
 	open     bool          // Current state
 	event.Cancel
@@ -96,12 +102,14 @@ var (
 // door blocks - specified as per attr.Exit constants. Open specifies whether
 // the door is initially open (true) or closed (false). The reset is the
 // duration to wait before resetting the door to its initial state - open or
-// closed as specified by open.
+// closed as specified by open. The jitter is a random amount of time to add to
+// the reset delay. Adding jitter means the Door will reset with an actual
+// delay of between delay and delay+jitter.
 //
 // This actually only creates one side of a door. To create the 'other side' of
 // the door Door.OtherSide should be called.
-func NewDoor(direction byte, open bool, reset time.Duration) *Door {
-	return &Door{Attribute{}, direction, &state{reset, open, open, nil}}
+func NewDoor(direction byte, open bool, reset time.Duration, jitter time.Duration) *Door {
+	return &Door{Attribute{}, direction, &state{reset, jitter, open, open, nil}}
 }
 
 // OtherSide creates the 'other side' of a Door and places it in the World. The
@@ -125,7 +133,7 @@ func (d *Door) OtherSide() {
 		return
 	}
 
-	// Try and get original's proper name
+	// Try and get originals proper name
 	n := FindName(p).Name("'door'")
 
 	// Create 'other side' of the door as a duplicate Thing
@@ -155,14 +163,14 @@ func (d *Door) OtherSide() {
 		return
 	}
 
-	// Find opossing location's inventory
+	// Find opposing location's inventory
 	i := e.LeadsTo(d.direction)
 	if i == nil {
 		log.Printf("There is no exit %q for Door %q to block, cannot add other side", e.ToName(d.direction), n)
 		return
 	}
 
-	// Add 'other side' to opossing location's inventory
+	// Add 'other side' to opposing location's inventory
 	i.Add(t)
 
 }
@@ -187,7 +195,7 @@ func (n *Door) Found() bool {
 // Unmarshal is used to turn the passed data into a new Door attribute.
 func (*Door) Unmarshal(data []byte) has.Attribute {
 
-	door := NewDoor(0, false, time.Duration(0))
+	door := NewDoor(0, false, time.Duration(0), time.Duration(0))
 	pairs := recordjar.Decode.PairList(data)
 
 	for _, pair := range pairs {
@@ -197,6 +205,8 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 			door.direction, _ = e.NormalizeDirection(pair[1])
 		case "RESET":
 			door.reset, _ = time.ParseDuration(strings.ToLower(pair[1]))
+		case "JITTER":
+			door.jitter, _ = time.ParseDuration(strings.ToLower(pair[1]))
 		case "OPEN":
 			door.initOpen = recordjar.Decode.Boolean([]byte(pair[1]))
 			door.open = door.initOpen
@@ -217,7 +227,7 @@ func (d *Door) Dump() (buff []string) {
 }
 
 func (s *state) dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Reset: %q Init: %t Open: %t", s, s.reset, s.initOpen, s.open))
+	buff = append(buff, DumpFmt("%p %[1]T Reset: %q Jitter: %q Init: %t Open: %t", s, s.reset, s.jitter, s.initOpen, s.open))
 	buff = append(buff, DumpFmt("%p %[1]T", s.Cancel))
 	return
 }
@@ -303,8 +313,8 @@ func (d *Door) Open() {
 		return
 	}
 
-	if d.reset != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "CLOSE "+aliases[0], d.reset, 0)
+	if d.reset+d.jitter != 0 && d.open != d.initOpen {
+		d.Cancel = event.Queue(d.Parent(), "CLOSE "+aliases[0], d.reset, d.jitter)
 	}
 }
 
@@ -334,8 +344,8 @@ func (d *Door) Close() {
 		return
 	}
 
-	if d.reset != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "OPEN "+aliases[0], d.reset, 0)
+	if d.reset+d.jitter != 0 && d.open != d.initOpen {
+		d.Cancel = event.Queue(d.Parent(), "OPEN "+aliases[0], d.reset, d.jitter)
 	}
 }
 
@@ -346,5 +356,5 @@ func (d *Door) Copy() has.Attribute {
 	if d == nil {
 		return (*Door)(nil)
 	}
-	return NewDoor(d.direction, d.initOpen, d.reset)
+	return NewDoor(d.direction, d.initOpen, d.reset, d.jitter)
 }
