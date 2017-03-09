@@ -139,11 +139,8 @@ func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
 
-// Copy returns a copy of the Thing receiver. The copy will be made recursivly
+// Copy returns a copy of the Thing receiver. The copy will be made recursively
 // copying all associated Attribute and Thing.
-//
-// BUG(diddymus): There are no checks made for cyclic references which could
-// send us into infinite recursion.
 func (t *Thing) Copy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)

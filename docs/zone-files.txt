@@ -206,6 +206,11 @@ ZONE RECORDS
     B leads back to A. As the exits are added to A and B independently this
     need not always be the case.
 
+    An EXITS pair may be left incomplete. For example, S or S→. This is
+    convenient as a reminder when developing a zone. Such incomplete pairs
+    will be ignored. To raise a warning when the zone is loaded use an
+    invalid reference instead. For example, S→X
+
     If an EXITS field is added to something an inventory will be automatically
     added as well even if there is no specific INVENTORY field.
 
@@ -292,6 +297,11 @@ ZONE RECORDS
     ZONE2:A, going west from ZONE2:A leads back to ZONE1:A. As the exits are
     added to ZONE1:A and ZONE2:A independently this need not always be the
     case.
+
+    A ZONELINKS pair may be left incomplete. For example: S, S→, S→ZINARA or
+    S→ZINARA:. This is convenient as a reminder when developing a zone. Such
+    incomplete pairs will be ignored. To raise a warning when the zone is
+    loaded use an invalid reference instead. For example, S→X:
 
     When a ZONELINKS field links to something an inventory will be added
     automatically to the target being linked to even if there is no specific
