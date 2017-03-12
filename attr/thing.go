@@ -40,6 +40,9 @@ func NewThing(a ...has.Attribute) *Thing {
 // reclaim objects. It can also help to break cyclic references that could
 // prevent garbage collection.
 func (t *Thing) Close() {
+	if t == nil {
+		return
+	}
 	t.Remove(t.attrs...)
 	t.attrs = nil
 }
