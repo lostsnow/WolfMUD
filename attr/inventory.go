@@ -19,21 +19,28 @@ func init() {
 // Inventory implements an attribute for container inventories. The most common
 // container usage is for locations and rooms as well as actual containers like
 // bags, boxes and inventories for mobiles. WolfMUD does not actually define a
-// specific type for locations. Locations are simply Things that have Inventory
-// and usually Exits attributes.
+// specific type for locations. Locations are simply Things that have Exits
+// attributes.
 //
-// For a complete description of narratives see the Narrative attribute type.
+// Any Thing added to an Inventory will automatically be assigned a Locate
+// attribute. A locate attribute is simply a back reference to the Inventory a
+// Thing is in. This enables a Thing to work out where it is.
 //
 // NOTE: The contents slice is split into two parts. Things with a Narrative
-// attribute are added to the begenning of the slice. All other Things are
+// attribute are added to the beginning of the slice. All other Things are
 // appended to the end of the slice. Which items are narrative and which are
 // not is tracked by split:
 //
-//	narattives := contents[:split]
+//	narratives := contents[:split]
 //	other := contents[split:]
 //
 //	countNarratives := split
 //	countOther := len(contents) - split
+//
+// For a complete description of narratives see the Narrative attribute type.
+//
+// TODO: A slice for contents is fine for convenience and simplicity but maybe
+// a linked list would be better? This would possibly save reslicing in Remove.
 //
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
@@ -101,9 +108,9 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Add puts the specified Thing into the Inventory. If the Thing needs to know
-// where it is - because it implements the has.Locate interface - we update
-// where the Thing is to point to the Inventory.
+// Add puts the specified Thing into the Inventory. If the Thing does not have
+// a Locate attribute one will be added automatically, otherwise the existing
+// Locate attribute will be updated.
 func (i *Inventory) Add(t has.Thing) {
 	if i == nil {
 		return
@@ -119,7 +126,13 @@ func (i *Inventory) Add(t has.Thing) {
 	} else {
 		i.contents = append(i.contents, t)
 	}
-	FindLocate(t).SetWhere(i)
+
+	// Give thing a locate attribute if it doesn't have one, else just update it
+	if l := FindLocate(t); !l.Found() {
+		t.Add(NewLocate(i))
+	} else {
+		l.SetWhere(i)
+	}
 
 	// TODO: Need to check for players or mobiles
 	if FindPlayer(t).Found() {
@@ -127,13 +140,10 @@ func (i *Inventory) Add(t has.Thing) {
 	}
 }
 
-// Remove tries to take the specified Thing from the Inventory. If the Thing is
-// removed successfully it is returned otherwise nil is returned. If the Thing
-// needs to know where it is - because it implements the has.Locate interface -
-// we update where the Thing is to nil as it is now nowhere.
-//
-// TODO: A slice is fine for conveniance and simplicity but maybe a linked list
-// would be better?
+// Remove tries to take the specified Thing from the Inventory. If the Thing
+// is removed successfully it is returned otherwise nil is returned. If
+// removed successfully the Locate attribute of the Thing will be set to nil
+// as it is now nowhere.
 func (i *Inventory) Remove(t has.Thing) has.Thing {
 	if i == nil {
 		return nil
@@ -283,8 +293,9 @@ func (i *Inventory) Empty() bool {
 // Copy returns a copy of the Inventory receiver. The copy will be made
 // recursively copying the complete content of the Inventory as well.
 //
-// BUG(diddymus): There are no checks made for cyclic references which could
-// send us into infinite recursion.
+// NOTE: There are no checks made for cyclic references which could send us
+// into infinite recursion. However cyclic references should be prevented by
+// the zone loader. See zones.isParent function.
 func (i *Inventory) Copy() has.Attribute {
 	if i == nil {
 		return (*Inventory)(nil)
