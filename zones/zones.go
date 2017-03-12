@@ -357,6 +357,7 @@ func (z *zone) closeStore() {
 			delete(s.Record, ref)
 		}
 		s.Record = nil
+		s.Thing.Close()
 		s.Thing = nil
 	}
 	z.store = nil
