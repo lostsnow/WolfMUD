@@ -83,11 +83,17 @@ type Door struct {
 // state represents the current state of a Door. It is shared between the
 // original Door and the 'other side' Door so that they will open, close and
 // reset together.
+//
+// The otherSide flag is to prevent duplicate door creation. For example assume
+// we have locations A and B with a door between them. We initialise the
+// locations in the order A then B. We find a door in A and create the 'other
+// side' in B. We would now find a door in B and create the 'other side' in A.
 type state struct {
-	reset    time.Duration // Duration until door resets to initial state
-	jitter   time.Duration // Modify reset by up to jitter amount
-	initOpen bool          // Initial state
-	open     bool          // Current state
+	reset     time.Duration // Duration until door resets to initial state
+	jitter    time.Duration // Modify reset by up to jitter amount
+	initOpen  bool          // Initial state
+	open      bool          // Current state
+	otherSide bool          // Does door have 'other side' yet?
 	event.Cancel
 }
 
@@ -109,7 +115,7 @@ var (
 // This actually only creates one side of a door. To create the 'other side' of
 // the door Door.OtherSide should be called.
 func NewDoor(direction byte, open bool, reset time.Duration, jitter time.Duration) *Door {
-	return &Door{Attribute{}, direction, &state{reset, jitter, open, open, nil}}
+	return &Door{Attribute{}, direction, &state{reset, jitter, open, open, false, nil}}
 }
 
 // OtherSide creates the 'other side' of a Door and places it in the World. The
@@ -125,6 +131,11 @@ func NewDoor(direction byte, open bool, reset time.Duration, jitter time.Duratio
 //
 // For more details see the attr.Door type.
 func (d *Door) OtherSide() {
+
+	// Does door have 'other side' already?
+	if d.otherSide {
+		return
+	}
 
 	// Find parent Thing of original Door
 	p := d.Parent()
@@ -145,6 +156,9 @@ func (d *Door) OtherSide() {
 	// Share its state with the original door. It is important that the two Door
 	// share state so that they open, close and reset together.
 	o.state = d.state
+
+	// Mark door as having an 'other side'
+	o.otherSide = true
 
 	// Point the 'other side' of the door in the opposing direction
 	o.direction = Return(d.direction)
