@@ -121,9 +121,13 @@ func (f *frontend) Close() {
 
 	// Free up resources
 	f.buf = nil
-	f.player = nil
 	f.output = nil
 	f.nextFunc = nil
+
+	f.player.Close()
+	f.player = nil
+
+	f = nil
 }
 
 // Parse is the main input/output processing method for frontend. The input is
