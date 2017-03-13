@@ -32,8 +32,9 @@ func Remove(player has.Thing) {
 
 	for i, p := range players.list {
 		if p == player {
-			players.list[i] = nil
-			players.list = append(players.list[:i], players.list[i+1:]...)
+			copy(players.list[i:], players.list[i+1:])
+			players.list[len(players.list)-1] = nil
+			players.list = players.list[:len(players.list)-1]
 			break
 		}
 	}

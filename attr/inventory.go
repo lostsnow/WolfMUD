@@ -152,8 +152,9 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 	for j, c := range i.contents {
 		if c == t {
 			FindLocate(t).SetWhere(nil)
-			i.contents[j] = nil
-			i.contents = append(i.contents[:j], i.contents[j+1:]...)
+			copy(i.contents[j:], i.contents[j+1:])
+			i.contents[len(i.contents)-1] = nil
+			i.contents = i.contents[:len(i.contents)-1]
 
 			// If we are using less than half of the slice's capacity and the
 			// difference is more than config.Inventory.Compact 'shrink' the slice by

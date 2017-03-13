@@ -65,9 +65,9 @@ func (t *Thing) Remove(a ...has.Attribute) {
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
 			if a[i] == t.attrs[j] {
-				t.attrs[j].SetParent(nil)
-				t.attrs[j] = nil
-				t.attrs = append(t.attrs[:j], t.attrs[j+1:]...)
+				copy(t.attrs[j:], t.attrs[j+1:])
+				t.attrs[len(t.attrs)-1] = nil
+				t.attrs = t.attrs[:len(t.attrs)-1]
 				break
 			}
 		}
