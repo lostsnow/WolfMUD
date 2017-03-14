@@ -40,15 +40,15 @@ type Msg struct {
 // silent mode.
 func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 	if m.Actor == nil {
-		m.Actor = &Buffer{buf: make([]byte, 0, (80*24)/2)}
+		m.Actor = AcquireBuffer()
 		m.Actor.omitLF = true
-		m.Participant = &Buffer{}
+		m.Participant = AcquireBuffer()
 		m.Observers = make(map[has.Inventory]*Buffer)
 	}
 
 	for _, l := range locks {
 		if _, ok := m.Observers[l]; !ok {
-			m.Observers[l] = &Buffer{}
+			m.Observers[l] = AcquireBuffer()
 			m.Observers[l].Silent(l.Crowded())
 		}
 	}
@@ -59,10 +59,13 @@ func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 // participant and observers. Specific deallocation can help with garbage
 // collection.
 func (m *Msg) Deallocate() {
+	ReleaseBuffer(m.Actor)
 	m.Actor = nil
+	ReleaseBuffer(m.Participant)
 	m.Participant = nil
 	m.Observer = nil
 	for where := range m.Observers {
+		ReleaseBuffer(m.Observers[where])
 		m.Observers[where] = nil
 		delete(m.Observers, where)
 	}
