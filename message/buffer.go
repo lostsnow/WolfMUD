@@ -181,7 +181,7 @@ func (b *Buffer) Append(s ...string) {
 	return
 }
 
-// Silent sets a Buffers silent mode to true or false and returning the old
+// Silent sets a Buffer silent mode to true or false and returning the old
 // silent mode. When a Buffer is in silent mode it will ignore calls to Send
 // and Append.
 func (b *Buffer) Silent(new bool) (old bool) {
@@ -244,7 +244,7 @@ func (b *Buffer) Deliver(w ...io.Writer) {
 		}
 	}
 
-	// Clear down the messages and message count
+	// Reset Buffer for reuse
 	b.buf = b.buf[0:0]
 	b.count = 0
 }
