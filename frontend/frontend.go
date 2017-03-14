@@ -124,7 +124,9 @@ func (f *frontend) Close() {
 	f.output = nil
 	f.nextFunc = nil
 
-	f.player.Close()
+	if f.player != nil {
+		f.player.Close()
+	}
 	f.player = nil
 
 	f = nil
