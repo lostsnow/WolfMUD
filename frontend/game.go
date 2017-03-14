@@ -21,7 +21,7 @@ type game struct {
 	// Original frontend buffer. It is detatched from the frontend and
 	// referenced here when a player enters the game. When the player exits the
 	// game the buffer is assigned back to the frontend.
-	savedBuf message.Buffer
+	savedBuf *message.Buffer
 }
 
 // NewGame returns a game with the specified frontend embedded. The returned

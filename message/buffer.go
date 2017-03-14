@@ -11,49 +11,39 @@ import (
 	"io"
 )
 
-// buffer provides temporary storeage for messages to players. The buffer
+// Buffer provides temporary storeage for messages to players. The Buffer
 // accumulates messages which can then be sent as single network writes to the
-// players. A buffer can handle insertion of line feeds into messages
+// players. A Buffer can handle insertion of line feeds into messages
 // automatically when required.
 //
-// NOTE: omitLF indicates whether an empty buffer should start with a line feed
-// or not. This should be true for an actor's buffer as they would have moved
-// to a new line when pressing enter to issue a command. For all other buffers
+// NOTE: omitLF indicates whether an empty Buffer should start with a line feed
+// or not. This should be true for an actor's Buffer as they would have moved
+// to a new line when pressing enter to issue a command. For all other Buffers
 // it should be false as we need to move them off their prompt line manually.
-type buffer struct {
+type Buffer struct {
 	buf        []byte
 	omitLF     bool // Omit initial line feed?
 	silentMode bool
-	count      int // Number of messages in a buffer
+	count      int // Number of messages in a Buffer
 }
 
-// Buffer allows a buffer to be embedded in a struct without exposing buffer
-// itself. A buffer can be created and assigned using NewBuffer.
-type Buffer interface {
-	Send(...string)
-	Append(...string)
-	Silent(bool) bool
-	Len() int
-	Deliver(w ...io.Writer)
-}
-
-// NewBuffer returns a buffer with omitLF set to true - suitable for use as a
-// standalone buffer.
-func NewBuffer() (b *buffer) {
-	b = &buffer{}
+// NewBuffer returns a Buffer with omitLF set to true - suitable for use as a
+// standalone Buffer.
+func NewBuffer() (b *Buffer) {
+	b = &Buffer{}
 	b.omitLF = true
 	return
 }
 
-// Send takes a number of strings and writes them into the buffer as a single
+// Send takes a number of strings and writes them into the Buffer as a single
 // message. The message will automatically be prefixed with a line feed if
 // required so that the message starts on its own new line when displayed to
 // the player. Each time Send is called the message count returned by Len is
 // increased by one.
 //
-// If the buffer is in silent mode the buffer and message count will not be
+// If the Buffer is in silent mode the Buffer and message count will not be
 // modified and the passed strings will be discarded.
-func (b *buffer) Send(s ...string) {
+func (b *Buffer) Send(s ...string) {
 	if b.silentMode {
 		return
 	}
@@ -72,7 +62,7 @@ func (b *buffer) Send(s ...string) {
 //
 // The code of this method is copied from Send to avoid allocations prefixing
 // the color string to the strings of the message and then calling Send.
-func (b *buffer) sendColor(c string, s ...string) {
+func (b *Buffer) sendColor(c string, s ...string) {
 	if b.silentMode {
 		return
 	}
@@ -88,21 +78,21 @@ func (b *buffer) sendColor(c string, s ...string) {
 }
 
 // SendGood is convenient for sending a message using text.Good as the color.
-func (b *buffer) SendGood(s ...string) { b.sendColor(text.Good, s...) }
+func (b *Buffer) SendGood(s ...string) { b.sendColor(text.Good, s...) }
 
 // SendBad is convenient for sending a message using text.Bad as the color.
-func (b *buffer) SendBad(s ...string) { b.sendColor(text.Bad, s...) }
+func (b *Buffer) SendBad(s ...string) { b.sendColor(text.Bad, s...) }
 
 // SendInfo is convenient for sending a message using text.Info as the color.
-func (b *buffer) SendInfo(s ...string) { b.sendColor(text.Info, s...) }
+func (b *Buffer) SendInfo(s ...string) { b.sendColor(text.Info, s...) }
 
-// Append takes a number of strings and writes them into the buffer appending
-// to a previous message. The message is appended to the current buffer with a
+// Append takes a number of strings and writes them into the Buffer appending
+// to a previous message. The message is appended to the current Buffer with a
 // leading single space. Append is useful when a message needs to be composed
 // in several stages. Append does not normally increase the message count
 // returned by Len, but see special cases below.
 //
-// If the buffer is in silent mode the buffer will not be modified and the
+// If the Buffer is in silent mode the Buffer will not be modified and the
 // passed strings will be discarded.
 //
 // Special cases:
@@ -113,12 +103,12 @@ func (b *buffer) SendInfo(s ...string) { b.sendColor(text.Info, s...) }
 // If Append is called without an initial Send or after a Send with an empty
 // string the leading space will be omitted. This is so that Send can cause the
 // start a new message but text is only appended by calling Append.
-func (b *buffer) Append(s ...string) {
+func (b *Buffer) Append(s ...string) {
 	if b.silentMode {
 		return
 	}
 
-	// If buffer is empty we have to start a new message, otherwise append with a
+	// If Buffer is empty we have to start a new message, otherwise append with a
 	// single space
 	if b.count == 0 {
 		if !b.omitLF {
@@ -138,27 +128,27 @@ func (b *buffer) Append(s ...string) {
 	return
 }
 
-// Silent sets a buffers silent mode to true or false and returning the old
-// silent mode. When a buffer is in silent mode it will ignore calls to Send
+// Silent sets a Buffers silent mode to true or false and returning the old
+// silent mode. When a Buffer is in silent mode it will ignore calls to Send
 // and Append.
-func (b *buffer) Silent(new bool) (old bool) {
+func (b *Buffer) Silent(new bool) (old bool) {
 	old, b.silentMode = b.silentMode, new
 	return
 }
 
-// Len returns the number of messages in a buffer.
-func (b *buffer) Len() int {
+// Len returns the number of messages in a Buffer.
+func (b *Buffer) Len() int {
 	return b.count
 }
 
 var resetLen = len(text.Reset)
 
-// Deliver writes all of the messages in the buffer to the passed Writers.
+// Deliver writes all of the messages in the Buffer to the passed Writers.
 // After the messages have been delivered the messages and message count will
 // be cleared.
-func (b *buffer) Deliver(w ...io.Writer) {
+func (b *Buffer) Deliver(w ...io.Writer) {
 
-	// If there are no messages and buffer isn't the actor's make sure the buffer
+	// If there are no messages and Buffer isn't the actor's make sure the Buffer
 	// is cleared and just bail. For the actor there may be no messages if e.g.
 	// they just hit enter, we still need to deliver nothing to write out a new
 	// prompt for them.
@@ -167,7 +157,7 @@ func (b *buffer) Deliver(w ...io.Writer) {
 		return
 	}
 
-	// If buffer does not start with an escape sequence insert a reset to
+	// If Buffer does not start with an escape sequence insert a reset to
 	// default colors
 	if len(b.buf) > 0 && b.buf[0] != '\033' {
 		b.buf = append(b.buf, text.Reset...)
@@ -185,7 +175,7 @@ func (b *buffer) Deliver(w ...io.Writer) {
 		w[0].Write(b.buf)
 	}
 
-	// If we have multiple writers write a copy of the buffer to each
+	// If we have multiple writers write a copy of the Buffer to each
 	if len(w) > 1 {
 		for _, w := range w {
 			c := make([]byte, len(b.buf))
