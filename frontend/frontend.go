@@ -94,6 +94,7 @@ func New(output io.Writer) *frontend {
 		buf:    message.NewBuffer(),
 		output: output,
 	}
+	f.buf.OmitLF(true)
 	f.nextFunc = f.greetingDisplay
 	return f
 }

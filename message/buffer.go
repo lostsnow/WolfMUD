@@ -27,12 +27,9 @@ type Buffer struct {
 	count      int // Number of messages in a Buffer
 }
 
-// NewBuffer returns a Buffer with omitLF set to true - suitable for use as a
-// standalone Buffer.
-func NewBuffer() (b *Buffer) {
-	b = &Buffer{}
-	b.omitLF = true
-	return
+// NewBuffer returns a new *Buffer.
+func NewBuffer() *Buffer {
+	return &Buffer{}
 }
 
 // Send takes a number of strings and writes them into the Buffer as a single
