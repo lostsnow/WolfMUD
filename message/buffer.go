@@ -53,11 +53,6 @@ func init() {
 	log.Printf("Allocated pool for %d buffers", cap(pool))
 }
 
-// NewBuffer returns a new *Buffer.
-func NewBuffer() *Buffer {
-	return &Buffer{}
-}
-
 // AcquireBuffer returns a *Buffer from a  pool of *Buffer. A *Buffer should be
 // returned to the pool by calling ReleaseBuffer. It is not essential that
 // ReleaseBuffer is called as the pool will replenish itself, however a *Buffer
