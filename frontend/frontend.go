@@ -91,7 +91,7 @@ type frontend struct {
 // greetingDisplay.
 func New(output io.Writer) *frontend {
 	f := &frontend{
-		buf:    message.NewBuffer(),
+		buf:    message.AcquireBuffer(),
 		output: output,
 	}
 	f.buf.OmitLF(true)
@@ -121,7 +121,9 @@ func (f *frontend) Close() {
 	accounts.Unlock()
 
 	// Free up resources
+	message.ReleaseBuffer(f.buf)
 	f.buf = nil
+
 	f.output = nil
 	f.nextFunc = nil
 
