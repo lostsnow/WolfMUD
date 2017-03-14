@@ -6,15 +6,22 @@
 package message
 
 import (
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"io"
+	"log"
+	"runtime"
 )
 
-// Buffer provides temporary storeage for messages to players. The Buffer
+// Buffer provides temporary storage for messages to players. The Buffer
 // accumulates messages which can then be sent as single network writes to the
 // players. A Buffer can handle insertion of line feeds into messages
 // automatically when required.
+//
+// While a *Buffer can be created using &Buffer{} it is a better to use calls
+// to AcquireBuffer and ReleaseBuffer which will supply a *Buffer from a
+// reusable pool of *Buffer and return the *Buffer to the pool for reuse.
 //
 // NOTE: omitLF indicates whether an empty Buffer should start with a line feed
 // or not. This should be true for an actor's Buffer as they would have moved
@@ -27,9 +34,58 @@ type Buffer struct {
 	count      int // Number of messages in a Buffer
 }
 
+// pool is a collection of reusable *Buffer. A *Buffer can be obtained from the
+// pool by calling AcquireBuffer and returned by calling ReleaseBuffer. The
+// pool is large enough for four buffers - actor, participant and two observers
+// (common case for moving between locations) - per 128 players, per CPU
+// available. However the pool size is arbitrary and a typical compromise
+// between space and performance. We don't need a huge pool as there are only
+// so many goroutines that can be running on so many CPUs at any given time.
+// Extra buffers will be allocated if needed and dropped again when the pool is
+// full.
+var pool = make(
+	chan *Buffer,
+	(int)(config.Server.MaxPlayers/128)*4*runtime.GOMAXPROCS(-1),
+)
+
+// init reports the size of the *Buffer pool.
+func init() {
+	log.Printf("Allocated pool for %d buffers", cap(pool))
+}
+
 // NewBuffer returns a new *Buffer.
 func NewBuffer() *Buffer {
 	return &Buffer{}
+}
+
+// AcquireBuffer returns a *Buffer from a  pool of *Buffer. A *Buffer should be
+// returned to the pool by calling ReleaseBuffer. It is not essential that
+// ReleaseBuffer is called as the pool will replenish itself, however a *Buffer
+// that is simply discarded cannot be reused - which avoids allocations and
+// generating garbage.
+func AcquireBuffer() (b *Buffer) {
+	select {
+	case b = <-pool:
+		// Make sure buffer is reset
+		b.buf = b.buf[0:0]
+		b.omitLF = false
+		b.silentMode = false
+		b.count = 0
+	default:
+		b = &Buffer{}
+	}
+	return
+}
+
+// ReleaseBuffer puts a *Buffer back into a pool of *Buffer for reuse.
+func ReleaseBuffer(b *Buffer) {
+	if b == nil {
+		return
+	}
+	select {
+	case pool <- b:
+	default:
+	}
 }
 
 // Send takes a number of strings and writes them into the Buffer as a single
