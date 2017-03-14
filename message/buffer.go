@@ -136,6 +136,13 @@ func (b *Buffer) Silent(new bool) (old bool) {
 	return
 }
 
+// OmitLF sets a Buffer omitLF flag to true or false and returns the old omitLF
+// setting. For details of the omitLF flag see the Buffer type.
+func (b *Buffer) OmitLF(new bool) (old bool) {
+	old, b.omitLF = b.omitLF, new
+	return
+}
+
 // Len returns the number of messages in a Buffer.
 func (b *Buffer) Len() int {
 	return b.count
