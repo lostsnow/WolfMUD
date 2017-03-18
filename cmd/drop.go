@@ -64,14 +64,11 @@ func Drop(s *state) {
 	// Get item's proper name
 	name = attr.FindName(what).Name(name)
 
-	// Try and remove item from our inventory
-	if !from.Remove(what) {
+	// Move the item from our inventory to our location
+	if !from.Move(what, s.where) {
 		s.msg.Actor.SendBad("You cannot drop ", name, ".")
 		return
 	}
-
-	// Add item to inventory where we are
-	s.where.Add(what)
 
 	who := attr.FindName(s.actor).Name("Someone")
 

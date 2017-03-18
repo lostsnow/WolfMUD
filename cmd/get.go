@@ -74,14 +74,11 @@ func Get(s *state) {
 		return
 	}
 
-	// If all seems okay try and remove item from where it is
-	if !s.where.Remove(what) {
+	// Move the item from our location to our inventory
+	if !s.where.Move(what, to) {
 		s.msg.Actor.SendBad("You cannot get ", name, ".")
 		return
 	}
-
-	// Add item to our inventory
-	to.Add(what)
 
 	who := attr.FindName(s.actor).Name("Someone")
 
