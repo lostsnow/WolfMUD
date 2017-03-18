@@ -111,47 +111,46 @@ func (i *Inventory) Dump() (buff []string) {
 // Add puts the specified Thing into the Inventory. If the Thing does not have
 // a Locate attribute one will be added automatically, otherwise the existing
 // Locate attribute will be updated.
-func (i *Inventory) Add(t has.Thing) {
+func (i *Inventory) Add(t has.Thing) bool {
 	if i == nil {
-		return
+		return false
 	}
-
-	// If Thing added was a narrative move it to the front of the slice otherwise
-	// just append it onto the end. Adjust split if Thing is narrative.
-	if FindNarrative(t).Found() {
-		i.contents = append(i.contents, nil)
-		copy(i.contents[1:], i.contents[0:])
-		i.contents[0] = t
-		i.split++
-	} else {
-		i.contents = append(i.contents, t)
-	}
-
-	// Give thing a locate attribute if it doesn't have one, else just update it
-	if l := FindLocate(t); !l.Found() {
-		t.Add(NewLocate(i))
-	} else {
-		l.SetWhere(i)
-	}
-
-	// TODO: Need to check for players or mobiles
-	if FindPlayer(t).Found() {
-		i.playerCount++
-	}
+	return (*Inventory)(nil).Move(t, i)
 }
 
 // Remove tries to take the specified Thing from the Inventory. If the Thing
 // is removed successfully it is returned otherwise nil is returned. If
 // removed successfully the Locate attribute of the Thing will be set to nil
 // as it is now nowhere.
-func (i *Inventory) Remove(t has.Thing) has.Thing {
+func (i *Inventory) Remove(t has.Thing) bool {
 	if i == nil {
-		return nil
+		return false
+	}
+	return i.Move(t, nil)
+}
+
+// Move removes a Thing from one Inventory and puts it into another Inventory.
+// Move returns true if successful else false. If the receiver is a *Inventory
+// type nil the Thing will only be added to an inventory. If the to inventory
+// is nil the thing will only be removed from the reveiver Inventory. In both
+// cases the Thing Locate attribute will be updated or one added if missing.
+func (i *Inventory) Move(t has.Thing, to has.Inventory) bool {
+
+	if t == nil {
+		return false
+	}
+
+	n := FindNarrative(t).Found()
+	p := FindPlayer(t).Found()
+	l := FindLocate(t)
+	found := false
+
+	if i == nil {
+		goto ADD
 	}
 
 	for j, c := range i.contents {
 		if c == t {
-			FindLocate(t).SetWhere(nil)
 			copy(i.contents[j:], i.contents[j+1:])
 			i.contents[len(i.contents)-1] = nil
 			i.contents = i.contents[:len(i.contents)-1]
@@ -166,19 +165,62 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			}
 
 			// TODO: Need to check for players or mobiles
-			if FindPlayer(t).Found() {
+			if p {
 				i.playerCount--
 			}
 
 			// If Thing removed was a Narrative adjust split
-			if FindNarrative(t).Found() {
+			if n {
 				i.split--
 			}
 
-			return c
+			found = true
 		}
 	}
-	return nil
+
+	if !found {
+		return false
+	}
+
+ADD:
+
+	To, ok := to.(*Inventory)
+
+	if to == nil {
+		goto UPDATE
+	}
+
+	// If to is not an actual *Inventory have to take the slow path
+	if !ok {
+		return to.Add(t)
+	}
+
+	// If Thing added was a narrative move it to the front of the slice otherwise
+	// just append it onto the end. Adjust split if Thing is narrative.
+	if n {
+		To.contents = append(To.contents, nil)
+		copy(To.contents[1:], To.contents[0:])
+		To.contents[0] = t
+		To.split++
+	} else {
+		To.contents = append(To.contents, t)
+	}
+
+	// TODO: Need to check for players or mobiles
+	if p {
+		To.playerCount++
+	}
+
+UPDATE:
+
+	// Give thing a locate attribute if it doesn't have one, else just update it
+	if !l.Found() {
+		t.Add(NewLocate(To))
+	} else {
+		l.SetWhere(To)
+	}
+
+	return true
 }
 
 // Search returns the first Inventory Thing that matches the alias passed. If

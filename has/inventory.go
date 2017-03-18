@@ -17,8 +17,9 @@ type Inventory interface {
 	Attribute
 	sync.Locker
 
-	// Add puts the specified Thing into the Inventory.
-	Add(Thing)
+	// Add puts the specified Thing into the Inventory. Returns true if
+	// successful else false.
+	Add(Thing) bool
 
 	// Contents returns a []Thing representing the contents of the Inventory.
 	Contents() []Thing
@@ -42,11 +43,15 @@ type Inventory interface {
 	// LockID returns the unique locking ID for an Inventory.
 	LockID() uint64
 
-	// Remove takes the specified Thing out of the Inventory and returns the
-	// Thing removed. Returns nil if Thing cannot be removed.
-	Remove(Thing) Thing
+	// Remove takes the specified Thing out of the Inventory. Returns true if
+	// successful else false.
+	Remove(Thing) bool
 
 	// Search returns the first Thing in an Inventory that has a matching Alias.
 	// If there are no matches nil is returned.
 	Search(alias string) Thing
+
+	// Move removes the Thing from the receiver Inventory and places it into the
+	// passed Inventory returning true if successful otherwise false.
+	Move(Thing, Inventory) bool
 }

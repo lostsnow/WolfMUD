@@ -95,7 +95,7 @@ func Put(s *state) {
 	}
 
 	// Remove item from where it is
-	if tWhere.Remove(tWhat) == nil {
+	if !tWhere.Remove(tWhat) {
 		s.msg.Actor.SendBad("Something stops you putting ", tName, " anywhere.")
 		return
 	}

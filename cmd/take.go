@@ -114,7 +114,7 @@ func Take(s *state) {
 	}
 
 	// Try and remove the item from container
-	if cWhere.Remove(tWhat) == nil {
+	if !cWhere.Remove(tWhat) {
 		s.msg.Actor.SendBad("Something stops you taking ", tName, " from ", cName, "...")
 		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
 		return

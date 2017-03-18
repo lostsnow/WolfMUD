@@ -65,7 +65,7 @@ func Drop(s *state) {
 	name = attr.FindName(what).Name(name)
 
 	// Try and remove item from our inventory
-	if from.Remove(what) == nil {
+	if !from.Remove(what) {
 		s.msg.Actor.SendBad("You cannot drop ", name, ".")
 		return
 	}

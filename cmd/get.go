@@ -75,7 +75,7 @@ func Get(s *state) {
 	}
 
 	// If all seems okay try and remove item from where it is
-	if s.where.Remove(what) == nil {
+	if !s.where.Remove(what) {
 		s.msg.Actor.SendBad("You cannot get ", name, ".")
 		return
 	}

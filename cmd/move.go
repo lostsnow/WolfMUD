@@ -74,7 +74,7 @@ func Move(s *state) {
 		return
 	}
 
-	if from.Remove(s.actor) == nil {
+	if !from.Remove(s.actor) {
 		s.msg.Actor.SendBad("Something stops you from leaving here!")
 		return
 	}
