@@ -315,12 +315,14 @@ func (z *zone) linkupInventory() {
 	for _, l := range z.locations {
 		i := attr.FindInventory(l)
 		for _, iref := range recordjar.Decode.KeywordList(l.Record["INVENTORY"]) {
-			t, ok := z.store[iref]
+			s, ok := z.store[iref]
 			if !ok {
 				log.Printf("Invalid Inventory reference: ref not found %s", iref)
 				continue
 			}
-			i.Add(t.Copy())
+			t := s.Copy()
+			i.Add(t)
+			attr.FindLocate(t).SetOrigin(i)
 		}
 	}
 }
@@ -343,7 +345,10 @@ func (z *zone) linkupLocation() {
 				}
 				continue
 			}
-			attr.FindInventory(l).Add(s.Copy())
+			t := s.Copy()
+			i := attr.FindInventory(l)
+			i.Add(t)
+			attr.FindLocate(t).SetOrigin(i)
 		}
 	}
 }
