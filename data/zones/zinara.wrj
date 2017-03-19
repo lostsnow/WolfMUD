@@ -726,6 +726,7 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
     Name: a curious brass lattice
  Aliases: LATTICE
 Location: L1
+  Vetoes: JUNK→The lattice cannot be junked.
 
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.
@@ -752,6 +753,14 @@ Inventory:
 
 This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick metal
 bands bind it.
+%%
+      Ref: O4A
+     Name: a small leather pouch
+  Aliases: POUCH
+ Location: L1
+Inventory:
+
+This is a small pouch made of soft dark leather.
 %%
      Ref: O5
     Name: a runestone
