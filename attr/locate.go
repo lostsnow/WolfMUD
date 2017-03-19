@@ -20,9 +20,11 @@ func init() {
 // be added automatically if the Thing does not already have one. When a Thing
 // is added to or removed from an Inventory the Locate.SetWhere method is
 // called to update the reference. See inventory.Add for more details.
+// Locate also records the initial starting position or origin of a Thing.
 type Locate struct {
 	Attribute
-	where has.Inventory
+	where  has.Inventory
+	origin has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -34,7 +36,7 @@ var (
 // Inventory. Passing nil is a valid reference and is usually treated as being
 // nowhere.
 func NewLocate(i has.Inventory) *Locate {
-	l := &Locate{Attribute{}, nil}
+	l := &Locate{Attribute{}, nil, nil}
 	l.SetWhere(i)
 	return l
 }
@@ -64,11 +66,9 @@ func (*Locate) Unmarshal(data []byte) has.Attribute {
 }
 
 func (l *Locate) Dump() []string {
-	name := ""
-	if w := l.Where(); w != nil {
-		name = FindName(w.Parent()).Name("Somewhere")
-	}
-	return []string{DumpFmt("%p %[1]T -> %p %s", l, l.where, name)}
+	origin := FindName(l.origin.Parent()).Name("Nowhere")
+	where := FindName(l.where.Parent()).Name("Nowhere")
+	return []string{DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where)}
 }
 
 // Where returns the Inventory the parent Thing is in. Returning nil is a
@@ -81,6 +81,14 @@ func (l *Locate) Where() (where has.Inventory) {
 	return
 }
 
+// Origin return the initial starting Inventory that a Thing is placed into.
+func (l *Locate) Origin() (origin has.Inventory) {
+	if l != nil {
+		origin = l.origin
+	}
+	return
+}
+
 // SetWhere is used to set the Inventory containing the parent Thing. Passing
 // nil is a valid reference and is usually treated as being nowhere. The
 // current reference can be retrieved by calling Where.
@@ -89,6 +97,14 @@ func (l *Locate) Where() (where has.Inventory) {
 func (l *Locate) SetWhere(i has.Inventory) {
 	if l != nil {
 		l.where = i
+	}
+}
+
+// SetOrigin is use to specify the initial starting Inventory that a Thing is
+// placed into.
+func (l *Locate) SetOrigin(i has.Inventory) {
+	if l != nil {
+		l.origin = i
 	}
 }
 

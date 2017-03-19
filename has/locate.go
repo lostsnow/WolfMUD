@@ -16,6 +16,13 @@ package has
 type Locate interface {
 	Attribute
 
+	// Origin returns the initial starting Inventory that a Thing is placed into.
+	Origin() Inventory
+
+	// SetOrigin is used to specify the initial starting Inventory that a Thing
+	// is placed into.
+	SetOrigin(Inventory)
+
 	// SetWhere is used to set the current Inventory.
 	SetWhere(Inventory)
 
