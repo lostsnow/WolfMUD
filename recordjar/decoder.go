@@ -128,7 +128,7 @@ func (decoder) Bytes(dataIn []byte) []byte {
 // using time.ParseDuration and will default to 0 if the data cannot be parsed.
 func (decoder) Duration(data []byte) (t time.Duration) {
 	var err error
-	if t, err = time.ParseDuration(string(data)); err != nil {
+	if t, err = time.ParseDuration(strings.ToLower(string(data))); err != nil {
 		log.Printf("Duration field has invalid value %q, using default: %s", data, t)
 	}
 	return t
