@@ -66,7 +66,10 @@ func (*Locate) Unmarshal(data []byte) has.Attribute {
 }
 
 func (l *Locate) Dump() []string {
-	origin := FindName(l.origin.Parent()).Name("Nowhere")
+	origin := "Nowhere"
+	if l.origin != nil {
+		origin = FindName(l.origin.Parent()).Name("Nowhere")
+	}
 	where := FindName(l.where.Parent()).Name("Nowhere")
 	return []string{DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where)}
 }
