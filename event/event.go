@@ -67,15 +67,15 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 
 	go func() {
 		t := time.NewTimer(td)
-		log.Printf("Event queued for %q in %s: %s", name, td, input)
+		log.Printf("Event queued in %s for %p %[2]T %q: %q", td, thing, name, input)
 		select {
 		case <-cancel:
-			log.Printf("Event cancelled for %q: %s", name, input)
+			log.Printf("Event cancelled for %p %[1]T %q: %q", thing, name, input)
 			if !t.Stop() {
 				<-t.C
 			}
 		case <-t.C:
-			log.Printf("Event delivered for %q: %s", name, input)
+			log.Printf("Event delivered for %p %[1]T %q: %q", thing, name, input)
 			Script(thing, input)
 		}
 	}()
