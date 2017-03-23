@@ -35,11 +35,11 @@ func NewThing(a ...has.Attribute) *Thing {
 	return t
 }
 
-// Close is used to clean-up/release references to all Attribute for a Thing.
-// When a Thing is finished with calling Close helps the garbage collector to
+// Free is used to clean-up/release references to all Attribute for a Thing.
+// When a Thing is finished with calling Free helps the garbage collector to
 // reclaim objects. It can also help to break cyclic references that could
 // prevent garbage collection.
-func (t *Thing) Close() {
+func (t *Thing) Free() {
 	if t == nil {
 		return
 	}

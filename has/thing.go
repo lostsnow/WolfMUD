@@ -26,8 +26,8 @@ type Thing interface {
 	// Remove is used to remove one or more Attribute from a Thing.
 	Remove(...Attribute)
 
-	// Close is used to clean-up/release references to all Attribute for a Thing.
-	Close()
+	// Free is used to clean-up/release references to all Attribute for a Thing.
+	Free()
 
 	// Copy produces another, possibly inexact, instance of a Thing. The
 	// differences may be due to unique IDs, locks and other data that should not

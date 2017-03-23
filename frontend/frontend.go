@@ -128,7 +128,7 @@ func (f *frontend) Close() {
 	f.nextFunc = nil
 
 	if f.player != nil {
-		f.player.Close()
+		f.player.Free()
 	}
 	f.player = nil
 
