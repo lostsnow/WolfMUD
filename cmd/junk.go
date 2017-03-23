@@ -83,7 +83,7 @@ func Junk(s *state) {
 	}
 
 	// Remove item from Inventory where it is
-	if !where.Remove(what) {
+	if what = where.Remove(what); what == nil {
 		s.msg.Actor.SendBad("For some reason you cannot junk ", name, ".")
 		return
 	}

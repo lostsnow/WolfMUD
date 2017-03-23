@@ -65,7 +65,7 @@ func Drop(s *state) {
 	name = attr.FindName(what).Name(name)
 
 	// Move the item from our inventory to our location
-	if !from.Move(what, s.where) {
+	if from.Move(what, s.where) == nil {
 		s.msg.Actor.SendBad("You cannot drop ", name, ".")
 		return
 	}

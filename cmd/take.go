@@ -114,7 +114,7 @@ func Take(s *state) {
 	}
 
 	// Move the item from container to our inventory
-	if !cWhere.Move(tWhat, tWhere) {
+	if cWhere.Move(tWhat, tWhere) == nil {
 		s.msg.Actor.SendBad("Something stops you taking ", tName, " from ", cName, "...")
 		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
 		return

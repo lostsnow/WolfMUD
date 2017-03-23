@@ -75,7 +75,7 @@ func Move(s *state) {
 	}
 
 	// Move us from where we are to our new location
-	if !from.Move(s.actor, to) {
+	if s.actor = from.Move(s.actor, to); s.actor == nil {
 		s.msg.Actor.SendBad("Something stops you from leaving here!")
 		return
 	}
