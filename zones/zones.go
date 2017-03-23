@@ -26,6 +26,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 )
 
@@ -85,6 +86,8 @@ func Load() {
 	checkDoorsHaveOtherSide()
 
 	log.Printf("Finished loading %d zones.", len(zones))
+
+	runtime.GC()
 
 	return
 }
