@@ -118,3 +118,13 @@ func (l *Locate) Copy() has.Attribute {
 	}
 	return NewLocate(l.where)
 }
+
+// Free makes sure references are nil'ed when the Locate attribute is freed.
+func (l *Locate) Free() {
+	if l == nil {
+		return
+	}
+	l.where = nil
+	l.origin = nil
+	l.Attribute.Free()
+}

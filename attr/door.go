@@ -372,3 +372,17 @@ func (d *Door) Copy() has.Attribute {
 	}
 	return NewDoor(d.direction, d.initOpen, d.reset, d.jitter)
 }
+
+// Free makes sure references are nil'ed and channels closed when the Door
+// attribute is freed.
+func (d *Door) Free() {
+	if d == nil {
+		return
+	}
+	if d.Cancel != nil {
+		close(d.Cancel)
+		d.Cancel = nil
+	}
+	d.state = nil
+	d.Attribute.Free()
+}

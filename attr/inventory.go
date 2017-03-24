@@ -356,3 +356,16 @@ func (i *Inventory) Copy() has.Attribute {
 	}
 	return ni
 }
+
+// Free recursively calls Free on all of it's content when the Inventory
+// attribute is freed.
+func (i *Inventory) Free() {
+	if i == nil {
+		return
+	}
+	for x, t := range i.contents {
+		i.contents[x] = nil
+		t.Free()
+	}
+	i.Attribute.Free()
+}
