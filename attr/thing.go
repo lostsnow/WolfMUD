@@ -43,6 +43,9 @@ func (t *Thing) Free() {
 	if t == nil {
 		return
 	}
+	for _, a := range t.attrs {
+		a.Free()
+	}
 	t.Remove(t.attrs...)
 	t.attrs = nil
 }
