@@ -43,4 +43,9 @@ type Attribute interface {
 	// NOTE: The default implementation attr.Attribute does NOT implement Copy.
 	// See main interface comments and attr.Attribute.
 	Copy() Attribute
+
+	// Free releases resources used by an attribute. It main use is to
+	// disentangle cyclic pointers to assist in garbage collection. Attributes
+	// that implement their own Free method should also call Attribute.Free.
+	Free()
 }
