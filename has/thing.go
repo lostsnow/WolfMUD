@@ -34,4 +34,9 @@ type Thing interface {
 	// be copied between instances. The copy will contain a copy of all of the
 	// attributes and possibly other Things associated with the Thing as well.
 	Copy() Thing
+
+	// SetOrigins updates the origin for the Thing to its containing Inventory and
+	// recursivly sets the origins for the content of a Thing's Inventory if it has
+	// one.
+	SetOrigins()
 }

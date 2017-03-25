@@ -157,3 +157,33 @@ func (t *Thing) Copy() has.Thing {
 	}
 	return NewThing(na...)
 }
+
+// SetOrigins updates the origin for the Thing to its containing Inventory and
+// recursivly sets the origins for the content of a Thing's Inventory if it has
+// one.
+func (t *Thing) SetOrigins() {
+	if t == nil {
+		return
+	}
+
+	// Set our origin to that of the parent Inventory
+	if l := FindLocate(t); l.Found() {
+		if i := FindInventory(l.Where().Parent()); i.Found() {
+			l.SetOrigin(i)
+		}
+	}
+
+	// Find our Inventory
+	i := FindInventory(t)
+	if !i.Found() {
+		return
+	}
+
+	// Set the origin for items in our Inventory
+	for _, t := range append(i.Contents(), i.Narratives()...) {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(i)
+		}
+		t.SetOrigins()
+	}
+}
