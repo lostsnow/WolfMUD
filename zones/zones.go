@@ -325,7 +325,7 @@ func (z *zone) linkupInventory() {
 			}
 			t := s.Copy()
 			i.Add(t)
-			attr.FindLocate(t).SetOrigin(i)
+			t.SetOrigins()
 		}
 	}
 }
@@ -351,7 +351,7 @@ func (z *zone) linkupLocation() {
 			t := s.Copy()
 			i := attr.FindInventory(l)
 			i.Add(t)
-			attr.FindLocate(t).SetOrigin(i)
+			t.SetOrigins()
 		}
 	}
 }
