@@ -61,9 +61,9 @@ func (t *Thing) Add(a ...has.Attribute) {
 	}
 }
 
-// Remove is used to remove the passed Attributes from a Thing. When an
-// Attribute is removed its parent it set to nil. There is no indication if an
-// Attribute cannot actually be removed.
+// Remove is used to remove the passed Attributes from a Thing. There is no
+// indication if an Attribute cannot actually be removed. When an Attribute is
+// removed and is no longer required its Free method should be called.
 func (t *Thing) Remove(a ...has.Attribute) {
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
