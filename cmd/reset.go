@@ -12,6 +12,7 @@ import (
 // Syntax: $RESET
 func init() {
 	AddHandler(Reset, "$reset")
+	AddHandler(Reset, "$spawn")
 }
 
 func Reset(s *state) {
