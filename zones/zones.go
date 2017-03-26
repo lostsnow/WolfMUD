@@ -26,6 +26,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 )
 
@@ -85,6 +86,8 @@ func Load() {
 	checkDoorsHaveOtherSide()
 
 	log.Printf("Finished loading %d zones.", len(zones))
+
+	runtime.GC()
 
 	return
 }
@@ -322,7 +325,7 @@ func (z *zone) linkupInventory() {
 			}
 			t := s.Copy()
 			i.Add(t)
-			attr.FindLocate(t).SetOrigin(i)
+			t.SetOrigins()
 		}
 	}
 }
@@ -348,7 +351,7 @@ func (z *zone) linkupLocation() {
 			t := s.Copy()
 			i := attr.FindInventory(l)
 			i.Add(t)
-			attr.FindLocate(t).SetOrigin(i)
+			t.SetOrigins()
 		}
 	}
 }
@@ -362,7 +365,7 @@ func (z *zone) closeStore() {
 			delete(s.Record, ref)
 		}
 		s.Record = nil
-		s.Thing.Close()
+		s.Thing.Free()
 		s.Thing = nil
 	}
 	z.store = nil

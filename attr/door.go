@@ -12,7 +12,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 
 	"log"
-	"strings"
 	"time"
 )
 
@@ -213,19 +212,20 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 	pairs := recordjar.Decode.PairList(data)
 
 	for _, pair := range pairs {
-		switch pair[0] {
+		field, sdata, bdata := pair[0], pair[1], []byte(pair[1])
+		switch field {
 		case "EXIT":
 			e := NewExits()
-			door.direction, _ = e.NormalizeDirection(pair[1])
+			door.direction, _ = e.NormalizeDirection(sdata)
 		case "RESET":
-			door.reset, _ = time.ParseDuration(strings.ToLower(pair[1]))
+			door.reset = recordjar.Decode.Duration(bdata)
 		case "JITTER":
-			door.jitter, _ = time.ParseDuration(strings.ToLower(pair[1]))
+			door.jitter = recordjar.Decode.Duration(bdata)
 		case "OPEN":
-			door.initOpen = recordjar.Decode.Boolean([]byte(pair[1]))
+			door.initOpen = recordjar.Decode.Boolean(bdata)
 			door.open = door.initOpen
 		default:
-			log.Printf("Door.unmarshal unknown attribute: %q: %q", pair[0], pair[1])
+			log.Printf("Door.unmarshal unknown attribute: %q: %q", field, sdata)
 		}
 	}
 	return door
@@ -371,4 +371,18 @@ func (d *Door) Copy() has.Attribute {
 		return (*Door)(nil)
 	}
 	return NewDoor(d.direction, d.initOpen, d.reset, d.jitter)
+}
+
+// Free makes sure references are nil'ed and channels closed when the Door
+// attribute is freed.
+func (d *Door) Free() {
+	if d == nil {
+		return
+	}
+	if d.Cancel != nil {
+		close(d.Cancel)
+		d.Cancel = nil
+	}
+	d.state = nil
+	d.Attribute.Free()
 }

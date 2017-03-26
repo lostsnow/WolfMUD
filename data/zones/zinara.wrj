@@ -276,10 +276,11 @@ Aliases: GARDENS
 You are in a fine, formal garden. Around you small trees and shrubs grow. The
 gardens stretch out to the north, south and west.
 %%
-    Ref: L31
-   Name: Fish pond
-Aliases: GARDENS FISHPOND
-  Exits: N→L30 S→L28 W→L32
+      Ref: L31
+     Name: Fish pond
+  Aliases: GARDENS FISHPOND
+    Exits: N→L30 S→L28 W→L32
+Inventory: L31N1
 
 You are standing next to a small fish pond. Paths lead off north, south and west
 deeper into the gardens.
@@ -667,6 +668,16 @@ This is a very solid oak bar. By the looks of the counter top you think it may
 have been a few inches taller, until the various spilt drinks started eating
 away at it.
 %%
+      Ref: L31N1
+     Name: a pond
+    Alias: FISHPOND POND
+Inventory: O8
+Narrative:
+
+This is a small fish pond. There are a few aquatic weeds and the water seems
+quite clear. As you peer in you see a few fish quickly dart for the shady
+cover of the weeds.
+%%
         Ref: L36N1
   Narrative:
        Name: a rock
@@ -725,6 +736,7 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
      Ref: O1
     Name: a curious brass lattice
  Aliases: LATTICE
+   Reset: AFTER→10m JITTER→10m
 Location: L1
   Vetoes: JUNK→The lattice cannot be junked.
 
@@ -734,6 +746,7 @@ roughly ball shaped curiosity.
      Ref: O2
     Name: a small green ball
  Aliases: BALL
+   Reset: AFTER→0s JITTER→0s
 Location: L1
 
 This is a small, green, rubber ball.
@@ -741,15 +754,17 @@ This is a small, green, rubber ball.
      Ref: O3
     Name: a small red ball
  Aliases: BALL
-Location: L1
+   Reset: AFTER→0s JITTER→2m SPAWN=true
+Location: O4A
 
 This is a small, red, rubber ball.
 %%
       Ref: O4
      Name: an iron bound chest
   Aliases: CHEST
+    Reset: AFTER→1m JITTER→1m
  Location: L1
-Inventory:
+Inventory: O4A
 
 This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick metal
 bands bind it.
@@ -757,7 +772,7 @@ bands bind it.
       Ref: O4A
      Name: a small leather pouch
   Aliases: POUCH
- Location: L1
+    Reset: AFTER→1m JITTER→1m
 Inventory:
 
 This is a small pouch made of soft dark leather.
@@ -765,6 +780,7 @@ This is a small pouch made of soft dark leather.
      Ref: O5
     Name: a runestone
  Aliases: RUNE RUNESTONE STONE
+   Reset: AFTER→1m JITTER→1m
 Location: L13 L23 L8 L29 L37
 
 This is a flat polished stone about half an inch wide by an inch long. One side
@@ -773,14 +789,24 @@ is smooth. On the other a strange rune has been carved.
      Ref: O6
     Name: a key
    Alias: KEY
+   Reset: AFTER→30s JITTER→30s
 
 This is a small iron key.
 %%
       Ref: O7
      Name: a lucky charm
     Alias: LUCKY CHARM
+    Reset: AFTER→30s JITTER→30s
  Location: L40N1
 
 This is a small silver charm on a necklace. The charm looks like a small figure
 enclosed in a circle.
+%%
+      Ref: O8
+     Name: a fish of gold
+    Alias: FISH GOLDFISH
+    Reset: AFTER→30s JITTER→30s
+
+This is a small, finely carved fish that appears to have been made from solid
+gold.
 %%

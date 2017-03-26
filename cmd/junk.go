@@ -7,11 +7,8 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
-
-	"time"
 )
 
 // Syntax: JUNK item
@@ -82,22 +79,17 @@ func Junk(s *state) {
 		return
 	}
 
-	// Remove item from Inventory where it is
-	if !where.Remove(what) {
+	// Remove Thing from Inventory where it is. A respawn will be triggered if
+	// Thing is spawnable and we will get the copy. Otherwise we get the original
+	// back.
+	if what = where.Remove(what); what == nil {
 		s.msg.Actor.SendBad("For some reason you cannot junk ", name, ".")
 		return
 	}
 
-	var reset func(has.Thing)
-	reset = func(t has.Thing) {
-		if i := attr.FindInventory(t); i.Found() {
-			for _, t := range i.Contents() {
-				reset(t)
-			}
-		}
-		event.Queue(t, "$RESET", 1*time.Minute, 30*time.Second)
-	}
-	reset(what)
+	// Dispose of the Thing. If Thing was respawnable it will dispose of the
+	// triggering copy.
+	what.Dispose()
 
 	who := attr.FindName(s.actor).Name("Someone")
 

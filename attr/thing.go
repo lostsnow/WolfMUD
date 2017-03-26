@@ -35,13 +35,16 @@ func NewThing(a ...has.Attribute) *Thing {
 	return t
 }
 
-// Close is used to clean-up/release references to all Attribute for a Thing.
-// When a Thing is finished with calling Close helps the garbage collector to
+// Free is used to clean-up/release references to all Attribute for a Thing.
+// When a Thing is finished with calling Free helps the garbage collector to
 // reclaim objects. It can also help to break cyclic references that could
 // prevent garbage collection.
-func (t *Thing) Close() {
+func (t *Thing) Free() {
 	if t == nil {
 		return
+	}
+	for _, a := range t.attrs {
+		a.Free()
 	}
 	t.Remove(t.attrs...)
 	t.attrs = nil
@@ -58,9 +61,9 @@ func (t *Thing) Add(a ...has.Attribute) {
 	}
 }
 
-// Remove is used to remove the passed Attributes from a Thing. When an
-// Attribute is removed its parent it set to nil. There is no indication if an
-// Attribute cannot actually be removed.
+// Remove is used to remove the passed Attributes from a Thing. There is no
+// indication if an Attribute cannot actually be removed. When an Attribute is
+// removed and is no longer required its Free method should be called.
 func (t *Thing) Remove(a ...has.Attribute) {
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
@@ -153,4 +156,68 @@ func (t *Thing) Copy() has.Thing {
 		na[i] = a.Copy()
 	}
 	return NewThing(na...)
+}
+
+// SetOrigins updates the origin for the Thing to its containing Inventory and
+// recursivly sets the origins for the content of a Thing's Inventory if it has
+// one.
+func (t *Thing) SetOrigins() {
+	if t == nil {
+		return
+	}
+
+	// Set our origin to that of the parent Inventory
+	if l := FindLocate(t); l.Found() {
+		if i := FindInventory(l.Where().Parent()); i.Found() {
+			l.SetOrigin(i)
+		}
+	}
+
+	// Find our Inventory
+	i := FindInventory(t)
+	if !i.Found() {
+		return
+	}
+
+	// Set the origin for items in our Inventory
+	for _, t := range append(i.Contents(), i.Narratives()...) {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(i)
+		}
+		t.SetOrigins()
+	}
+}
+
+// Dispose will either reset or discard a Thing in the game world when it is
+// finished with. If the Thing has a Reset attribute the Thing will be
+// scheduled for a reset. Otherwise all references to the Thing will be freed
+// so that it can be garbage collected. If the Thing has an Inventory its
+// content will be reset or discarded recursively.
+func (t *Thing) Dispose() {
+	if t == nil {
+		return
+	}
+
+	// Call Dispose recursively on Inventory content if found
+	if i := FindInventory(t); i.Found() {
+		for _, t := range i.Contents() {
+			t.Dispose()
+		}
+	}
+
+	// Trigger Reset attribute if we have one
+	if r := FindReset(t); r.Found() {
+		r.Reset()
+		return
+	}
+
+	// Thing has not been reset so make sure the Thing is removed from the world
+	// then free it so it is garbage collected.
+	log.Printf("Disposing of %p %[1]T: %s", t, FindName(t).Name("?"))
+	if where := FindLocate(t).Where(); where.Found() {
+		if i := FindInventory(where.Parent()); i.Found() {
+			i.Remove(t)
+		}
+	}
+	t.Free()
 }

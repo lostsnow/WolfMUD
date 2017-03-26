@@ -75,7 +75,7 @@ func Get(s *state) {
 	}
 
 	// Move the item from our location to our inventory
-	if !s.where.Move(what, to) {
+	if s.where.Move(what, to) == nil {
 		s.msg.Actor.SendBad("You cannot get ", name, ".")
 		return
 	}

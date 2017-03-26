@@ -439,3 +439,14 @@ func (e *Exits) Copy() has.Attribute {
 	}
 	return ne
 }
+
+// Free makes sure references are nil'ed when the Exits attribute is freed.
+func (e *Exits) Free() {
+	if e == nil {
+		return
+	}
+	for x := range e.exits {
+		e.exits[x] = nil
+	}
+	e.Attribute.Free()
+}

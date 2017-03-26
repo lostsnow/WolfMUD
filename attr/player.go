@@ -108,3 +108,11 @@ func (p *Player) Copy() has.Attribute {
 	np.SetPromptStyle(p.PromptStyle)
 	return np
 }
+
+// Free makes sure references are nil'ed when the Player attribute is freed.
+func (p *Player) Free() {
+	if p != nil {
+		p.Writer = nil
+		p.Attribute.Free()
+	}
+}

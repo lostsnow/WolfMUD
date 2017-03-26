@@ -48,3 +48,13 @@ func (a *Attribute) Marshal(attr has.Attribute) []byte {
 	log.Println("[DEBUG] dummy marshal")
 	return []byte{}
 }
+
+// Free makes sure references are nil'ed when the Attribute is freed. Other
+// attributes should override Free to release their own references and
+// resources. Attributes that implement their own Free method should also call
+// Attribute.Free.
+func (a *Attribute) Free() {
+	if a != nil {
+		a.parent = nil
+	}
+}

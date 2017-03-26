@@ -108,36 +108,43 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Add puts the specified Thing into the Inventory. If the Thing does not have
-// a Locate attribute one will be added automatically, otherwise the existing
-// Locate attribute will be updated.
-func (i *Inventory) Add(t has.Thing) bool {
+// Add puts a Thing into an Inventory. If the Thing does not have a Locate
+// attribute one will be added automatically, otherwise the existing Locate
+// attribute will be updated. On success Add will return the Thing actually
+// added to the inventory - which may not be the Thing passed in, it may be a
+// copy. It is therefore important to use the Thing returned after calling Add.
+// On failure Add returns nil.
+func (i *Inventory) Add(t has.Thing) has.Thing {
 	if i == nil {
-		return false
+		return nil
 	}
 	return (*Inventory)(nil).Move(t, i)
 }
 
-// Remove tries to take the specified Thing from the Inventory. If the Thing
-// is removed successfully it is returned otherwise nil is returned. If
-// removed successfully the Locate attribute of the Thing will be set to nil
-// as it is now nowhere.
-func (i *Inventory) Remove(t has.Thing) bool {
+// Remove takes a Thing from an Inventory. On success Remove will return the
+// Thing actually removed from the inventory - which may not be the Thing
+// passed in, it may be a copy. It is therefore important to use the Thing
+// returned after calling Remove. If Remove fails it will return nil.
+func (i *Inventory) Remove(t has.Thing) has.Thing {
 	if i == nil {
-		return false
+		return nil
 	}
 	return i.Move(t, nil)
 }
 
 // Move removes a Thing from one Inventory and puts it into another Inventory.
-// Move returns true if successful else false. If the receiver is a *Inventory
-// type nil the Thing will only be added to an inventory. If the to inventory
-// is nil the thing will only be removed from the reveiver Inventory. In both
-// cases the Thing Locate attribute will be updated or one added if missing.
-func (i *Inventory) Move(t has.Thing, to has.Inventory) bool {
+// On success Move will return the Thing moved - which may not be the Thing
+// passed in, it may be a copy. It is therefore important to use the Thing
+// returned after calling Move. If Move fails it will return nil.
+//
+// If the receiver is a *Inventory typed nil the Thing will only be added to an
+// inventory. If the to Inventory is nil the Thing will only be removed from
+// the reveiver Inventory. In both cases the Thing's Locate attribute will be
+// updated or one added if missing.
+func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 
 	if t == nil {
-		return false
+		return t
 	}
 
 	n := FindNarrative(t).Found()
@@ -174,12 +181,21 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) bool {
 				i.split--
 			}
 
+			// If not a player check if removing a Thing triggers a re-spawning.
+			// Players don't respawn but they do move from location to location a lot
+			// which would cause needless calls to Spawn.
+			if !p {
+				if s := FindReset(t).Spawn(); s != nil {
+					t = s
+				}
+			}
+
 			found = true
 		}
 	}
 
 	if !found {
-		return false
+		return nil
 	}
 
 ADD:
@@ -220,7 +236,7 @@ UPDATE:
 		l.SetWhere(To)
 	}
 
-	return true
+	return t
 }
 
 // Search returns the first Inventory Thing that matches the alias passed. If
@@ -348,4 +364,17 @@ func (i *Inventory) Copy() has.Attribute {
 		ni.Add(a.Copy())
 	}
 	return ni
+}
+
+// Free recursively calls Free on all of it's content when the Inventory
+// attribute is freed.
+func (i *Inventory) Free() {
+	if i == nil {
+		return
+	}
+	for x, t := range i.contents {
+		i.contents[x] = nil
+		t.Free()
+	}
+	i.Attribute.Free()
 }
