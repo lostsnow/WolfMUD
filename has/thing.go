@@ -39,4 +39,7 @@ type Thing interface {
 	// recursivly sets the origins for the content of a Thing's Inventory if it has
 	// one.
 	SetOrigins()
+
+	// Dispose will either reset or discard a Thing when it is finished with.
+	Dispose()
 }

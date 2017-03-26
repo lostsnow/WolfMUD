@@ -187,3 +187,37 @@ func (t *Thing) SetOrigins() {
 		t.SetOrigins()
 	}
 }
+
+// Dispose will either reset or discard a Thing in the game world when it is
+// finished with. If the Thing has a Reset attribute the Thing will be
+// scheduled for a reset. Otherwise all references to the Thing will be freed
+// so that it can be garbage collected. If the Thing has an Inventory its
+// content will be reset or discarded recursively.
+func (t *Thing) Dispose() {
+	if t == nil {
+		return
+	}
+
+	// Call Dispose recursively on Inventory content if found
+	if i := FindInventory(t); i.Found() {
+		for _, t := range i.Contents() {
+			t.Dispose()
+		}
+	}
+
+	// Trigger Reset attribute if we have one
+	if r := FindReset(t); r.Found() {
+		r.Reset()
+		return
+	}
+
+	// Thing has not been reset so make sure the Thing is removed from the world
+	// then free it so it is garbage collected.
+	log.Printf("Disposing of %p %[1]T: %s", t, FindName(t).Name("?"))
+	if where := FindLocate(t).Where(); where.Found() {
+		if i := FindInventory(where.Parent()); i.Found() {
+			i.Remove(t)
+		}
+	}
+	t.Free()
+}
