@@ -9,17 +9,17 @@
 
 This is the area south of Zinara.
 %%
-			Ref: L1
+      Ref: L1
      Name: Outside Zinara city gates
-	Aliases: GATES OUTSIDE
-		Exits: S→L2
+  Aliases: GATES OUTSIDE
+    Exits: S→L2
 ZoneLinks: N→ZINARA:L69
 
 You are outside the southern gates of the city of Zinara. To the east and west
 stretch high stone walls for as far as you can see. To the north the city
 beckons, south a worn road leads toward a small forest in the distance.
 %%
-			Ref: L2
+      Ref: L2
      Name: Worn road south of Zinara
     Alias: ROAD
     Exits: N→L1 S→L3
@@ -36,7 +36,7 @@ in the distance.
 You are on a well worn dirt road. It leads north where you can see the city
 walls of Zinara on the horizon. South the road leads toward a small forest.
 %%
-			Ref: L4
+      Ref: L4
      Name: Worn road near a forest
     Alias: ROAD
     Exits: N→L3 S→L5
@@ -45,7 +45,7 @@ Inventory: N1
 You are on a well worn dirt road. To the north it leads into the far distance.
 South the road leads into a forest.
 %%
-			Ref: L5
+      Ref: L5
      Name: Edge of forest
     Alias: ROAD
 Inventory: N1
@@ -55,7 +55,7 @@ You are on the edge of a forest on a well worn dirt road. To the north the
 forest thins and then ends, but the road continues. South the road leads deeper
 into the forest.
 %%
-	    Ref: L6
+      Ref: L6
      Name: Worn road through forest
     Alias: ROAD
 Inventory: L6N1 N1
@@ -66,45 +66,19 @@ south, either way you see just more forest. To the west a small, overgrown
 track disappears in the forest. At the side of the road there is a small stone
 marker.
 %%
-		  Ref: L6N1
-     Name: a stone marker
-Narrative:
-    Alias: MARKER STONE OBELISK
-	Writing: Zinara under an arrow pointing northwards and Caves with an arrow
-					 pointing west down a small track.
-
-This stone marker is about a foot square and a foot and a half tall. The top of
-it has been shaped like a pyramid giving the stone the look of a small obelisk.
-You can see some worn writing on it's sides.
-%%
       Ref: L7
      Name: Forest undergrowth
     Alias: FOREST
-Inventory: L7N1 N1
+Inventory: N1 N2
     Exits: S→L8 W→L5
 
 You are amongst the forest undergrowth. Here it is not too overgrown and you
 can still more around with fair ease. To the west you can see a road.
 %%
-			Ref: L7N1
-     Name: some undergrowth
-Narrative:
-		Alias: UNDERGROWTH
-Inventory: L7N1N1
-
-This undergrowth contains so many weeds and pests it's enough to make a grown
-gardener cry.
-%%
-			Ref: L7N1N1
-     Name: a small mushroom
-		Alias: MUSHROOM
-
-This is a small grey mushroom. Under the cap the gills are a greyish purple.
-%%
       Ref: L8
      Name: Forest undergrowth
     Alias: FOREST
-Inventory: N1
+Inventory: N1 N2
     Exits: N→L7 W→L6
 
 You are amongst the forest undergrowth. Here it is not too overgrown and you
@@ -113,7 +87,7 @@ can still more around with fair ease. To the west you can see a road.
       Ref: L9
      Name: Forest undergrowth
     Alias: FOREST
-Inventory: N1
+Inventory: N1 N2
     Exits: E→L5 S→L10
 
 You are amongst the forest undergrowth. Here it is not too overgrown and you
@@ -123,39 +97,30 @@ south you can just make out a small track.
       Ref: L10
      Name: Forest track
     Alias: TRACK
-Inventory: L10N1 N1
+Inventory: N1
     Exits: N→L9 E→L6 S→L11 W→L13
 
 You are on a small track that twists and turns it's way through the forest
 around you. East the track heads towards a worn road. West it continues
 twisting and turning into the forest.
 %%
-			Ref: L10N1
-     Name: some undergrowth
-Narrative:
-		Alias: UNDERGROWTH
-Inventory:
-
-This undergrowth contains so many weeds and pests it's enough to make a grown
-gardener cry.
-%%
       Ref: L11
      Name: Forest undergrowth
     Alias: FOREST
-Inventory: N1
+Inventory: N1 N2
     Exits: N→L10
 
 You are amongst the forest undergrowth. Here it is not too overgrown and you
 can still more around with fair ease. To the north you can just make out a
 small track.
 %%
-	    Ref: L12
+      Ref: L12
      Name: Worn road through forest
     Alias: ROAD
 Inventory: N1
-					 // For now we can keep going south indefinatly by looping back to
-					 // ourself. Hopefully we can extend this zone south or link to
-					 // another zone...
+           // For now we can keep going south indefinatly by looping back to
+           // ourself. Hopefully we can extend this zone south or link to
+           // another zone...
     Exits: N→L6 S→L12
 ZoneLinks: S→
 
@@ -172,10 +137,46 @@ ZoneLinks: S→
 You are on a small track leading through the forest. The track goes east into
 the forest and south into a small cave partially hidden by the undergrowth.
 %%
-			Ref: N1
+//
+// OBJECTS
+//
+%%
+  Ref: O1
+ Name: a small mushroom
+Alias: MUSHROOM
+Reset: AFTER→10m JITTER→10m SPAWN=TRUE
+
+This is a small grey mushroom. Under the cap the gills are a greyish purple.
+%%
+//
+// Narratives
+//
+%%
+      Ref: L6N1
+     Name: a stone marker
+Narrative:
+    Alias: MARKER STONE OBELISK
+  Writing: Zinara under an arrow pointing northwards and Caves with an arrow
+           pointing west down a small track.
+
+This stone marker is about a foot square and a foot and a half tall. The top of
+it has been shaped like a pyramid giving the stone the look of a small obelisk.
+You can see some worn writing on it's sides.
+%%
+      Ref: N1
      Name: the forest
 Narrative:
-		Alias: FOREST
+    Alias: FOREST
 
 The forest around you is calm and peaceful.
+%%
+      Ref: N2
+     Name: some undergrowth
+Narrative:
+    Alias: UNDERGROWTH
+Inventory: O1
+ Location: L7
+
+This undergrowth contains so many weeds and pests it's enough to make a grown
+gardener cry.
 %%
