@@ -263,6 +263,31 @@ ZONE RECORDS
     prefixes are used such as 'L' for locations and 'O' for object. Although
     this is not essential and not enforced. For example: L1
 
+  RESET: <PAIR LIST>
+    RESET is used to specify how and when an item resets or respawns. The
+    pairs that are valid for RESET are:
+
+      AFTER→<period>
+      JITTER→<period>
+      SPAWN→<boolean>
+
+    For example:
+
+      RESET: AFTER→2m JITTER→1m SPAWN→true
+
+    AFTER and JITTER specify the reset or respawn period to be between AFTER
+    and AFTER+JITTER. If SPAWN is false this is the period after which the
+    item will be reset and placed back into the game after being disposed of.
+    If SPAWN is true it is the period after which a new copy of the item will
+    appear in the game - with or without the previous copy being disposed of
+    first.
+
+    If AFTER and JITTER are not specified the minimum reset period will be 1
+    second. If SPAWN is not specified it will default to false.
+
+    NOTE: When an item is disposed of and does not have a reset attribute it
+    will be removed from play until the server is restarted.
+
   START:
     The START field defines a location as a starting point where players may
     appear in the world. It is only applicable for records that also define an
