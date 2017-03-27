@@ -59,12 +59,6 @@ var (
 
 // NewInventory returns a new Inventory attribute initialised with the
 // specified Things as initial contents.
-//
-// BUG(diddymus): NewInventory should use proper copies of the Things passed.
-// Until Attribute and Thing implement a Copy method we can't do that.
-// Implementing a Copy method instead of building a reflect deep copy is more
-// desirable as it will allow us to fine tune exactly what is copied and how it
-// is copied when duplicating a Thing.
 func NewInventory(t ...has.Thing) *Inventory {
 	c := make([]has.Thing, 0, len(t))
 	i := &Inventory{Attribute{}, c, 0, 0, internal.NewBRL()}
