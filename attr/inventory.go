@@ -19,8 +19,8 @@ func init() {
 // Inventory implements an attribute for container inventories. The most common
 // container usage is for locations and rooms as well as actual containers like
 // bags, boxes and inventories for mobiles. WolfMUD does not actually define a
-// specific type for locations. Locations are simply Things that have Exits
-// attributes.
+// specific type for locations. Locations are simply Things that have an Exits
+// attribute.
 //
 // Any Thing added to an Inventory will automatically be assigned a Locate
 // attribute. A locate attribute is simply a back reference to the Inventory a
