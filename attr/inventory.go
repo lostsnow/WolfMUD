@@ -277,16 +277,17 @@ func (i *Inventory) Narratives() []has.Thing {
 }
 
 // List returns a string describing the non-narrative contents of an Inventory.
-// The format of the string is dependant on the number of items. If the
-// Inventory is empty:
+// The layout of the dscription returned is dependant on the number of items.
+// If the Inventory is empty and the Parent Thing has a narrative attribute we
+// return nothing. Otherwise if the Inventory is empty we return:
 //
 //	It is empty.
 //
-// A single item only:
+// A single item only we return:
 //
 //	It contains xxx.
 //
-// Multiple items:
+// For multiple items we return:
 //
 //	It contains:
 //		Item
@@ -304,6 +305,9 @@ func (i *Inventory) List() string {
 
 	switch len(i.contents) - i.split {
 	case 0:
+		if FindNarrative(i.Parent()).Found() {
+			return ""
+		}
 		return "It is empty."
 	case 1:
 		buff = append(buff, "It contains "...)
