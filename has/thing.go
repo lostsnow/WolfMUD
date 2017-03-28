@@ -42,4 +42,8 @@ type Thing interface {
 
 	// Dispose will either reset or discard a Thing when it is finished with.
 	Dispose()
+
+	// UID returns the unique identifier for a Thing or an empty string if the
+	// unique ID is unavailable.
+	UID() string
 }

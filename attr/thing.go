@@ -20,6 +20,7 @@ import (
 // functionality.
 type Thing struct {
 	attrs []has.Attribute
+	uid   string
 }
 
 // Some interfaces we want to make sure we implement
@@ -30,7 +31,7 @@ var (
 // NewThing returns a new Thing initialised with the specified Attributes.
 // Attributes can also be dynamically modified using Add and Remove methods.
 func NewThing(a ...has.Attribute) *Thing {
-	t := &Thing{}
+	t := &Thing{uid: <-internal.NextUID}
 	t.Add(a...)
 	return t
 }
@@ -132,7 +133,7 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 }
 
 func (t *Thing) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T %d attributes:", t, len(t.attrs)))
+	buff = append(buff, DumpFmt("%p %[1]T UID: %s, %d attributes:", t, t.uid, len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
@@ -220,4 +221,14 @@ func (t *Thing) Dispose() {
 		}
 	}
 	t.Free()
+}
+
+// UID returns the unique identifier for a specific Thing or an empty string if
+// the unique ID is unavailable. The unique ID should be automatically assigned
+// to any Thing created by calling NewThing or Copy.
+func (t *Thing) UID() string {
+	if t == nil {
+		return ""
+	}
+	return t.uid
 }
