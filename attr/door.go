@@ -317,18 +317,9 @@ func (d *Door) Open() {
 
 	d.open = true
 
-	a := FindAlias(d.Parent())
-	if !a.Found() {
-		return
-	}
-
-	aliases := a.Aliases()
-	if len(aliases) == 0 {
-		return
-	}
-
 	if d.reset+d.jitter != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "CLOSE "+aliases[0], d.reset, d.jitter)
+		t := d.Parent()
+		d.Cancel = event.Queue(t, "CLOSE "+t.UID(), d.reset, d.jitter)
 	}
 }
 
@@ -348,18 +339,9 @@ func (d *Door) Close() {
 
 	d.open = false
 
-	a := FindAlias(d.Parent())
-	if !a.Found() {
-		return
-	}
-
-	aliases := a.Aliases()
-	if len(aliases) == 0 {
-		return
-	}
-
 	if d.reset+d.jitter != 0 && d.open != d.initOpen {
-		d.Cancel = event.Queue(d.Parent(), "OPEN "+aliases[0], d.reset, d.jitter)
+		t := d.Parent()
+		d.Cancel = event.Queue(t, "OPEN "+t.UID(), d.reset, d.jitter)
 	}
 }
 
