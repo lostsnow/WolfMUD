@@ -93,7 +93,8 @@ func (r *Reset) Dump() (buff []string) {
 	return
 }
 
-// Copy returns a copy of the Reset receiver.
+// Copy returns a copy of the Reset receiver. The copy will not inherit any
+// pending Reset events.
 func (r *Reset) Copy() has.Attribute {
 	if r == nil {
 		return (*Reset)(nil)
