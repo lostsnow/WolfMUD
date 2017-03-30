@@ -175,10 +175,11 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 				i.split--
 			}
 
-			// If not a player check if removing a Thing triggers a re-spawning.
-			// Players don't respawn but they do move from location to location a lot
-			// which would cause needless calls to Spawn.
+			// If not a player cancel any cleanup and check if removing a Thing
+			// triggers a re-spawning. Players don't respawn but they do move from
+			// location to location a lot which would cause needless calls to Spawn.
 			if !p {
+				FindCleanup(t).Abort()
 				if s := FindReset(t).Spawn(); s != nil {
 					t = s
 				}
@@ -228,6 +229,14 @@ UPDATE:
 		t.Add(NewLocate(To))
 	} else {
 		l.SetWhere(To)
+	}
+
+	// If Thing is not a player but is moved from one Inventory to another and
+	// does not end up being carried then register Thing for cleanup as it's now
+	// just left laying around. This has to be checked after the locate attribute
+	// has been updated so we know the final location.
+	if !p && i != nil && To != nil && !To.Carried() {
+		FindCleanup(t).Cleanup()
 	}
 
 	return t
