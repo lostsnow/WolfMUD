@@ -58,4 +58,8 @@ type Inventory interface {
 	// moved which may be a copy of the passed Thing. On failure Move returns
 	// nil.
 	Move(Thing, Inventory) Thing
+
+	// Carried return true if putting an item in an Inventory results in it being
+	// carried by a player, otherwise false.
+	Carried() bool
 }

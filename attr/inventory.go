@@ -376,3 +376,27 @@ func (i *Inventory) Free() {
 	}
 	i.Attribute.Free()
 }
+
+// Carried returns true if putting an item into the Inventory would result in
+// it being carried by a player, otherwise false. The Inventory can be the
+// player's actual Inventory or the Inventory of a container (checked
+// recursively) in the player's inventory.
+//
+// TODO: Need to check for players or mobiles
+func (i *Inventory) Carried() bool {
+	if i == nil {
+		return false
+	}
+
+	var where has.Inventory = i
+
+	for where != nil {
+		p := where.Parent()
+		if FindPlayer(p).Found() {
+			return true
+		}
+		where = FindLocate(p).Where()
+	}
+
+	return false
+}
