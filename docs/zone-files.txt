@@ -58,6 +58,8 @@ DESCRIPTION
         Name: a curious brass lattice
      Aliases: LATTICE
     Location: L1
+       Reset: AFTER→2m JITTER→1m
+     Cleanup: AFTER→10m
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -145,6 +147,25 @@ ZONE RECORDS
   ALIAS: <KEYWORD LIST>
     A list of keywords used by players to interact with something. For
     example: LATTICE
+
+  CLEANUP: <PAIR LIST>
+    CLEANUP is used to specify how long to wait after an item is dropped
+    before it is automatically cleaned up and either reset or disposed of. If
+    an item does not have a CLEANUP it will be left laying around. The pairs
+    that are valid for CLEANUP are:
+
+      AFTER→<period>
+      JITTER→<period>
+
+    For example:
+
+      CLEANUP: AFTER→2m JITTER→1m
+
+    AFTER and JITTER specify the period to wait before cleaning up the item to
+    be between AFTER and AFTER+JITTER.
+
+    If AFTER and JITTER are not specified the minimum clean up period will be
+    1 second.
 
   DOOR: <PAIR LIST>
     A DOOR field defines anything door-like that can block a direction of
