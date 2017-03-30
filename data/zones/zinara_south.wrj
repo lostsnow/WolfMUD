@@ -141,10 +141,11 @@ the forest and south into a small cave partially hidden by the undergrowth.
 // OBJECTS
 //
 %%
-  Ref: O1
- Name: a small mushroom
-Alias: MUSHROOM
-Reset: AFTER→10m JITTER→10m SPAWN=TRUE
+    Ref: O1
+   Name: a small mushroom
+  Alias: MUSHROOM
+  Reset: AFTER→10m JITTER→10m SPAWN=TRUE
+Cleanup: AFTER→10m JITTER→10m
 
 This is a small grey mushroom. Under the cap the gills are a greyish purple.
 %%
