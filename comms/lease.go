@@ -48,7 +48,7 @@ func (noLeaseError) Temporary() bool {
 func (c *client) leaseAcquire() {
 	select {
 	case leases <- struct{}{}:
-		log.Printf("Lease taken: %d of %d active, %s ", len(leases), cap(leases), c.remoteAddr)
+		log.Printf("Lease taken: %d of %d active, %s", len(leases), cap(leases), c.remoteAddr)
 	default:
 		c.SetError(noLeaseError{})
 	}

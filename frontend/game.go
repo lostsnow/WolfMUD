@@ -17,11 +17,6 @@ import (
 // communicating with the game.
 type game struct {
 	*frontend
-
-	// Original frontend buffer. It is detatched from the frontend and
-	// referenced here when a player enters the game. When the player exits the
-	// game the buffer is assigned back to the frontend.
-	savedBuf message.Buffer
 }
 
 // NewGame returns a game with the specified frontend embedded. The returned
@@ -38,7 +33,8 @@ func NewGame(f *frontend) (g *game) {
 // player quits the game world.
 func (g *game) gameInit() {
 
-	g.savedBuf, g.buf = g.buf, nil
+	message.ReleaseBuffer(g.buf)
+	g.buf = nil
 	attr.FindPlayer(g.player).SetPromptStyle(has.StyleBrief)
 
 	i := (*attr.Start)(nil).Pick()
@@ -57,7 +53,8 @@ func (g *game) gameInit() {
 func (g *game) gameProcess() {
 	c := cmd.Parse(g.player, string(g.input))
 	if c == "QUIT" {
-		g.buf, g.savedBuf = g.savedBuf, nil
+		g.buf = message.AcquireBuffer()
+		g.buf.OmitLF(true)
 		NewMenu(g.frontend)
 	}
 }

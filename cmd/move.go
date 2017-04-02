@@ -74,12 +74,11 @@ func Move(s *state) {
 		return
 	}
 
-	if from.Remove(s.actor) == nil {
+	// Move us from where we are to our new location
+	if s.actor = from.Move(s.actor, to); s.actor == nil {
 		s.msg.Actor.SendBad("Something stops you from leaving here!")
 		return
 	}
-
-	to.Add(s.actor)
 
 	// Re-point where we are and re-alias observer
 	s.where = to

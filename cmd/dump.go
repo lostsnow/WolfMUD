@@ -7,17 +7,33 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 
+	"fmt"
+	"strconv"
 	"strings"
+	"unsafe"
 )
 
-// Syntax: #DUMP alias
+// Syntax: #DUMP ( alias | <address> )
+//
+// The address can be any address printed using %p that points to a
+// *attr.Thing - e.g. 0xc42011fab0. Trying to dump a *attr.Thing in this way
+// may crash the server and should only be used for debugging. Therefore
+// dumping using an address is only available if Server.Debug is set to true
+// in the configuration.
 func init() {
 	AddHandler(Dump, "#DUMP")
 }
 
 func Dump(s *state) {
+	defer func() {
+		if p := recover(); p != nil {
+			err := fmt.Errorf("%v", p)
+			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": ", err.Error())
+		}
+	}()
 
 	if len(s.words) == 0 {
 		s.msg.Actor.Send("What do you want to dump?")
@@ -53,6 +69,28 @@ func Dump(s *state) {
 		if attr.FindAlias(s.actor).HasAlias(name) {
 			what = s.actor
 		}
+	}
+
+	// Here be dragons - poking around in random memory locations is ill advised!
+	if strings.HasPrefix(name, "0X") {
+		if !config.Server.Debug {
+			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Server not running with Server.Debug=true")
+			return
+		}
+
+		n, _ := strconv.ParseUint(name[2:], 16, 64)
+
+		// Check alignment so we don't cause a fatal error we can't catch with a
+		// panic
+		//if n%uint64(reflect.TypeOf((*attr.Thing)(nil)).Align()) != 0 {
+		if uintptr(n)%unsafe.Alignof(&attr.Thing{}) != 0 {
+			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Invalid alignment")
+			return
+		}
+
+		// It's fatal of p dosen't actually point to a *attr.Thing
+		p := (*attr.Thing)(unsafe.Pointer(uintptr(n)))
+		what = (*attr.Thing)(p)
 	}
 
 	// Was item to dump eventually found?

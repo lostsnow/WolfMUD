@@ -266,7 +266,6 @@ func (a *account) write() {
 	// Assemble player
 	a.player = attr.NewThing()
 	a.player.(*attr.Thing).Unmarshal(1, rec)
-	a.player.Add(attr.NewLocate(nil))
 	a.player.Add(attr.NewPlayer(a.output))
 
 	// Greet new player

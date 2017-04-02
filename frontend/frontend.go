@@ -76,13 +76,13 @@ func (closedError) Temporary() bool {
 // frontend represents the current frontend state for a given io.Writer - this
 // is typically from a player's network connection.
 type frontend struct {
-	output   io.Writer      // Writer to send output text to
-	buf      message.Buffer // Buffered messages written with next prompt
-	input    []byte         // The input text we are currently processing
-	nextFunc func()         // The next frontend function called by Parse
-	player   has.Thing      // The current player instance (ingame or not)
-	account  string         // The current account hash (also key to accounts)
-	err      error          // First error to occur else nil
+	output   io.Writer       // Writer to send output text to
+	buf      *message.Buffer // Buffered messages written with next prompt
+	input    []byte          // The input text we are currently processing
+	nextFunc func()          // The next frontend function called by Parse
+	player   has.Thing       // The current player instance (ingame or not)
+	account  string          // The current account hash (also key to accounts)
+	err      error           // First error to occur else nil
 }
 
 // New returns an instance of frontend initialised with the given io.Writer.
@@ -91,9 +91,10 @@ type frontend struct {
 // greetingDisplay.
 func New(output io.Writer) *frontend {
 	f := &frontend{
-		buf:    message.NewBuffer(),
+		buf:    message.AcquireBuffer(),
 		output: output,
 	}
+	f.buf.OmitLF(true)
 	f.nextFunc = f.greetingDisplay
 	return f
 }
@@ -120,10 +121,18 @@ func (f *frontend) Close() {
 	accounts.Unlock()
 
 	// Free up resources
+	message.ReleaseBuffer(f.buf)
 	f.buf = nil
-	f.player = nil
+
 	f.output = nil
 	f.nextFunc = nil
+
+	if f.player != nil {
+		f.player.Free()
+	}
+	f.player = nil
+
+	f = nil
 }
 
 // Parse is the main input/output processing method for frontend. The input is

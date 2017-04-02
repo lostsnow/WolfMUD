@@ -16,14 +16,15 @@ func init() {
 }
 
 // Locate implements an attribute that refers to the Inventory of where
-// something is. When a Thing changes the Inventory it is contained in and has
-// a Locate attribute SetWhere should be called to update the reference. This
-// attribute only needs to be added to things that need to know where they are.
-// For example a player needs to know where they are so that they can move
-// themselves.
+// something is. When a Thing is added to an Inventory a Locate attribute will
+// be added automatically if the Thing does not already have one. When a Thing
+// is added to or removed from an Inventory the Locate.SetWhere method is
+// called to update the reference. See inventory.Add for more details.
+// Locate also records the initial starting position or origin of a Thing.
 type Locate struct {
 	Attribute
-	where has.Inventory
+	where  has.Inventory
+	origin has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -35,7 +36,7 @@ var (
 // Inventory. Passing nil is a valid reference and is usually treated as being
 // nowhere.
 func NewLocate(i has.Inventory) *Locate {
-	l := &Locate{Attribute{}, nil}
+	l := &Locate{Attribute{}, nil, nil}
 	l.SetWhere(i)
 	return l
 }
@@ -65,16 +66,17 @@ func (*Locate) Unmarshal(data []byte) has.Attribute {
 }
 
 func (l *Locate) Dump() []string {
-	name := ""
-	if w := l.Where(); w != nil {
-		name = FindName(w.Parent()).Name("Somewhere")
+	origin := "Nowhere"
+	if l.origin != nil {
+		origin = FindName(l.origin.Parent()).Name("Nowhere")
 	}
-	return []string{DumpFmt("%p %[1]T -> %p %s", l, l.where, name)}
+	where := FindName(l.where.Parent()).Name("Nowhere")
+	return []string{DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where)}
 }
 
-// Where returns the Inventory where 'we' are. Returning nil is a valid
-// reference and is usually treated as being nowhere. The current reference
-// should be set by calling SetWhere.
+// Where returns the Inventory the parent Thing is in. Returning nil is a
+// valid reference and is usually treated as being nowhere. The current
+// Inventory is set by calling SetWhere.
 func (l *Locate) Where() (where has.Inventory) {
 	if l != nil {
 		where = l.where
@@ -82,14 +84,30 @@ func (l *Locate) Where() (where has.Inventory) {
 	return
 }
 
-// SetWhere is used to set the Inventory where 'we' are. Passing nil is a valid
-// reference and is usually treated as being nowhere. The current reference can
-// be retrieved by calling Where.
+// Origin return the initial starting Inventory that a Thing is placed into.
+func (l *Locate) Origin() (origin has.Inventory) {
+	if l != nil {
+		origin = l.origin
+	}
+	return
+}
+
+// SetWhere is used to set the Inventory containing the parent Thing. Passing
+// nil is a valid reference and is usually treated as being nowhere. The
+// current reference can be retrieved by calling Where.
 //
 // NOTE: This is called automatically by the Inventory Add and Remove methods.
 func (l *Locate) SetWhere(i has.Inventory) {
 	if l != nil {
 		l.where = i
+	}
+}
+
+// SetOrigin is use to specify the initial starting Inventory that a Thing is
+// placed into.
+func (l *Locate) SetOrigin(i has.Inventory) {
+	if l != nil {
+		l.origin = i
 	}
 }
 
@@ -99,4 +117,14 @@ func (l *Locate) Copy() has.Attribute {
 		return (*Locate)(nil)
 	}
 	return NewLocate(l.where)
+}
+
+// Free makes sure references are nil'ed when the Locate attribute is freed.
+func (l *Locate) Free() {
+	if l == nil {
+		return
+	}
+	l.where = nil
+	l.origin = nil
+	l.Attribute.Free()
 }

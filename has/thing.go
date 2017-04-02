@@ -26,12 +26,24 @@ type Thing interface {
 	// Remove is used to remove one or more Attribute from a Thing.
 	Remove(...Attribute)
 
-	// Close is used to clean-up/release references to all Attribute for a Thing.
-	Close()
+	// Free is used to clean-up/release references to all Attribute for a Thing.
+	Free()
 
 	// Copy produces another, possibly inexact, instance of a Thing. The
 	// differences may be due to unique IDs, locks and other data that should not
 	// be copied between instances. The copy will contain a copy of all of the
 	// attributes and possibly other Things associated with the Thing as well.
 	Copy() Thing
+
+	// SetOrigins updates the origin for the Thing to its containing Inventory and
+	// recursivly sets the origins for the content of a Thing's Inventory if it has
+	// one.
+	SetOrigins()
+
+	// Dispose will either reset or discard a Thing when it is finished with.
+	Dispose()
+
+	// UID returns the unique identifier for a Thing or an empty string if the
+	// unique ID is unavailable.
+	UID() string
 }

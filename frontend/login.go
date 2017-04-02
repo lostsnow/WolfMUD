@@ -148,7 +148,6 @@ func (l *login) passwordProcess() {
 	record = jar[0]
 	l.player = attr.NewThing()
 	l.player.(*attr.Thing).Unmarshal(1, record)
-	l.player.Add(attr.NewLocate(nil))
 	l.player.Add(attr.NewPlayer(l.output))
 
 	// Greet returning player

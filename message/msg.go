@@ -17,22 +17,22 @@ import (
 // Allocate/Deallocate.
 //
 // NOTE: Observer is setup as an 'alias' for Observers[s.where] - Observer and
-// Observers[s.where] point to the same buffer. See the Allocate method for
+// Observers[s.where] point to the same Buffer. See the Allocate method for
 // more details.
 type Msg struct {
-	Actor       *buffer
-	Participant *buffer
-	Observer    *buffer
+	Actor       *Buffer
+	Participant *Buffer
+	Observer    *Buffer
 	Observers   buffers
 }
 
 // Allocate sets up the message buffers for the actor, participant and
 // observers. The 'where' passed in should be the current location so that
 // Observer can be linked to the correct Observers element. The locks passed in
-// are used to setup a buffer for observers in each of the locations being
+// are used to setup a Buffer for observers in each of the locations being
 // locked.
 //
-// The actor's buffer is initially set to half a page (half of 80 columns by 24
+// The actor's Buffer is initially set to half a page (half of 80 columns by 24
 // lines) as it is common to be sending location descriptions back to the
 // actor. Half a page is arbitrary but seems to be reasonable.
 //
@@ -40,15 +40,15 @@ type Msg struct {
 // silent mode.
 func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 	if m.Actor == nil {
-		m.Actor = &buffer{buf: make([]byte, 0, (80*24)/2)}
+		m.Actor = AcquireBuffer()
 		m.Actor.omitLF = true
-		m.Participant = &buffer{}
-		m.Observers = make(map[has.Inventory]*buffer)
+		m.Participant = AcquireBuffer()
+		m.Observers = make(map[has.Inventory]*Buffer)
 	}
 
 	for _, l := range locks {
 		if _, ok := m.Observers[l]; !ok {
-			m.Observers[l] = &buffer{}
+			m.Observers[l] = AcquireBuffer()
 			m.Observers[l].Silent(l.Crowded())
 		}
 	}
@@ -59,10 +59,13 @@ func (m *Msg) Allocate(where has.Inventory, locks []has.Inventory) {
 // participant and observers. Specific deallocation can help with garbage
 // collection.
 func (m *Msg) Deallocate() {
+	ReleaseBuffer(m.Actor)
 	m.Actor = nil
+	ReleaseBuffer(m.Participant)
 	m.Participant = nil
 	m.Observer = nil
 	for where := range m.Observers {
+		ReleaseBuffer(m.Observers[where])
 		m.Observers[where] = nil
 		delete(m.Observers, where)
 	}

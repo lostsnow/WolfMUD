@@ -118,6 +118,18 @@ func (v *Vetoes) Copy() has.Attribute {
 	return NewVetoes(nv...)
 }
 
+// Free makes sure references are nil'ed when the Vetoes attribute is freed.
+func (v *Vetoes) Free() {
+	if v == nil {
+		return
+	}
+	for cmd := range v.vetoes {
+		v.vetoes[cmd] = nil
+		delete(v.vetoes, cmd)
+	}
+	v.Attribute.Free()
+}
+
 // Veto implements a veto for a specific command. Veto need to be added to a
 // Vetoes list using NewVetoes.
 type Veto struct {

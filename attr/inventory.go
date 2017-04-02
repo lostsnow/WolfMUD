@@ -19,21 +19,28 @@ func init() {
 // Inventory implements an attribute for container inventories. The most common
 // container usage is for locations and rooms as well as actual containers like
 // bags, boxes and inventories for mobiles. WolfMUD does not actually define a
-// specific type for locations. Locations are simply Things that have Inventory
-// and usually Exits attributes.
+// specific type for locations. Locations are simply Things that have an Exits
+// attribute.
 //
-// For a complete description of narratives see the Narrative attribute type.
+// Any Thing added to an Inventory will automatically be assigned a Locate
+// attribute. A locate attribute is simply a back reference to the Inventory a
+// Thing is in. This enables a Thing to work out where it is.
 //
 // NOTE: The contents slice is split into two parts. Things with a Narrative
-// attribute are added to the begenning of the slice. All other Things are
+// attribute are added to the beginning of the slice. All other Things are
 // appended to the end of the slice. Which items are narrative and which are
 // not is tracked by split:
 //
-//	narattives := contents[:split]
+//	narratives := contents[:split]
 //	other := contents[split:]
 //
 //	countNarratives := split
 //	countOther := len(contents) - split
+//
+// For a complete description of narratives see the Narrative attribute type.
+//
+// TODO: A slice for contents is fine for convenience and simplicity but maybe
+// a linked list would be better? This would possibly save reslicing in Remove.
 //
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
@@ -52,12 +59,6 @@ var (
 
 // NewInventory returns a new Inventory attribute initialised with the
 // specified Things as initial contents.
-//
-// BUG(diddymus): NewInventory should use proper copies of the Things passed.
-// Until Attribute and Thing implement a Copy method we can't do that.
-// Implementing a Copy method instead of building a reflect deep copy is more
-// desirable as it will allow us to fine tune exactly what is copied and how it
-// is copied when duplicating a Thing.
 func NewInventory(t ...has.Thing) *Inventory {
 	c := make([]has.Thing, 0, len(t))
 	i := &Inventory{Attribute{}, c, 0, 0, internal.NewBRL()}
@@ -101,49 +102,59 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Add puts the specified Thing into the Inventory. If the Thing needs to know
-// where it is - because it implements the has.Locate interface - we update
-// where the Thing is to point to the Inventory.
-func (i *Inventory) Add(t has.Thing) {
+// Add puts a Thing into an Inventory. If the Thing does not have a Locate
+// attribute one will be added automatically, otherwise the existing Locate
+// attribute will be updated. On success Add will return the Thing actually
+// added to the inventory - which may not be the Thing passed in, it may be a
+// copy. It is therefore important to use the Thing returned after calling Add.
+// On failure Add returns nil.
+func (i *Inventory) Add(t has.Thing) has.Thing {
 	if i == nil {
-		return
+		return nil
 	}
-
-	// If Thing added was a narrative move it to the front of the slice otherwise
-	// just append it onto the end. Adjust split if Thing is narrative.
-	if FindNarrative(t).Found() {
-		i.contents = append(i.contents, nil)
-		copy(i.contents[1:], i.contents[0:])
-		i.contents[0] = t
-		i.split++
-	} else {
-		i.contents = append(i.contents, t)
-	}
-	FindLocate(t).SetWhere(i)
-
-	// TODO: Need to check for players or mobiles
-	if FindPlayer(t).Found() {
-		i.playerCount++
-	}
+	return (*Inventory)(nil).Move(t, i)
 }
 
-// Remove tries to take the specified Thing from the Inventory. If the Thing is
-// removed successfully it is returned otherwise nil is returned. If the Thing
-// needs to know where it is - because it implements the has.Locate interface -
-// we update where the Thing is to nil as it is now nowhere.
-//
-// TODO: A slice is fine for conveniance and simplicity but maybe a linked list
-// would be better?
+// Remove takes a Thing from an Inventory. On success Remove will return the
+// Thing actually removed from the inventory - which may not be the Thing
+// passed in, it may be a copy. It is therefore important to use the Thing
+// returned after calling Remove. If Remove fails it will return nil.
 func (i *Inventory) Remove(t has.Thing) has.Thing {
 	if i == nil {
 		return nil
 	}
+	return i.Move(t, nil)
+}
+
+// Move removes a Thing from one Inventory and puts it into another Inventory.
+// On success Move will return the Thing moved - which may not be the Thing
+// passed in, it may be a copy. It is therefore important to use the Thing
+// returned after calling Move. If Move fails it will return nil.
+//
+// If the receiver is a *Inventory typed nil the Thing will only be added to an
+// inventory. If the to Inventory is nil the Thing will only be removed from
+// the reveiver Inventory. In both cases the Thing's Locate attribute will be
+// updated or one added if missing.
+func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
+
+	if t == nil {
+		return t
+	}
+
+	n := FindNarrative(t).Found()
+	p := FindPlayer(t).Found()
+	l := FindLocate(t)
+	found := false
+
+	if i == nil {
+		goto ADD
+	}
 
 	for j, c := range i.contents {
 		if c == t {
-			FindLocate(t).SetWhere(nil)
-			i.contents[j] = nil
-			i.contents = append(i.contents[:j], i.contents[j+1:]...)
+			copy(i.contents[j:], i.contents[j+1:])
+			i.contents[len(i.contents)-1] = nil
+			i.contents = i.contents[:len(i.contents)-1]
 
 			// If we are using less than half of the slice's capacity and the
 			// difference is more than config.Inventory.Compact 'shrink' the slice by
@@ -155,19 +166,80 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 			}
 
 			// TODO: Need to check for players or mobiles
-			if FindPlayer(t).Found() {
+			if p {
 				i.playerCount--
 			}
 
 			// If Thing removed was a Narrative adjust split
-			if FindNarrative(t).Found() {
+			if n {
 				i.split--
 			}
 
-			return c
+			// If not a player cancel any cleanup and check if removing a Thing
+			// triggers a re-spawning. Players don't respawn but they do move from
+			// location to location a lot which would cause needless calls to Spawn.
+			if !p {
+				FindCleanup(t).Abort()
+				if s := FindReset(t).Spawn(); s != nil {
+					t = s
+				}
+			}
+
+			found = true
 		}
 	}
-	return nil
+
+	if !found {
+		return nil
+	}
+
+ADD:
+
+	To, ok := to.(*Inventory)
+
+	if to == nil {
+		goto UPDATE
+	}
+
+	// If to is not an actual *Inventory have to take the slow path
+	if !ok {
+		return to.Add(t)
+	}
+
+	// If Thing added was a narrative move it to the front of the slice otherwise
+	// just append it onto the end. Adjust split if Thing is narrative.
+	if n {
+		To.contents = append(To.contents, nil)
+		copy(To.contents[1:], To.contents[0:])
+		To.contents[0] = t
+		To.split++
+	} else {
+		To.contents = append(To.contents, t)
+	}
+
+	// TODO: Need to check for players or mobiles
+	if p {
+		To.playerCount++
+	}
+
+UPDATE:
+
+	// Give thing a locate attribute if it doesn't have one, else just update it
+	if !l.Found() {
+		t.Add(NewLocate(To))
+	} else {
+		l.SetWhere(To)
+	}
+
+	// If Thing is not a player but is moved from one Inventory to another and
+	// does not end up being carried then register Thing for cleanup as it's now
+	// just left laying around. This has to be checked after the locate attribute
+	// has been updated so we know the final location.
+	if !p && i != nil && To != nil && !To.Carried() {
+		FindCleanup(t).Cleanup()
+	}
+
+	return t
 }
 
 // Search returns the first Inventory Thing that matches the alias passed. If
@@ -214,16 +286,17 @@ func (i *Inventory) Narratives() []has.Thing {
 }
 
 // List returns a string describing the non-narrative contents of an Inventory.
-// The format of the string is dependant on the number of items. If the
-// Inventory is empty:
+// The layout of the dscription returned is dependant on the number of items.
+// If the Inventory is empty and the Parent Thing has a narrative attribute we
+// return nothing. Otherwise if the Inventory is empty we return:
 //
 //	It is empty.
 //
-// A single item only:
+// A single item only we return:
 //
 //	It contains xxx.
 //
-// Multiple items:
+// For multiple items we return:
 //
 //	It contains:
 //		Item
@@ -241,6 +314,9 @@ func (i *Inventory) List() string {
 
 	switch len(i.contents) - i.split {
 	case 0:
+		if FindNarrative(i.Parent()).Found() {
+			return ""
+		}
 		return "It is empty."
 	case 1:
 		buff = append(buff, "It contains "...)
@@ -283,8 +359,9 @@ func (i *Inventory) Empty() bool {
 // Copy returns a copy of the Inventory receiver. The copy will be made
 // recursively copying the complete content of the Inventory as well.
 //
-// BUG(diddymus): There are no checks made for cyclic references which could
-// send us into infinite recursion.
+// NOTE: There are no checks made for cyclic references which could send us
+// into infinite recursion. However cyclic references should be prevented by
+// the zone loader. See zones.isParent function.
 func (i *Inventory) Copy() has.Attribute {
 	if i == nil {
 		return (*Inventory)(nil)
@@ -294,4 +371,41 @@ func (i *Inventory) Copy() has.Attribute {
 		ni.Add(a.Copy())
 	}
 	return ni
+}
+
+// Free recursively calls Free on all of it's content when the Inventory
+// attribute is freed.
+func (i *Inventory) Free() {
+	if i == nil {
+		return
+	}
+	for x, t := range i.contents {
+		i.contents[x] = nil
+		t.Free()
+	}
+	i.Attribute.Free()
+}
+
+// Carried returns true if putting an item into the Inventory would result in
+// it being carried by a player, otherwise false. The Inventory can be the
+// player's actual Inventory or the Inventory of a container (checked
+// recursively) in the player's inventory.
+//
+// TODO: Need to check for players or mobiles
+func (i *Inventory) Carried() bool {
+	if i == nil {
+		return false
+	}
+
+	var where has.Inventory = i
+
+	for where != nil {
+		p := where.Parent()
+		if FindPlayer(p).Found() {
+			return true
+		}
+		where = FindLocate(p).Where()
+	}
+
+	return false
 }

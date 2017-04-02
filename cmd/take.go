@@ -113,15 +113,12 @@ func Take(s *state) {
 		return
 	}
 
-	// Try and remove the item from container
-	if cWhere.Remove(tWhat) == nil {
+	// Move the item from container to our inventory
+	if cWhere.Move(tWhat, tWhere) == nil {
 		s.msg.Actor.SendBad("Something stops you taking ", tName, " from ", cName, "...")
 		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
 		return
 	}
-
-	// Put item in taking thing's inventory
-	tWhere.Add(tWhat)
 
 	s.msg.Actor.SendGood("You take ", tName, " from ", cName, ".")
 	s.msg.Observer.SendInfo("You see ", who, " take something from ", cName, ".")

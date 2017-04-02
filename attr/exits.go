@@ -221,6 +221,14 @@ func (e *Exits) AutoUnlink(direction byte) {
 	}
 }
 
+// Pre built byte slices for making messages about exits available.
+var (
+	noExits  = []byte("You can see no immediate exits from here.")
+	onlyExit = []byte("The only exit you can see from here is ")
+	seeExits = []byte("You can see exits ")
+	and      = []byte(" and ")
+)
+
 // List will return a string listing the exits you can see. For example:
 //
 //	You can see exits east, southeast and south.
@@ -256,12 +264,23 @@ func (e *Exits) List() string {
 
 	switch c {
 	case 0:
-		return "You can see no immediate exits from here."
+		buff = append(buff, noExits...)
 	case 1:
-		return "The only exit you can see from here is " + directionNames[l] + "."
+		buff = append(buff, onlyExit...)
+		buff = append(buff, directionNames[l]...)
 	default:
-		return "You can see exits " + string(buff) + " and " + directionNames[l] + "."
+		buff = append(buff, seeExits...)
+
+		// Move text to front of buffer
+		copy(buff[len(seeExits):], buff[0:])
+		copy(buff[0:], seeExits)
+
+		buff = append(buff, and...)
+		buff = append(buff, directionNames[l]...)
 	}
+	buff = append(buff, '.')
+
+	return string(buff)
 }
 
 // NormalizeDirection takes a long or short variant of a direction name in any
@@ -419,4 +438,15 @@ func (e *Exits) Copy() has.Attribute {
 		}
 	}
 	return ne
+}
+
+// Free makes sure references are nil'ed when the Exits attribute is freed.
+func (e *Exits) Free() {
+	if e == nil {
+		return
+	}
+	for x := range e.exits {
+		e.exits[x] = nil
+	}
+	e.Attribute.Free()
 }

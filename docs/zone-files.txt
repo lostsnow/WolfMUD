@@ -58,6 +58,8 @@ DESCRIPTION
         Name: a curious brass lattice
      Aliases: LATTICE
     Location: L1
+       Reset: AFTER→2m JITTER→1m
+     Cleanup: AFTER→10m
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -146,6 +148,25 @@ ZONE RECORDS
     A list of keywords used by players to interact with something. For
     example: LATTICE
 
+  CLEANUP: <PAIR LIST>
+    CLEANUP is used to specify how long to wait after an item is dropped
+    before it is automatically cleaned up and either reset or disposed of. If
+    an item does not have a CLEANUP it will be left laying around. The pairs
+    that are valid for CLEANUP are:
+
+      AFTER→<period>
+      JITTER→<period>
+
+    For example:
+
+      CLEANUP: AFTER→2m JITTER→1m
+
+    AFTER and JITTER specify the period to wait before cleaning up the item to
+    be between AFTER and AFTER+JITTER.
+
+    If AFTER and JITTER are not specified the minimum clean up period will be
+    1 second.
+
   DOOR: <PAIR LIST>
     A DOOR field defines anything door-like that can block a direction of
     travel. For example a door, a gate, a panel or a bookcase. The pairs
@@ -153,11 +174,12 @@ ZONE RECORDS
 
       EXIT→<direction>
       RESET→<period>
+      JITTER→<period>
       OPEN→<boolean>
 
     For example:
 
-      DOOR: EXIT→E RESET→2m OPEN→false
+      DOOR: EXIT→E RESET→2m JITTER→1m OPEN→false
 
     EXIT defines the direction that is blocked when the DOOR is closed. The
     direction can be specified in long or short form (SEE EXITS). If an EXIT
@@ -172,6 +194,15 @@ ZONE RECORDS
     period should be given in the form: 0h0m0s for example "30s" for 30
     seconds. A value equivalent to a duration of zero length disables the
     automatic reset. For example 0h, 0m or 0s. If omitted defaults to 0s.
+
+    JITTER defines a maximum random amount of time to add to the RESET delay.
+    That is, the actual delay will be between RESET and RESET+JITTER. In the
+    example a JITTER of 1m will causing the DOOR to reset after a delay of
+    between 2 and 3 minutes (between 2m and 2m+1m). A JITTER of 0s adds no
+    randomness to the RESET delay. If omitted defaults to 0s.
+
+    If RESET and JITTER are both set to 0s the DOOR will not automatically
+    reset to its initial state.
 
     NOTE: A DOOR attribute should only be added to narrative items in a
     location. Adding a DOOR directly to a location or a moveable item may
@@ -195,6 +226,11 @@ ZONE RECORDS
     opposing pairs. For example: going east from A leads to B, going west from
     B leads back to A. As the exits are added to A and B independently this
     need not always be the case.
+
+    An EXITS pair may be left incomplete. For example, S or S→. This is
+    convenient as a reminder when developing a zone. Such incomplete pairs
+    will be ignored. To raise a warning when the zone is loaded use an
+    invalid reference instead. For example, S→X
 
     If an EXITS field is added to something an inventory will be automatically
     added as well even if there is no specific INVENTORY field.
@@ -248,6 +284,31 @@ ZONE RECORDS
     prefixes are used such as 'L' for locations and 'O' for object. Although
     this is not essential and not enforced. For example: L1
 
+  RESET: <PAIR LIST>
+    RESET is used to specify how and when an item resets or respawns. The
+    pairs that are valid for RESET are:
+
+      AFTER→<period>
+      JITTER→<period>
+      SPAWN→<boolean>
+
+    For example:
+
+      RESET: AFTER→2m JITTER→1m SPAWN→true
+
+    AFTER and JITTER specify the reset or respawn period to be between AFTER
+    and AFTER+JITTER. If SPAWN is false this is the period after which the
+    item will be reset and placed back into the game after being disposed of.
+    If SPAWN is true it is the period after which a new copy of the item will
+    appear in the game - with or without the previous copy being disposed of
+    first.
+
+    If AFTER and JITTER are not specified the minimum reset period will be 1
+    second. If SPAWN is not specified it will default to false.
+
+    NOTE: When an item is disposed of and does not have a reset attribute it
+    will be removed from play until the server is restarted.
+
   START:
     The START field defines a location as a starting point where players may
     appear in the world. It is only applicable for records that also define an
@@ -282,6 +343,11 @@ ZONE RECORDS
     ZONE2:A, going west from ZONE2:A leads back to ZONE1:A. As the exits are
     added to ZONE1:A and ZONE2:A independently this need not always be the
     case.
+
+    A ZONELINKS pair may be left incomplete. For example: S, S→, S→ZINARA or
+    S→ZINARA:. This is convenient as a reminder when developing a zone. Such
+    incomplete pairs will be ignored. To raise a warning when the zone is
+    loaded use an invalid reference instead. For example, S→X:
 
     When a ZONELINKS field links to something an inventory will be added
     automatically to the target being linked to even if there is no specific

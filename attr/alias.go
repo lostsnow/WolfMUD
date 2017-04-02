@@ -32,6 +32,21 @@ func init() {
 //	EXAMINE SHORTSWORD
 //	DROP SHORTSWORD
 //
+// Every Alias attribute that has a parent Thing set will have a unique ID
+// equal to the result of calling Alias.Parent().UID(). Therefore a specific,
+// unique Thing can be found by unique ID using, for example,
+// Alias.HasAlias(Thing.UID()) or Inventory.Search(Thing.UID()).
+//
+// NOTE: It is important to switch to the unique alias whenever possible,
+// especially when scripting, so that the correct Thing is used for commands.
+// This avoids picking the wrong Thing when a given alias identifies multiple
+// Things. For example if we have a respawnable runestone and we get and drop
+// the runestone it will be registered for cleanup. However if we just use the
+// alias 'RUNESTONE' either the dropped or respawned runestone could be cleaned
+// up. If the respawned runestone is cleaned up we could end up in a loop
+// respawning and cleaning up the wrong runestone. Using the unique alias of
+// the dropped runestone avoids this situation.
+//
 // TODO: Need to implement alias prefixes. This would allow us to distinguish
 // between two similar items with the same alias. For example if there are two
 // coins, one copper and one silver, we could use either "GET COPPER COIN"
@@ -50,12 +65,30 @@ var (
 
 // NewAlias returns a new Alias attribute initialised with the specified
 // aliases. The specified aliases are automatically uppercased when stored.
+// A unique alias using the parent Thing.UID will be added automatically.
 func NewAlias(aliases ...string) *Alias {
 	a := make(map[string]struct{}, len(aliases))
 	for _, alias := range aliases {
 		a[strings.ToUpper(alias)] = struct{}{}
 	}
 	return &Alias{Attribute{}, a}
+}
+
+// SetParent overrides the default Attribute.SetParent in order to set a
+// unique alias based on the parent Thing unique ID. The alias will be equal
+// to the value returned by calling Alias.Parent().UID(). When the parent for
+// the attribute changes the old unique identifier is removed (if there is
+// one) and the new unique alias added before setting the new parent.
+func (a *Alias) SetParent(t has.Thing) {
+	for alias, _ := range a.aliases {
+		if strings.HasPrefix(alias, internal.UIDPrefix) {
+			delete(a.aliases, alias)
+		}
+	}
+	if uid := t.UID(); len(uid) != 0 {
+		a.aliases[t.UID()] = struct{}{}
+	}
+	a.Attribute.SetParent(t)
 }
 
 // FindAlias searches the attributes of the specified Thing for attributes that

@@ -6,19 +6,26 @@
 // Package stats implements periodic collection and display of various -
 // possibly interesting - statistics. A typical reading might be:
 //
-//	M[   1Mb  -816b ] O[          1564        +0] G[    39     +0] P 11/11
+//	U[   1Mb  -816b ] O[          1564        +0] G[    39     +0] P 11/11
 //
 // This shows:
 //
-//	M[   1Mb  -816b ] - system memory, change since last collection
+//	U[   1Mb  -816b ] - used memory, change since last collection
 //	O[  1564      +0] - heap objects, change since last collection
 //	G[    39      +0] - Goroutines, change since last collection
 //	P 11/11           - Current number of players / maximum number of players
 //
-// System memory is rounded to the nearest convenient units: b - bytes, kb -
+// Used memory is rounded to the nearest convenient units: b - bytes, kb -
 // kilobytes, Mb - megabytes, Gb - gigabytes, Tb - terabytes, Pb - petabytes,
 // Eb - exabytes. Everything above terabytes is included for completeness - but
 // 64 unsigned bits *CAN* go up to 15Eb or 18,446,744,073,709,551,615 bytes ;)
+//
+// The used memory only respresents allocated memory - not memory requested
+// from the operating system which is going to be of a larger amount.
+//
+// The calculations for memory usage have gone through several iterations. The
+// current values correspond to the scavenger values for consumed memory seen
+// when the server is run with GODEBUG=gctrace=1.
 package stats
 
 import (
@@ -38,7 +45,7 @@ var (
 
 // statistics from the last collection
 type stats struct {
-	HeapSys     uint64
+	Inuse       uint64
 	HeapObjects uint64
 	Goroutines  int
 	MaxPlayers  int
@@ -77,11 +84,12 @@ func (s *stats) collect() {
 	m := new(runtime.MemStats)
 	runtime.ReadMemStats(m)
 
+	u := m.HeapInuse + m.StackInuse + m.MSpanInuse + m.MCacheInuse
 	g := runtime.NumGoroutine()
 	p := Len()
 
 	// Calculate difference in resources since last run
-	Δs := int64(m.HeapSys - s.HeapSys)
+	Δu := int64(u - s.Inuse)
 	Δo := int(m.HeapObjects - s.HeapObjects)
 	Δg := g - s.Goroutines
 
@@ -91,16 +99,16 @@ func (s *stats) collect() {
 		maxPlayers = p
 	}
 
-	// Calculate scaled numeric and prefix parts of Alloc and Alloc difference
-	sn, sp := uscale(m.HeapSys)
-	Δsn, Δsp := scale(Δs)
+	// Calculate scaled numeric and prefix parts of Inuse and Inuse change
+	un, up := uscale(u)
+	Δun, Δup := scale(Δu)
 
-	log.Printf("M[%4d%-2s %+5d%-2s] O[%14d %+9d] G[%6d %+6d] P %d/%d",
-		sn, sp, Δsn, Δsp, m.HeapObjects, Δo, g, Δg, p, maxPlayers,
+	log.Printf("U[%4d%-2s %+5d%-2s] O[%14d %+9d] G[%6d %+6d] P %d/%d",
+		un, up, Δun, Δup, m.HeapObjects, Δo, g, Δg, p, maxPlayers,
 	)
 
 	// Save current stats
-	s.HeapSys = m.HeapSys
+	s.Inuse = u
 	s.HeapObjects = m.HeapObjects
 	s.Goroutines = g
 	s.MaxPlayers = maxPlayers

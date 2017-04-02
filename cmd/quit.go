@@ -27,10 +27,7 @@ func Quit(s *state) {
 	// NOTE: In future this needs to be updated to only drop temporary items.
 	from := attr.FindInventory(s.actor)
 	for _, t := range from.Contents() {
-		if alias := attr.FindAlias(t); alias.Found() {
-			aliases := alias.Aliases()
-			s.scriptAll("DROP", aliases[0])
-		}
+		s.scriptAll("DROP", t.UID())
 	}
 
 	// Remove the player from the world

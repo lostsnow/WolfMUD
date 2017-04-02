@@ -20,6 +20,7 @@ import (
 // functionality.
 type Thing struct {
 	attrs []has.Attribute
+	uid   string
 }
 
 // Some interfaces we want to make sure we implement
@@ -30,16 +31,22 @@ var (
 // NewThing returns a new Thing initialised with the specified Attributes.
 // Attributes can also be dynamically modified using Add and Remove methods.
 func NewThing(a ...has.Attribute) *Thing {
-	t := &Thing{}
+	t := &Thing{uid: <-internal.NextUID}
 	t.Add(a...)
 	return t
 }
 
-// Close is used to clean-up/release references to all Attribute for a Thing.
-// When a Thing is finished with calling Close helps the garbage collector to
+// Free is used to clean-up/release references to all Attribute for a Thing.
+// When a Thing is finished with calling Free helps the garbage collector to
 // reclaim objects. It can also help to break cyclic references that could
 // prevent garbage collection.
-func (t *Thing) Close() {
+func (t *Thing) Free() {
+	if t == nil {
+		return
+	}
+	for _, a := range t.attrs {
+		a.Free()
+	}
 	t.Remove(t.attrs...)
 	t.attrs = nil
 }
@@ -55,16 +62,16 @@ func (t *Thing) Add(a ...has.Attribute) {
 	}
 }
 
-// Remove is used to remove the passed Attributes from a Thing. When an
-// Attribute is removed its parent it set to nil. There is no indication if an
-// Attribute cannot actually be removed.
+// Remove is used to remove the passed Attributes from a Thing. There is no
+// indication if an Attribute cannot actually be removed. When an Attribute is
+// removed and is no longer required its Free method should be called.
 func (t *Thing) Remove(a ...has.Attribute) {
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
 			if a[i] == t.attrs[j] {
-				t.attrs[j].SetParent(nil)
-				t.attrs[j] = nil
-				t.attrs = append(t.attrs[:j], t.attrs[j+1:]...)
+				copy(t.attrs[j:], t.attrs[j+1:])
+				t.attrs[len(t.attrs)-1] = nil
+				t.attrs = t.attrs[:len(t.attrs)-1]
 				break
 			}
 		}
@@ -126,7 +133,7 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 }
 
 func (t *Thing) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T %d attributes:", t, len(t.attrs)))
+	buff = append(buff, DumpFmt("%p %[1]T UID: %s, %d attributes:", t, t.uid, len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
@@ -139,11 +146,8 @@ func DumpFmt(format string, args ...interface{}) string {
 	return "  " + fmt.Sprintf(format, args...)
 }
 
-// Copy returns a copy of the Thing receiver. The copy will be made recursivly
+// Copy returns a copy of the Thing receiver. The copy will be made recursively
 // copying all associated Attribute and Thing.
-//
-// BUG(diddymus): There are no checks made for cyclic references which could
-// send us into infinite recursion.
 func (t *Thing) Copy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)
@@ -153,4 +157,78 @@ func (t *Thing) Copy() has.Thing {
 		na[i] = a.Copy()
 	}
 	return NewThing(na...)
+}
+
+// SetOrigins updates the origin for the Thing to its containing Inventory and
+// recursivly sets the origins for the content of a Thing's Inventory if it has
+// one.
+func (t *Thing) SetOrigins() {
+	if t == nil {
+		return
+	}
+
+	// Set our origin to that of the parent Inventory
+	if l := FindLocate(t); l.Found() {
+		if i := FindInventory(l.Where().Parent()); i.Found() {
+			l.SetOrigin(i)
+		}
+	}
+
+	// Find our Inventory
+	i := FindInventory(t)
+	if !i.Found() {
+		return
+	}
+
+	// Set the origin for items in our Inventory
+	for _, t := range append(i.Contents(), i.Narratives()...) {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(i)
+		}
+		t.SetOrigins()
+	}
+}
+
+// Dispose will either reset or discard a Thing in the game world when it is
+// finished with. If the Thing has a Reset attribute the Thing will be
+// scheduled for a reset. Otherwise all references to the Thing will be freed
+// so that it can be garbage collected. If the Thing has an Inventory its
+// content will be reset or discarded recursively.
+func (t *Thing) Dispose() {
+	if t == nil {
+		return
+	}
+
+	// Call Dispose recursively on Inventory content if found
+	if i := FindInventory(t); i.Found() {
+		for _, t := range i.Contents() {
+			t.Dispose()
+		}
+	}
+
+	// Trigger Reset attribute if we have one
+	if r := FindReset(t); r.Found() {
+		r.Reset()
+		return
+	}
+
+	// Thing has not been reset so make sure the Thing is removed from the world
+	// then free it so it is garbage collected.
+	log.Printf("Disposing of %p %[1]T: %s", t, FindName(t).Name("?"))
+	if where := FindLocate(t).Where(); where.Found() {
+		if i := FindInventory(where.Parent()); i.Found() {
+			i.Remove(t)
+		}
+	}
+	t.Free()
+}
+
+// UID returns the unique identifier for a specific Thing or an empty string if
+// the unique ID is unavailable. The unique ID should be automatically assigned
+// to any Thing created by calling NewThing or Copy.
+func (t *Thing) UID() string {
+	if t == nil {
+		return ""
+	}
+	return t.uid
 }

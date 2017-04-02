@@ -94,14 +94,11 @@ func Put(s *state) {
 		return
 	}
 
-	// Remove item from where it is
-	if tWhere.Remove(tWhat) == nil {
+	// Remove item from where it is and put it in the container
+	if tWhere.Move(tWhat, cWhere) == nil {
 		s.msg.Actor.SendBad("Something stops you putting ", tName, " anywhere.")
 		return
 	}
-
-	// Put item into comtainer
-	cWhere.Add(tWhat)
 
 	s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
 

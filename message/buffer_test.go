@@ -15,7 +15,7 @@ import (
 // collectDelivery is a simple helper to deliver and collect messages. It uses
 // a bytes.Buffer as a simple Write to deliver the messages, the content of
 // which is returned.
-func collectDelivery(b *buffer) (data []byte) {
+func collectDelivery(b *Buffer) (data []byte) {
 	w := &bytes.Buffer{}
 	b.Deliver(w)
 	data = make([]byte, w.Len())
@@ -23,7 +23,7 @@ func collectDelivery(b *buffer) (data []byte) {
 	return
 }
 
-// TestSimpleSend verifies basic message sending and delivery using a buffer.
+// TestSimpleSend verifies basic message sending and delivery using a Buffer.
 func TestSimpleSend(t *testing.T) {
 
 	// Some constants to make reading test cases easier
@@ -170,9 +170,9 @@ func TestSimpleSend(t *testing.T) {
 	for x, c := range testCases {
 		t.Run(fmt.Sprintf("%d", x), func(t *testing.T) {
 
-			b := &buffer{}
+			b := &Buffer{}
 
-			// Send messages to the buffer with omitLF & silentMode flags
+			// Send messages to the Buffer with omitLF & silentMode flags
 			for _, m := range c.messages {
 				b.omitLF = m.omitLF
 				b.Silent(m.silentMode)
@@ -187,7 +187,7 @@ func TestSimpleSend(t *testing.T) {
 				b.Silent(have) // Reset to previous old mode
 			}
 
-			{ // Check number of messages in buffer
+			{ // Check number of messages in Buffer
 				want := c.count
 				have := b.Len()
 				if b.Len() != c.count {
@@ -206,7 +206,7 @@ func TestSimpleSend(t *testing.T) {
 	}
 }
 
-// TestSendAppend verifies message sending, appending and delivery using a buffer.
+// TestSendAppend verifies message sending, appending and delivery using a Buffer.
 func TestSendAppend(t *testing.T) {
 
 	// Some constants to make reading test cases easier
@@ -348,9 +348,9 @@ func TestSendAppend(t *testing.T) {
 	for x, c := range testCases {
 		t.Run(fmt.Sprintf("%d", x), func(t *testing.T) {
 
-			b := &buffer{}
+			b := &Buffer{}
 
-			// Send messages to the buffer with omitLF & silentMode flags
+			// Send messages to the Buffer with omitLF & silentMode flags
 			for _, m := range c.messages {
 				b.omitLF = m.omitLF
 				b.Silent(m.silentMode)
@@ -361,7 +361,7 @@ func TestSendAppend(t *testing.T) {
 				}
 			}
 
-			{ // Check number of messages in buffer
+			{ // Check number of messages in Buffer
 				want := c.count
 				have := b.Len()
 				if b.Len() != c.count {
@@ -381,8 +381,8 @@ func TestSendAppend(t *testing.T) {
 }
 
 // TestCombo tests all of the different combinations of omitLF and silent flags
-// for Send and Append buffer methods sending/appending two messages to a
-// buffer.
+// for Send and Append Buffer methods sending/appending two messages to a
+// Buffer.
 func TestCombo(t *testing.T) {
 
 	m := []struct {
@@ -414,7 +414,7 @@ func TestCombo(t *testing.T) {
 
 			t.Run(fmt.Sprintf("Combo o:%t s:%t a:%t o:%t s:%t a:%t", omitLF1, silent1, append1, omitLF2, silent2, append2), func(t *testing.T) {
 
-				b := &buffer{}
+				b := &Buffer{}
 
 				// Send/append first message
 				b.omitLF = omitLF1

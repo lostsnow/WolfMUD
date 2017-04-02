@@ -333,7 +333,7 @@ func (s *state) CanLock(i has.Inventory) bool {
 // ourselves when locking - currently we silently drop duplicate locks.
 func (s *state) AddLock(i has.Inventory) {
 
-	if i == nil || s.CanLock(i) {
+	if i == nil || !i.Found() || s.CanLock(i) {
 		return
 	}
 
