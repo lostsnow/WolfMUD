@@ -6,6 +6,59 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.5 Released Sunday 2nd April
+==============================================================================
+
+Added
+
+  - Events gained jitter to introduce randomness to timing.
+  - New mechanism added to better free and release resources for garbage
+    collection.
+  - New Inventory.Move method more efficient for the common case of moving
+    something from one Inventory to another. Add and Remove methods updated to
+    use Move. Commands updated to use new Move where possible.
+  - Added automated resets and spawning to items via new Reset attribute.
+  - New $RESET and $SPAWN scripting commands.
+  - New JUNK commands for player to dispose of items.
+  - Added automated clean ups to items via new Cleanup attribute.
+  - When debugging the DUMP command can now take the address of a Thing.
+  - New unique ID generator - all Thing now have a unique ID and unique alias.
+
+Changed
+
+  - Added jitter to Door attributes to add some randomness.
+  - Inventory now add a Locate attribute to a Thing when it is put into an
+    Inventory.
+  - Zone loader rewritten and improved.
+  - Reported memory stats in the log are now more accurate.
+  - Buffers in the message package reworked to be more efficient with the
+    addition of a reusable pool of buffers.
+  - Exits.List method improved to create less garbage and use less string
+    concatenation.
+  - Updated items in zones with new Reset attribute.
+  - Updated items in zones with new Cleanup attribute.
+  - Inventories where the parent Thing has a narrative attribute no longer
+    display 'It is empty' when there are no non-narrative content.
+
+Fixed
+
+  - Doors can now be placed between zone where on side is in one zone and the
+    'other side' is in a different zone.
+  - References are now properly released from slices fixing a minor memory
+    leak.
+  - Fixed a panic when calling Player.Close on a nil Player pointer. In reality
+    not a big issue as it was triggered when the player logged out and didn't
+    crash the server unless running in debug mode.
+  - Fixed decoder.Duration in recordjar package so that it can parse uppercased
+    data passed to it.
+
+Known bugs
+
+  - When using the DUMP command with memory addresses it's to easy to crash the
+    client thread. Comments have been added warning of this and DUMP with a
+    memory address is only enabled when the server is run in debug mode.
+
+
 v0.0.4 Released Thursday 2nd March, 2017
 ==============================================================================
 
