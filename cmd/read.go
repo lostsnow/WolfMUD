@@ -49,7 +49,7 @@ func Read(s *state) {
 		return
 	}
 
-	s.msg.Actor.Send("You read the writing on ", name, ". It says: ", writing)
+	s.msg.Actor.Send("You read ", name, ". ", writing)
 
 	who := attr.FindName(s.actor).Name("Someone")
 	s.msg.Observer.SendInfo("You see ", who, " read ", name, ".")
