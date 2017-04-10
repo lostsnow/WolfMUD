@@ -743,12 +743,14 @@ Location: L1
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.
 %%
-     Ref: O2
-    Name: a small green ball
- Aliases: BALL
-   Reset: AFTER→0s JITTER→0s
- Cleanup: AFTER→0s JITTER→0s
-Location: L1
+      Ref: O2
+     Name: a small green ball
+  Aliases: BALL
+    Reset: AFTER→0s JITTER→0s
+  OnReset: There is a bright flash and a small green ball appears.
+  Cleanup: AFTER→0s JITTER→0s
+OnCleanup: There is a brigh flash and the green ball disappears.
+ Location: L1
 
 This is a small, green, rubber ball.
 %%
@@ -795,6 +797,8 @@ is smooth. On the other a strange rune has been carved.
     Name: a key
    Alias: KEY
    Reset: AFTER→30s JITTER→30s
+ OnReset: You see a man enter, look around and then do something to
+          the bottom of the rock before leaving again.
  Cleanup: AFTER→1m JITTER→1m
 
 This is a small iron key.
@@ -813,7 +817,10 @@ enclosed in a circle.
      Name: a fish of gold
     Alias: FISH GOLDFISH
     Reset: AFTER→30s JITTER→30s
+  OnReset: A man enters. There is a gentle plop as he drops something
+           into the pond before he walks off again.
   Cleanup: AFTER→1m JITTER→1m
+OnCleanup: Light gleams off the fish of gold before it fades away and is gone.
 
 This is a small, finely carved fish that appears to have been made from solid
 gold.
