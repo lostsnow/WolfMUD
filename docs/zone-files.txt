@@ -59,6 +59,8 @@ DESCRIPTION
       Aliases: LATTICE
      Location: L1
         Reset: AFTER→2m JITTER→1m
+      OnReset: There is a gentle, musical ping and a curious brass lattice
+               suddenly appears from nowhere.
       Cleanup: AFTER→10m
     OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
                gains speed and then suddenly collapses in on itself and
@@ -307,6 +309,40 @@ ZONE RECORDS
 
     See also CLEANUP for how to schedule an item for automatic clean up.
 
+  ONRESET: <string>
+    ONRESET can be used to provide a custom message when an item is reset or
+    respawned and put back into play. For example:
+
+      OnReset: There is a gentle, musical ping and a curious brass lattice
+               suddenly appears from nowhere.
+
+    The message will be displayed if the item reset or respawn occurs in a
+    location where it will be seen. If an item is reset or respawned within a
+    container the message will be displayed at the location where the
+    container is located. For example, assume there is a pond. The pond is a
+    narrative container that contains a 'fish of gold'. The ONRESET for the
+    fish is:
+
+      OnReset: A man enters. There is a gentle plop as he drops something into
+               the pond before he walks off again.
+
+    This message will be seen by players at the location where the pond is,
+    even though the fish is resetting in the pond and not in the actual
+    location.
+
+    If an item does not have an ONRESET and the reset or respawn would be
+    seen, that is the reset is not in a container, a default message will be
+    displayed of the form:
+
+      "You notice <item> that you didn't see before."
+
+    If a message should not be displayed, even if the reset or respawn would
+    otherwise be seen, specify an ONRESET with no message. In this case the
+    item will simply appear with no notification at all.
+
+    See also ONRESET for how to schedule an item for automatic resets and
+    respawning.
+
   REF: <KEYWORD>
     REF is a unique reference to something. It only needs to be unique within
     the zone file it is defined in. It is helpful if standard reference
@@ -337,6 +373,9 @@ ZONE RECORDS
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.
+
+    Custom messages can be displayed when an item is reset or respawned. See
+    ONRESET for more details.
 
   START:
     The START field defines a location as a starting point where players may
