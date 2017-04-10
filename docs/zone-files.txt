@@ -32,12 +32,12 @@ DESCRIPTION
 
     This is the city of Zinara.
     %%
-          Ref: L1
-        Start:
-         Name: Fireplace
-      Aliases: TAVERN FIREPLACE
-        Exits: E→L3 SE→L4 S→L2
-    Inventory: L1N1
+           Ref: L1
+         Start:
+          Name: Fireplace
+       Aliases: TAVERN FIREPLACE
+         Exits: E→L3 SE→L4 S→L2
+     Inventory: L1N1
 
     You are in the corner of the common room in the dragon's breath tavern. A
     fire burns merrily in an ornate fireplace, giving comfort to weary
@@ -45,21 +45,24 @@ DESCRIPTION
     changing darkness to light and back again. To the south the common room
     continues and east the common room leads to the tavern entrance.
     %%
-          Ref: L1N1
-    Narrative:
-         Name: an ornate fireplace
-        Alias: FIRE FIREPLACE
+           Ref: L1N1
+     Narrative:
+          Name: an ornate fireplace
+         Alias: FIRE FIREPLACE
 
     This is a very ornate fireplace carved from marble. Either side a dragon
     curls downward until the head is below the fire looking upward, giving the
     impression that they are breathing fire.
     %%
-         Ref: O1
-        Name: a curious brass lattice
-     Aliases: LATTICE
-    Location: L1
-       Reset: AFTER→2m JITTER→1m
-     Cleanup: AFTER→10m
+          Ref: O1
+         Name: a curious brass lattice
+      Aliases: LATTICE
+     Location: L1
+        Reset: AFTER→2m JITTER→1m
+      Cleanup: AFTER→10m
+    OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
+               gains speed and then suddenly collapses in on itself and
+               disappears.
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -166,6 +169,9 @@ ZONE RECORDS
 
     If AFTER and JITTER are not specified the minimum clean up period will be
     1 second.
+
+    Custom messages can be displayed when an item is cleaned up. See
+    ONCLEANUP for more details.
 
   DOOR: <PAIR LIST>
     A DOOR field defines anything door-like that can block a direction of
@@ -277,6 +283,29 @@ ZONE RECORDS
     fireplace may be examined by players. Apart from being immoveable and not
     specifically listed narratives behave like normal objects. For example
     they can have inventories and contain other objects.
+
+  ONCLEANUP: <string>
+    ONCLEANUP can be used to provide a custom message when an item is cleaned
+    up and removed from play. For example:
+
+      OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
+                 gains speed and then suddenly collapses in on itself and
+                 disappears.
+
+    The message will be displayed if the item clean up occurs in a location
+    where it will be seen. If the clean up occurs inside a container it will
+    not be seen, and no message displayed.
+
+    If an item does not have an ONCLEANUP and the clean up would be seen a
+    default message will be displayed of the form:
+
+      "You are sure you noticed <item> here, but you can't see it now."
+
+    If a message should not be displayed, even if the clean up would otherwise
+    be seen, specify an ONCLEANUP with no message. In this case the item will
+    simply disappear with no notification at all.
+
+    See also CLEANUP for how to schedule an item for automatic clean up.
 
   REF: <KEYWORD>
     REF is a unique reference to something. It only needs to be unique within
