@@ -118,7 +118,7 @@ small track.
      Name: Worn road through forest
     Alias: ROAD
 Inventory: N1
-           // For now we can keep going south indefinatly by looping back to
+           // For now we can keep going south indefinitely by looping back to
            // ourself. Hopefully we can extend this zone south or link to
            // another zone...
     Exits: N→L6 S→L12
