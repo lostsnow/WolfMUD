@@ -44,10 +44,8 @@ func Junk(s *state) {
 	// Get item's proper name
 	name = attr.FindName(what).Name(name)
 
-	// Is item a narrative, location or a player?
-	if attr.FindNarrative(what).Found() ||
-		attr.FindExits(what).Found() ||
-		attr.FindPlayer(what).Found() {
+	// Is item a narrative?
+	if attr.FindNarrative(what).Found() {
 		s.msg.Actor.SendBad("You cannot junk ", name, ".")
 		return
 	}

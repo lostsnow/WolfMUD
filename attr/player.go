@@ -116,3 +116,11 @@ func (p *Player) Free() {
 		p.Attribute.Free()
 	}
 }
+
+// Check will always veto a player being junked.
+func (p *Player) Check(cmd ...string) has.Veto {
+	if cmd[0] == "JUNK" {
+		return NewVeto(cmd[0], "You can't junk "+FindName(p.Parent()).Name("Someone")+"!")
+	}
+	return nil
+}
