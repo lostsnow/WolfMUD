@@ -101,7 +101,7 @@ func (a *Action) Action() {
 	a.Abort()
 
 	p := a.Parent()
-	a.Cancel = event.Queue(p, "$ACTION", a.after, a.jitter)
+	a.Cancel = event.Queue(p, "$ACTION "+p.UID(), a.after, a.jitter)
 }
 
 // Abort cancels any pending action events.
