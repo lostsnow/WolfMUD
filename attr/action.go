@@ -122,9 +122,6 @@ func (a *Action) Free() {
 	if a == nil {
 		return
 	}
-	if a.Cancel != nil {
-		close(a.Cancel)
-		a.Cancel = nil
-	}
+	a.Abort()
 	a.Attribute.Free()
 }
