@@ -10,6 +10,12 @@ import (
 )
 
 // Syntax: $RESET
+// Syntax: $SPAWN
+//
+// NOTE: The item will be 'out of play' so that we cannot find it by searching
+// inventories for a passed alias. The only reference we have to it is the
+// actor. This means that we cannot pass a unique alias to either $RESET or
+// $SPAWN. As a consequence only a Thing can reset itself.
 func init() {
 	AddHandler(Reset, "$reset")
 	AddHandler(Reset, "$spawn")
@@ -19,23 +25,23 @@ func Reset(s *state) {
 
 	// Find Inventory where reset is going to take place and make sure we are
 	// locking it
-	to := attr.FindLocate(s.actor).Origin()
-	if !s.CanLock(to) {
-		s.AddLock(to)
+	origin := attr.FindLocate(s.actor).Origin()
+	if !s.CanLock(origin) {
+		s.AddLock(origin)
 		return
 	}
 
 	or := attr.FindOnReset(s.actor)
 	msg := or.ResetText()
 
-	l, p := to, to.Parent()
+	to, p := origin, origin.Parent()
 	e := attr.FindExits(p)
 
 	// Reset will not be seen if it does not happen in a location and we have no
 	// message. It also will not be seen if we have specifically have an empty
 	// message. So just add Thing.
 	if (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
-		to.Add(s.actor)
+		origin.Add(s.actor)
 		s.ok = true
 		return
 	}
@@ -44,27 +50,41 @@ func Reset(s *state) {
 	// need to know the location of the container. This is so that we know where
 	// the reset will be seen so that we can send the reset message there.
 	for !e.Found() {
-		l = attr.FindLocate(p).Where()
-		if l == nil {
+		to = attr.FindLocate(p).Where()
+		if to == nil {
 			break
 		}
-		p = l.Parent()
+		p = to.Parent()
 		e = attr.FindExits(p)
 	}
 
 	// Make sure we are also locking the location where reset will be seen
-	if l != nil && !s.CanLock(l) {
-		s.AddLock(l)
+	if to != nil && !s.CanLock(to) {
+		s.AddLock(to)
 		return
 	}
 
-	// Reset will be seen so add default message if we don't have one
+	// Setup default message
+	name := attr.FindName(s.actor).Name("something")
+	def := "You notice " + name + " that you didn't see before."
+
+	// Use default message if we don't have one
 	if !or.Found() {
-		name := attr.FindName(s.actor).Name("something")
-		msg = "You notice " + name + " that you didn't see before."
+		msg = def
 	}
 
-	to.Add(s.actor)
-	s.msg.Observers[l].SendInfo(msg)
+	// Message will be seen if there are players at the reset location and the
+	// location is not crowded.
+	if to.Players() && !to.Crowded() {
+		s.msg.Observers[to].SendInfo(msg)
+	}
+
+	// On the off chance that players may be in the container itself we send them
+	// just the default message.
+	if origin != to && origin.Players() && !origin.Crowded() {
+		s.msg.Observers[origin].SendInfo(def)
+	}
+
+	origin.Add(s.actor)
 	s.ok = true
 }
