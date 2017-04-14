@@ -78,7 +78,7 @@ func (*Action) Unmarshal(data []byte) has.Attribute {
 
 func (a *Action) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s", a, a.after, a.jitter))
-	buff = append(buff, DumpFmt("%p %[1]T", a.Cancel))
+	buff = append(buff, DumpFmt("  %p %[1]T", a.Cancel))
 	return
 }
 

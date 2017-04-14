@@ -100,7 +100,7 @@ func (*Cleanup) Unmarshal(data []byte) has.Attribute {
 
 func (c *Cleanup) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s", c, c.after, c.jitter))
-	buff = append(buff, DumpFmt("%p %[1]T", c.Cancel))
+	buff = append(buff, DumpFmt("  %p %[1]T", c.Cancel))
 	return
 }
 
