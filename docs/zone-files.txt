@@ -65,6 +65,7 @@ DESCRIPTION
     OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
                gains speed and then suddenly collapses in on itself and
                disappears.
+       Action: AFTER→5m JITTER→2m30s
      OnAction: The lattice quietly chimes.
              : The lattice quietly hums.
 
@@ -150,6 +151,26 @@ ZONE RECORDS
   define locations and objects. They are defined by using a combination field
   types. Different types of objects can be defined by combining different
   fields together. The following are the different fields that are available:
+
+  ACTION: <PAIR LIST>
+    ACTION is used to specify how often an item displays an action message.
+    The pairs that are valid for ACTION are:
+
+      AFTER→<period>
+      JITTER→<period>
+
+    For example:
+
+      ACTION: AFTER→5m JITTER→2m30s
+
+    AFTER and JITTER specify the period to wait between messages to be between
+    AFTER and AFTER+JITTER. In the example an action will occur every five to
+    seven and a half minutes.
+
+    If AFTER and JITTER are not specified the minimum period will be 1 second.
+
+    The action messages to be displayed are specified via ONACTION. See
+    ONACTION for more details.
 
   ALIAS: <KEYWORD LIST>
     A list of keywords used by players to interact with something. For
