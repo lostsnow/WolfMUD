@@ -57,8 +57,12 @@ func (*OnAction) Unmarshal(data []byte) has.Attribute {
 	return NewOnAction(recordjar.Decode.StringList(data))
 }
 
-func (oa *OnAction) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", oa, oa.actions)}
+func (oa *OnAction) Dump() (buf []string) {
+	buf = append(buf, DumpFmt("%p %[1]T %d actions:", oa, len(oa.actions)))
+	for i, action := range oa.actions {
+		buf = append(buf, DumpFmt("  #%d: %q", i, action))
+	}
+	return
 }
 
 // ActionText returns a random action message for a Thing. The message is
