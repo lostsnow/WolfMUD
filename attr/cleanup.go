@@ -152,7 +152,7 @@ func (c *Cleanup) Active() bool {
 }
 
 // Abort causes an outstanding clean up event to be cancelled for the parent
-// Thing. If the Thing has an Inventory Abort is called the content
+// Thing. If the Thing has an Inventory Abort is called on the contents
 // recursively. If we don't do this putting an item into a container and then
 // picking the container up would result in the item still being scheduled for
 // a clean up and disappearing from the container.
