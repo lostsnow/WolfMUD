@@ -82,7 +82,6 @@ func Dump(s *state) {
 
 		// Check alignment so we don't cause a fatal error we can't catch with a
 		// panic
-		//if n%uint64(reflect.TypeOf((*attr.Thing)(nil)).Align()) != 0 {
 		if uintptr(n)%unsafe.Alignof(&attr.Thing{}) != 0 {
 			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Invalid alignment")
 			return
