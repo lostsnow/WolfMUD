@@ -26,11 +26,12 @@ room leads to the tavern entrance.
      Name: Common room
   Aliases: TAVERN COMMON
     Exits: N→L1 NE→L3 E→L4
-Inventory: L2N1 L2N2
+Inventory: L2N1 L2N2 L2N3
 
 You are in a small, cosy common room in the dragon's breath tavern. Looking
-around you see a few chairs and tables for patrons. To the east you see a bar
-and to the north there is the glow of a fire.
+around you see a few chairs and tables for patrons. In one corner there is a
+very old grandfather clock. To the east you see a bar and to the north there
+is the glow of a fire.
 %%
       Ref: L3
      Name: Tavern entrance
@@ -303,10 +304,11 @@ You are in a fine, formal garden. Around you small trees and shrubs grow. Here
 and there small delicate flowers display a splash of colour. The gardens
 continue east, west and south.
 %%
-    Ref: L34
-   Name: Quiet sheltered area
-Aliases: GARDENS SHELTERED
-  Exits: E→L33
+      Ref: L34
+     Name: Quiet sheltered area
+  Aliases: GARDENS SHELTERED
+    Exits: E→L33
+Inventory: M1
 
 You are in a small quiet area of the garden. Tall bushes have grown up over a
 trellis work to provide a small shaded area to come and sit in. The only exit
@@ -642,6 +644,17 @@ Narrative:
 Well you suppose these are tables. If so it was a blind carpenter who had had a
 very bad day.
 %%
+      Ref: L2N3
+     Name: a clock
+    Alias: CLOCK
+Narrative:
+   Action: AFTER→15m
+ OnAction: The clock chimes.
+
+This is an elegant grandfather clock. It seems to be quite old and has
+obviously seen better days. However it does seem to be working, or at least
+ticking.
+%%
       Ref: L3N1
 Narrative:
      Name: the tavern door
@@ -728,6 +741,23 @@ Narrative:
 Inventory:
 
 This rubbish is dirty and smelly. Why are you wasting your time with it?
+%%
+//
+// MOBILES
+//
+%%
+     Ref: M1
+    Name: a rabbit
+   Alias: RABBIT
+   Reset: AFTER→1m
+ OnReset: A rabbit hops into view.
+  Action: AFTER→15s JITTER→15s
+OnAction: The rabbit hops around a bit.
+        : You see the rabbit twitch it's little nose, Ahh...
+        : The rabbit makes a soft squeaking and chattering noise.
+
+It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
+doesn't seem to be late for anything!
 %%
 //
 // OBJECTS
