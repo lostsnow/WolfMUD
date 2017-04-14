@@ -9,33 +9,34 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 )
 
-// Syntax: $CLEANUP
+// Syntax: $CLEANUP item
 func init() {
 	AddHandler(Cleanup, "$cleanup")
 }
 
 func Cleanup(s *state) {
 
-	// Find Inventory where clean up is going to take place and make sure we are
-	// locking it
-	to := attr.FindLocate(s.actor).Origin()
-	if !s.CanLock(to) {
-		s.AddLock(to)
+	// Do we have item to cleanup specified on command?
+	if len(s.words) == 0 {
 		return
 	}
 
-	oc := attr.FindOnCleanup(s.actor)
+	// Search for item to perform action.
+	alias := s.words[0]
+	what := s.where.Search(alias)
+
+	// If item not found all we can do is bail.
+	if what == nil {
+		return
+	}
+
+	oc := attr.FindOnCleanup(what)
 	msg := oc.CleanupText()
 
-	l := s.where
-	p := l.Parent()
-	e := attr.FindExits(p)
-
-	// Clean up will not be seen if it does not happen in a location. It also
-	// will not be seen if we have specifically have an empty message. So just
-	// junk Thing.
-	if !e.Found() || (oc.Found() && msg == "") {
-		alias := s.actor.UID()
+	// Clean up will not be seen if we specifically have an empty message. It
+	// will also not be seen if there are no players here to see it or it's too
+	// crowded. In these cases just junk Thing.
+	if msg == "" || !s.where.Players() || s.where.Crowded() {
 		s.scriptNone("junk", alias)
 		s.ok = true
 		return
@@ -43,13 +44,17 @@ func Cleanup(s *state) {
 
 	// Clean up will be seen so add default message if we don't have one
 	if !oc.Found() {
-		name := attr.FindName(s.actor).Name("something")
+		name := attr.FindName(what).Name("something")
 		msg = "You are sure you noticed " + name + " here, but you can't see it now."
 	}
 
-	s.msg.Observers[l].SendInfo(msg)
+	// Display messages. Only notify the actor if it's not the Thing issuing the
+	// command.
+	if s.actor.UID() != what.UID() {
+		s.msg.Actor.SendInfo(msg)
+	}
+	s.msg.Observer.SendInfo(msg)
 
-	alias := s.actor.UID()
 	s.scriptNone("junk", alias)
 	s.ok = true
 }
