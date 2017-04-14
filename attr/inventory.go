@@ -348,6 +348,11 @@ func (i *Inventory) Crowded() (crowded bool) {
 	return
 }
 
+// Players returns true if there are any players in the Inventory else false.
+func (i *Inventory) Players() bool {
+	return i.playerCount > 0
+}
+
 // Empty returns true if there are no non-Narrative items else false.
 func (i *Inventory) Empty() bool {
 	if i != nil {
