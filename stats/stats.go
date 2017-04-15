@@ -29,6 +29,7 @@
 package stats
 
 import (
+	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 
 	"log"
@@ -49,6 +50,7 @@ type stats struct {
 	HeapObjects uint64
 	Goroutines  int
 	MaxPlayers  int
+	ThingCount  uint64
 }
 
 // Start begins collection and reporting of statistics. The interval between
@@ -88,10 +90,14 @@ func (s *stats) collect() {
 	g := runtime.NumGoroutine()
 	p := Len()
 
+	t := <-attr.ThingCount
+	attr.ThingCount <- t
+
 	// Calculate difference in resources since last run
 	Δu := int64(u - s.Inuse)
 	Δo := int(m.HeapObjects - s.HeapObjects)
 	Δg := g - s.Goroutines
+	Δt := int64(t - s.ThingCount)
 
 	// Calculate max players
 	maxPlayers := s.MaxPlayers
@@ -103,8 +109,8 @@ func (s *stats) collect() {
 	un, up := uscale(u)
 	Δun, Δup := scale(Δu)
 
-	log.Printf("U[%4d%-2s %+5d%-2s] O[%14d %+9d] G[%6d %+6d] P %d/%d",
-		un, up, Δun, Δup, m.HeapObjects, Δo, g, Δg, p, maxPlayers,
+	log.Printf("U[%4d%-2s %+5d%-2s] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] P %d/%d",
+		un, up, Δun, Δup, m.HeapObjects, Δo, t, Δt, g, Δg, p, maxPlayers,
 	)
 
 	// Save current stats
@@ -112,6 +118,7 @@ func (s *stats) collect() {
 	s.HeapObjects = m.HeapObjects
 	s.Goroutines = g
 	s.MaxPlayers = maxPlayers
+	s.ThingCount = t
 }
 
 // uscale converts an unsigned number of bytes to a scaled unit of bytes with a
