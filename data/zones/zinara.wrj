@@ -26,7 +26,7 @@ room leads to the tavern entrance.
      Name: Common room
   Aliases: TAVERN COMMON
     Exits: N→L1 NE→L3 E→L4
-Inventory: L2N1 L2N2 L2N3
+Inventory: L2N1 L2N2 L2N3 M4
 
 You are in a small, cosy common room in the dragon's breath tavern. Looking
 around you see a few chairs and tables for patrons. In one corner there is a
@@ -326,7 +326,7 @@ continues south or you can go north into the gardens.
      Name: Secluded path by shed
   Aliases: GARDENS PATH SECLUDED
     Exits: N→L35 S→L37
-Inventory: L36N1 L36N2 L36N3
+Inventory: L36N1 L36N2 L36N3 M3
 
 You are on a small secluded gravel path screened off from the formal gardens by
 large bushes. To the south is a small shed with its door facing you. A rock has
@@ -758,6 +758,33 @@ OnAction: The rabbit hops around a bit.
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
 doesn't seem to be late for anything!
+%%
+     Ref: M3
+    Name: a small frog
+   Alias: FROG
+   Reset: AFTER→1m
+ OnReset: A frog hops into view.
+  Action: AFTER→10s JITTER→20s
+OnAction: The frog croaks a bit.
+        : The little frog leaps high into the air.
+        : The frog hops around a bit.
+
+It is a small, lime green frog. It's slimy and croaks. What more can you say?
+%%
+     Ref: M4
+    Name: the tavern cat
+   Alias: CAT
+   Reset: AFTER→1m
+ OnReset: A mangy looking cat slinks in and curls up on a chair.
+  Action: AFTER→1m JITTER→1m
+OnAction: The cat starts to claw at the furniture, scratching deep gouges into
+          the wood.
+        : The cat curls up and starts to purr like a buzz-saw.
+        : The cat starts to wash itself.
+
+The tavern cat is a ball of fur with one golden eye, the other eye replaced by
+a large scar. It senses you watching it and returns your gaze with a steady
+one of it's own.
 %%
 //
 // OBJECTS
