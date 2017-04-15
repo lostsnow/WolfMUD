@@ -28,11 +28,28 @@ var (
 	_ has.Thing = &Thing{}
 )
 
+// ThingCount is a channel storing the current number of Things. The value
+// should only be incremented by NewThing and decremented by Free. ThingCount
+// is a channel so that the value can be updated concurrently and shared with
+// e.g. the stats package.
+var ThingCount chan uint64
+
+// init sets up and initialises ThingCount.
+func init() {
+	ThingCount = make(chan uint64, 1)
+	ThingCount <- 0
+}
+
 // NewThing returns a new Thing initialised with the specified Attributes.
 // Attributes can also be dynamically modified using Add and Remove methods.
 func NewThing(a ...has.Attribute) *Thing {
 	t := &Thing{uid: <-internal.NextUID}
 	t.Add(a...)
+
+	c := <-ThingCount
+	c++
+	ThingCount <- c
+
 	return t
 }
 
@@ -49,6 +66,10 @@ func (t *Thing) Free() {
 	}
 	t.Remove(t.attrs...)
 	t.attrs = nil
+
+	c := <-ThingCount
+	c--
+	ThingCount <- c
 }
 
 // Add is used to add the passed Attributes to a Thing. When an Attribute is
