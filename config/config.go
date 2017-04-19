@@ -33,7 +33,6 @@ var Server = struct {
 	IdleTimeout time.Duration // Idle connection disconnect time
 	MaxPlayers  int           // Max number of players allowed to login at once
 	DataDir     string        // Main data directory
-	Debug       bool          // Debug mode flag
 }{
 	Host:        "127.0.0.1",
 	Port:        "4001",
@@ -41,7 +40,6 @@ var Server = struct {
 	IdleTimeout: 10 * time.Minute,
 	MaxPlayers:  1024,
 	DataDir:     ".",
-	Debug:       false,
 }
 
 // Stats default configuration
@@ -71,6 +69,15 @@ var Login = struct {
 	AccountLength:  10,
 	PasswordLength: 10,
 	SaltLength:     32,
+}
+
+// Debugging configuration
+var Debug = struct {
+	Panic     bool // Let goroutines panic and stop server?
+	AllowDump bool // Allow use of #DUMP command?
+}{
+	Panic:     false,
+	AllowDump: false,
 }
 
 // Load loads the configuration file and overrides the default configuration
@@ -118,8 +125,6 @@ func init() {
 			Server.MaxPlayers = recordjar.Decode.Integer(data)
 		case "SERVER.GREETING":
 			Server.Greeting = text.Colorize(recordjar.Decode.Bytes(data))
-		case "SERVER.DEBUG":
-			Server.Debug = recordjar.Decode.Boolean(data)
 
 		// Stats settings
 		case "STATS.RATE":
@@ -140,6 +145,12 @@ func init() {
 			Login.PasswordLength = recordjar.Decode.Integer(data)
 		case "LOGIN.SALTLENGTH":
 			Login.SaltLength = recordjar.Decode.Integer(data)
+
+		// Debug settings
+		case "DEBUG.PANIC":
+			Debug.Panic = recordjar.Decode.Boolean(data)
+		case "DEBUG.ALLOWDUMP":
+			Debug.AllowDump = recordjar.Decode.Boolean(data)
 
 		// Unknow setting
 		default:

@@ -18,16 +18,22 @@ import (
 
 // Syntax: #DUMP ( alias | <address> )
 //
+// The #DUMP command is only available if the server is running with the
+// configuration option Debug.AllowDump set to true.
+//
 // The address can be any address printed using %p that points to a
 // *attr.Thing - e.g. 0xc42011fab0. Trying to dump a *attr.Thing in this way
-// may crash the server and should only be used for debugging. Therefore
-// dumping using an address is only available if Server.Debug is set to true
-// in the configuration.
+// may crash the server and should only be used for debugging.
 func init() {
 	AddHandler(Dump, "#DUMP")
 }
 
 func Dump(s *state) {
+	if !config.Debug.AllowDump {
+		s.msg.Actor.SendBad("#DUMP command is not available. Server not running with configuration option Debug.AllowDump=true")
+		return
+	}
+
 	defer func() {
 		if p := recover(); p != nil {
 			err := fmt.Errorf("%v", p)
@@ -73,11 +79,6 @@ func Dump(s *state) {
 
 	// Here be dragons - poking around in random memory locations is ill advised!
 	if strings.HasPrefix(name, "0X") {
-		if !config.Server.Debug {
-			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Server not running with Server.Debug=true")
-			return
-		}
-
 		n, _ := strconv.ParseUint(name[2:], 16, 64)
 
 		// Check alignment so we don't cause a fatal error we can't catch with a

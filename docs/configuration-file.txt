@@ -49,12 +49,6 @@ FIELDS & VALUES
     number of players a server can actually support will be system specific.
     The default maximum number of players is 1024.
 
-  Server.Debug: bool
-    Whether the server is running in debug mode or not. Currently this value
-    determines if a panicking client thread will terminate the server or not.
-    If this value is false the server will try to recover panicking clients.
-    The default value is false.
-
   Stats.Rate: period
     The period is the frequency at which statistics are collected and
     displayed by the server. The period can use a combination of hours (h),
@@ -103,6 +97,20 @@ FIELDS & VALUES
     accounts are created. The default value is 32. You should not need to
     change this value.
 
+  Debug.Panic:
+    This value determines whether panics that occur in the client or event
+    goroutines are allowed to terminate the server. Setting this value to true
+    will cause the server to terminate, if set to false only the panicking
+    goroutines will terminate. In either case a stack trace will be written to
+    the log. The default value for Debug.Panic is false.
+
+  Debug.AllowDump:
+    This value determines if the #DUMP command is available to players. The
+    #DUMP command should only be enabled for development and debugging as it
+    can cause the server to crash when dumping objects via an address. If set
+    to true the #DUMP command is available, if set to false it is not. The
+    default value for Debug.AllowDump is false.
+
   Free text block:
     The free text block contains text that is displayed as soon as a player
     connects to the server.
@@ -127,6 +135,8 @@ EXAMPLES
   Login.AccountLength:  10
   Login.PasswordLength: 10
   Login.SaltLength:     32
+  Debug.Panic:          false
+  Debug.AllowDump:      false
 
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe

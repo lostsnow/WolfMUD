@@ -30,6 +30,11 @@
 	Login.PasswordLength: 10
 	Login.SaltLength:			32
 //
+// Debug configuration
+//
+  Debug.Panic:        false
+  Debug.AllowDump:    false
+//
 // Initial client connection greeting
 
 

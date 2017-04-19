@@ -15,6 +15,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"runtime/debug"
 	"time"
 )
 
@@ -83,11 +84,12 @@ func newClient(conn *net.TCPConn) *client {
 func (c *client) process() {
 
 	// If a client goroutine panics try not to bring down the whole server down
-	// unless in debug mode
+	// unless the configuration option Debug.Panic is set to true.
 	defer func() {
-		if !config.Server.Debug {
+		if !config.Debug.Panic {
 			if err := recover(); err != nil {
-				log.Printf("CLIENT PANICKED: %s", err)
+				log.Printf("CLIENT PANICKED: %s", c.remoteAddr)
+				log.Printf("%s: %s", err, debug.Stack())
 			}
 		}
 		c.close()
