@@ -97,6 +97,22 @@ FIELDS & VALUES
     accounts are created. The default value is 32. You should not need to
     change this value.
 
+  Debug.LongLog
+    This value determines whether the long logging format is used or a shorter
+    one. If set to true the log will contain times with millisecond precision
+    and the file name and line number from where the log message was written
+    for each message written. If set to false the log will contain times with
+    a precision of seconds and no file names or line numbers. It should be
+    noted that generating the file name and lines numbers for each log message
+    can be an expensive operation. The default value for Debug.LongLog is
+    false.
+
+    NOTE: The log will use the long format until the configuration file has
+    been read and processed, at which point the short format will be switched
+    to if Debug.LongLog is false. The decision to start the server with long
+    logging is to aid debugging and provide more information if problems arise
+    during the loading and processing of the configuration file.
+
   Debug.Panic:
     This value determines whether panics that occur in the client or event
     goroutines are allowed to terminate the server. Setting this value to true

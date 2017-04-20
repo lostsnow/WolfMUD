@@ -32,6 +32,7 @@
 //
 // Debug configuration
 //
+  Debug.LongLog:      false
   Debug.Panic:        false
   Debug.AllowDump:    false
   Debug.AllowDebug:   false

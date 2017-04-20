@@ -73,12 +73,14 @@ var Login = struct {
 
 // Debugging configuration
 var Debug = struct {
+	LongLog    bool // Long log with microseconds & filename?
 	Panic      bool // Let goroutines panic and stop server?
 	AllowDump  bool // Allow use of #DUMP command?
 	AllowDebug bool // Allow use of #DEBUG command?
 	Events     bool // Log events? - this can make the log quite noisy
 	Things     bool // Log additional information for Thing?
 }{
+	LongLog:    false,
 	Panic:      false,
 	AllowDump:  false,
 	AllowDebug: false,
@@ -91,7 +93,7 @@ var Debug = struct {
 func init() {
 
 	// Setup global logging format
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.Lmicroseconds)
 
 	// Seed default random source
 	rand.Seed(time.Now().UnixNano())
@@ -153,6 +155,8 @@ func init() {
 			Login.SaltLength = recordjar.Decode.Integer(data)
 
 		// Debug settings
+		case "DEBUG.LONGLOG":
+			Debug.LongLog = recordjar.Decode.Boolean(data)
 		case "DEBUG.PANIC":
 			Debug.Panic = recordjar.Decode.Boolean(data)
 		case "DEBUG.ALLOWDUMP":
@@ -171,6 +175,11 @@ func init() {
 	}
 
 	log.Printf("Data Path: %s", Server.DataDir)
+
+	if !Debug.LongLog {
+		log.SetFlags(log.Ldate | log.Ltime)
+		log.Printf("Switching to short log format.")
+	}
 }
 
 // openConfig tries to locate and open the configuration file to use. By
