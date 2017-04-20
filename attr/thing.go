@@ -7,12 +7,14 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/text"
 
 	"fmt"
 	"log"
+	"runtime"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by
@@ -42,13 +44,24 @@ func init() {
 
 // NewThing returns a new Thing initialised with the specified Attributes.
 // Attributes can also be dynamically modified using Add and Remove methods.
+// If Debug.Things is true a message will be written to the log indicating a
+// new Thing has been created. A finalizer will also be registered to write a
+// message when the thing is garbage collected.
 func NewThing(a ...has.Attribute) *Thing {
 	t := &Thing{uid: <-internal.NextUID}
+
 	t.Add(a...)
 
 	c := <-ThingCount
 	c++
 	ThingCount <- c
+
+	if config.Debug.Things {
+		runtime.SetFinalizer(t, func(t has.Thing) {
+			log.Printf("Finalizing: %s", t)
+		})
+		log.Printf("NewThing: %s: %q", t, FindName(t).Name("?"))
+	}
 
 	return t
 }
@@ -214,7 +227,8 @@ func (t *Thing) SetOrigins() {
 // finished with. If the Thing has a Reset attribute the Thing will be
 // scheduled for a reset. Otherwise all references to the Thing will be freed
 // so that it can be garbage collected. If the Thing has an Inventory its
-// content will be reset or discarded recursively.
+// content will be reset or discarded recursively. If Debug.Things is set to
+// true a message will be written to the log when a Thing is discarded.
 func (t *Thing) Dispose() {
 	if t == nil {
 		return
@@ -235,7 +249,9 @@ func (t *Thing) Dispose() {
 
 	// Thing has not been reset so make sure the Thing is removed from the world
 	// then free it so it is garbage collected.
-	log.Printf("Disposing: %s: %q", t, FindName(t).Name("?"))
+	if config.Debug.Things {
+		log.Printf("Disposing: %s: %q", t, FindName(t).Name("?"))
+	}
 	if where := FindLocate(t).Where(); where.Found() {
 		if i := FindInventory(where.Parent()); i.Found() {
 			i.Remove(t)

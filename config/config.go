@@ -77,11 +77,13 @@ var Debug = struct {
 	AllowDump  bool // Allow use of #DUMP command?
 	AllowDebug bool // Allow use of #DEBUG command?
 	Events     bool // Log events? - this can make the log quite noisy
+	Things     bool // Log additional information for Thing?
 }{
 	Panic:      false,
 	AllowDump:  false,
 	AllowDebug: false,
 	Events:     false,
+	Things:     false,
 }
 
 // Load loads the configuration file and overrides the default configuration
@@ -159,6 +161,8 @@ func init() {
 			Debug.AllowDebug = recordjar.Decode.Boolean(data)
 		case "DEBUG.EVENTS":
 			Debug.Events = recordjar.Decode.Boolean(data)
+		case "DEBUG.THINGS":
+			Debug.Things = recordjar.Decode.Boolean(data)
 
 		// Unknow setting
 		default:

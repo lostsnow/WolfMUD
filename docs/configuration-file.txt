@@ -124,6 +124,13 @@ FIELDS & VALUES
     messages will be written to the log, if set to false they will not. The
     default value for Debug.Events is false.
 
+  Debug.Things
+    This value determines if messages are written to the log pertaining to
+    Things. If set to true messages will be written when a Thing is created,
+    disposed of, and finalized. These messages can make the log very noisy so
+    setting this value to true is only recommended when developing or
+    debugging. The default value for Debug.Things is false.
+
   Free text block:
     The free text block contains text that is displayed as soon as a player
     connects to the server.
@@ -152,6 +159,7 @@ EXAMPLES
   Debug.AllowDump:      false
   Debug.AllowDebug:     false
   Debug.Events:         false
+  Debug.Things:         false
 
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
