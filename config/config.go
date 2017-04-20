@@ -76,10 +76,12 @@ var Debug = struct {
 	Panic      bool // Let goroutines panic and stop server?
 	AllowDump  bool // Allow use of #DUMP command?
 	AllowDebug bool // Allow use of #DEBUG command?
+	Events     bool // Log events? - this can make the log quite noisy
 }{
 	Panic:      false,
 	AllowDump:  false,
 	AllowDebug: false,
+	Events:     false,
 }
 
 // Load loads the configuration file and overrides the default configuration
@@ -155,6 +157,8 @@ func init() {
 			Debug.AllowDump = recordjar.Decode.Boolean(data)
 		case "DEBUG.ALLOWDEBUG":
 			Debug.AllowDebug = recordjar.Decode.Boolean(data)
+		case "DEBUG.EVENTS":
+			Debug.Events = recordjar.Decode.Boolean(data)
 
 		// Unknow setting
 		default:

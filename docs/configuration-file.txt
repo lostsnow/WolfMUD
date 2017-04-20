@@ -117,6 +117,13 @@ FIELDS & VALUES
     set to true the #DEBUG command is available, if set to false it is not.
     The default value for Debug.AllowDebug is false.
 
+  Debug.Events
+    This value determines if messages are written to the log when an event is
+    queued, cancelled or delivered. This can make the log very noisy and is
+    usually only required for development and debugging. If set to true event
+    messages will be written to the log, if set to false they will not. The
+    default value for Debug.Events is false.
+
   Free text block:
     The free text block contains text that is displayed as soon as a player
     connects to the server.
@@ -144,6 +151,7 @@ EXAMPLES
   Debug.Panic:          false
   Debug.AllowDump:      false
   Debug.AllowDebug:     false
+  Debug.Events:         false
 
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
