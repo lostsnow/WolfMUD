@@ -73,11 +73,13 @@ var Login = struct {
 
 // Debugging configuration
 var Debug = struct {
-	Panic     bool // Let goroutines panic and stop server?
-	AllowDump bool // Allow use of #DUMP command?
+	Panic      bool // Let goroutines panic and stop server?
+	AllowDump  bool // Allow use of #DUMP command?
+	AllowDebug bool // Allow use of #DEBUG command?
 }{
-	Panic:     false,
-	AllowDump: false,
+	Panic:      false,
+	AllowDump:  false,
+	AllowDebug: false,
 }
 
 // Load loads the configuration file and overrides the default configuration
@@ -151,6 +153,8 @@ func init() {
 			Debug.Panic = recordjar.Decode.Boolean(data)
 		case "DEBUG.ALLOWDUMP":
 			Debug.AllowDump = recordjar.Decode.Boolean(data)
+		case "DEBUG.ALLOWDEBUG":
+			Debug.AllowDebug = recordjar.Decode.Boolean(data)
 
 		// Unknow setting
 		default:

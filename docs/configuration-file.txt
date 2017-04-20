@@ -111,6 +111,12 @@ FIELDS & VALUES
     to true the #DUMP command is available, if set to false it is not. The
     default value for Debug.AllowDump is false.
 
+  Debug.AllowDebug:
+    This value determines if the #DEBUG command is available to players. The
+    #DEBUG command should only be enabled for development and debugging. If
+    set to true the #DEBUG command is available, if set to false it is not.
+    The default value for Debug.AllowDebug is false.
+
   Free text block:
     The free text block contains text that is displayed as soon as a player
     connects to the server.
@@ -137,6 +143,7 @@ EXAMPLES
   Login.SaltLength:     32
   Debug.Panic:          false
   Debug.AllowDump:      false
+  Debug.AllowDebug:     false
 
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe

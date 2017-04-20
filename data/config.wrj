@@ -34,6 +34,7 @@
 //
   Debug.Panic:        false
   Debug.AllowDump:    false
+  Debug.AllowDebug:   false
 //
 // Initial client connection greeting
 
