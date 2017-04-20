@@ -154,7 +154,7 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 }
 
 func (t *Thing) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T UID: %s, %d attributes:", t, t.uid, len(t.attrs)))
+	buff = append(buff, DumpFmt("%s, %d attributes:", t, len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
@@ -235,7 +235,7 @@ func (t *Thing) Dispose() {
 
 	// Thing has not been reset so make sure the Thing is removed from the world
 	// then free it so it is garbage collected.
-	log.Printf("Disposing of %p %[1]T: %s", t, FindName(t).Name("?"))
+	log.Printf("Disposing: %s: %q", t, FindName(t).Name("?"))
 	if where := FindLocate(t).Where(); where.Found() {
 		if i := FindInventory(where.Parent()); i.Found() {
 			i.Remove(t)
@@ -252,4 +252,15 @@ func (t *Thing) UID() string {
 		return ""
 	}
 	return t.uid
+}
+
+// String causes a Thing to implement the Stringer interface so that a Thing
+// can print information about itself. The format of the string is:
+//
+//  <address> <type> UID: <unique ID>
+//
+//  0xc420108630 *attr.Thing UID: #UID-6M
+//
+func (t *Thing) String() string {
+	return fmt.Sprintf("%p %[1]T %s", t, t.UID())
 }
