@@ -7,10 +7,12 @@
 package event
 
 import (
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"log"
 	"math/rand"
+	"runtime/debug"
 	"time"
 )
 
@@ -66,6 +68,18 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 	}
 
 	go func() {
+
+		// If an event goroutine panics try not to bring down the whole server down
+		// unless the configuration option Debug.Panic is set to true.
+		defer func() {
+			if !config.Debug.Panic {
+				if err := recover(); err != nil {
+					log.Printf("EVENT PANICKED %s: %q Input: %q", thing, name, input)
+					log.Printf("%s: %s", err, debug.Stack())
+				}
+			}
+		}()
+
 		t := time.NewTimer(td)
 		log.Printf("Event queued in %s for %p %[2]T %q: %q", td, thing, name, input)
 		select {
