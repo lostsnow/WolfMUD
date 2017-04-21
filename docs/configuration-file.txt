@@ -121,9 +121,7 @@ FIELDS & VALUES
     the log. The default value for Debug.Panic is false.
 
   Debug.AllowDump:
-    This value determines if the #DUMP command is available to players. The
-    #DUMP command should only be enabled for development and debugging as it
-    can cause the server to crash when dumping objects via an address. If set
+    This value determines if the #DUMP command is available to players. If set
     to true the #DUMP command is available, if set to false it is not. The
     default value for Debug.AllowDump is false.
 

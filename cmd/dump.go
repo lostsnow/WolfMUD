@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"fmt"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -22,8 +23,7 @@ import (
 // configuration option Debug.AllowDump set to true.
 //
 // The address can be any address printed using %p that points to a
-// *attr.Thing - e.g. 0xc42011fab0. Trying to dump a *attr.Thing in this way
-// may crash the server and should only be used for debugging.
+// *attr.Thing - e.g. 0xc42011fab0.
 func init() {
 	AddHandler(Dump, "#DUMP")
 }
@@ -79,16 +79,13 @@ func Dump(s *state) {
 
 	// Here be dragons - poking around in random memory locations is ill advised!
 	if strings.HasPrefix(name, "0X") {
+
+		// Change faults to panics instead so we can catch them and defer changing
+		// them back again. It's easy to cause a fault with an invalid address.
+		spof := debug.SetPanicOnFault(true)
+		defer debug.SetPanicOnFault(spof)
+
 		n, _ := strconv.ParseUint(name[2:], 16, 64)
-
-		// Check alignment so we don't cause a fatal error we can't catch with a
-		// panic
-		if uintptr(n)%unsafe.Alignof(&attr.Thing{}) != 0 {
-			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Invalid alignment")
-			return
-		}
-
-		// It's fatal of p dosen't actually point to a *attr.Thing
 		p := (*attr.Thing)(unsafe.Pointer(uintptr(n)))
 		what = (*attr.Thing)(p)
 	}
