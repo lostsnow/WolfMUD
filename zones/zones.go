@@ -186,7 +186,7 @@ func loadZone(path string) zone {
 
 	z.assemble()
 
-	log.Printf("Loaded %s %s (%s)", filename, z.name, z.ref)
+	log.Printf("Loaded %s: %s (%s)", filename, z.name, z.ref)
 
 	return z
 }
