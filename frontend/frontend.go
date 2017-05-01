@@ -180,3 +180,13 @@ func (f *frontend) Write(b []byte) (n int, err error) {
 	n, err = f.output.Write(b)
 	return
 }
+
+// Zero writes zero bytes into the passed slice
+func Zero(data []byte) {
+	if len(data) > 0 {
+		data[0] = 0
+		for i := 1; i < len(data); i *= 2 {
+			copy(data[i:], data[:i])
+		}
+	}
+}
