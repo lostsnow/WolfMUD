@@ -6,6 +6,60 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.6 Released Sunday 1st May
+==============================================================================
+
+Security
+
+  - Tighten permissions on new player files and file produced by the #DEBUG
+    command. It is adviseable to run chmod 0660 data/players/*.wrj on Linux. On
+    Windows please review the file permissions for existing files.
+    Commit: da2ed6b and eefef4b.
+
+  - Reduce the amount of time plain text passwords are held in memory. Some
+    player passwords may have been compromised due to use of the #DUMP command
+    and access to the heapdump file. Some player passwords may have been
+    compromised if local users can access the server's memory.
+    Commit: b29e762.
+
+Added
+
+  - New OnCleanup attribute for custom clean up messages, see
+    docs/zone-files.txt for more details.
+  - New OnReset attribute for reset/respawning up messages, , see
+    docs/zone-files.txt for more details.
+  - New OnAction and Action attributes, see docs/zone-files.txt for more
+    details.
+  - Inventories have a new Players method for checking if there are any players
+    in an inventory.
+  - New #DEBUG command to aid developing and debugging.
+
+Changed
+
+  - Output of READ command made more generic. Instead of the template being
+    "You read the writing on <item>. It says: <writing>" it is now "You read
+    <item>.  <writing>".  Wording of WRITING attributes in zone files may need
+    updating.
+  - If a reset or respawn occurs within a container and an OnReset message is
+    provided the message will propagate to the location the container is in.
+  - Zone files updated with OnCleanup and OnReset messages.
+  - Prevention of players being junked now via automatic veto.
+  - Statistics in log now display a Thing count.
+  - Lease acquired and released messages no longer reported in log.
+  - Improved debugging flags in config.wrj, see docs/configuration-file.txt for
+    more details.
+  - Event goroutines now recover from a panic unless Debug.Panic is true. See
+    docs/configuration-file.txt for more details.
+
+Fixed
+
+  - The LOOK command now automatically uppercases the first letter in titles.
+  - The TAKE command now automatically uppercases the first letter of a
+    container's name.
+  - Improved layout of event.Cancel in #DUMP output.
+  - The #DUMP command no longer crashes the server with invalid addresses.
+
+
 v0.0.5 Released Sunday 2nd April
 ==============================================================================
 
