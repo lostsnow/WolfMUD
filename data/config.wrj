@@ -3,7 +3,8 @@
 // Use of this file is governed by the license in the LICENSE file included
 // with the source code.
 //
-// config.wrj - Main WolfMUD server configuration file
+// config.wrj - Main WolfMUD server configuration file. For details of the
+// options and their settings see docs/configuration-file.txt.
 //
 // Server configuration
 	Server.Host:				127.0.0.1
@@ -29,6 +30,15 @@
 	Login.AccountLength:	10
 	Login.PasswordLength: 10
 	Login.SaltLength:			32
+//
+// Debug configuration
+//
+  Debug.LongLog:      false
+  Debug.Panic:        false
+  Debug.AllowDump:    false
+  Debug.AllowDebug:   false
+  Debug.Events:       false
+  Debug.Things:       false
 //
 // Initial client connection greeting
 

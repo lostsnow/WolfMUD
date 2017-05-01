@@ -113,12 +113,17 @@ func (l *login) passwordProcess() {
 		return
 	}
 
-	var (
-		record   = jar[0]
-		salt     = recordjar.Decode.Bytes(record["SALT"])
-		password = recordjar.Decode.String(record["PASSWORD"])
-		hash     = sha512.Sum512(append(salt, l.input...))
-	)
+	record := jar[0]
+	salt := recordjar.Decode.Bytes(record["SALT"])
+	password := recordjar.Decode.String(record["PASSWORD"])
+
+	// Calculate hash for salt+password then zero buffer used and input
+	si := make([]byte, len(salt)+len(l.input))
+	copy(si[0:], salt)
+	copy(si[len(salt):], l.input)
+	hash := sha512.Sum512(si)
+	Zero(si)
+	Zero(l.input)
 
 	// Check password is valid
 	if (base64.URLEncoding.EncodeToString(hash[:])) != password {

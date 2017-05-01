@@ -15,6 +15,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"runtime/debug"
 	"time"
 )
 
@@ -22,6 +23,7 @@ import (
 const (
 	termColumns = 80
 	termLines   = 24
+	inputBuffer = 512
 )
 
 // This interface lets us assert network or our own errors
@@ -58,7 +60,7 @@ func newClient(conn *net.TCPConn) *client {
 	conn.SetLinger(10)
 	conn.SetNoDelay(false)
 	conn.SetWriteBuffer(termColumns * termLines)
-	conn.SetReadBuffer(termColumns)
+	conn.SetReadBuffer(inputBuffer)
 
 	c := &client{
 		TCPConn:    conn,
@@ -83,11 +85,12 @@ func newClient(conn *net.TCPConn) *client {
 func (c *client) process() {
 
 	// If a client goroutine panics try not to bring down the whole server down
-	// unless in debug mode
+	// unless the configuration option Debug.Panic is set to true.
 	defer func() {
-		if !config.Server.Debug {
+		if !config.Debug.Panic {
 			if err := recover(); err != nil {
-				log.Printf("CLIENT PANICKED: %s", err)
+				log.Printf("CLIENT PANICKED: %s", c.remoteAddr)
+				log.Printf("%s: %s", err, debug.Stack())
 			}
 		}
 		c.close()
@@ -98,21 +101,34 @@ func (c *client) process() {
 	{
 		// Variables for use in the loop only hence the scoping outer braces
 		var (
-			s   = bufio.NewReaderSize(c, termColumns) // Sized network read buffer
+			s   = bufio.NewReaderSize(c, inputBuffer) // Sized network read buffer
 			err error                                 // function local errors
 			in  []byte                                // Input string from buffer
 		)
 
 		for c.Error() == nil {
 			c.SetReadDeadline(time.Now().Add(config.Server.IdleTimeout))
-			if in, err = s.ReadBytes('\n'); err != nil {
-				c.SetError(err)
+			if in, err = s.ReadSlice('\n'); err != nil {
+				frontend.Zero(in)
+
+				if err != bufio.ErrBufferFull {
+					c.SetError(err)
+					continue
+				}
+
+				for err == bufio.ErrBufferFull {
+					in, err = s.ReadSlice('\n')
+					frontend.Zero(in)
+				}
+				c.Write([]byte(text.Bad + "\nYou type too much.\n" + text.Prompt + ">"))
 				continue
 			}
+
 			in = fixDEL(in)
 			if err = c.frontend.Parse(in); err != nil {
 				c.SetError(err)
 			}
+			frontend.Zero(in)
 		}
 	}
 }

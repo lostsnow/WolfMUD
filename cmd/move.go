@@ -21,7 +21,6 @@ func init() {
 	)
 }
 
-// TODO: Move does not support vetoes yet.
 func Move(s *state) {
 
 	from := s.where

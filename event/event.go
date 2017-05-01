@@ -7,10 +7,12 @@
 package event
 
 import (
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"log"
 	"math/rand"
+	"runtime/debug"
 	"time"
 )
 
@@ -65,17 +67,38 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 		td = 1 * time.Second
 	}
 
+	// Log event notifications?
+	logEvents := config.Debug.Events
+
 	go func() {
+
+		// If an event goroutine panics try not to bring down the whole server down
+		// unless the configuration option Debug.Panic is set to true.
+		defer func() {
+			if !config.Debug.Panic {
+				if err := recover(); err != nil {
+					log.Printf("EVENT PANICKED %s: %q Input: %q", thing, name, input)
+					log.Printf("%s: %s", err, debug.Stack())
+				}
+			}
+		}()
+
 		t := time.NewTimer(td)
-		log.Printf("Event queued in %s for %p %[2]T %q: %q", td, thing, name, input)
+		if logEvents {
+			log.Printf("Event queued in %s for %s: %q Input: %q", td, thing, name, input)
+		}
 		select {
 		case <-cancel:
-			log.Printf("Event cancelled for %p %[1]T %q: %q", thing, name, input)
+			if logEvents {
+				log.Printf("Event cancelled for %s: %q Input: %q", thing, name, input)
+			}
 			if !t.Stop() {
 				<-t.C
 			}
 		case <-t.C:
-			log.Printf("Event delivered for %p %[1]T %q: %q", thing, name, input)
+			if logEvents {
+				log.Printf("Event delivered for %s: %q Input: %q", thing, name, input)
+			}
 			Script(thing, input)
 		}
 	}()

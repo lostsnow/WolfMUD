@@ -27,7 +27,7 @@ func Look(s *state) {
 	what := s.where.Parent()
 
 	// Write the location title
-	s.msg.Actor.Send(text.Cyan, attr.FindName(what).Name("Somewhere"), text.Reset)
+	s.msg.Actor.Send(text.Cyan, text.TitleFirst(attr.FindName(what).Name("Somewhere")), text.Reset)
 	s.msg.Actor.Send("")
 
 	// Write the location descriptions

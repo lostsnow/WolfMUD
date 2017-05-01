@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: TAKE item container
@@ -74,7 +75,7 @@ func Take(s *state) {
 	// Is item to be taken in the container?
 	tWhat := cWhere.Search(tName)
 	if tWhat == nil {
-		s.msg.Actor.SendBad(cName, " does not seem to contain ", tName, ".")
+		s.msg.Actor.SendBad(text.TitleFirst(cName), " does not seem to contain ", tName, ".")
 		s.msg.Observer.SendInfo("You see ", who, " rummage around in ", cName, ".")
 		return
 	}

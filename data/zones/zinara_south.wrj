@@ -118,7 +118,7 @@ small track.
      Name: Worn road through forest
     Alias: ROAD
 Inventory: N1
-           // For now we can keep going south indefinatly by looping back to
+           // For now we can keep going south indefinitely by looping back to
            // ourself. Hopefully we can extend this zone south or link to
            // another zone...
     Exits: N→L6 S→L12
@@ -141,11 +141,14 @@ the forest and south into a small cave partially hidden by the undergrowth.
 // OBJECTS
 //
 %%
-    Ref: O1
-   Name: a small mushroom
-  Alias: MUSHROOM
-  Reset: AFTER→10m JITTER→10m SPAWN=TRUE
-Cleanup: AFTER→10m JITTER→10m
+      Ref: O1
+     Name: a small mushroom
+    Alias: MUSHROOM
+    Reset: AFTER→1m JITTER→1m SPAWN→TRUE
+  OnReset: A small mushroom blooms in the undergrowth.
+  Cleanup: AFTER→1m JITTER→1m
+OnCleanup: A gentle cloud of spoors leaves the mushroom before it blackens,
+           shrivels up and turns to dust.
 
 This is a small grey mushroom. Under the cap the gills are a greyish purple.
 %%
@@ -157,8 +160,9 @@ This is a small grey mushroom. Under the cap the gills are a greyish purple.
      Name: a stone marker
 Narrative:
     Alias: MARKER STONE OBELISK
-  Writing: Zinara under an arrow pointing northwards and Caves with an arrow
-           pointing west down a small track.
+  Writing: The marker is giving directions. If they are right then the City
+           of Zinara is to the north and there are some caves to the west, down
+           the small track.
 
 This stone marker is about a foot square and a foot and a half tall. The top of
 it has been shaped like a pyramid giving the stone the look of a small obelisk.

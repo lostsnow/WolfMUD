@@ -33,7 +33,6 @@ var Server = struct {
 	IdleTimeout time.Duration // Idle connection disconnect time
 	MaxPlayers  int           // Max number of players allowed to login at once
 	DataDir     string        // Main data directory
-	Debug       bool          // Debug mode flag
 }{
 	Host:        "127.0.0.1",
 	Port:        "4001",
@@ -41,7 +40,6 @@ var Server = struct {
 	IdleTimeout: 10 * time.Minute,
 	MaxPlayers:  1024,
 	DataDir:     ".",
-	Debug:       false,
 }
 
 // Stats default configuration
@@ -73,12 +71,29 @@ var Login = struct {
 	SaltLength:     32,
 }
 
+// Debugging configuration
+var Debug = struct {
+	LongLog    bool // Long log with microseconds & filename?
+	Panic      bool // Let goroutines panic and stop server?
+	AllowDump  bool // Allow use of #DUMP command?
+	AllowDebug bool // Allow use of #DEBUG command?
+	Events     bool // Log events? - this can make the log quite noisy
+	Things     bool // Log additional information for Thing?
+}{
+	LongLog:    false,
+	Panic:      false,
+	AllowDump:  false,
+	AllowDebug: false,
+	Events:     false,
+	Things:     false,
+}
+
 // Load loads the configuration file and overrides the default configuration
 // values with any values found.
 func init() {
 
 	// Setup global logging format
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.Lmicroseconds)
 
 	// Seed default random source
 	rand.Seed(time.Now().UnixNano())
@@ -118,8 +133,6 @@ func init() {
 			Server.MaxPlayers = recordjar.Decode.Integer(data)
 		case "SERVER.GREETING":
 			Server.Greeting = text.Colorize(recordjar.Decode.Bytes(data))
-		case "SERVER.DEBUG":
-			Server.Debug = recordjar.Decode.Boolean(data)
 
 		// Stats settings
 		case "STATS.RATE":
@@ -141,6 +154,20 @@ func init() {
 		case "LOGIN.SALTLENGTH":
 			Login.SaltLength = recordjar.Decode.Integer(data)
 
+		// Debug settings
+		case "DEBUG.LONGLOG":
+			Debug.LongLog = recordjar.Decode.Boolean(data)
+		case "DEBUG.PANIC":
+			Debug.Panic = recordjar.Decode.Boolean(data)
+		case "DEBUG.ALLOWDUMP":
+			Debug.AllowDump = recordjar.Decode.Boolean(data)
+		case "DEBUG.ALLOWDEBUG":
+			Debug.AllowDebug = recordjar.Decode.Boolean(data)
+		case "DEBUG.EVENTS":
+			Debug.Events = recordjar.Decode.Boolean(data)
+		case "DEBUG.THINGS":
+			Debug.Things = recordjar.Decode.Boolean(data)
+
 		// Unknow setting
 		default:
 			log.Printf("Unknown setting %s: %s", field, data)
@@ -148,6 +175,11 @@ func init() {
 	}
 
 	log.Printf("Data Path: %s", Server.DataDir)
+
+	if !Debug.LongLog {
+		log.SetFlags(log.Ldate | log.Ltime)
+		log.Printf("Switching to short log format.")
+	}
 }
 
 // openConfig tries to locate and open the configuration file to use. By

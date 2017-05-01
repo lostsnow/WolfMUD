@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 
 	"fmt"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -18,16 +19,21 @@ import (
 
 // Syntax: #DUMP ( alias | <address> )
 //
+// The #DUMP command is only available if the server is running with the
+// configuration option Debug.AllowDump set to true.
+//
 // The address can be any address printed using %p that points to a
-// *attr.Thing - e.g. 0xc42011fab0. Trying to dump a *attr.Thing in this way
-// may crash the server and should only be used for debugging. Therefore
-// dumping using an address is only available if Server.Debug is set to true
-// in the configuration.
+// *attr.Thing - e.g. 0xc42011fab0.
 func init() {
 	AddHandler(Dump, "#DUMP")
 }
 
 func Dump(s *state) {
+	if !config.Debug.AllowDump {
+		s.msg.Actor.SendBad("#DUMP command is not available. Server not running with configuration option Debug.AllowDump=true")
+		return
+	}
+
 	defer func() {
 		if p := recover(); p != nil {
 			err := fmt.Errorf("%v", p)
@@ -73,22 +79,13 @@ func Dump(s *state) {
 
 	// Here be dragons - poking around in random memory locations is ill advised!
 	if strings.HasPrefix(name, "0X") {
-		if !config.Server.Debug {
-			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Server not running with Server.Debug=true")
-			return
-		}
+
+		// Change faults to panics instead so we can catch them and defer changing
+		// them back again. It's easy to cause a fault with an invalid address.
+		spof := debug.SetPanicOnFault(true)
+		defer debug.SetPanicOnFault(spof)
 
 		n, _ := strconv.ParseUint(name[2:], 16, 64)
-
-		// Check alignment so we don't cause a fatal error we can't catch with a
-		// panic
-		//if n%uint64(reflect.TypeOf((*attr.Thing)(nil)).Align()) != 0 {
-		if uintptr(n)%unsafe.Alignof(&attr.Thing{}) != 0 {
-			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": Invalid alignment")
-			return
-		}
-
-		// It's fatal of p dosen't actually point to a *attr.Thing
 		p := (*attr.Thing)(unsafe.Pointer(uintptr(n)))
 		what = (*attr.Thing)(p)
 	}

@@ -89,7 +89,7 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 
 func (r *Reset) Dump() (buff []string) {
 	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s Spawn: %t", r, r.after, r.jitter, r.spawn))
-	buff = append(buff, DumpFmt("%p %[1]T", r.Cancel))
+	buff = append(buff, DumpFmt("  %p %[1]T", r.Cancel))
 	return
 }
 

@@ -100,8 +100,16 @@ func (a *account) newPasswordProcess() {
 		a.buf.Send(text.Bad, "Password is too short. Needs to be ", l, " characters or longer.\n", text.Reset)
 		a.newPasswordDisplay()
 	default:
+
+		// Calculate hash for salt+password then zero buffer used and input
 		a.salt = salt(config.Login.SaltLength)
-		a.password = sha512.Sum512(append(a.salt, a.input...))
+		si := make([]byte, len(a.salt)+len(a.input))
+		copy(si[0:], a.salt)
+		copy(si[len(a.salt):], a.input)
+		a.password = sha512.Sum512(si)
+		Zero(si)
+		Zero(a.input)
+
 		a.confirmPasswordDisplay()
 	}
 }
@@ -120,7 +128,15 @@ func (a *account) confirmPasswordProcess() {
 		a.buf.Send(text.Info, "Account creation cancelled.\n", text.Reset)
 		NewLogin(a.frontend)
 	default:
-		hash := sha512.Sum512(append(a.salt, a.input...))
+
+		// Calculate hash for salt+password then zero buffer used and input
+		si := make([]byte, len(a.salt)+len(a.input))
+		copy(si[0:], a.salt)
+		copy(si[len(a.salt):], a.input)
+		hash := sha512.Sum512(si)
+		Zero(si)
+		Zero(a.input)
+
 		if hash != a.password {
 			a.buf.Send(text.Bad, "Passwords do not match, please try again.\n", text.Reset)
 			a.newPasswordDisplay()
@@ -244,6 +260,7 @@ func (a *account) write() {
 
 	// Write record jar to temporary file
 	wrj, err := os.Create(temp)
+	wrj.Chmod(0660)
 	if err != nil {
 		log.Printf("Error creating account: %s, %s", temp, err)
 		return

@@ -32,12 +32,12 @@ DESCRIPTION
 
     This is the city of Zinara.
     %%
-          Ref: L1
-        Start:
-         Name: Fireplace
-      Aliases: TAVERN FIREPLACE
-        Exits: E→L3 SE→L4 S→L2
-    Inventory: L1N1
+           Ref: L1
+         Start:
+          Name: Fireplace
+       Aliases: TAVERN FIREPLACE
+         Exits: E→L3 SE→L4 S→L2
+     Inventory: L1N1
 
     You are in the corner of the common room in the dragon's breath tavern. A
     fire burns merrily in an ornate fireplace, giving comfort to weary
@@ -45,21 +45,29 @@ DESCRIPTION
     changing darkness to light and back again. To the south the common room
     continues and east the common room leads to the tavern entrance.
     %%
-          Ref: L1N1
-    Narrative:
-         Name: an ornate fireplace
-        Alias: FIRE FIREPLACE
+           Ref: L1N1
+     Narrative:
+          Name: an ornate fireplace
+         Alias: FIRE FIREPLACE
 
     This is a very ornate fireplace carved from marble. Either side a dragon
     curls downward until the head is below the fire looking upward, giving the
     impression that they are breathing fire.
     %%
-         Ref: O1
-        Name: a curious brass lattice
-     Aliases: LATTICE
-    Location: L1
-       Reset: AFTER→2m JITTER→1m
-     Cleanup: AFTER→10m
+          Ref: O1
+         Name: a curious brass lattice
+      Aliases: LATTICE
+     Location: L1
+        Reset: AFTER→2m JITTER→1m
+      OnReset: There is a gentle, musical ping and a curious brass lattice
+               suddenly appears from nowhere.
+      Cleanup: AFTER→10m
+    OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
+               gains speed and then suddenly collapses in on itself and
+               disappears.
+       Action: AFTER→5m JITTER→2m30s
+     OnAction: The lattice quietly chimes.
+             : The lattice quietly hums.
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -144,6 +152,26 @@ ZONE RECORDS
   types. Different types of objects can be defined by combining different
   fields together. The following are the different fields that are available:
 
+  ACTION: <PAIR LIST>
+    ACTION is used to specify how often an item displays an action message.
+    The pairs that are valid for ACTION are:
+
+      AFTER→<period>
+      JITTER→<period>
+
+    For example:
+
+      ACTION: AFTER→5m JITTER→2m30s
+
+    AFTER and JITTER specify the period to wait between messages to be between
+    AFTER and AFTER+JITTER. In the example an action will occur every five to
+    seven and a half minutes.
+
+    If AFTER and JITTER are not specified the minimum period will be 1 second.
+
+    The action messages to be displayed are specified via ONACTION. See
+    ONACTION for more details.
+
   ALIAS: <KEYWORD LIST>
     A list of keywords used by players to interact with something. For
     example: LATTICE
@@ -166,6 +194,9 @@ ZONE RECORDS
 
     If AFTER and JITTER are not specified the minimum clean up period will be
     1 second.
+
+    Custom messages can be displayed when an item is cleaned up. See
+    ONCLEANUP for more details.
 
   DOOR: <PAIR LIST>
     A DOOR field defines anything door-like that can block a direction of
@@ -278,6 +309,80 @@ ZONE RECORDS
     specifically listed narratives behave like normal objects. For example
     they can have inventories and contain other objects.
 
+  ONACTION: <string list>
+    ONACTION can be used to provide action messages that are emitted by an
+    item. For example:
+
+      OnAction: The lattice quietly chimes.
+              : The lattice quietly hums.
+
+    The messages will be displayed with a frequency defined by ACTION. Every
+    time ONACTION fires one message to display will be picked at random from
+    the messages defined by ONACTION.
+
+    The message will be displayed if the item is in a location where it will
+    be seen. If the action occurs inside a container it will not be seen, and
+    no message displayed.
+
+    See also ACTION for how to schedule action messages for an item.
+
+  ONCLEANUP: <string>
+    ONCLEANUP can be used to provide a custom message when an item is cleaned
+    up and removed from play. For example:
+
+      OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
+                 gains speed and then suddenly collapses in on itself and
+                 disappears.
+
+    The message will be displayed if the item clean up occurs in a location
+    where it will be seen. If the clean up occurs inside a container it will
+    not be seen, and no message displayed.
+
+    If an item does not have an ONCLEANUP and the clean up would be seen a
+    default message will be displayed of the form:
+
+      "You are sure you noticed <item> here, but you can't see it now."
+
+    If a message should not be displayed, even if the clean up would otherwise
+    be seen, specify an ONCLEANUP with no message. In this case the item will
+    simply disappear with no notification at all.
+
+    See also CLEANUP for how to schedule an item for automatic clean up.
+
+  ONRESET: <string>
+    ONRESET can be used to provide a custom message when an item is reset or
+    respawned and put back into play. For example:
+
+      OnReset: There is a gentle, musical ping and a curious brass lattice
+               suddenly appears from nowhere.
+
+    The message will be displayed if the item reset or respawn occurs in a
+    location where it will be seen. If an item is reset or respawned within a
+    container the message will be displayed at the location where the
+    container is located. For example, assume there is a pond. The pond is a
+    narrative container that contains a 'fish of gold'. The ONRESET for the
+    fish is:
+
+      OnReset: A man enters. There is a gentle plop as he drops something into
+               the pond before he walks off again.
+
+    This message will be seen by players at the location where the pond is,
+    even though the fish is resetting in the pond and not in the actual
+    location.
+
+    If an item does not have an ONRESET and the reset or respawn would be
+    seen, that is the reset is not in a container, a default message will be
+    displayed of the form:
+
+      "You notice <item> that you didn't see before."
+
+    If a message should not be displayed, even if the reset or respawn would
+    otherwise be seen, specify an ONRESET with no message. In this case the
+    item will simply appear with no notification at all.
+
+    See also ONRESET for how to schedule an item for automatic resets and
+    respawning.
+
   REF: <KEYWORD>
     REF is a unique reference to something. It only needs to be unique within
     the zone file it is defined in. It is helpful if standard reference
@@ -308,6 +413,9 @@ ZONE RECORDS
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.
+
+    Custom messages can be displayed when an item is reset or respawned. See
+    ONRESET for more details.
 
   START:
     The START field defines a location as a starting point where players may

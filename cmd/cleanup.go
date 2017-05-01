@@ -7,20 +7,54 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/text"
 )
 
-// Syntax: $CLEANUP
+// Syntax: $CLEANUP item
 func init() {
 	AddHandler(Cleanup, "$cleanup")
 }
 
 func Cleanup(s *state) {
 
-	name := attr.FindName(s.actor).Name("something")
-	s.msg.Observer.SendInfo(text.TitleFirst(name), " fades away and is gone.")
+	// Do we have item to cleanup specified on command?
+	if len(s.words) == 0 {
+		return
+	}
 
-	alias := s.actor.UID()
+	// Search for item to perform action.
+	alias := s.words[0]
+	what := s.where.Search(alias)
+
+	// If item not found all we can do is bail.
+	if what == nil {
+		return
+	}
+
+	oc := attr.FindOnCleanup(what)
+	msg := oc.CleanupText()
+
+	// Clean up will not be seen if we specifically have an empty message. It
+	// will also not be seen if there are no players here to see it or it's too
+	// crowded. In these cases just junk Thing.
+	if msg == "" || !s.where.Players() || s.where.Crowded() {
+		s.scriptNone("junk", alias)
+		s.ok = true
+		return
+	}
+
+	// Clean up will be seen so add default message if we don't have one
+	if !oc.Found() {
+		name := attr.FindName(what).Name("something")
+		msg = "You are sure you noticed " + name + " here, but you can't see it now."
+	}
+
+	// Display messages. Only notify the actor if it's not the Thing issuing the
+	// command.
+	if s.actor.UID() != what.UID() {
+		s.msg.Actor.SendInfo(msg)
+	}
+	s.msg.Observer.SendInfo(msg)
+
 	s.scriptNone("junk", alias)
 	s.ok = true
 }

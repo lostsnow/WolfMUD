@@ -26,11 +26,12 @@ room leads to the tavern entrance.
      Name: Common room
   Aliases: TAVERN COMMON
     Exits: N→L1 NE→L3 E→L4
-Inventory: L2N1 L2N2
+Inventory: L2N1 L2N2 L2N3 M4
 
 You are in a small, cosy common room in the dragon's breath tavern. Looking
-around you see a few chairs and tables for patrons. To the east you see a bar
-and to the north there is the glow of a fire.
+around you see a few chairs and tables for patrons. In one corner there is a
+very old grandfather clock. To the east you see a bar and to the north there
+is the glow of a fire.
 %%
       Ref: L3
      Name: Tavern entrance
@@ -303,10 +304,11 @@ You are in a fine, formal garden. Around you small trees and shrubs grow. Here
 and there small delicate flowers display a splash of colour. The gardens
 continue east, west and south.
 %%
-    Ref: L34
-   Name: Quiet sheltered area
-Aliases: GARDENS SHELTERED
-  Exits: E→L33
+      Ref: L34
+     Name: Quiet sheltered area
+  Aliases: GARDENS SHELTERED
+    Exits: E→L33
+Inventory: M1
 
 You are in a small quiet area of the garden. Tall bushes have grown up over a
 trellis work to provide a small shaded area to come and sit in. The only exit
@@ -324,7 +326,7 @@ continues south or you can go north into the gardens.
      Name: Secluded path by shed
   Aliases: GARDENS PATH SECLUDED
     Exits: N→L35 S→L37
-Inventory: L36N1 L36N2 L36N3
+Inventory: L36N1 L36N2 L36N3 M3
 
 You are on a small secluded gravel path screened off from the formal gardens by
 large bushes. To the south is a small shed with its door facing you. A rock has
@@ -642,6 +644,17 @@ Narrative:
 Well you suppose these are tables. If so it was a blind carpenter who had had a
 very bad day.
 %%
+      Ref: L2N3
+     Name: a clock
+    Alias: CLOCK
+Narrative:
+   Action: AFTER→15m
+ OnAction: The clock chimes.
+
+This is an elegant grandfather clock. It seems to be quite old and has
+obviously seen better days. However it does seem to be working, or at least
+ticking.
+%%
       Ref: L3N1
 Narrative:
      Name: the tavern door
@@ -730,6 +743,50 @@ Inventory:
 This rubbish is dirty and smelly. Why are you wasting your time with it?
 %%
 //
+// MOBILES
+//
+%%
+     Ref: M1
+    Name: a rabbit
+   Alias: RABBIT
+   Reset: AFTER→1m
+ OnReset: A rabbit hops into view.
+  Action: AFTER→15s JITTER→15s
+OnAction: The rabbit hops around a bit.
+        : You see the rabbit twitch it's little nose, Ahh...
+        : The rabbit makes a soft squeaking and chattering noise.
+
+It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
+doesn't seem to be late for anything!
+%%
+     Ref: M3
+    Name: a small frog
+   Alias: FROG
+   Reset: AFTER→1m
+ OnReset: A frog hops into view.
+  Action: AFTER→10s JITTER→20s
+OnAction: The frog croaks a bit.
+        : The little frog leaps high into the air.
+        : The frog hops around a bit.
+
+It is a small, lime green frog. It's slimy and croaks. What more can you say?
+%%
+     Ref: M4
+    Name: the tavern cat
+   Alias: CAT
+   Reset: AFTER→1m
+ OnReset: A mangy looking cat slinks in and curls up on a chair.
+  Action: AFTER→1m JITTER→1m
+OnAction: The cat starts to claw at the furniture, scratching deep gouges into
+          the wood.
+        : The cat curls up and starts to purr like a buzz-saw.
+        : The cat starts to wash itself.
+
+The tavern cat is a ball of fur with one golden eye, the other eye replaced by
+a large scar. It senses you watching it and returns your gaze with a steady
+one of it's own.
+%%
+//
 // OBJECTS
 //
 %%
@@ -743,12 +800,14 @@ Location: L1
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.
 %%
-     Ref: O2
-    Name: a small green ball
- Aliases: BALL
-   Reset: AFTER→0s JITTER→0s
- Cleanup: AFTER→0s JITTER→0s
-Location: L1
+      Ref: O2
+     Name: a small green ball
+  Aliases: BALL
+    Reset: AFTER→0s JITTER→0s
+  OnReset: There is a bright flash and a small green ball appears.
+  Cleanup: AFTER→0s JITTER→0s
+OnCleanup: There is a brigh flash and the green ball disappears.
+ Location: L1
 
 This is a small, green, rubber ball.
 %%
@@ -795,6 +854,8 @@ is smooth. On the other a strange rune has been carved.
     Name: a key
    Alias: KEY
    Reset: AFTER→30s JITTER→30s
+ OnReset: You see a man enter, look around and then do something to
+          the bottom of the rock before leaving again.
  Cleanup: AFTER→1m JITTER→1m
 
 This is a small iron key.
@@ -813,7 +874,10 @@ enclosed in a circle.
      Name: a fish of gold
     Alias: FISH GOLDFISH
     Reset: AFTER→30s JITTER→30s
+  OnReset: A man enters. There is a gentle plop as he drops something
+           into the pond before he walks off again.
   Cleanup: AFTER→1m JITTER→1m
+OnCleanup: Light gleams off the fish of gold before it fades away and is gone.
 
 This is a small, finely carved fish that appears to have been made from solid
 gold.

@@ -32,6 +32,9 @@ type Inventory interface {
 	// false. Definition of crowded is implementation dependant.
 	Crowded() bool
 
+	// Players returns true if the Inventory contains any players else false.
+	Players() bool
+
 	// Empty returns true if the Inventory is empty else false. What empty means
 	// is up to the individual Inventory implementation. It may mean that the
 	// Inventory is really empty or it may mean that there is nothing available

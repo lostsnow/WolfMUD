@@ -7,8 +7,6 @@ package comms
 
 import (
 	"code.wolfmud.org/WolfMUD.git/config"
-
-	"log"
 )
 
 // lease is used to limit the maximum number of clients that can connect to the
@@ -48,7 +46,6 @@ func (noLeaseError) Temporary() bool {
 func (c *client) leaseAcquire() {
 	select {
 	case leases <- struct{}{}:
-		log.Printf("Lease taken: %d of %d active, %s", len(leases), cap(leases), c.remoteAddr)
 	default:
 		c.SetError(noLeaseError{})
 	}
@@ -61,6 +58,5 @@ func (c *client) leaseAcquire() {
 func (c *client) leaseRelease() {
 	if _, ok := c.Error().(noLeaseError); !ok {
 		<-leases
-		log.Printf("Lease released: %d of %d active, %s", len(leases), cap(leases), c.remoteAddr)
 	}
 }

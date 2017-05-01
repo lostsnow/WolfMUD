@@ -180,6 +180,7 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 			// location to location a lot which would cause needless calls to Spawn.
 			if !p {
 				FindCleanup(t).Abort()
+				FindAction(t).Abort()
 				if s := FindReset(t).Spawn(); s != nil {
 					t = s
 				}
@@ -220,6 +221,10 @@ ADD:
 	// TODO: Need to check for players or mobiles
 	if p {
 		To.playerCount++
+	}
+
+	if !p {
+		FindAction(t).Action()
 	}
 
 UPDATE:
@@ -346,6 +351,11 @@ func (i *Inventory) Crowded() (crowded bool) {
 		crowded = i.playerCount > config.Inventory.CrowdSize
 	}
 	return
+}
+
+// Players returns true if there are any players in the Inventory else false.
+func (i *Inventory) Players() bool {
+	return i.playerCount > 0
 }
 
 // Empty returns true if there are no non-Narrative items else false.
