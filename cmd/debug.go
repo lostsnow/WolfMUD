@@ -40,6 +40,7 @@ func Debug(s *state) {
 			s.msg.Actor.SendInfo("Memory profiling turned on.")
 		case "OFF", "STOP":
 			f, _ := os.Create("memprof")
+			f.Chmod(0660)
 			pprof.WriteHeapProfile(f)
 			f.Close()
 			s.msg.Actor.SendInfo("Memory profiling turned off.")
@@ -48,6 +49,7 @@ func Debug(s *state) {
 		switch s.words[1] {
 		case "ON", "START":
 			f, _ := os.Create("cpuprof")
+			f.Chmod(0660)
 			pprof.StartCPUProfile(f)
 			s.msg.Actor.SendInfo("CPU profiling turned on.")
 		case "OFF", "STOP":
@@ -61,6 +63,7 @@ func Debug(s *state) {
 			s.msg.Actor.SendInfo("Block profiling turned on.")
 		case "OFF", "STOP":
 			f, _ := os.Create("blockprof")
+			f.Chmod(0660)
 			pprof.Lookup("block").WriteTo(f, 0)
 			f.Close()
 			runtime.SetBlockProfileRate(0)
@@ -68,6 +71,7 @@ func Debug(s *state) {
 		}
 	case "HEAPDUMP":
 		f, _ := os.Create("heapdump")
+		f.Chmod(0660)
 		debug.WriteHeapDump(f.Fd())
 		f.Close()
 		s.msg.Actor.SendInfo("Heap dumped.")
