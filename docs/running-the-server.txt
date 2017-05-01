@@ -9,7 +9,10 @@ SYNOPSIS
 
 DESCRIPTION
 
-  Run a WolfMUD game server.
+  Run a WolfMUD game server. It is strongly advised to create a separate user/
+  group for running WolfMUD and that all files are owned by that user/group.
+  As a security precaution player and data files should not be accessable to
+  normal users on the system.
 
   server
     The name of the executable, on Windows substitude instances of server with
