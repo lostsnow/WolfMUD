@@ -260,6 +260,7 @@ func (a *account) write() {
 
 	// Write record jar to temporary file
 	wrj, err := os.Create(temp)
+	wrj.Chmod(0660)
 	if err != nil {
 		log.Printf("Error creating account: %s, %s", temp, err)
 		return
