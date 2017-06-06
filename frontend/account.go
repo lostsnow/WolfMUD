@@ -220,6 +220,10 @@ func salt(l int) []byte {
 // write creates the player data file and writes it out to the filesystem. The
 // player data file is written to DataDir/players where DataDir is set via the
 // config.Server.DataDir configuration setting.
+//
+// BUG(diddymus): write should return any errors so that they can be checked.
+// At the moment if there is an error writing the player file the player is
+// still let in and their details not saved for next time they log in.
 func (a *account) write() {
 	jar := recordjar.Jar{}
 
@@ -260,9 +264,14 @@ func (a *account) write() {
 
 	// Write record jar to temporary file
 	wrj, err := os.Create(temp)
-	wrj.Chmod(0660)
 	if err != nil {
 		log.Printf("Error creating account: %s, %s", temp, err)
+		return
+	}
+	err = wrj.Chmod(0660)
+	if err != nil {
+		wrj.Close()
+		log.Printf("Error changing account permissions: %s, %s", temp, err)
 		return
 	}
 	jar.Write(wrj, "DESCRIPTION")
