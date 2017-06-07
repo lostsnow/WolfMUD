@@ -47,18 +47,30 @@ func (decoder) KeywordList(data []byte) []string {
 // 'words' are then split into pairs on the first non-unicode letter or digit.
 // If we take exits as an example:
 //
-//	Exits: E→L3 SE→L4 S→L2
+//  Exits: E→L3 SE→L4 S→ W
 //
-// Results in two pairs [2]string{"E", "L3"} and [2]string{"SE", "L4"}. Here
-// the separator used is → but any non-unicode letter or digit may be used.
+// Results in four pairs:
+//
+//  [2]string{"E","L3"}
+//  [2]string{"SE","L4"}
+//  [2]string{"S",""}
+//  [2]string{"W",""}
+//
+// Here the separator used is → but any non-unicode letter or digit may be
+// used.
 func (decoder) PairList(data []byte) (pairs [][2]string) {
 	for _, pair := range strings.Fields(string(data)) {
 		runes := []rune(strings.ToUpper(pair))
+		split := false
 		for i, r := range runes {
 			if !unicode.IsDigit(r) && !unicode.IsLetter(r) {
 				pairs = append(pairs, [2]string{string(runes[:i]), string(runes[i+1:])})
+				split = true
 				break
 			}
+		}
+		if !split {
+			pairs = append(pairs, [2]string{string(runes[:]), ""})
 		}
 	}
 	return
@@ -79,20 +91,25 @@ func (decoder) StringList(data []byte) (s []string) {
 // The keyword is split from the beginning of the []byte on the first
 // non-unicode letter or digit. For example:
 //
-//	 input: []byte("GET→You can't get it.")
-//	output: [2]string{"GET", "You can't get it."}
+//   input: []byte("GET→You can't get it.")
+//  output: [2]string{"GET", "You can't get it."}
 //
 // Here the separator used is → but any non-unicode letter or digit may be
 // used.
 func (decoder) KeyedString(data []byte) (pair [2]string) {
 	runes := []rune(string(data))
+	split := false
 	for i, r := range runes {
 		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) {
 			key := strings.TrimSpace(strings.ToUpper(string(runes[:i])))
 			data := strings.TrimSpace(string(runes[i+1:]))
 			pair = [2]string{key, data}
+			split = true
 			break
 		}
+	}
+	if !split {
+		pair = [2]string{string(runes[:]), ""}
 	}
 	return
 }
@@ -101,13 +118,13 @@ func (decoder) KeyedString(data []byte) (pair [2]string) {
 // result through KeyedString. KeyedStringList is a shorthand for combining
 // StringList and KeyedString. For example the follow RecordJar record's data:
 //
-//	Vetoes:	GET→You can't get it.
-//				: DROP→You can't drop it.
+//  Vetoes:  GET→You can't get it.
+//        : DROP→You can't drop it.
 //
 // Would produce a slice with two entries:
 //
-//	[2]string{"GET", "You can't get it."}
-//	[2]string{"DROP", "You can't drop it."}
+//  [2]string{"GET", "You can't get it."}
+//  [2]string{"DROP", "You can't drop it."}
 //
 func (decoder) KeyedStringList(data []byte) (list [][2]string) {
 	for _, w := range Decode.StringList(data) {
