@@ -19,7 +19,7 @@ type decoder struct{}
 // Decode is a convenient way to access the recordjar decoding functions. For
 // example:
 //
-//	d := recordjar.Decode.Duration(data)
+//  d := recordjar.Decode.Duration(data)
 //
 var Decode = decoder{}
 
