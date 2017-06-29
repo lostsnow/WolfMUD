@@ -8,6 +8,8 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+
+	"sync"
 )
 
 // Register marshaler for Locate attribute.
@@ -21,10 +23,13 @@ func init() {
 // is added to or removed from an Inventory the Locate.SetWhere method is
 // called to update the reference. See inventory.Add for more details.
 // Locate also records the initial starting position or origin of a Thing.
+// Concurrent access of a Locate attribute is safe.
 type Locate struct {
 	Attribute
-	where  has.Inventory
-	origin has.Inventory
+
+	rwmutex sync.RWMutex
+	where   has.Inventory
+	origin  has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -36,7 +41,7 @@ var (
 // Inventory. Passing nil is a valid reference and is usually treated as being
 // nowhere.
 func NewLocate(i has.Inventory) *Locate {
-	l := &Locate{Attribute{}, nil, nil}
+	l := &Locate{Attribute: Attribute{}}
 	l.SetWhere(i)
 	return l
 }
@@ -65,13 +70,16 @@ func (*Locate) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 
-func (l *Locate) Dump() []string {
+func (l *Locate) Dump() (buf []string) {
 	origin := "Nowhere"
+	l.rwmutex.RLock()
 	if l.origin != nil {
 		origin = FindName(l.origin.Parent()).Name("Nowhere")
 	}
 	where := FindName(l.where.Parent()).Name("Nowhere")
-	return []string{DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where)}
+	buf = append(buf, DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where))
+	l.rwmutex.RUnlock()
+	return
 }
 
 // Where returns the Inventory the parent Thing is in. Returning nil is a
@@ -79,7 +87,9 @@ func (l *Locate) Dump() []string {
 // Inventory is set by calling SetWhere.
 func (l *Locate) Where() (where has.Inventory) {
 	if l != nil {
+		l.rwmutex.RLock()
 		where = l.where
+		l.rwmutex.RUnlock()
 	}
 	return
 }
@@ -87,7 +97,9 @@ func (l *Locate) Where() (where has.Inventory) {
 // Origin return the initial starting Inventory that a Thing is placed into.
 func (l *Locate) Origin() (origin has.Inventory) {
 	if l != nil {
+		l.rwmutex.RLock()
 		origin = l.origin
+		l.rwmutex.RUnlock()
 	}
 	return
 }
@@ -99,7 +111,9 @@ func (l *Locate) Origin() (origin has.Inventory) {
 // NOTE: This is called automatically by the Inventory Add and Remove methods.
 func (l *Locate) SetWhere(i has.Inventory) {
 	if l != nil {
+		l.rwmutex.Lock()
 		l.where = i
+		l.rwmutex.Unlock()
 	}
 }
 
@@ -107,7 +121,9 @@ func (l *Locate) SetWhere(i has.Inventory) {
 // placed into.
 func (l *Locate) SetOrigin(i has.Inventory) {
 	if l != nil {
+		l.rwmutex.Lock()
 		l.origin = i
+		l.rwmutex.Unlock()
 	}
 }
 
@@ -116,7 +132,10 @@ func (l *Locate) Copy() has.Attribute {
 	if l == nil {
 		return (*Locate)(nil)
 	}
-	return NewLocate(l.where)
+	l.rwmutex.RLock()
+	nl := NewLocate(l.where)
+	l.rwmutex.RUnlock()
+	return nl
 }
 
 // Free makes sure references are nil'ed when the Locate attribute is freed.
@@ -124,7 +143,9 @@ func (l *Locate) Free() {
 	if l == nil {
 		return
 	}
+	l.rwmutex.Lock()
 	l.where = nil
 	l.origin = nil
+	l.rwmutex.Unlock()
 	l.Attribute.Free()
 }

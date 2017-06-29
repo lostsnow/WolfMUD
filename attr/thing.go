@@ -15,14 +15,17 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"sync"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by
 // creating a Thing and then adding Attributes to it which implement specific
-// functionality.
+// functionality. Concurrent access to a Thing is safe.
 type Thing struct {
-	attrs []has.Attribute
-	uid   string
+	uid string
+
+	rwmutex sync.RWMutex
+	attrs   []has.Attribute
 }
 
 // Some interfaces we want to make sure we implement
@@ -74,11 +77,13 @@ func (t *Thing) Free() {
 	if t == nil {
 		return
 	}
-	for _, a := range t.attrs {
-		a.Free()
+	t.rwmutex.Lock()
+	for i := range t.attrs {
+		t.attrs[i].Free()
+		t.attrs[i] = nil
 	}
-	t.Remove(t.attrs...)
 	t.attrs = nil
+	t.rwmutex.Unlock()
 
 	c := <-ThingCount
 	c--
@@ -90,16 +95,19 @@ func (t *Thing) Free() {
 // an Attribute to find and query the parent Thing about other Attributes the
 // Thing may have.
 func (t *Thing) Add(a ...has.Attribute) {
+	t.rwmutex.Lock()
 	for _, a := range a {
 		a.SetParent(t)
 		t.attrs = append(t.attrs, a)
 	}
+	t.rwmutex.Unlock()
 }
 
 // Remove is used to remove the passed Attributes from a Thing. There is no
 // indication if an Attribute cannot actually be removed. When an Attribute is
 // removed and is no longer required its Free method should be called.
 func (t *Thing) Remove(a ...has.Attribute) {
+	t.rwmutex.Lock()
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
 			if a[i] == t.attrs[j] {
@@ -110,13 +118,20 @@ func (t *Thing) Remove(a ...has.Attribute) {
 			}
 		}
 	}
+	t.rwmutex.Unlock()
 }
 
 // Attrs returns all of the Attributes a Thing has as a slice of has.Attribute.
 // This is commonly used to range over all of the Attributes of a Thing instead
 // of using a finder for a specific type of Attribute.
 func (t *Thing) Attrs() []has.Attribute {
-	return t.attrs
+	t.rwmutex.RLock()
+	a := make([]has.Attribute, len(t.attrs))
+	for i := range t.attrs {
+		a[i] = t.attrs[i]
+	}
+	t.rwmutex.RUnlock()
+	return a
 }
 
 // ignoredFields is a list of known field names that should be ignored by
@@ -167,12 +182,14 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 }
 
 func (t *Thing) Dump() (buff []string) {
+	t.rwmutex.RLock()
 	buff = append(buff, DumpFmt("%s, %d attributes:", t, len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
 		}
 	}
+	t.rwmutex.RUnlock()
 	return buff
 }
 
@@ -186,10 +203,12 @@ func (t *Thing) Copy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)
 	}
+	t.rwmutex.RLock()
 	na := make([]has.Attribute, len(t.attrs), len(t.attrs))
 	for i, a := range t.attrs {
 		na[i] = a.Copy()
 	}
+	t.rwmutex.RUnlock()
 	return NewThing(na...)
 }
 
