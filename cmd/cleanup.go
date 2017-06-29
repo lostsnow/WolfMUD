@@ -36,7 +36,7 @@ func Cleanup(s *state) {
 	// Clean up will not be seen if we specifically have an empty message. It
 	// will also not be seen if there are no players here to see it or it's too
 	// crowded. In these cases just junk Thing.
-	if msg == "" || !s.where.Players() || s.where.Crowded() {
+	if (oc.Found() && msg == "") || !s.where.Players() || s.where.Crowded() {
 		s.scriptNone("junk", alias)
 		s.ok = true
 		return
