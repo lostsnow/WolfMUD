@@ -16,8 +16,8 @@ import (
 // and checked multiple times. A dictionary is safe to use across multiple
 // goroutines.
 type dictionary struct {
-	words map[string]struct{}
 	sync.RWMutex
+	words map[string]struct{}
 }
 
 // Dictionary returns a new dictionary containing the specified strings. The

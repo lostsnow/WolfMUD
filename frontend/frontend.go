@@ -46,8 +46,8 @@ import (
 // It's main purpose is to track logged in account IDs to prevent duplicate
 // logins.
 var accounts struct {
-	inuse map[string]struct{}
 	sync.Mutex
+	inuse map[string]struct{}
 }
 
 // init is used to initialise the map used in account ID tracking.

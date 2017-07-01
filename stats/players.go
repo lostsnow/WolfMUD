@@ -15,8 +15,8 @@ import (
 
 // players represents a list of all players currently in the game world.
 var players = struct {
-	list []has.Thing
 	sync.Mutex
+	list []has.Thing
 }{}
 
 // Add adds the specified player to the list of players.
