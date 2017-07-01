@@ -6,11 +6,6 @@
 package frontend
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
-	"code.wolfmud.org/WolfMUD.git/text"
-
 	"bytes"
 	"crypto/md5"
 	"crypto/sha512"
@@ -19,6 +14,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // login embeds a frontend instance adding fields and methods specific to

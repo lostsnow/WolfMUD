@@ -6,10 +6,10 @@
 package attr
 
 import (
+	"sync"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
-
-	"sync"
 )
 
 // Register marshaler for Locate attribute.

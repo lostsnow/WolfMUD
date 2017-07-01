@@ -6,11 +6,11 @@
 package attr
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr/internal"
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"errors"
 	"strings"
+
+	"code.wolfmud.org/WolfMUD.git/attr/internal"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Register marshaler for Exits attribute.

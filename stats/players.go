@@ -6,11 +6,11 @@
 package stats
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"log"
 	"sync"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // players represents a list of all players currently in the game world.

@@ -6,12 +6,12 @@
 package message
 
 import (
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/text"
-
 	"io"
 	"log"
 	"runtime"
+
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Buffer provides temporary storage for messages to players. The Buffer

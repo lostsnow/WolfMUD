@@ -6,11 +6,11 @@
 package attr
 
 import (
+	"io"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
-
-	"io"
 )
 
 // Register marshaler for Player attribute.

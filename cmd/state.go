@@ -6,14 +6,14 @@
 package cmd
 
 import (
+	"io"
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
-
-	"io"
-	"strings"
 )
 
 func init() {

@@ -6,11 +6,11 @@
 package attr
 
 import (
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
-
-	"strings"
 )
 
 // Register marshaler for Vetoes attribute.

@@ -7,13 +7,13 @@
 package event
 
 import (
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"log"
 	"math/rand"
 	"runtime/debug"
 	"time"
+
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Script is an indirect reference to the cmd.Script function. The cmd package

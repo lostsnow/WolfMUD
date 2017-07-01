@@ -6,11 +6,6 @@
 package frontend
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
-	"code.wolfmud.org/WolfMUD.git/text"
-
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
@@ -23,6 +18,11 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // account embeds a frontend instance adding fields and methods specific to

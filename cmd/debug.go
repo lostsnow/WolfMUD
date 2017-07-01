@@ -6,13 +6,13 @@
 package cmd
 
 import (
-	"code.wolfmud.org/WolfMUD.git/config"
-
 	"log"
 	"os"
 	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
+
+	"code.wolfmud.org/WolfMUD.git/config"
 )
 
 // Syntax: DEBUG

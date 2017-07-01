@@ -6,10 +6,6 @@
 package comms
 
 import (
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/frontend"
-	"code.wolfmud.org/WolfMUD.git/text"
-
 	"bufio"
 	"bytes"
 	"io"
@@ -17,6 +13,10 @@ import (
 	"net"
 	"runtime/debug"
 	"time"
+
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/frontend"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // TODO: These need to be configuration options once we have them

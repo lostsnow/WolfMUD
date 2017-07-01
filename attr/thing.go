@@ -6,16 +6,16 @@
 package attr
 
 import (
+	"fmt"
+	"log"
+	"runtime"
+	"sync"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/text"
-
-	"fmt"
-	"log"
-	"runtime"
-	"sync"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by

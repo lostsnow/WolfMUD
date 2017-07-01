@@ -6,11 +6,11 @@
 package message
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"bytes"
 	"testing"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // newBuffers is a simple helper to populate buffers with a given number of

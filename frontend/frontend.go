@@ -30,16 +30,16 @@
 package frontend
 
 import (
+	"bytes"
+	"io"
+	"sync"
+
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
 	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/text"
-
-	"bytes"
-	"io"
-	"sync"
 )
 
 // accounts is used to track which (valid) accounts are logged in and in use.

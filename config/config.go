@@ -13,9 +13,6 @@
 package config
 
 import (
-	"code.wolfmud.org/WolfMUD.git/recordjar"
-	"code.wolfmud.org/WolfMUD.git/text"
-
 	"flag"
 	"log"
 	"math/rand"
@@ -23,6 +20,9 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Server default configuration

@@ -6,13 +6,13 @@
 package attr
 
 import (
+	"log"
+	"time"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
-
-	"log"
-	"time"
 )
 
 // Register marshaler for Door attribute.

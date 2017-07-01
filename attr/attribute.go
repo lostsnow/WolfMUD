@@ -6,9 +6,9 @@
 package attr
 
 import (
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"log"
+
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Attribute implements a stub for other attributes. Any types providing
