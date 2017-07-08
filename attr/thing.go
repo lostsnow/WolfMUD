@@ -105,12 +105,14 @@ func (t *Thing) Add(a ...has.Attribute) {
 
 // Remove is used to remove the passed Attributes from a Thing. There is no
 // indication if an Attribute cannot actually be removed. When an Attribute is
-// removed and is no longer required its Free method should be called.
+// removed its parent is set to nil. When an Attribute is removed and is no
+// longer required the Attribute's Free method should be called.
 func (t *Thing) Remove(a ...has.Attribute) {
 	t.rwmutex.Lock()
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
 			if a[i] == t.attrs[j] {
+				t.attrs[j].SetParent(nil)
 				copy(t.attrs[j:], t.attrs[j+1:])
 				t.attrs[len(t.attrs)-1] = nil
 				t.attrs = t.attrs[:len(t.attrs)-1]
