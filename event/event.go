@@ -63,8 +63,8 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 
 	// Calc total delay as delay + random jitter in seconds, minimum 1 second
 	td := time.Duration(ds+rj) * time.Second
-	if td < 1*time.Second {
-		td = 1 * time.Second
+	if td < time.Second {
+		td = time.Second
 	}
 
 	// Log event notifications?
