@@ -806,7 +806,7 @@ roughly ball shaped curiosity.
     Reset: AFTER→0s JITTER→0s
   OnReset: There is a bright flash and a small green ball appears.
   Cleanup: AFTER→0s JITTER→0s
-OnCleanup: There is a brigh flash and the green ball disappears.
+OnCleanup: There is a bright flash and the green ball disappears.
  Location: L1
 
 This is a small, green, rubber ball.
