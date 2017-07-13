@@ -300,6 +300,13 @@ func (s *state) messenger() {
 // could be locked, otherwise false. It does NOT determine if the lock is
 // currently held or not.
 func (s *state) CanLock(i has.Inventory) bool {
+
+	if i == nil {
+		return true
+	}
+
+	i = i.Outermost()
+
 	for _, l := range s.locks {
 		if i == l {
 			return true
@@ -333,7 +340,13 @@ func (s *state) CanLock(i has.Inventory) bool {
 // ourselves when locking - currently we silently drop duplicate locks.
 func (s *state) AddLock(i has.Inventory) {
 
-	if i == nil || !i.Found() || s.CanLock(i) {
+	if i == nil || !i.Found() {
+		return
+	}
+
+	i = i.Outermost()
+
+	if s.CanLock(i) {
 		return
 	}
 
