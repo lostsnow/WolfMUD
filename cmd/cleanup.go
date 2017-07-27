@@ -38,7 +38,9 @@ func Cleanup(s *state) {
 	// crowded. In these cases just junk Thing.
 	if (oc.Found() && msg == "") || !s.where.Players() || s.where.Crowded() {
 		s.scriptNone("junk", alias)
-		s.ok = true
+
+		// s.ok will be that of the scripted JUNK and we will also retry if JUNK
+		// modifies the locks
 		return
 	}
 
@@ -48,6 +50,13 @@ func Cleanup(s *state) {
 		msg = "You are sure you noticed " + name + " here, but you can't see it now."
 	}
 
+	// Script JUNK of item to remove it and relock/abort if needed
+	l := len(s.locks)
+	s.scriptNone("junk", alias)
+	if l != len(s.locks) || !s.ok {
+		return
+	}
+
 	// Display messages. Only notify the actor if it's not the Thing issuing the
 	// command.
 	if s.actor.UID() != what.UID() {
@@ -55,6 +64,5 @@ func Cleanup(s *state) {
 	}
 	s.msg.Observer.SendInfo(msg)
 
-	s.scriptNone("junk", alias)
 	s.ok = true
 }
