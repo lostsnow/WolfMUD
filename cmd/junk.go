@@ -50,6 +50,13 @@ func Junk(s *state) {
 		return
 	}
 
+	// Make sure we are locking the reset/respawn origin
+	origin := attr.FindLocate(what).Origin()
+	if !s.CanLock(origin) {
+		s.AddLock(origin)
+		return
+	}
+
 	// Check junking is not vetoed by the item
 	if veto := attr.FindVetoes(what).Check("JUNK"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
