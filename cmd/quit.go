@@ -30,6 +30,10 @@ func Quit(s *state) {
 		s.scriptAll("DROP", t.UID())
 	}
 
+	// Reset the player's prompt while the Player is still in the Inventory we
+	// are locking.
+	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)
+
 	// Remove the player from the world
 	if s.where != nil {
 		s.msg.Observer.SendInfo(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
@@ -38,8 +42,6 @@ func Quit(s *state) {
 
 	s.msg.Actor.SendGood("You leave this world behind.")
 	stats.Remove(s.actor)
-
-	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)
 
 	s.ok = true
 }
