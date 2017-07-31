@@ -419,3 +419,25 @@ func (i *Inventory) Carried() bool {
 
 	return false
 }
+
+// Outermost returns the top level inventory in an Inventory hierarchy.
+func (i *Inventory) Outermost() has.Inventory {
+
+	var (
+		p has.Thing
+		l has.Locate
+		w has.Inventory
+	)
+
+	if p = i.Parent(); p == nil {
+		return i
+	}
+	if l = FindLocate(p); !l.Found() {
+		return i
+	}
+	if w = l.Where(); w == nil || !w.Found() {
+		return i
+	}
+
+	return w.Outermost()
+}

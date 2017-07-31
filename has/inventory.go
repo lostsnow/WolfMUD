@@ -65,4 +65,7 @@ type Inventory interface {
 	// Carried return true if putting an item in an Inventory results in it being
 	// carried by a player, otherwise false.
 	Carried() bool
+
+	// Outermost returns the top level inventory in an Inventory hierarchy.
+	Outermost() Inventory
 }

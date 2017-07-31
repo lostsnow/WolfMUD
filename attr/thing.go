@@ -262,21 +262,23 @@ func (t *Thing) Dispose() {
 		}
 	}
 
+	// Make sure Thing is removed from the world before resetting/disposing of it
+	if where := FindLocate(t).Where(); where.Found() {
+		if i := FindInventory(where.Parent()); i.Found() {
+			i.Remove(t)
+		}
+	}
+
 	// Trigger Reset attribute if we have one
 	if r := FindReset(t); r.Found() {
 		r.Reset()
 		return
 	}
 
-	// Thing has not been reset so make sure the Thing is removed from the world
-	// then free it so it is garbage collected.
+	// Thing has not been reset so make sure the Thing is freed so it is garbage
+	// collected.
 	if config.Debug.Things {
 		log.Printf("Disposing: %s: %q", t, FindName(t).Name("?"))
-	}
-	if where := FindLocate(t).Where(); where.Found() {
-		if i := FindInventory(where.Parent()); i.Found() {
-			i.Remove(t)
-		}
 	}
 	t.Free()
 }
