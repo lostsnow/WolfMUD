@@ -35,13 +35,23 @@ func (g *game) gameInit() {
 
 	message.ReleaseBuffer(g.buf)
 	g.buf = nil
-	attr.FindPlayer(g.player).SetPromptStyle(has.StyleBrief)
 
-	i := (*attr.Start)(nil).Pick()
-	i.Lock()
-	i.Add(g.player)
+	start := (*attr.Start)(nil).Pick()
+	i1 := start
+	i2 := attr.FindInventory(g.player)
+
+	// Make sure we lock in LockID order to avoid deadlocks
+	if i1.LockID() > i2.LockID() {
+		i1, i2 = i2, i1
+	}
+
+	i1.Lock()
+	i2.Lock()
+	attr.FindPlayer(g.player).SetPromptStyle(has.StyleBrief)
+	start.Add(g.player)
 	stats.Add(g.player)
-	i.Unlock()
+	i2.Unlock()
+	i1.Unlock()
 
 	cmd.Script(g.player, "$POOF")
 	g.nextFunc = g.gameProcess
