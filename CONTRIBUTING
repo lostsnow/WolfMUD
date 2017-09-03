@@ -1,0 +1,19 @@
+
+                            Contributing to WolfMUD
+
+Contributing to WolfMUD has been made as simple as possible to encourage
+submissions. There are only two requirements for submissions:
+
+  1. You agree to license your work under the same license as WolfMUD,
+     contained in the LICENSE file.
+
+  2. You certify your work according to the Developer's Certificate of Origin,
+     contained in the DCO file.
+
+To indicate acceptance of these requirements all submissions must be
+accompanied with a sign off line. For example:
+
+  Signed-off-by: Andrew 'Diddymus' Rolfe <diddymus@wolfmud.org>
+
+Please use your real name and email address.
+
