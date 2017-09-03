@@ -212,10 +212,12 @@ func newFile(name string) (f *os.File, err error) {
 	}
 
 	// Can we set the correct permissions?
-	if err = f.Chmod(0660); err != nil {
-		f.Close()
-		log.Printf("#DEBUG cannot chmod %s: %s", name, err)
-		return nil, err
+	if config.Server.SetPermissions {
+		if err = f.Chmod(0660); err != nil {
+			f.Close()
+			log.Printf("#DEBUG cannot chmod %s: %s", name, err)
+			return nil, err
+		}
 	}
 	return f, err
 }
