@@ -14,6 +14,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -27,19 +28,21 @@ import (
 
 // Server default configuration
 var Server = struct {
-	Host        string        // Host for server to listen on
-	Port        string        // Port for server to listen on
-	Greeting    []byte        // Connection greeting
-	IdleTimeout time.Duration // Idle connection disconnect time
-	MaxPlayers  int           // Max number of players allowed to login at once
-	DataDir     string        // Main data directory
+	Host           string        // Host for server to listen on
+	Port           string        // Port for server to listen on
+	Greeting       []byte        // Connection greeting
+	IdleTimeout    time.Duration // Idle connection disconnect time
+	MaxPlayers     int           // Max number of players allowed to login at once
+	DataDir        string        // Main data directory
+	SetPermissions bool          // Set permissions on created account files?
 }{
-	Host:        "127.0.0.1",
-	Port:        "4001",
-	Greeting:    []byte(""),
-	IdleTimeout: 10 * time.Minute,
-	MaxPlayers:  1024,
-	DataDir:     ".",
+	Host:           "127.0.0.1",
+	Port:           "4001",
+	Greeting:       []byte(""),
+	IdleTimeout:    10 * time.Minute,
+	MaxPlayers:     1024,
+	DataDir:        ".",
+	SetPermissions: false,
 }
 
 // Stats default configuration
@@ -176,6 +179,12 @@ func init() {
 
 	log.Printf("Data Path: %s", Server.DataDir)
 
+	Server.SetPermissions, err = filesystemCheck(Server.DataDir)
+	log.Printf("Set permissions on player account files: %t", Server.SetPermissions)
+	if err != nil {
+		log.Printf("Error checking permissions, %s", err)
+	}
+
 	if !Debug.LongLog {
 		log.SetFlags(log.Ldate | log.Ltime)
 		log.Printf("Switching to short log format.")
@@ -256,4 +265,49 @@ func findData(base, path string) (data string, err error) {
 	}
 
 	return data, nil
+}
+
+// filesystemCheck tests to see if the filesystem the passed path is on
+// supports the changing of file permissions. If they do true will be returned,
+// otherwise false. The returned error will be non-nil if an error occurs when
+// checking.
+func filesystemCheck(path string) (bool, error) {
+
+	p := filepath.Join(path, "check.tmp")
+
+	defer os.Remove(p)
+
+	var (
+		f    *os.File
+		info os.FileInfo
+		err  error
+	)
+
+	if err = os.Remove(p); err != nil {
+		if !os.IsNotExist(err) {
+			return false, err
+		}
+	}
+
+	if f, err = os.Create(p); err != nil {
+		return false, err
+	}
+
+	if err = f.Chmod(0660); err != nil {
+		return false, err
+	}
+
+	if info, err = os.Stat(p); err != nil {
+		return false, err
+	}
+
+	if err = f.Close(); err != nil {
+		return false, err
+	}
+
+	if info.Mode()&os.FileMode(0777) != os.FileMode(0660) {
+		return false, fmt.Errorf("Cannot set permissions to 0660: 0%o", info.Mode())
+	}
+
+	return true, nil
 }
