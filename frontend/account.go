@@ -268,12 +268,16 @@ func (a *account) write() {
 		log.Printf("Error creating account: %s, %s", temp, err)
 		return
 	}
-	err = wrj.Chmod(0660)
-	if err != nil {
-		wrj.Close()
-		log.Printf("Error changing account permissions: %s, %s", temp, err)
-		return
+
+	if config.Server.SetPermissions {
+		err = wrj.Chmod(0660)
+		if err != nil {
+			wrj.Close()
+			log.Printf("Error changing account permissions: %s, %s", temp, err)
+			return
+		}
 	}
+
 	jar.Write(wrj, "DESCRIPTION")
 	wrj.Close()
 
