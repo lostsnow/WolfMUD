@@ -63,6 +63,12 @@ BINARY DOWNLOADS (WINDOWS)
 
   You should now be connected to your WolfMUD server.
 
+  Note, if you're running windows Vista or later, you need to enable telnet
+  by going to the control panel, clicking "programs" or "programs and features"
+  and then "turn Windows features on or off". A "Windows features" dialog
+  should appear. Find the "telnet client" option, check it and click OK.
+  Enabling telnet may take a while and may require you to reboot your computer.
+
 ALLOWING OTHER MACHINES TO CONNECT
 
   By default the server will only be listening on localhost, IP address
@@ -91,7 +97,7 @@ SEE ALSO
 
 COPYRIGHT
 
-  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.

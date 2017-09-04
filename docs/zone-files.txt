@@ -292,8 +292,8 @@ ZONE RECORDS
     location with the location.
 
     When deciding whether to use LOCATION or INVENTORY to place things as a
-    rule of thumb use INVENTORY for things unique to a location, such as
-    narratives, and use LOCATION to place things in multiple places.
+    rule of thumb use LOCATION for things unique to a location, such as
+    narratives, and use INVENTORY to place things in multiple places.
 
   NAME: <STRING>
     A short descriptive name. For example: a curious brass lattice
@@ -380,7 +380,7 @@ ZONE RECORDS
     otherwise be seen, specify an ONRESET with no message. In this case the
     item will simply appear with no notification at all.
 
-    See also ONRESET for how to schedule an item for automatic resets and
+    See also RESET for how to schedule an item for automatic resets and
     respawning.
 
   REF: <KEYWORD>
@@ -476,7 +476,7 @@ SEE ALSO
 
 COPYRIGHT
 
-  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.

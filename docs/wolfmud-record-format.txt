@@ -9,8 +9,8 @@ DESCRIPTION
   formatted using the record jar format have the file extension .wrj and are
   plain text files that may include Unicode.
 
-  A record jar file consists of one or records delimited by a record
-  separator. Each record may contain comments, fields and a fee text block.
+  A record jar file consists of one or more records delimited by a record
+  separator. Each record may contain comments, fields and a free text block.
 
   An example record jar file consisting of three records:
 
@@ -43,7 +43,7 @@ DESCRIPTION
 
 COMMENTS
 
-  Comment lines are those that start with two forwardslash characters '//'.
+  Comment lines are those that start with two forward slash characters '//'.
   Comments may be indented using whitespace.
 
 BLANK LINES
@@ -51,11 +51,11 @@ BLANK LINES
   Blank lines are only allowed in a record to signify the start of a free text
   block or within a free text block itself.
 
-RECORD SEPERATOR
+RECORD SEPARATOR
 
   Records are separated by a line containing only two percent symbols '%%'.
-  Record separators may be indented using whitespace, although this is rarly
-  done. The final record seperator for the last record in a record jar may be
+  Record separators may be indented using whitespace, although this is rarely
+  done. The final record separator for the last record in a record jar may be
   omitted.
 
 FIELDS
@@ -87,11 +87,11 @@ FREE TEXT BLOCK
 
 SEE ALSO
 
-  configuration-file.txt, zones-files.txt
+  configuration-file.txt, zone-files.txt
 
 COPYRIGHT
 
-  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.
