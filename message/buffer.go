@@ -92,7 +92,7 @@ func ReleaseBuffer(b *Buffer) {
 // If the Buffer is in silent mode the Buffer and message count will not be
 // modified and the passed strings will be discarded.
 func (b *Buffer) Send(s ...string) {
-	if b.silentMode {
+	if b == nil || b.silentMode {
 		return
 	}
 	if b.count != 0 || !b.omitLF {
@@ -111,7 +111,7 @@ func (b *Buffer) Send(s ...string) {
 // The code of this method is copied from Send to avoid allocations prefixing
 // the color string to the strings of the message and then calling Send.
 func (b *Buffer) sendColor(c string, s ...string) {
-	if b.silentMode {
+	if b == nil || b.silentMode {
 		return
 	}
 	if b.count != 0 || !b.omitLF {
@@ -152,7 +152,7 @@ func (b *Buffer) SendInfo(s ...string) { b.sendColor(text.Info, s...) }
 // string the leading space will be omitted. This is so that Send can cause the
 // start a new message but text is only appended by calling Append.
 func (b *Buffer) Append(s ...string) {
-	if b.silentMode {
+	if b == nil || b.silentMode {
 		return
 	}
 
