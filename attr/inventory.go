@@ -39,6 +39,16 @@ func init() {
 //
 // For a complete description of narratives see the Narrative attribute type.
 //
+// A Thing in an Inventory may be disabled and taken out of play or enabled and
+// put back into play. A disabled Thing is inaccessible to players but is still
+// covered by the Inventory lock. This is so that any Thing can always be
+// covered by a lock in an Inventory. An example usage of disabling/enabling a
+// Thing is when an item is cleaned up and needs to be reset. In this case the
+// clean up event triggering would cause the Thing to be moved to its origin
+// Inventory and then disabling the Thing would cause it to go out of play.
+// When the reset event triggers the Thing would be enabled and brought back
+// into play.
+//
 // TODO: A slice for contents is fine for convenience and simplicity but maybe
 // a linked list would be better? This would possibly save reslicing in Remove.
 //
@@ -47,6 +57,7 @@ type Inventory struct {
 	Attribute
 	contents    []has.Thing
 	split       int
+	disabled    []has.Thing
 	playerCount int
 	internal.BRL
 }
@@ -60,8 +71,12 @@ var (
 // NewInventory returns a new Inventory attribute initialised with the
 // specified Things as initial contents.
 func NewInventory(t ...has.Thing) *Inventory {
-	c := make([]has.Thing, 0, len(t))
-	i := &Inventory{Attribute{}, c, 0, 0, internal.NewBRL()}
+	i := &Inventory{
+		Attribute: Attribute{},
+		contents:  make([]has.Thing, 0, len(t)),
+		disabled:  []has.Thing{},
+		BRL:       internal.NewBRL(),
+	}
 
 	for _, t := range t {
 		i.Add(t)
@@ -93,8 +108,13 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d):", i, i.LockID(), len(i.contents), i.split))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.split, len(i.disabled)))
 	for _, i := range i.contents {
+		for _, i := range i.Dump() {
+			buff = append(buff, DumpFmt("%s", i))
+		}
+	}
+	for _, i := range i.disabled {
 		for _, i := range i.Dump() {
 			buff = append(buff, DumpFmt("%s", i))
 		}
@@ -250,6 +270,40 @@ UPDATE:
 	return t
 }
 
+// AddDisabled adds a Thing to an Inventory marking at as being initially out
+// of play.
+//
+//  TODO: AddDisable is only required because if we use Inventory.Add followed
+//  by an Inventory.Disable the Add would trigger events and loop. This needs
+//  to be cleaned up, possibly by making Add/Remove act on the disabled slice
+//  only. This would mean a Thing can only be added to or removed from the
+//  world when disabled and once in the world and enabled can only be moved
+//  from Inventory to Inventory.
+func (i *Inventory) AddDisabled(t has.Thing) {
+	i.disabled = append(i.disabled, t)
+	FindLocate(t).SetWhere(i)
+}
+
+// Enabled marks a Thing in an Inventory as being in play.
+func (i *Inventory) Enable(t has.Thing) {
+	for j, a := range i.disabled {
+		if a == t {
+			copy(i.disabled[j:], i.disabled[j+1:])
+			i.disabled[len(i.disabled)-1] = nil
+			i.disabled = i.disabled[:len(i.disabled)-1]
+			i.Add(t)
+			return
+		}
+	}
+}
+
+// Disable marks a Thing in an Inventory as being out of play.
+func (i *Inventory) Disable(t has.Thing) {
+	i.Remove(t)
+	i.disabled = append(i.disabled, t)
+	FindLocate(t).SetWhere(i)
+}
+
 // Search returns the first Inventory Thing that matches the alias passed. If
 // no matches are found nil is returned.
 func (i *Inventory) Search(alias string) has.Thing {
@@ -290,6 +344,16 @@ func (i *Inventory) Narratives() []has.Thing {
 	}
 	l := make([]has.Thing, i.split)
 	copy(l, i.contents[:i.split])
+	return l
+}
+
+func (i *Inventory) Disabled() []has.Thing {
+	if i == nil {
+		return []has.Thing{}
+	}
+
+	l := make([]has.Thing, len(i.disabled))
+	copy(l, i.disabled[:])
 	return l
 }
 
