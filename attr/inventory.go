@@ -133,7 +133,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 //
 // If the receiver is a *Inventory typed nil the Thing will only be added to an
 // inventory. If the to Inventory is nil the Thing will only be removed from
-// the reveiver Inventory. In both cases the Thing's Locate attribute will be
+// the receiver Inventory. In both cases the Thing's Locate attribute will be
 // updated or one added if missing.
 func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 
@@ -170,7 +170,7 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 				i.playerCount--
 			}
 
-			// If Thing removed was a Narrative adjust split
+			// If Thing removed was a Narrative adjust Narrative/Thing split
 			if n {
 				i.split--
 			}
@@ -238,7 +238,7 @@ UPDATE:
 
 	// If Thing is not a player but is moved from one Inventory to another and
 	// does not end up being carried then register Thing for cleanup as it's now
-	// just left laying around. This has to be checked after the locate attribute
+	// just left laying around. This has to be checked after the Locate attribute
 	// has been updated so we know the final location.
 	if !p && i != nil && To != nil && !To.Carried() {
 		FindCleanup(t).Cleanup()
@@ -291,7 +291,7 @@ func (i *Inventory) Narratives() []has.Thing {
 }
 
 // List returns a string describing the non-narrative contents of an Inventory.
-// The layout of the dscription returned is dependant on the number of items.
+// The layout of the description returned is dependant on the number of items.
 // If the Inventory is empty and the Parent Thing has a narrative attribute we
 // return nothing. Otherwise if the Inventory is empty we return:
 //
