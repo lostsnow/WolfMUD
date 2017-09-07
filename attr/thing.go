@@ -235,52 +235,19 @@ func (t *Thing) SetOrigins() {
 		return
 	}
 
-	// Set the origin for items in our Inventory
+	// Set the origin for items in our Inventory including disabled items
 	for _, t := range append(i.Contents(), i.Narratives()...) {
 		if l := FindLocate(t); l.Found() {
 			l.SetOrigin(i)
 		}
 		t.SetOrigins()
 	}
-}
-
-// Dispose will either reset or discard a Thing in the game world when it is
-// finished with. If the Thing has a Reset attribute the Thing will be
-// scheduled for a reset. Otherwise all references to the Thing will be freed
-// so that it can be garbage collected. If the Thing has an Inventory its
-// content will be reset or discarded recursively. If Debug.Things is set to
-// true a message will be written to the log when a Thing is discarded.
-func (t *Thing) Dispose() {
-	if t == nil {
-		return
-	}
-
-	// Call Dispose recursively on Inventory content if found
-	if i := FindInventory(t); i.Found() {
-		for _, t := range i.Contents() {
-			t.Dispose()
+	for _, t := range i.Disabled() {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(i)
 		}
+		t.SetOrigins()
 	}
-
-	// Make sure Thing is removed from the world before resetting/disposing of it
-	if where := FindLocate(t).Where(); where.Found() {
-		if i := FindInventory(where.Parent()); i.Found() {
-			i.Remove(t)
-		}
-	}
-
-	// Trigger Reset attribute if we have one
-	if r := FindReset(t); r.Found() {
-		r.Reset()
-		return
-	}
-
-	// Thing has not been reset so make sure the Thing is freed so it is garbage
-	// collected.
-	if config.Debug.Things {
-		log.Printf("Disposing: %s: %q", t, FindName(t).Name("?"))
-	}
-	t.Free()
 }
 
 // UID returns the unique identifier for a specific Thing or an empty string if

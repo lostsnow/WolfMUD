@@ -105,7 +105,7 @@ func (r *Reset) Copy() has.Attribute {
 // Reset schedules a reset of the parent Thing. If there is already a reset
 // event pending it will be cancelled and a new one queued.
 func (r *Reset) Reset() {
-	if r == nil || r.spawn {
+	if r == nil {
 		return
 	}
 
@@ -117,9 +117,7 @@ func (r *Reset) Reset() {
 }
 
 // Spawn returns a non-spawnable copy of a Thing and schedules the original
-// Thing to respawn.spawn if Reset.spawn is true. Otherwise it returns nil. If
-// there is already a respawn event pending it will be cancelled and a new one
-// queued.
+// Thing to reset if Reset.spawn is true. Otherwise it only returns nil.
 func (r *Reset) Spawn() has.Thing {
 
 	// If not spawnable just exit
@@ -127,19 +125,23 @@ func (r *Reset) Spawn() has.Thing {
 		return nil
 	}
 
-	// Make a non-spawning copy and set origins to point to copied Inventories.
+	// Make a copy of original Thing, update origins of the copy to point to any
+	// copied Inventories
 	p := r.Parent()
 	c := p.Copy()
+	c.SetOrigins()
+
+	// Add original Thing to Inventory disabled and register a reset for it
+	o := FindLocate(p).Origin()
+	o.AddDisabled(p)
+	r.Reset()
+
+	// Remove reset attribute from copied Thing and set origin to nil so it will
+	// be disposed of when cleaned up as it is the original that respawns.
 	R := FindReset(c)
 	c.Remove(R)
 	R.Free()
-	c.SetOrigins()
-
-	// Register for reset cancelling any outstanding resets
-	if r.Cancel != nil {
-		close(r.Cancel)
-	}
-	r.Cancel = event.Queue(p, "$SPAWN", r.after, r.jitter)
+	FindLocate(c).SetOrigin(nil)
 
 	return c
 }
