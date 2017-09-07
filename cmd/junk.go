@@ -25,7 +25,7 @@ func Junk(s *state) {
 
 	name := s.words[0]
 
-	// Search for item we want to get in our inventory
+	// Search for item we want to junk in our inventory
 	where := attr.FindInventory(s.actor)
 	what := where.Search(name)
 
@@ -50,10 +50,11 @@ func Junk(s *state) {
 		return
 	}
 
-	// Make sure we are locking the reset/respawn origin
-	origin := attr.FindLocate(what).Origin()
-	if !s.CanLock(origin) {
-		s.AddLock(origin)
+	// Make sure we are locking the reset origin of the Thing to junk and the
+	// origins of all of its content (recursively) if it has an Inventory.
+	lc := len(s.locks)
+	junkLockAll(s, what)
+	if len(s.locks) != lc {
 		return
 	}
 
@@ -65,40 +66,76 @@ func Junk(s *state) {
 
 	// Check if item is an Inventory. If it is check recusivly if its content can
 	// be junked
-	var check func(has.Thing) bool
-	check = func(t has.Thing) bool {
-		if i := attr.FindInventory(t); i.Found() {
-			for _, t := range i.Contents() {
-				if veto := attr.FindVetoes(t).Check("JUNK"); veto != nil {
-					return false
-				}
-				if !check(t) {
-					return false
-				}
-			}
-		}
-		return true
-	}
-	if !check(what) {
+	if !junkCheckVetoes(what) {
 		s.msg.Actor.SendBad(text.TitleFirst(name), " seems to contain something that cannot be junked.")
 		return
 	}
 
-	// Remove Thing from Inventory where it is. A respawn will be triggered if
-	// Thing is spawnable and we will get the copy. Otherwise we get the original
-	// back. If we get nil returned the Thing could not be removed for junking.
-	if what = where.Remove(what); what == nil {
-		s.msg.Actor.SendBad("For some reason you cannot junk ", name, ".")
-		return
-	}
-
-	// Dispose of the Thing. If Thing was respawnable it will dispose of the
-	// triggering copy.
-	what.Dispose()
+	junkDispose(what)
 
 	who := attr.FindName(s.actor).Name("Someone")
 
 	s.msg.Actor.SendGood("You junk ", name, ".")
 	s.msg.Observer.SendInfo("You see ", who, " junk ", name, ".")
 	s.ok = true
+}
+
+// NOTE: junkLockAll is a temporary function until commands are made types and
+// we can attach a lockAll method to the Junk type.
+func junkLockAll(s *state, t has.Thing) {
+	o := attr.FindLocate(t).Origin()
+	s.AddLock(o)
+	i := attr.FindInventory(t)
+	for _, c := range i.Contents() {
+		junkLockAll(s, c)
+	}
+}
+
+// NOTE: junkCheckVetoes is a temporary function until commands are made types
+// and we can attach a checkVetoes method to the Junk type.
+func junkCheckVetoes(t has.Thing) bool {
+	if i := attr.FindInventory(t); i.Found() {
+		for _, t := range i.Contents() {
+			if veto := attr.FindVetoes(t).Check("JUNK"); veto != nil {
+				return false
+			}
+			if !junkCheckVetoes(t) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// NOTE: junkDispose is a temporary function until commands are made types and
+// we can attach a dispose method to the Junk type.
+func junkDispose(t has.Thing) {
+
+	// Recurse into inventories
+	i := attr.FindInventory(t)
+	for _, c := range i.Contents() {
+		junkDispose(c)
+	}
+
+	l := attr.FindLocate(t)
+	if l.Origin() == nil {
+		l.Where().Remove(t)
+		t.Free()
+		return
+	}
+
+	// When disposing of an item we can just call Reset on both resetable and
+	// respawnable items. For respawnable items it avoids making a copy.
+	if r := attr.FindReset(t); r.Found() {
+		o := l.Origin()
+		l.Where().Move(t, o)
+		if l.Origin() != nil {
+			o.Disable(t)
+			r.Reset()
+			return
+		}
+	}
+
+	t.Free()
+	return
 }
