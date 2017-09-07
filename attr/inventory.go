@@ -346,6 +346,10 @@ func (i *Inventory) List() string {
 	return string(buff)
 }
 
+// Crowded tests to see if an Inventory has so many players in it that it is
+// considered crowded. If the Inventory is considered crowded true is returned
+// otherwise false. An Inventory is considered crowded if there are more than
+// config.Inventory.CrowdSize players in it.
 func (i *Inventory) Crowded() (crowded bool) {
 	if i != nil {
 		crowded = i.playerCount > config.Inventory.CrowdSize
