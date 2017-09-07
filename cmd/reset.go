@@ -10,21 +10,21 @@ import (
 )
 
 // Syntax: $RESET
-// Syntax: $SPAWN
 //
 // NOTE: The item will be 'out of play' so that we cannot find it by searching
 // inventories for a passed alias. The only reference we have to it is the
-// actor. This means that we cannot pass a unique alias to either $RESET or
-// $SPAWN. As a consequence only a Thing can reset itself.
+// actor. This means that we cannot pass a unique alias to $RESET. As a
+// consequence only a Thing can reset itself.
 func init() {
 	AddHandler(Reset, "$reset")
-	AddHandler(Reset, "$spawn")
 }
 
 func Reset(s *state) {
 
 	// Find Inventory where reset is going to take place and make sure we are
 	// locking it
+	//
+	// TODO: Now we are using Inventory disabling is this check still required?
 	origin := attr.FindLocate(s.actor).Origin()
 	if !s.CanLock(origin) {
 		s.AddLock(origin)
@@ -41,7 +41,7 @@ func Reset(s *state) {
 	// message. It also will not be seen if we have specifically have an empty
 	// message. So just add Thing.
 	if (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
-		origin.Add(s.actor)
+		origin.Enable(s.actor)
 		s.ok = true
 		return
 	}
@@ -85,6 +85,6 @@ func Reset(s *state) {
 		s.msg.Observers[origin].SendInfo(def)
 	}
 
-	origin.Add(s.actor)
+	origin.Enable(s.actor)
 	s.ok = true
 }
