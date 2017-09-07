@@ -207,14 +207,17 @@ ADD:
 		return to.Add(t)
 	}
 
-	// If Thing added was a narrative move it to the front of the slice otherwise
-	// just append it onto the end. Adjust split if Thing is narrative.
+	// If Thing added was a Narrative move it to the front of the slice
+	// and adjust the Narrative/Thing split.
 	if n {
 		To.contents = append(To.contents, nil)
 		copy(To.contents[1:], To.contents[0:])
 		To.contents[0] = t
 		To.split++
-	} else {
+	}
+
+	// If Thing added not a Narrative just append it to the end of the slice
+	if !n {
 		To.contents = append(To.contents, t)
 	}
 
