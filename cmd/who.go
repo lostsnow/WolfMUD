@@ -6,10 +6,10 @@
 package cmd
 
 import (
+	"strconv"
+
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/stats"
-
-	"strconv"
 )
 
 // Syntax: WHO

@@ -6,15 +6,15 @@
 package cmd
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"fmt"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: #DUMP ( alias | <address> )

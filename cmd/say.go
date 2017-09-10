@@ -6,9 +6,9 @@
 package cmd
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-
 	"strings"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
 )
 
 // Syntax: SAY <message> | " <message>

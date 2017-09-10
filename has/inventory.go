@@ -65,4 +65,20 @@ type Inventory interface {
 	// Carried return true if putting an item in an Inventory results in it being
 	// carried by a player, otherwise false.
 	Carried() bool
+
+	// Outermost returns the top level inventory in an Inventory hierarchy.
+	Outermost() Inventory
+
+	// Disabled returns a slice of Thing for items that are out of play (disabled).
+	Disabled() []Thing
+
+	// AddDisabled adds a Thing to an Inventory and marks it as being initially
+	// out of play (disabled).
+	AddDisabled(Thing)
+
+	// Disable marks a Thing in an Inventory as being out of play.
+	Disable(Thing)
+
+	// Enable marks a Thing in an Inventory as being in play.
+	Enable(Thing)
 }

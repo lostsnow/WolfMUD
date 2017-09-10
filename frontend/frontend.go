@@ -30,24 +30,24 @@
 package frontend
 
 import (
+	"bytes"
+	"io"
+	"sync"
+
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
 	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/text"
-
-	"bytes"
-	"io"
-	"sync"
 )
 
 // accounts is used to track which (valid) accounts are logged in and in use.
 // It's main purpose is to track logged in account IDs to prevent duplicate
 // logins.
 var accounts struct {
-	inuse map[string]struct{}
 	sync.Mutex
+	inuse map[string]struct{}
 }
 
 // init is used to initialise the map used in account ID tracking.

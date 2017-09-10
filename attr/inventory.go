@@ -39,6 +39,16 @@ func init() {
 //
 // For a complete description of narratives see the Narrative attribute type.
 //
+// A Thing in an Inventory may be disabled and taken out of play or enabled and
+// put back into play. A disabled Thing is inaccessible to players but is still
+// covered by the Inventory lock. This is so that any Thing can always be
+// covered by a lock in an Inventory. An example usage of disabling/enabling a
+// Thing is when an item is cleaned up and needs to be reset. In this case the
+// clean up event triggering would cause the Thing to be moved to its origin
+// Inventory and then disabling the Thing would cause it to go out of play.
+// When the reset event triggers the Thing would be enabled and brought back
+// into play.
+//
 // TODO: A slice for contents is fine for convenience and simplicity but maybe
 // a linked list would be better? This would possibly save reslicing in Remove.
 //
@@ -47,6 +57,7 @@ type Inventory struct {
 	Attribute
 	contents    []has.Thing
 	split       int
+	disabled    []has.Thing
 	playerCount int
 	internal.BRL
 }
@@ -60,8 +71,12 @@ var (
 // NewInventory returns a new Inventory attribute initialised with the
 // specified Things as initial contents.
 func NewInventory(t ...has.Thing) *Inventory {
-	c := make([]has.Thing, 0, len(t))
-	i := &Inventory{Attribute{}, c, 0, 0, internal.NewBRL()}
+	i := &Inventory{
+		Attribute: Attribute{},
+		contents:  make([]has.Thing, 0, len(t)),
+		disabled:  []has.Thing{},
+		BRL:       internal.NewBRL(),
+	}
 
 	for _, t := range t {
 		i.Add(t)
@@ -93,8 +108,13 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d):", i, i.LockID(), len(i.contents), i.split))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.split, len(i.disabled)))
 	for _, i := range i.contents {
+		for _, i := range i.Dump() {
+			buff = append(buff, DumpFmt("%s", i))
+		}
+	}
+	for _, i := range i.disabled {
 		for _, i := range i.Dump() {
 			buff = append(buff, DumpFmt("%s", i))
 		}
@@ -133,7 +153,7 @@ func (i *Inventory) Remove(t has.Thing) has.Thing {
 //
 // If the receiver is a *Inventory typed nil the Thing will only be added to an
 // inventory. If the to Inventory is nil the Thing will only be removed from
-// the reveiver Inventory. In both cases the Thing's Locate attribute will be
+// the receiver Inventory. In both cases the Thing's Locate attribute will be
 // updated or one added if missing.
 func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 
@@ -170,7 +190,7 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 				i.playerCount--
 			}
 
-			// If Thing removed was a Narrative adjust split
+			// If Thing removed was a Narrative adjust Narrative/Thing split
 			if n {
 				i.split--
 			}
@@ -207,14 +227,17 @@ ADD:
 		return to.Add(t)
 	}
 
-	// If Thing added was a narrative move it to the front of the slice otherwise
-	// just append it onto the end. Adjust split if Thing is narrative.
+	// If Thing added was a Narrative move it to the front of the slice
+	// and adjust the Narrative/Thing split.
 	if n {
 		To.contents = append(To.contents, nil)
 		copy(To.contents[1:], To.contents[0:])
 		To.contents[0] = t
 		To.split++
-	} else {
+	}
+
+	// If Thing added not a Narrative just append it to the end of the slice
+	if !n {
 		To.contents = append(To.contents, t)
 	}
 
@@ -238,13 +261,47 @@ UPDATE:
 
 	// If Thing is not a player but is moved from one Inventory to another and
 	// does not end up being carried then register Thing for cleanup as it's now
-	// just left laying around. This has to be checked after the locate attribute
+	// just left laying around. This has to be checked after the Locate attribute
 	// has been updated so we know the final location.
 	if !p && i != nil && To != nil && !To.Carried() {
 		FindCleanup(t).Cleanup()
 	}
 
 	return t
+}
+
+// AddDisabled adds a Thing to an Inventory marking at as being initially out
+// of play.
+//
+//  TODO: AddDisable is only required because if we use Inventory.Add followed
+//  by an Inventory.Disable the Add would trigger events and loop. This needs
+//  to be cleaned up, possibly by making Add/Remove act on the disabled slice
+//  only. This would mean a Thing can only be added to or removed from the
+//  world when disabled and once in the world and enabled can only be moved
+//  from Inventory to Inventory.
+func (i *Inventory) AddDisabled(t has.Thing) {
+	i.disabled = append(i.disabled, t)
+	FindLocate(t).SetWhere(i)
+}
+
+// Enabled marks a Thing in an Inventory as being in play.
+func (i *Inventory) Enable(t has.Thing) {
+	for j, a := range i.disabled {
+		if a == t {
+			copy(i.disabled[j:], i.disabled[j+1:])
+			i.disabled[len(i.disabled)-1] = nil
+			i.disabled = i.disabled[:len(i.disabled)-1]
+			i.Add(t)
+			return
+		}
+	}
+}
+
+// Disable marks a Thing in an Inventory as being out of play.
+func (i *Inventory) Disable(t has.Thing) {
+	i.Remove(t)
+	i.disabled = append(i.disabled, t)
+	FindLocate(t).SetWhere(i)
 }
 
 // Search returns the first Inventory Thing that matches the alias passed. If
@@ -290,8 +347,18 @@ func (i *Inventory) Narratives() []has.Thing {
 	return l
 }
 
+func (i *Inventory) Disabled() []has.Thing {
+	if i == nil {
+		return []has.Thing{}
+	}
+
+	l := make([]has.Thing, len(i.disabled))
+	copy(l, i.disabled[:])
+	return l
+}
+
 // List returns a string describing the non-narrative contents of an Inventory.
-// The layout of the dscription returned is dependant on the number of items.
+// The layout of the description returned is dependant on the number of items.
 // If the Inventory is empty and the Parent Thing has a narrative attribute we
 // return nothing. Otherwise if the Inventory is empty we return:
 //
@@ -346,6 +413,10 @@ func (i *Inventory) List() string {
 	return string(buff)
 }
 
+// Crowded tests to see if an Inventory has so many players in it that it is
+// considered crowded. If the Inventory is considered crowded true is returned
+// otherwise false. An Inventory is considered crowded if there are more than
+// config.Inventory.CrowdSize players in it.
 func (i *Inventory) Crowded() (crowded bool) {
 	if i != nil {
 		crowded = i.playerCount > config.Inventory.CrowdSize
@@ -418,4 +489,26 @@ func (i *Inventory) Carried() bool {
 	}
 
 	return false
+}
+
+// Outermost returns the top level inventory in an Inventory hierarchy.
+func (i *Inventory) Outermost() has.Inventory {
+
+	var (
+		p has.Thing
+		l has.Locate
+		w has.Inventory
+	)
+
+	if p = i.Parent(); p == nil {
+		return i
+	}
+	if l = FindLocate(p); !l.Found() {
+		return i
+	}
+	if w = l.Where(); w == nil || !w.Found() {
+		return i
+	}
+
+	return w.Outermost()
 }

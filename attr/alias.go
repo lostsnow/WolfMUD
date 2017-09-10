@@ -6,12 +6,12 @@
 package attr
 
 import (
+	"strconv"
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
-
-	"strconv"
-	"strings"
 )
 
 // Register marshaler for Alias attribute.

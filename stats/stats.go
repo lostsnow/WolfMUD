@@ -29,13 +29,13 @@
 package stats
 
 import (
-	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/config"
-
 	"log"
 	"runtime"
 	"runtime/debug"
 	"time"
+
+	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/config"
 )
 
 var (

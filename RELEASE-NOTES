@@ -6,7 +6,59 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
-v0.0.6 Released Sunday 1st May
+v0.0.7 Released Sunday 10th September, 2017
+==============================================================================
+
+Added
+
+  - New Inventory.Outermost method to find the top most Inventory in an
+    Inventory hierarchy.
+  - New CONTRIBUTORS, CONTRIBUTING and DVO (Developer's Certificate of Origin)
+    files added.
+  - A Thing in an Inventory can now be taken out of play (disabled) and put
+    back into play (enabled). This is the main mechanism used to avoid data
+    races when an item resets or respawns as it allows the item to be locked
+    via a BRL even when out of play.
+
+Changed
+
+  - Rewritten #DEBUG command.
+  - Dropped remaining references to Server.Debug configuration value.
+  - Make Locate attribute concurrent safe - fixes data race.
+  - Make Thing attributes concurrent safe - fixes data race.
+  - Updated sources to use idiomatic standard libraries imported first.
+  - Updated sources to use idiomatic 'Mutex hat' style in types.
+  - cmd.state.AddLock and cmd.state.CanLock automatically always lock the BRL
+    for the top most Inventory in a hierarchy.
+  - Performance improvement in comms.fixDEL for 'character at a time' Telnet
+    clients.
+  - Thing.SetOrigins updated to include disabled items in an Inventory.
+
+Fixed
+
+  - Ignore incomplete/broken pairs when unmarshaling recordjar.
+  - Default clean up message now displayed when appropriate.
+  - Thing.Remove sets attribute parent to nil.
+  - Fixed scripting of JUNK command usage in CLEANUP command.
+  - Fixed data race resetting Player prompt in QUIT command.
+  - Fixed data race in SNEEZE command.
+  - Fixed data race when initially adding player into the world.
+  - Using delete key on 'character at a time' Telnet connections no longer
+    causes an array index out of bounds error.
+  - When using delete key on 'character at a time' Telnet connections
+    multi-byte Unicode characters are now handled correctly.
+  - A nil *message.Buffer no longer causes a nil pointer error.
+  - Accessing the Attribute type parent methods is now concurrent safe - fixed
+    data race.
+  - Resetting and respawning of items now uses Inventory item enabling and
+    disabling - fixes data races.
+  - Reworked JUNK command - fixes data races.
+  - Only set file permissions on created files when operating system and file
+    system permits. This fixes an issues on Windows preventing user logging in
+    to the server after creating a new account.
+
+
+v0.0.6 Released Sunday 1st May, 2017
 ==============================================================================
 
 Security
@@ -60,7 +112,7 @@ Fixed
   - The #DUMP command no longer crashes the server with invalid addresses.
 
 
-v0.0.5 Released Sunday 2nd April
+v0.0.5 Released Sunday 2nd April, 2017
 ==============================================================================
 
 Added

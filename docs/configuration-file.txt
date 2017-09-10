@@ -19,7 +19,7 @@ DESCRIPTION
 
 FIELDS & VALUES
 
-  Below is a list of expected fields for configuration file the and the values
+  Below is a list of expected fields for the configuration file and the values
   those fields expect. The field names are case insensitive.
 
 
@@ -103,7 +103,7 @@ FIELDS & VALUES
     and the file name and line number from where the log message was written
     for each message written. If set to false the log will contain times with
     a precision of seconds and no file names or line numbers. It should be
-    noted that generating the file name and lines numbers for each log message
+    noted that generating the file name and line numbers for each log message
     can be an expensive operation. The default value for Debug.LongLog is
     false.
 
@@ -161,7 +161,6 @@ EXAMPLES
   Server.Port:          4001
   Server.IdleTimeout:   10m
   Server.MaxPlayers:    1024
-  Server.Debug:         false
   Stats.Rate:           10s
   Stats.GC:             false
   Inventory.Compact:    8
@@ -198,7 +197,7 @@ FILES
 
 SEE ALSO
 
-  configuration-file.txt, zones-files.txt
+  configuration-file.txt, zone-files.txt
 
 BUGS
 
@@ -206,7 +205,7 @@ BUGS
 
 COPYRIGHT
 
-  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.

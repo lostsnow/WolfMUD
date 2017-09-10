@@ -7,13 +7,13 @@
 package event
 
 import (
-	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"log"
 	"math/rand"
 	"runtime/debug"
 	"time"
+
+	"code.wolfmud.org/WolfMUD.git/config"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Script is an indirect reference to the cmd.Script function. The cmd package
@@ -63,8 +63,8 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 
 	// Calc total delay as delay + random jitter in seconds, minimum 1 second
 	td := time.Duration(ds+rj) * time.Second
-	if td < 1*time.Second {
-		td = 1 * time.Second
+	if td < time.Second {
+		td = time.Second
 	}
 
 	// Log event notifications?

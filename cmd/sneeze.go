@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: SNEEZE
@@ -16,23 +17,31 @@ func init() {
 
 func Sneeze(s *state) {
 
-	// Get all location inventories within 2 moves of current location
-	locations := attr.FindExits(s.where.Parent()).Within(2)
+	var locations [][]has.Inventory
 
-	// Try locking all of the locations we found
-	lockAdded := false
-	for _, d := range locations {
-		for _, i := range d {
-			if !s.CanLock(i) {
-				s.AddLock(i)
-				lockAdded = true
+	// Incrementally get all locations within a radius of 2 moves from current
+	// location, re-locking as we expand the radius so that FindExits is always
+	// called on locked locations.
+	for radius := 1; radius < 3; radius++ {
+
+		// Get all location Inventory within current radius
+		locations = attr.FindExits(s.where.Parent()).Within(radius)
+
+		// Try locking all of the locations we found
+		lockAdded := false
+		for _, d := range locations {
+			for _, i := range d {
+				if !s.CanLock(i) {
+					s.AddLock(i)
+					lockAdded = true
+				}
+			}
+			// If we added any locks return to the parser so we can relock
+			if lockAdded {
+				return
 			}
 		}
-	}
 
-	// If we added any locks return to the parser so we can relock
-	if lockAdded {
-		return
 	}
 
 	// Notify actor

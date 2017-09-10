@@ -6,11 +6,11 @@
 package attr
 
 import (
+	"math/rand"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
-
-	"math/rand"
 )
 
 // Register marshaler for OnAction attribute.

@@ -6,12 +6,12 @@
 package attr
 
 import (
+	"time"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
-
-	"time"
 )
 
 // Register marshaler for Action attribute.

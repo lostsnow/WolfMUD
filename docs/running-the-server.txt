@@ -15,7 +15,7 @@ DESCRIPTION
   normal users on the system.
 
   server
-    The name of the executable, on Windows substitude instances of server with
+    The name of the executable, on Windows substitute instances of server with
     server.exe
 
   DATA_DIR
@@ -74,7 +74,7 @@ FILES
 
 SEE ALSO
 
-  configuration-file.txt, zones-files.txt
+  configuration-file.txt, zone-files.txt
 
 BUGS
 
@@ -82,7 +82,7 @@ BUGS
 
 COPYRIGHT
 
-  Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.

@@ -6,23 +6,26 @@
 package attr
 
 import (
+	"fmt"
+	"log"
+	"runtime"
+	"sync"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/text"
-
-	"fmt"
-	"log"
-	"runtime"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by
 // creating a Thing and then adding Attributes to it which implement specific
-// functionality.
+// functionality. Concurrent access to a Thing is safe.
 type Thing struct {
-	attrs []has.Attribute
-	uid   string
+	uid string
+
+	rwmutex sync.RWMutex
+	attrs   []has.Attribute
 }
 
 // Some interfaces we want to make sure we implement
@@ -74,11 +77,13 @@ func (t *Thing) Free() {
 	if t == nil {
 		return
 	}
-	for _, a := range t.attrs {
-		a.Free()
+	t.rwmutex.Lock()
+	for i := range t.attrs {
+		t.attrs[i].Free()
+		t.attrs[i] = nil
 	}
-	t.Remove(t.attrs...)
 	t.attrs = nil
+	t.rwmutex.Unlock()
 
 	c := <-ThingCount
 	c--
@@ -90,19 +95,24 @@ func (t *Thing) Free() {
 // an Attribute to find and query the parent Thing about other Attributes the
 // Thing may have.
 func (t *Thing) Add(a ...has.Attribute) {
+	t.rwmutex.Lock()
 	for _, a := range a {
 		a.SetParent(t)
 		t.attrs = append(t.attrs, a)
 	}
+	t.rwmutex.Unlock()
 }
 
 // Remove is used to remove the passed Attributes from a Thing. There is no
 // indication if an Attribute cannot actually be removed. When an Attribute is
-// removed and is no longer required its Free method should be called.
+// removed its parent is set to nil. When an Attribute is removed and is no
+// longer required the Attribute's Free method should be called.
 func (t *Thing) Remove(a ...has.Attribute) {
+	t.rwmutex.Lock()
 	for i := len(a) - 1; i >= 0; i-- {
 		for j := len(t.attrs) - 1; j >= 0; j-- {
 			if a[i] == t.attrs[j] {
+				t.attrs[j].SetParent(nil)
 				copy(t.attrs[j:], t.attrs[j+1:])
 				t.attrs[len(t.attrs)-1] = nil
 				t.attrs = t.attrs[:len(t.attrs)-1]
@@ -110,13 +120,20 @@ func (t *Thing) Remove(a ...has.Attribute) {
 			}
 		}
 	}
+	t.rwmutex.Unlock()
 }
 
 // Attrs returns all of the Attributes a Thing has as a slice of has.Attribute.
 // This is commonly used to range over all of the Attributes of a Thing instead
 // of using a finder for a specific type of Attribute.
 func (t *Thing) Attrs() []has.Attribute {
-	return t.attrs
+	t.rwmutex.RLock()
+	a := make([]has.Attribute, len(t.attrs))
+	for i := range t.attrs {
+		a[i] = t.attrs[i]
+	}
+	t.rwmutex.RUnlock()
+	return a
 }
 
 // ignoredFields is a list of known field names that should be ignored by
@@ -167,12 +184,14 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 }
 
 func (t *Thing) Dump() (buff []string) {
+	t.rwmutex.RLock()
 	buff = append(buff, DumpFmt("%s, %d attributes:", t, len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
 		}
 	}
+	t.rwmutex.RUnlock()
 	return buff
 }
 
@@ -186,10 +205,12 @@ func (t *Thing) Copy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)
 	}
+	t.rwmutex.RLock()
 	na := make([]has.Attribute, len(t.attrs), len(t.attrs))
 	for i, a := range t.attrs {
 		na[i] = a.Copy()
 	}
+	t.rwmutex.RUnlock()
 	return NewThing(na...)
 }
 
@@ -214,50 +235,19 @@ func (t *Thing) SetOrigins() {
 		return
 	}
 
-	// Set the origin for items in our Inventory
+	// Set the origin for items in our Inventory including disabled items
 	for _, t := range append(i.Contents(), i.Narratives()...) {
 		if l := FindLocate(t); l.Found() {
 			l.SetOrigin(i)
 		}
 		t.SetOrigins()
 	}
-}
-
-// Dispose will either reset or discard a Thing in the game world when it is
-// finished with. If the Thing has a Reset attribute the Thing will be
-// scheduled for a reset. Otherwise all references to the Thing will be freed
-// so that it can be garbage collected. If the Thing has an Inventory its
-// content will be reset or discarded recursively. If Debug.Things is set to
-// true a message will be written to the log when a Thing is discarded.
-func (t *Thing) Dispose() {
-	if t == nil {
-		return
-	}
-
-	// Call Dispose recursively on Inventory content if found
-	if i := FindInventory(t); i.Found() {
-		for _, t := range i.Contents() {
-			t.Dispose()
+	for _, t := range i.Disabled() {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(i)
 		}
+		t.SetOrigins()
 	}
-
-	// Trigger Reset attribute if we have one
-	if r := FindReset(t); r.Found() {
-		r.Reset()
-		return
-	}
-
-	// Thing has not been reset so make sure the Thing is removed from the world
-	// then free it so it is garbage collected.
-	if config.Debug.Things {
-		log.Printf("Disposing: %s: %q", t, FindName(t).Name("?"))
-	}
-	if where := FindLocate(t).Where(); where.Found() {
-		if i := FindInventory(where.Parent()); i.Found() {
-			i.Remove(t)
-		}
-	}
-	t.Free()
 }
 
 // UID returns the unique identifier for a specific Thing or an empty string if

@@ -6,10 +6,10 @@
 package attr
 
 import (
+	"math/rand"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
-
-	"math/rand"
 )
 
 // Register marshaler for Start attribute.

@@ -6,11 +6,11 @@
 package attr
 
 import (
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
-
-	"strings"
 )
 
 // Register marshaler for Vetoes attribute.
@@ -68,8 +68,11 @@ func (v *Vetoes) Found() bool {
 // Unmarshal is used to turn the passed data into a new Vetoes attribute.
 func (*Vetoes) Unmarshal(data []byte) has.Attribute {
 	veto := []has.Veto{}
-	for _, data := range recordjar.Decode.KeyedStringList(data) {
-		veto = append(veto, NewVeto(data[0], data[1]))
+	for _, pair := range recordjar.Decode.KeyedStringList(data) {
+		if pair[0] == "" || pair[1] == "" {
+			continue // Ignore incomplete pairs
+		}
+		veto = append(veto, NewVeto(pair[0], pair[1]))
 	}
 	return NewVetoes(veto...)
 }
