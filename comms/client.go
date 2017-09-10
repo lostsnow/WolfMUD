@@ -1,4 +1,4 @@
-// Copyright 2015 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
@@ -13,6 +13,7 @@ import (
 	"net"
 	"runtime/debug"
 	"time"
+	"unicode"
 
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/frontend"
@@ -144,30 +145,48 @@ func (c *client) process() {
 // Calling fixDEL on the data will interpret the DEL characters so that, for
 // example, "ABD\bC" becomes "ABC".
 //
+// fixDEL can work on ASCII or UTF-8 and handles Unicode diacritics in addition
+// to precomposed characters. For example 'à' or 'a\u0300'.
+//
 // It should be noted that this function modifies the slice passed to it.
 func fixDEL(in *[]byte) {
 
-	// Start and end offsets for slicing. If a DEL is detected before any text s
-	// will be zero, otherwise one. If DEL is detected at the end of the slice
-	// with no text following it e will be zero, otherwise one.
-	s, e := 0, 0
-
-	for i := bytes.IndexByte(*in, '\b'); i != -1; {
-		if i > 0 {
-			s = 1
+	i := 0
+	for j, v := range *in {
+		(*in)[j] = '\x00'
+		if v != '\b' {
+			(*in)[i] = v
+			i++
+			continue
 		}
-		if i < len(*in) {
-			e = 1
+
+		// Remove previous rune which may be Unicode, maybe combining diacritic
+		for l, combi := 0, true; combi == true; {
+			switch {
+			case i > 0 && (*in)[i-1]&128 == 0:
+				l, combi = 1, false
+			case i > 1 && (*in)[i-2]&192 == 192:
+				l = 2
+			case i > 2 && (*in)[i-3]&192 == 192:
+				l = 3
+			case i > 3 && (*in)[i-4]&192 == 192:
+				l = 4
+			default:
+				l, combi = 0, false
+			}
+			if l == 1 {
+				(*in)[i-1] = '\x00'
+			}
+			if l > 1 {
+				combi = unicode.In(bytes.Runes((*in)[i-l : i])[0], unicode.Mn, unicode.Me)
+				copy((*in)[i-l:i], []byte("\x00\x00\x00\x00"))
+			}
+			i = i - l
 		}
-		*in = append((*in)[:i-s], (*in)[i+e:]...)
-
-		// Zero out data sliced off so as to not leave recoverable garbage at the
-		// end of the slice
-		copy((*in)[len(*in):len(*in)+e+s], []byte("\x00\x00"))
-
-		s, e = 0, 0
-		i = bytes.IndexByte(*in, '\b')
 	}
+
+	*in = (*in)[:i]
+
 	return
 }
 
