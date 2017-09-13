@@ -7,7 +7,7 @@ package cmd
 
 import (
 	"fmt"
-	"runtime/debug"
+	rtdebug "runtime/debug"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -25,10 +25,12 @@ import (
 // The address can be any address printed using %p that points to a
 // *attr.Thing - e.g. 0xc42011fab0.
 func init() {
-	AddHandler(Dump, "#DUMP")
+	AddHandler(dump{}, "#DUMP")
 }
 
-func Dump(s *state) {
+type dump cmd
+
+func (dump) process(s *state) {
 	if !config.Debug.AllowDump {
 		s.msg.Actor.SendBad("#DUMP command is not available. Server not running with configuration option Debug.AllowDump=true")
 		return
@@ -82,8 +84,8 @@ func Dump(s *state) {
 
 		// Change faults to panics instead so we can catch them and defer changing
 		// them back again. It's easy to cause a fault with an invalid address.
-		spof := debug.SetPanicOnFault(true)
-		defer debug.SetPanicOnFault(spof)
+		spof := rtdebug.SetPanicOnFault(true)
+		defer rtdebug.SetPanicOnFault(spof)
 
 		n, _ := strconv.ParseUint(name[2:], 16, 64)
 		p := (*attr.Thing)(unsafe.Pointer(uintptr(n)))

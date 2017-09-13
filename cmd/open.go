@@ -12,10 +12,12 @@ import (
 
 // Syntax: OPEN <door>
 func init() {
-	AddHandler(Open, "OPEN")
+	AddHandler(open{}, "OPEN")
 }
 
-func Open(s *state) {
+type open cmd
+
+func (open) process(s *state) {
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("What did you want to open?")
 		return

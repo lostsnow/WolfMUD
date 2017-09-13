@@ -11,10 +11,12 @@ import (
 
 // Syntax: $CLEANUP item
 func init() {
-	AddHandler(Cleanup, "$cleanup")
+	AddHandler(cleanup{}, "$cleanup")
 }
 
-func Cleanup(s *state) {
+type cleanup cmd
+
+func (cleanup) process(s *state) {
 
 	// Do we have item to cleanup specified on command?
 	if len(s.words) == 0 {

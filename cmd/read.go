@@ -11,10 +11,12 @@ import (
 
 // Syntax: READ item
 func init() {
-	AddHandler(Read, "READ")
+	AddHandler(read{}, "READ")
 }
 
-func Read(s *state) {
+type read cmd
+
+func (read) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("Did you want to read something specific?")

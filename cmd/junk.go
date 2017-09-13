@@ -13,10 +13,12 @@ import (
 
 // Syntax: JUNK item
 func init() {
-	AddHandler(Junk, "JUNK")
+	AddHandler(junk{}, "JUNK")
 }
 
-func Junk(s *state) {
+type junk cmd
+
+func (junk) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to junk... something?")
@@ -81,7 +83,7 @@ func Junk(s *state) {
 }
 
 // NOTE: junkLockAll is a temporary function until commands are made types and
-// we can attach a lockAll method to the Junk type.
+// we can attach a lockAll method to the junk type.
 func junkLockAll(s *state, t has.Thing) {
 	o := attr.FindLocate(t).Origin()
 	s.AddLock(o)
@@ -92,7 +94,7 @@ func junkLockAll(s *state, t has.Thing) {
 }
 
 // NOTE: junkCheckVetoes is a temporary function until commands are made types
-// and we can attach a checkVetoes method to the Junk type.
+// and we can attach a checkVetoes method to the junk type.
 func junkCheckVetoes(t has.Thing) bool {
 	if i := attr.FindInventory(t); i.Found() {
 		for _, t := range i.Contents() {
@@ -108,7 +110,7 @@ func junkCheckVetoes(t has.Thing) bool {
 }
 
 // NOTE: junkDispose is a temporary function until commands are made types and
-// we can attach a dispose method to the Junk type.
+// we can attach a dispose method to the junk type.
 func junkDispose(t has.Thing) {
 
 	// Recurse into inventories

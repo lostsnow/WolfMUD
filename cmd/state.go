@@ -181,7 +181,7 @@ func (s *state) handleCommand() {
 
 	switch handler, valid := handlers[s.cmd]; {
 	case valid:
-		handler(s)
+		handler.process(s)
 	default:
 		s.msg.Actor.SendBad("Eh?")
 	}

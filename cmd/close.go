@@ -12,10 +12,12 @@ import (
 
 // Syntax: CLOSE <door>
 func init() {
-	AddHandler(Close, "CLOSE")
+	AddHandler(close{}, "CLOSE")
 }
 
-func Close(s *state) {
+type close cmd
+
+func (close) process(s *state) {
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("What did you want to close?")
 		return

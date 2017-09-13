@@ -11,10 +11,12 @@ import (
 
 // Syntax: DROP item
 func init() {
-	AddHandler(Drop, "DROP")
+	AddHandler(drop{}, "DROP")
 }
 
-func Drop(s *state) {
+type drop cmd
+
+func (drop) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to drop... something?")

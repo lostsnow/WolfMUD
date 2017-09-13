@@ -13,7 +13,7 @@ import (
 //				 | SW | SOUTHWEST | W | WEST | NW | NORTHWEST | U | UP | D | DOWN)
 //
 func init() {
-	AddHandler(Move,
+	AddHandler(move{},
 		"N", "NE", "E", "SE", "S", "SW", "W", "NW", "U", "D",
 		"NORTH", "NORTHEAST", "EAST", "SOUTHEAST",
 		"SOUTH", "SOUTHWEST", "WEST", "NORTHWEST",
@@ -21,7 +21,9 @@ func init() {
 	)
 }
 
-func Move(s *state) {
+type move cmd
+
+func (move) process(s *state) {
 
 	from := s.where
 

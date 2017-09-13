@@ -11,10 +11,12 @@ import (
 
 // Syntax: $ACTION item
 func init() {
-	AddHandler(Action, "$action")
+	AddHandler(action{}, "$action")
 }
 
-func Action(s *state) {
+type action cmd
+
+func (action) process(s *state) {
 
 	// Do we have item to perform action specified on command?
 	if len(s.words) == 0 {

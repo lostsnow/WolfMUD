@@ -12,14 +12,16 @@ import (
 
 // Syntax: COMANDS
 func init() {
-	AddHandler(Commands, "COMMANDS")
+	AddHandler(commands{}, "COMMANDS")
 }
 
 // Width of gutter between columns
 const gutter = 2
 
+type commands cmd
+
 // BUG(diddymus): Terminal with is hardcoded to be 80 characters wide
-func Commands(s *state) {
+func (commands) process(s *state) {
 
 	cmds := make([]string, len(handlers), len(handlers))
 

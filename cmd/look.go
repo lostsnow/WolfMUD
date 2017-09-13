@@ -13,10 +13,12 @@ import (
 
 // Syntax: ( LOOK | L )
 func init() {
-	AddHandler(Look, "L", "LOOK")
+	AddHandler(look{}, "L", "LOOK")
 }
 
-func Look(s *state) {
+type look cmd
+
+func (look) process(s *state) {
 
 	// Are we somewhere?
 	if s.where == nil {

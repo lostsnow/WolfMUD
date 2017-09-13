@@ -12,10 +12,12 @@ import (
 
 // Syntax: TAKE item container
 func init() {
-	AddHandler(Take, "TAKE")
+	AddHandler(take{}, "TAKE")
 }
 
-func Take(s *state) {
+type take cmd
+
+func (take) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to take something out of something else...")

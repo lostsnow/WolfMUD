@@ -11,10 +11,12 @@ import (
 
 // Syntax: GET item
 func init() {
-	AddHandler(Get, "GET")
+	AddHandler(get{}, "GET")
 }
 
-func Get(s *state) {
+type get cmd
+
+func (get) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to get... something?")

@@ -14,10 +14,12 @@ import (
 
 // Syntax: WHO
 func init() {
-	AddHandler(Who, "WHO")
+	AddHandler(who{}, "WHO")
 }
 
-func Who(s *state) {
+type who cmd
+
+func (who) process(s *state) {
 	players := stats.List(s.actor)
 
 	if len(players) == 0 {
