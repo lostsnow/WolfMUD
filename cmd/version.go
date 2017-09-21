@@ -19,21 +19,19 @@ import (
 // debugging user issues.
 var commit string
 
-func init() {
-	if commit == "" {
-		commit = "Unknown"
-	}
-	commit = commit + " built with " + runtime.Version()
-}
-
 // Syntax: VERSION
 func init() {
+
+	if commit == "" {
+		commit = "unknown"
+	}
+
 	AddHandler(version{}, "VERSION")
 }
 
 type version cmd
 
 func (version) process(s *state) {
-	s.msg.Actor.SendInfo(commit)
+	s.msg.Actor.SendInfo("Version ", commit, ", built with ", runtime.Compiler, " version ", runtime.Version())
 	s.ok = true
 }
