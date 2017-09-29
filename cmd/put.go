@@ -11,10 +11,12 @@ import (
 
 // Syntax: PUT item container
 func init() {
-	AddHandler(Put, "PUT")
+	addHandler(put{}, "PUT")
 }
 
-func Put(s *state) {
+type put cmd
+
+func (put) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to put something into something else...")

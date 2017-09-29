@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"runtime/debug"
+	rtdebug "runtime/debug"
 	"runtime/pprof"
 
 	"code.wolfmud.org/WolfMUD.git/config"
@@ -33,10 +33,12 @@ import (
 // The #DEBUG command is only available if the server is running with the
 // configuration option Debug.AllowDebug set to true.
 func init() {
-	AddHandler(Debug, "#DEBUG")
+	addHandler(debug{}, "#DEBUG")
 }
 
-func Debug(s *state) {
+type debug cmd
+
+func (debug) process(s *state) {
 	if !config.Debug.AllowDebug {
 		s.msg.Actor.SendBad("#DEBUG command is not available. Server not running with configuration option Debug.AllowDebug=true")
 		return
@@ -195,7 +197,7 @@ func heapDump(s *state) {
 	if f, err := newFile("heapdump"); err != nil {
 		s.msg.Actor.SendBad("Heap dump not written, see log for details.")
 	} else {
-		debug.WriteHeapDump(f.Fd())
+		rtdebug.WriteHeapDump(f.Fd())
 		f.Close()
 		s.msg.Actor.SendInfo("Heap dumped.")
 		log.Printf("#DEBUG: heap dumped")

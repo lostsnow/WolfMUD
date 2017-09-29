@@ -11,10 +11,12 @@ import (
 
 // Syntax: ( EXAMINE | EXAM ) item
 func init() {
-	AddHandler(Examine, "EXAM", "EXAMINE")
+	addHandler(examine{}, "EXAM", "EXAMINE")
 }
 
-func Examine(s *state) {
+type examine cmd
+
+func (examine) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You examine this and that, find nothing special.")

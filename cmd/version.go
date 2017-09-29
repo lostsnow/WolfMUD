@@ -9,28 +9,29 @@ import (
 	"runtime"
 )
 
-// version is set at compile time using:
+// commit is set at compile time using:
 //
-//	-ldflags "-X code.wolfmud.org/WolfMUD.git/cmd.version=nnn"
+//	-ldflags "-X code.wolfmud.org/WolfMUD.git/cmd.commit=id"
 //
-// Where nnn is the version. It's format should be the abbreviated git commit
-// SHA optionally followed by '-dirty' if the worktree has uncomitted changes.
-// e.g. 9a73650 or 9a73650-dirty. This can be handy for debugging user issues.
-var version string
-
-func init() {
-	if version == "" {
-		version = "Unknown"
-	}
-	version = version + " built with " + runtime.Version()
-}
+// Where id is the git commit returned by git describe HEAD when compiling
+// optionally followed by '-dirty' if the worktree has uncomitted changes. For
+// example v0.0.7-2-g89fdad9 or v0.0.7-2-g89fdad9-dirty. This can be handy for
+// debugging user issues.
+var commit string
 
 // Syntax: VERSION
 func init() {
-	AddHandler(Version, "VERSION")
+
+	if commit == "" {
+		commit = "unknown"
+	}
+
+	addHandler(version{}, "VERSION")
 }
 
-func Version(s *state) {
-	s.msg.Actor.SendInfo(version)
+type version cmd
+
+func (version) process(s *state) {
+	s.msg.Actor.SendInfo("Version ", commit, ", built with ", runtime.Compiler, " version ", runtime.Version())
 	s.ok = true
 }

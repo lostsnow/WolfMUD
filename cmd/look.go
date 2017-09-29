@@ -13,16 +13,12 @@ import (
 
 // Syntax: ( LOOK | L )
 func init() {
-	AddHandler(Look, "L", "LOOK")
+	addHandler(look{}, "L", "LOOK")
 }
 
-func Look(s *state) {
+type look cmd
 
-	// Are we somewhere?
-	if s.where == nil {
-		s.msg.Actor.Send(text.Cyan, "A Void", text.Reset, "\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\n", text.Cyan, "You see no immediate exits from here.", text.Reset)
-		return
-	}
+func (look) process(s *state) {
 
 	what := s.where.Parent()
 

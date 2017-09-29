@@ -11,10 +11,12 @@ import (
 
 // Syntax: GET item
 func init() {
-	AddHandler(Get, "GET")
+	addHandler(get{}, "GET")
 }
 
-func Get(s *state) {
+type get cmd
+
+func (get) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to get... something?")
@@ -22,12 +24,6 @@ func Get(s *state) {
 	}
 
 	name := s.words[0]
-
-	// Are we somewhere?
-	if s.where == nil {
-		s.msg.Actor.SendBad("You cannot get anything here.")
-		return
-	}
 
 	// Search for item we want to get in the inventory where we are
 	what := s.where.Search(name)

@@ -12,10 +12,12 @@ import (
 
 // Syntax: SNEEZE
 func init() {
-	AddHandler(Sneeze, "SNEEZE")
+	addHandler(sneeze{}, "SNEEZE")
 }
 
-func Sneeze(s *state) {
+type sneeze cmd
+
+func (sneeze) process(s *state) {
 
 	var locations [][]has.Inventory
 

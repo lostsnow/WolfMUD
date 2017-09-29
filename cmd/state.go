@@ -114,7 +114,7 @@ func (s *state) tokenizeInput(input string) {
 		s.words = internal.RemoveStopWords(s.input)
 
 		// If the input only consists of stop words fake the "Eh?" command being
-		// entered to get an "Eh?" response from handleCommand - "Eh?" is not a
+		// entered to get an "Eh?" response from dispatchHandler - "Eh?" is not a
 		// valid command and seems an appropriate choice
 		if len(s.words) == 0 {
 			s.cmd = "Eh?"
@@ -153,7 +153,7 @@ func (s *state) sync() (inSync bool) {
 	s.msg.Allocate(s.where, s.locks)
 	l := len(s.locks)
 
-	s.handleCommand()
+	dispatchHandler(s)
 
 	// If we don't add any new locks we are 'in sync'. Therefore set inSync flag
 	// and process any pending messages before all of the locks get released.
@@ -162,29 +162,6 @@ func (s *state) sync() (inSync bool) {
 		s.messenger()
 	}
 	return
-}
-
-// handleCommand runs the registered handler for the current state command. If
-// a handler cannot be found a message will be written to the actor's output
-// buffer.
-//
-// handleCommand will only allow scripting specific commands to be executed if
-// the state.scripting field is set to true.
-//
-// BUG(diddymus): Should this be moved into handler.go?
-func (s *state) handleCommand() {
-
-	if len(s.cmd) > 0 && s.cmd[0] == '$' && !s.scripting {
-		s.msg.Actor.SendBad("Ehh?")
-		return
-	}
-
-	switch handler, valid := handlers[s.cmd]; {
-	case valid:
-		handler(s)
-	default:
-		s.msg.Actor.SendBad("Eh?")
-	}
 }
 
 // script executes the given input as a command using the current state.
@@ -225,7 +202,7 @@ func (s *state) script(actor, participant, observers bool, inputs ...string) {
 	s.tokenizeInput(input)
 	s.ok = false
 	s.scripting = true
-	s.handleCommand()
+	dispatchHandler(s)
 
 	// Restore old silent modes
 	s.msg.Actor.Silent(a)

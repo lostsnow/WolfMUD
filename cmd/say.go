@@ -13,19 +13,15 @@ import (
 
 // Syntax: SAY <message> | " <message>
 func init() {
-	AddHandler(Say, "SAY")
-	AddHandler(Say, "\"")
+	addHandler(say{}, "SAY")
+	addHandler(say{}, "\"")
 }
 
-func Say(s *state) {
+type say cmd
+
+func (say) process(s *state) {
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("What did you want to say?")
-		return
-	}
-
-	// Are we somewhere?
-	if s.where == nil {
-		s.msg.Actor.SendInfo("There is nobody here to talk to.")
 		return
 	}
 
