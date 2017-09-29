@@ -25,12 +25,6 @@ func (say) process(s *state) {
 		return
 	}
 
-	// Are we somewhere?
-	if s.where == nil {
-		s.msg.Actor.SendInfo("There is nobody here to talk to.")
-		return
-	}
-
 	// Is anyone else here?
 	anybodyHere := false
 	for _, t := range s.where.Contents() {

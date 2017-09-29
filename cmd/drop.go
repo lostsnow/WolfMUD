@@ -42,15 +42,6 @@ func (drop) process(s *state) {
 		return
 	}
 
-	// Are we somewhere? We need to be somewhere so that the location can receive
-	// the dropped item.
-	//
-	// TODO: We could drop and junk item if nowhere instead of aborting?
-	if s.where == nil {
-		s.msg.Actor.SendBad("You cannot drop anything here.")
-		return
-	}
-
 	// Check the drop is not vetoed by the item
 	if veto := attr.FindVetoes(what).Check("DROP"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())

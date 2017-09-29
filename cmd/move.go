@@ -27,12 +27,6 @@ func (move) process(s *state) {
 
 	from := s.where
 
-	// A thing can only move itself if it knows where it is
-	if from == nil {
-		s.msg.Actor.SendInfo("You are not sure where you are, let alone where you are going!")
-		return
-	}
-
 	// Is where we are exitable?
 	exits := attr.FindExits(from.Parent())
 	if !exits.Found() {

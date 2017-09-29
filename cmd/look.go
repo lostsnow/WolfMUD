@@ -20,12 +20,6 @@ type look cmd
 
 func (look) process(s *state) {
 
-	// Are we somewhere?
-	if s.where == nil {
-		s.msg.Actor.Send(text.Cyan, "A Void", text.Reset, "\nYou are in a dark void. Around you nothing. No stars, no light, no heat and no sound.\n\n", text.Cyan, "You see no immediate exits from here.", text.Reset)
-		return
-	}
-
 	what := s.where.Parent()
 
 	// Write the location title
