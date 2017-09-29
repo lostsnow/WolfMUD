@@ -15,7 +15,7 @@ type handler interface {
 }
 
 // handlers is a list of commands and their handlers. AddHandler should be used
-// to add new handlers. state.handleCommand uses this list to lookup the
+// to add new handlers. dispatchHandler then uses this list to lookup the
 // correct handler to invoke for a given command.
 var handlers = map[string]handler{}
 
@@ -33,5 +33,26 @@ var handlers = map[string]handler{}
 func AddHandler(h handler, cmd ...string) {
 	for _, cmd := range cmd {
 		handlers[strings.ToUpper(cmd)] = h
+	}
+}
+
+// dispatchHandler runs the registered handler for the current state command.
+// If a handler cannot be found a message will be written to the actor's output
+// buffer.
+//
+// dispatchHandler will only allow scripting specific commands to be executed
+// if the state.scripting field is set to true.
+func dispatchHandler(s *state) {
+
+	if len(s.cmd) > 0 && s.cmd[0] == '$' && !s.scripting {
+		s.msg.Actor.SendBad("Ehh?")
+		return
+	}
+
+	switch handler, valid := handlers[s.cmd]; {
+	case valid:
+		handler.process(s)
+	default:
+		s.msg.Actor.SendBad("Eh?")
 	}
 }
