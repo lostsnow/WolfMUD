@@ -11,7 +11,7 @@ import (
 
 // Syntax: ( EXAMINE | EXAM ) item
 func init() {
-	AddHandler(examine{}, "EXAM", "EXAMINE")
+	addHandler(examine{}, "EXAM", "EXAMINE")
 }
 
 type examine cmd

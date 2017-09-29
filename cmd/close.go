@@ -12,7 +12,7 @@ import (
 
 // Syntax: CLOSE <door>
 func init() {
-	AddHandler(close{}, "CLOSE")
+	addHandler(close{}, "CLOSE")
 }
 
 type close cmd

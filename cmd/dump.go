@@ -25,7 +25,7 @@ import (
 // The address can be any address printed using %p that points to a
 // *attr.Thing - e.g. 0xc42011fab0.
 func init() {
-	AddHandler(dump{}, "#DUMP")
+	addHandler(dump{}, "#DUMP")
 }
 
 type dump cmd

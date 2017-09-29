@@ -12,7 +12,7 @@ import (
 
 // Syntax: COMANDS
 func init() {
-	AddHandler(commands{}, "COMMANDS")
+	addHandler(commands{}, "COMMANDS")
 }
 
 // Width of gutter between columns

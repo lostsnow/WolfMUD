@@ -13,7 +13,7 @@ import (
 
 // Syntax: ( LOOK | L )
 func init() {
-	AddHandler(look{}, "L", "LOOK")
+	addHandler(look{}, "L", "LOOK")
 }
 
 type look cmd

@@ -12,7 +12,7 @@ import (
 
 // Syntax: TAKE item container
 func init() {
-	AddHandler(take{}, "TAKE")
+	addHandler(take{}, "TAKE")
 }
 
 type take cmd

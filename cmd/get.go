@@ -11,7 +11,7 @@ import (
 
 // Syntax: GET item
 func init() {
-	AddHandler(get{}, "GET")
+	addHandler(get{}, "GET")
 }
 
 type get cmd

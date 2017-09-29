@@ -11,7 +11,7 @@ import (
 
 // Syntax: DROP item
 func init() {
-	AddHandler(drop{}, "DROP")
+	addHandler(drop{}, "DROP")
 }
 
 type drop cmd

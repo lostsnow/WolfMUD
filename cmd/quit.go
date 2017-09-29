@@ -13,7 +13,7 @@ import (
 
 // Syntax: QUIT
 func init() {
-	AddHandler(quit{}, "QUIT")
+	addHandler(quit{}, "QUIT")
 }
 
 type quit cmd

@@ -26,7 +26,7 @@ func init() {
 		commit = "unknown"
 	}
 
-	AddHandler(version{}, "VERSION")
+	addHandler(version{}, "VERSION")
 }
 
 type version cmd

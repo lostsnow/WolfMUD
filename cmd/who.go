@@ -14,7 +14,7 @@ import (
 
 // Syntax: WHO
 func init() {
-	AddHandler(who{}, "WHO")
+	addHandler(who{}, "WHO")
 }
 
 type who cmd

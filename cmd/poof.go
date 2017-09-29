@@ -11,7 +11,7 @@ import (
 
 // Syntax: $POOF
 func init() {
-	AddHandler(poof{}, "$POOF")
+	addHandler(poof{}, "$POOF")
 }
 
 type poof cmd

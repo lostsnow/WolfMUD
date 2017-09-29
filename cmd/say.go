@@ -13,8 +13,8 @@ import (
 
 // Syntax: SAY <message> | " <message>
 func init() {
-	AddHandler(say{}, "SAY")
-	AddHandler(say{}, "\"")
+	addHandler(say{}, "SAY")
+	addHandler(say{}, "\"")
 }
 
 type say cmd

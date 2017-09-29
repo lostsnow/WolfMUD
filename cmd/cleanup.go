@@ -11,7 +11,7 @@ import (
 
 // Syntax: $CLEANUP item
 func init() {
-	AddHandler(cleanup{}, "$cleanup")
+	addHandler(cleanup{}, "$cleanup")
 }
 
 type cleanup cmd

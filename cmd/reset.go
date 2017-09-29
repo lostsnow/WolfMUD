@@ -16,7 +16,7 @@ import (
 // actor. This means that we cannot pass a unique alias to $RESET. As a
 // consequence only a Thing can reset itself.
 func init() {
-	AddHandler(reset{}, "$reset")
+	addHandler(reset{}, "$reset")
 }
 
 type reset cmd

@@ -11,7 +11,7 @@ import (
 
 // Syntax: $ACTION item
 func init() {
-	AddHandler(action{}, "$action")
+	addHandler(action{}, "$action")
 }
 
 type action cmd

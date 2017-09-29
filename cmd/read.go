@@ -11,7 +11,7 @@ import (
 
 // Syntax: READ item
 func init() {
-	AddHandler(read{}, "READ")
+	addHandler(read{}, "READ")
 }
 
 type read cmd

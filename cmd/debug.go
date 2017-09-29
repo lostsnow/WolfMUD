@@ -33,7 +33,7 @@ import (
 // The #DEBUG command is only available if the server is running with the
 // configuration option Debug.AllowDebug set to true.
 func init() {
-	AddHandler(debug{}, "#DEBUG")
+	addHandler(debug{}, "#DEBUG")
 }
 
 type debug cmd

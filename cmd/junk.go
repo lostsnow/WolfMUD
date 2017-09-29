@@ -13,7 +13,7 @@ import (
 
 // Syntax: JUNK item
 func init() {
-	AddHandler(junk{}, "JUNK")
+	addHandler(junk{}, "JUNK")
 }
 
 type junk cmd

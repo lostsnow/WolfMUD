@@ -11,7 +11,7 @@ import (
 
 // Syntax: PUT item container
 func init() {
-	AddHandler(put{}, "PUT")
+	addHandler(put{}, "PUT")
 }
 
 type put cmd

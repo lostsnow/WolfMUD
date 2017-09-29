@@ -12,7 +12,7 @@ import (
 
 // Syntax: SNEEZE
 func init() {
-	AddHandler(sneeze{}, "SNEEZE")
+	addHandler(sneeze{}, "SNEEZE")
 }
 
 type sneeze cmd

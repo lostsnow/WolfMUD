@@ -11,7 +11,7 @@ import (
 
 // Syntax: ( INVENTORY | INV )
 func init() {
-	AddHandler(inventory{}, "INV", "INVENTORY")
+	addHandler(inventory{}, "INV", "INVENTORY")
 }
 
 type inventory cmd
