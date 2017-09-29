@@ -25,7 +25,7 @@ func Sneeze(s *state) {
 	for radius := 1; radius < 3; radius++ {
 
 		// Get all location Inventory within current radius
-		locations = attr.FindExits(s.where.Parent()).Within(radius)
+		locations = attr.FindExits(s.where.Parent()).Within(radius, s.where)
 
 		// Try locking all of the locations we found
 		lockAdded := false

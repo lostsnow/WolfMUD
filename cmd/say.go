@@ -43,7 +43,7 @@ func Say(s *state) {
 	}
 
 	// Get all location inventories within 1 move of current location
-	locations := attr.FindExits(s.where.Parent()).Within(1)
+	locations := attr.FindExits(s.where.Parent()).Within(1, s.where)
 
 	// Try locking all of the locations we found
 	lockAdded := false
