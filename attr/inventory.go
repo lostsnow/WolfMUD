@@ -451,6 +451,9 @@ func (i *Inventory) Copy() has.Attribute {
 	for _, a := range i.contents {
 		ni.Add(a.Copy())
 	}
+	for _, a := range i.disabled {
+		ni.AddDisabled(a.Copy())
+	}
 	return ni
 }
 
@@ -462,6 +465,10 @@ func (i *Inventory) Free() {
 	}
 	for x, t := range i.contents {
 		i.contents[x] = nil
+		t.Free()
+	}
+	for x, t := range i.disabled {
+		i.disabled[x] = nil
 		t.Free()
 	}
 	i.Attribute.Free()
