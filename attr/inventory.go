@@ -124,41 +124,27 @@ func (i *Inventory) Dump() (buff []string) {
 
 // Add puts a Thing into an Inventory. If the Thing does not have a Locate
 // attribute one will be added automatically, otherwise the existing Locate
-// attribute will be updated. On success Add will return the Thing actually
-// added to the inventory - which may not be the Thing passed in, it may be a
-// copy. It is therefore important to use the Thing returned after calling Add.
-// On failure Add returns nil.
-func (i *Inventory) Add(t has.Thing) has.Thing {
-	if i == nil {
-		return nil
+// attribute will be updated.
+func (i *Inventory) Add(t has.Thing) {
+	if i != nil {
+		(*Inventory)(nil).Move(t, i)
 	}
-	return (*Inventory)(nil).Move(t, i)
 }
 
-// Remove takes a Thing from an Inventory. On success Remove will return the
-// Thing actually removed from the inventory - which may not be the Thing
-// passed in, it may be a copy. It is therefore important to use the Thing
-// returned after calling Remove. If Remove fails it will return nil.
-func (i *Inventory) Remove(t has.Thing) has.Thing {
-	if i == nil {
-		return nil
+// Remove takes a Thing from an Inventory.
+func (i *Inventory) Remove(t has.Thing) {
+	if i != nil {
+		i.Move(t, nil)
 	}
-	return i.Move(t, nil)
 }
 
 // Move removes a Thing from one Inventory and puts it into another Inventory.
-// On success Move will return the Thing moved - which may not be the Thing
-// passed in, it may be a copy. It is therefore important to use the Thing
-// returned after calling Move. If Move fails it will return nil.
-//
-// If the receiver is a *Inventory typed nil the Thing will only be added to an
-// inventory. If the to Inventory is nil the Thing will only be removed from
-// the receiver Inventory. In both cases the Thing's Locate attribute will be
-// updated or one added if missing.
-func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
+// After the move the Thing's Locate attribute will be updated or one added if
+// missing.
+func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 
 	if t == nil {
-		return t
+		return
 	}
 
 	n := FindNarrative(t).Found()
@@ -200,7 +186,7 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 	}
 
 	if !found {
-		return nil
+		return
 	}
 
 ADD:
@@ -213,7 +199,8 @@ ADD:
 
 	// If to is not an actual *Inventory have to take the slow path
 	if !ok {
-		return to.Add(t)
+		to.Add(t)
+		return
 	}
 
 	// If Thing added was a Narrative move it to the front of the slice
@@ -256,7 +243,7 @@ UPDATE:
 		FindCleanup(t).Cleanup()
 	}
 
-	return t
+	return
 }
 
 // AddDisabled adds a Thing to an Inventory marking at as being initially out

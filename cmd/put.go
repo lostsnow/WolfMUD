@@ -97,10 +97,7 @@ func (put) process(s *state) {
 	}
 
 	// Remove item from where it is and put it in the container
-	if tWhere.Move(tWhat, cWhere) == nil {
-		s.msg.Actor.SendBad("Something stops you putting ", tName, " anywhere.")
-		return
-	}
+	tWhere.Move(tWhat, cWhere)
 
 	s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
 
