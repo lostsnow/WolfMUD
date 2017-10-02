@@ -117,12 +117,18 @@ func (r *Reset) Reset() {
 }
 
 // Spawn returns a non-spawnable copy of a Thing and schedules the original
-// Thing to reset if Reset.spawn is true. Otherwise it only returns nil.
+// Thing to reset if Reset.spawn is true. Otherwise it returns the original
+// Thing.
 func (r *Reset) Spawn() has.Thing {
 
 	// If not spawnable just exit
-	if r == nil || !r.spawn {
+	if r == nil {
 		return nil
+	}
+
+	// If not spawnable return original thing
+	if !r.spawn {
+		return r.Parent()
 	}
 
 	// Make a copy of original Thing, update origins of the copy to point to any
@@ -131,17 +137,22 @@ func (r *Reset) Spawn() has.Thing {
 	c := p.Copy()
 	c.SetOrigins()
 
-	// Add original Thing to Inventory disabled and register a reset for it
+	// Disable original Thing and register a reset for it
 	o := FindLocate(p).Origin()
-	o.AddDisabled(p)
+	o.Disable(p)
 	r.Reset()
 
-	// Remove reset attribute from copied Thing and set origin to nil so it will
-	// be disposed of when cleaned up as it is the original that respawns.
+	// Remove reset attribute from copied Thing
 	R := FindReset(c)
 	c.Remove(R)
 	R.Free()
-	FindLocate(c).SetOrigin(nil)
+
+	// Set origin of copy to nil so it will be disposed of when cleaned up as it
+	// is the original that respawns. Then add copy back into the world.
+	l := FindLocate(c)
+	l.SetOrigin(nil)
+	l.Where().AddDisabled(c)
+	l.Where().Enable(c)
 
 	return c
 }

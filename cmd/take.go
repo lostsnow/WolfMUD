@@ -116,12 +116,15 @@ func (take) process(s *state) {
 		return
 	}
 
+	// Cancel any Cleanup or Action events
+	attr.FindCleanup(tWhat).Abort()
+	attr.FindAction(tWhat).Abort()
+
+	// Check if item respawns when taken
+	tWhat = attr.FindReset(tWhat).Spawn()
+
 	// Move the item from container to our inventory
-	if cWhere.Move(tWhat, tWhere) == nil {
-		s.msg.Actor.SendBad("Something stops you taking ", tName, " from ", cName, "...")
-		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
-		return
-	}
+	cWhere.Move(tWhat, tWhere)
 
 	s.msg.Actor.SendGood("You take ", tName, " from ", cName, ".")
 	s.msg.Observer.SendInfo("You see ", who, " take something from ", cName, ".")

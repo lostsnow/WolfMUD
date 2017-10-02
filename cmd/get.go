@@ -70,11 +70,15 @@ func (get) process(s *state) {
 		return
 	}
 
+	// Cancel any Cleanup or Action events
+	attr.FindCleanup(what).Abort()
+	attr.FindAction(what).Abort()
+
+	// Check if item respawns when picked up
+	what = attr.FindReset(what).Spawn()
+
 	// Move the item from our location to our inventory
-	if s.where.Move(what, to) == nil {
-		s.msg.Actor.SendBad("You cannot get ", name, ".")
-		return
-	}
+	s.where.Move(what, to)
 
 	who := attr.FindName(s.actor).Name("Someone")
 

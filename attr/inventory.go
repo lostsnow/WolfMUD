@@ -195,17 +195,6 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 				i.split--
 			}
 
-			// If not a player cancel any cleanup and check if removing a Thing
-			// triggers a re-spawning. Players don't respawn but they do move from
-			// location to location a lot which would cause needless calls to Spawn.
-			if !p {
-				FindCleanup(t).Abort()
-				FindAction(t).Abort()
-				if s := FindReset(t).Spawn(); s != nil {
-					t = s
-				}
-			}
-
 			found = true
 		}
 	}
