@@ -173,6 +173,7 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 			}
 
 			found = true
+			break
 		}
 	}
 
