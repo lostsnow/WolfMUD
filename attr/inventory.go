@@ -79,7 +79,8 @@ func NewInventory(t ...has.Thing) *Inventory {
 	}
 
 	for _, t := range t {
-		i.Add(t)
+		i.AddDisabled(t)
+		i.Enable(t)
 	}
 
 	return i
@@ -479,7 +480,9 @@ func (i *Inventory) Copy() has.Attribute {
 	}
 	ni := NewInventory()
 	for _, a := range i.contents {
-		ni.Add(a.Copy())
+		c := a.Copy()
+		ni.AddDisabled(c)
+		ni.Enable(c)
 	}
 	for _, a := range i.disabled {
 		ni.AddDisabled(a.Copy())

@@ -272,7 +272,9 @@ func (z *zone) linkupStoreInventory() {
 				log.Printf("Recursive Inventory reference: cannot put %s into %s", tref, sref)
 				continue
 			}
-			attr.FindInventory(s).Add(t.Thing)
+			i := attr.FindInventory(s)
+			i.AddDisabled(t.Thing)
+			i.Enable(t.Thing)
 		}
 	}
 }
@@ -302,7 +304,8 @@ func (z *zone) linkupStoreLocation() {
 				s.Add(attr.NewInventory(s.Thing))
 				continue
 			}
-			i.Add(s.Thing)
+			i.AddDisabled(s.Thing)
+			i.Enable(s.Thing)
 		}
 	}
 }
@@ -324,7 +327,8 @@ func (z *zone) linkupInventory() {
 				continue
 			}
 			t := s.Copy()
-			i.Add(t)
+			i.AddDisabled(t)
+			i.Enable(t)
 			t.SetOrigins()
 		}
 	}
@@ -350,7 +354,8 @@ func (z *zone) linkupLocation() {
 			}
 			t := s.Copy()
 			i := attr.FindInventory(l)
-			i.Add(t)
+			i.AddDisabled(t)
+			i.Enable(t)
 			t.SetOrigins()
 		}
 	}
