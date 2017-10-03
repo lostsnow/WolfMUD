@@ -39,7 +39,8 @@ func (quit) process(s *state) {
 	// Remove the player from the world
 	if s.where != nil {
 		s.msg.Observer.SendInfo(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
-		s.where.Remove(s.actor)
+		s.where.Disable(s.actor)
+		s.where.RemoveDisabled(s.actor)
 	}
 
 	s.msg.Actor.SendGood("You leave this world behind.")

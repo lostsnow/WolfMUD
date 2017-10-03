@@ -128,7 +128,8 @@ func (j junk) dispose(t has.Thing) {
 
 	// If Thing has no reset or origin remove it and free for garbage collection
 	if !r.Found() || o == nil {
-		w.Remove(t)
+		w.Disable(t)
+		w.RemoveDisabled(t)
 		t.Free()
 		return
 	}
