@@ -108,7 +108,7 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.split, len(i.disabled)))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.playerCount, i.split, len(i.disabled)))
 	for _, i := range i.contents {
 		for _, i := range i.Dump() {
 			buff = append(buff, DumpFmt("%s", i))
