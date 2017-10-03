@@ -147,10 +147,6 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 	p := FindPlayer(t).Found()
 	found := false
 
-	if i == nil {
-		goto ADD
-	}
-
 	for j, c := range i.contents {
 		if c == t {
 			copy(i.contents[j:], i.contents[j+1:])
@@ -184,12 +180,6 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 		return
 	}
 
-ADD:
-
-	if to == nil {
-		goto UPDATE
-	}
-
 	// If Thing added was a Narrative move it to the front of the slice
 	// and adjust the Narrative/Thing split.
 	if n {
@@ -213,8 +203,6 @@ ADD:
 		FindAction(t).Action()
 	}
 
-UPDATE:
-
 	// Update Where attribute on Thing with 'to' Inventory
 	FindLocate(t).SetWhere(To)
 
@@ -222,7 +210,7 @@ UPDATE:
 	// does not end up being carried then register Thing for cleanup as it's now
 	// just left laying around. This has to be checked after the Locate attribute
 	// has been updated so we know the final location.
-	if !p && i != nil && To != nil && !To.Carried() {
+	if !p && !To.Carried() {
 		FindCleanup(t).Cleanup()
 	}
 
