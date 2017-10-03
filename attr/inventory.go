@@ -145,7 +145,6 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 
 	n := FindNarrative(t).Found()
 	p := FindPlayer(t).Found()
-	l := FindLocate(t)
 	found := false
 
 	if i == nil {
@@ -216,12 +215,8 @@ ADD:
 
 UPDATE:
 
-	// Give thing a locate attribute if it doesn't have one, else just update it
-	if !l.Found() {
-		t.Add(NewLocate(To))
-	} else {
-		l.SetWhere(To)
-	}
+	// Update Where attribute on Thing with 'to' Inventory
+	FindLocate(t).SetWhere(To)
 
 	// If Thing is not a player but is moved from one Inventory to another and
 	// does not end up being carried then register Thing for cleanup as it's now
