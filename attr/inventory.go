@@ -190,9 +190,13 @@ ADD:
 		goto UPDATE
 	}
 
-	// If to is not an actual *Inventory have to take the slow path
+	// If to is not an actual *Inventory we can't manipulate contents so have to
+	// take the (very) slow path...
 	if !ok {
-		to.Add(t)
+		i.Disable(t)
+		i.RemoveDisabled(t)
+		to.AddDisabled(t)
+		to.Enable(t)
 		return
 	}
 
