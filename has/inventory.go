@@ -70,6 +70,9 @@ type Inventory interface {
 	// out of play (disabled).
 	AddDisabled(Thing)
 
+	// RemoveDisabled takes a disabled Thing out of an Inventory.
+	RemoveDisabled(Thing)
+
 	// Disable marks a Thing in an Inventory as being out of play.
 	Disable(Thing)
 

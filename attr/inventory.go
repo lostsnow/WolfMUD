@@ -260,6 +260,22 @@ func (i *Inventory) AddDisabled(t has.Thing) {
 	FindLocate(t).SetWhere(i)
 }
 
+// RemoveDisabled takes a disabled Thing from an Inventory.
+//
+// NOTE: Once the Thing is removed it will no longer be under a lock. Ideally
+// once a Thing is removed Thing.Free should be called to release the Thing for
+// garbage collection.
+func (i *Inventory) RemoveDisabled(t has.Thing) {
+	for j, a := range i.disabled {
+		if a == t {
+			copy(i.disabled[j:], i.disabled[j+1:])
+			i.disabled[len(i.disabled)-1] = nil
+			i.disabled = i.disabled[:len(i.disabled)-1]
+			return
+		}
+	}
+}
+
 // Enabled marks a Thing in an Inventory as being in play.
 func (i *Inventory) Enable(t has.Thing) {
 	for j, a := range i.disabled {
