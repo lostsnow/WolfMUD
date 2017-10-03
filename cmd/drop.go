@@ -64,6 +64,9 @@ func (drop) process(s *state) {
 	// for clean up
 	attr.FindCleanup(what).Cleanup()
 
+	// Re-enable actions if available
+	attr.FindAction(what).Action()
+
 	who := attr.FindName(s.actor).Name("Someone")
 
 	s.msg.Actor.SendGood("You drop ", name, ".")

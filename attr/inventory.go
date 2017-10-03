@@ -199,10 +199,6 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 		to.playerCount++
 	}
 
-	if !p {
-		FindAction(t).Action()
-	}
-
 	// Update Where attribute on Thing with 'to' Inventory
 	FindLocate(t).SetWhere(to)
 

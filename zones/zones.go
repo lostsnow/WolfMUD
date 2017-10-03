@@ -330,6 +330,7 @@ func (z *zone) linkupInventory() {
 			i.AddDisabled(t)
 			i.Enable(t)
 			t.SetOrigins()
+			attr.FindAction(t).Action()
 		}
 	}
 }
@@ -357,6 +358,7 @@ func (z *zone) linkupLocation() {
 			i.AddDisabled(t)
 			i.Enable(t)
 			t.SetOrigins()
+			attr.FindAction(t).Action()
 		}
 	}
 }
