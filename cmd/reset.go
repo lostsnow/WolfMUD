@@ -88,5 +88,7 @@ func (reset) process(s *state) {
 	}
 
 	origin.Enable(s.actor)
+	attr.FindAction(s.actor).Action()
+
 	s.ok = true
 }
