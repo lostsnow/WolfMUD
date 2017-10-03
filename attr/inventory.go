@@ -132,6 +132,17 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 		return
 	}
 
+	// If where to move to is not an actual *Inventory we can't manipulate the
+	// contents directly and so have to take the (very) slow path...
+	To, ok := to.(*Inventory)
+	if !ok {
+		i.Disable(t)
+		i.RemoveDisabled(t)
+		to.AddDisabled(t)
+		to.Enable(t)
+		return
+	}
+
 	n := FindNarrative(t).Found()
 	p := FindPlayer(t).Found()
 	l := FindLocate(t)
@@ -176,20 +187,8 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 
 ADD:
 
-	To, ok := to.(*Inventory)
-
 	if to == nil {
 		goto UPDATE
-	}
-
-	// If to is not an actual *Inventory we can't manipulate contents so have to
-	// take the (very) slow path...
-	if !ok {
-		i.Disable(t)
-		i.RemoveDisabled(t)
-		to.AddDisabled(t)
-		to.Enable(t)
-		return
 	}
 
 	// If Thing added was a Narrative move it to the front of the slice
