@@ -144,7 +144,6 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	}
 
 	n := FindNarrative(t).Found()
-	p := FindPlayer(t).Found()
 	found := false
 
 	for j, c := range i.contents {
@@ -162,16 +161,6 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 				i.contents = append(make([]has.Thing, 0, l), i.contents...)
 			}
 
-			// TODO: Need to check for players or mobiles
-			if p {
-				i.playerCount--
-			}
-
-			// If Thing removed was a Narrative adjust Narrative/Thing split
-			if n {
-				i.split--
-			}
-
 			found = true
 			break
 		}
@@ -187,6 +176,7 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 		to.contents = append(to.contents, nil)
 		copy(to.contents[1:], to.contents[0:])
 		to.contents[0] = t
+		i.split--
 		to.split++
 	}
 
@@ -196,7 +186,8 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	}
 
 	// TODO: Need to check for players or mobiles
-	if p {
+	if FindPlayer(t).Found() {
+		i.playerCount--
 		to.playerCount++
 	}
 
