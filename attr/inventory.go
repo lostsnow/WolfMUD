@@ -288,7 +288,23 @@ func (i *Inventory) Enable(t has.Thing) {
 			copy(i.disabled[j:], i.disabled[j+1:])
 			i.disabled[len(i.disabled)-1] = nil
 			i.disabled = i.disabled[:len(i.disabled)-1]
-			i.Add(t)
+
+			// If Thing added was a Narrative move it to the front of the slice and
+			// adjust the Narrative/Thing split. If Thing added not a Narrative just
+			// append it to the end of the slice
+			if FindNarrative(t).Found() {
+				i.contents = append(i.contents, nil)
+				copy(i.contents[1:], i.contents[0:])
+				i.contents[0] = t
+				i.split++
+			} else {
+				i.contents = append(i.contents, t)
+			}
+
+			if FindPlayer(t).Found() {
+				i.playerCount++
+			}
+
 			return
 		}
 	}
