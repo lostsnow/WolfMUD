@@ -206,14 +206,6 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	// Update Where attribute on Thing with 'to' Inventory
 	FindLocate(t).SetWhere(to)
 
-	// If Thing is not a player but is moved from one Inventory to another and
-	// does not end up being carried then register Thing for cleanup as it's now
-	// just left laying around. This has to be checked after the Locate attribute
-	// has been updated so we know the final location.
-	if !p && !to.Carried() {
-		FindCleanup(t).Cleanup()
-	}
-
 	return
 }
 

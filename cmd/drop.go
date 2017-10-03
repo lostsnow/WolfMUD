@@ -60,6 +60,10 @@ func (drop) process(s *state) {
 	// Move the item from our inventory to our location
 	from.Move(what, s.where)
 
+	// As the Thing is now just laying on the ground check if it should register
+	// for clean up
+	attr.FindCleanup(what).Cleanup()
+
 	who := attr.FindName(s.actor).Name("Someone")
 
 	s.msg.Actor.SendGood("You drop ", name, ".")

@@ -99,6 +99,12 @@ func (put) process(s *state) {
 	// Remove item from where it is and put it in the container
 	tWhere.Move(tWhat, cWhere)
 
+	// If a Thing is not put in a carried container the Thing is now just laying
+	// around so check if it should register for clean up
+	if !cWhere.Carried() {
+		attr.FindCleanup(tWhat).Cleanup()
+	}
+
 	s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
 
 	s.msg.Observer.SendInfo("You see ", who, " put something into ", cName, ".")
