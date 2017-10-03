@@ -17,9 +17,6 @@ type Inventory interface {
 	Attribute
 	sync.Locker
 
-	// Add puts a Thing into the Inventory.
-	Add(Thing)
-
 	// Contents returns a []Thing representing the contents of the Inventory.
 	Contents() []Thing
 

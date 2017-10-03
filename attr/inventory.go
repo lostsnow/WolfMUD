@@ -123,15 +123,6 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Add puts a Thing into an Inventory. If the Thing does not have a Locate
-// attribute one will be added automatically, otherwise the existing Locate
-// attribute will be updated.
-func (i *Inventory) Add(t has.Thing) {
-	if i != nil {
-		(*Inventory)(nil).Move(t, i)
-	}
-}
-
 // Move removes a Thing from one Inventory and puts it into another Inventory.
 // After the move the Thing's Locate attribute will be updated or one added if
 // missing.
