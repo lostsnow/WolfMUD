@@ -240,7 +240,9 @@ UPDATE:
 }
 
 // AddDisabled adds a Thing to an Inventory marking at as being initially out
-// of play.
+// of play. The Locate attribute of the Thing will be updated to reference the
+// Inventory the Thing is put into. If the Thing does not have a Locate
+// attribute one will be added.
 //
 //  TODO: AddDisable is only required because if we use Inventory.Add followed
 //  by an Inventory.Disable the Add would trigger events and loop. This needs
@@ -250,7 +252,13 @@ UPDATE:
 //  from Inventory to Inventory.
 func (i *Inventory) AddDisabled(t has.Thing) {
 	i.disabled = append(i.disabled, t)
-	FindLocate(t).SetWhere(i)
+
+	// If Locate attribute found update it, otherwise add a new one
+	if l := FindLocate(t); l.Found() {
+		l.SetWhere(i)
+		return
+	}
+	t.Add(NewLocate(i))
 }
 
 // RemoveDisabled takes a disabled Thing from an Inventory.
