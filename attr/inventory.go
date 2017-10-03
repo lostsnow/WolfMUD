@@ -123,10 +123,10 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Move removes a Thing from one Inventory and puts it into another Inventory.
-// After the move the Thing's Locate attribute will be updated or one added if
-// missing.
-func (i *Inventory) Move(t has.Thing, to has.Inventory) {
+// Move removes a Thing from the receiver Inventory and puts it into the
+// 'where' Inventory. After the move the Thing's Locate attribute will be
+// updated to reflect the new Inventory it is in.
+func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 
 	if t == nil {
 		return
@@ -134,7 +134,7 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 
 	// If where to move to is not an actual *Inventory we can't manipulate the
 	// contents directly and so have to take the (very) slow path...
-	To, ok := to.(*Inventory)
+	to, ok := where.(*Inventory)
 	if !ok {
 		i.Disable(t)
 		i.RemoveDisabled(t)
@@ -183,20 +183,20 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 	// If Thing added was a Narrative move it to the front of the slice
 	// and adjust the Narrative/Thing split.
 	if n {
-		To.contents = append(To.contents, nil)
-		copy(To.contents[1:], To.contents[0:])
-		To.contents[0] = t
-		To.split++
+		to.contents = append(to.contents, nil)
+		copy(to.contents[1:], to.contents[0:])
+		to.contents[0] = t
+		to.split++
 	}
 
 	// If Thing added not a Narrative just append it to the end of the slice
 	if !n {
-		To.contents = append(To.contents, t)
+		to.contents = append(to.contents, t)
 	}
 
 	// TODO: Need to check for players or mobiles
 	if p {
-		To.playerCount++
+		to.playerCount++
 	}
 
 	if !p {
@@ -204,13 +204,13 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) {
 	}
 
 	// Update Where attribute on Thing with 'to' Inventory
-	FindLocate(t).SetWhere(To)
+	FindLocate(t).SetWhere(to)
 
 	// If Thing is not a player but is moved from one Inventory to another and
 	// does not end up being carried then register Thing for cleanup as it's now
 	// just left laying around. This has to be checked after the Locate attribute
 	// has been updated so we know the final location.
-	if !p && !To.Carried() {
+	if !p && !to.Carried() {
 		FindCleanup(t).Cleanup()
 	}
 
