@@ -291,9 +291,16 @@ func (i *Inventory) Enable(t has.Thing) {
 
 // Disable marks a Thing in an Inventory as being out of play.
 func (i *Inventory) Disable(t has.Thing) {
-	i.Remove(t)
-	i.disabled = append(i.disabled, t)
-	FindLocate(t).SetWhere(i)
+	for j, c := range i.contents {
+		if c == t {
+			copy(i.contents[j:], i.contents[j+1:])
+			i.contents[len(i.contents)-1] = nil
+			i.contents = i.contents[:len(i.contents)-1]
+			i.disabled = append(i.disabled, t)
+			FindLocate(t).SetWhere(i)
+			return
+		}
+	}
 }
 
 // Search returns the first Inventory Thing that matches the alias passed. If
