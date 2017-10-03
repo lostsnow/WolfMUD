@@ -131,13 +131,6 @@ func (i *Inventory) Add(t has.Thing) {
 	}
 }
 
-// Remove takes a Thing from an Inventory.
-func (i *Inventory) Remove(t has.Thing) {
-	if i != nil {
-		i.Move(t, nil)
-	}
-}
-
 // Move removes a Thing from one Inventory and puts it into another Inventory.
 // After the move the Thing's Locate attribute will be updated or one added if
 // missing.

@@ -45,9 +45,6 @@ type Inventory interface {
 	// LockID returns the unique locking ID for an Inventory.
 	LockID() uint64
 
-	// Remove takes a Thing out of an Inventory.
-	Remove(Thing)
-
 	// Search returns the first Thing in an Inventory that has a matching Alias.
 	// If there are no matches nil is returned.
 	Search(alias string) Thing
