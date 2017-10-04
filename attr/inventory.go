@@ -143,8 +143,7 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 		return
 	}
 
-	n := FindNarrative(t).Found()
-	found := false
+	found := -1
 
 	for j, c := range i.contents {
 		if c == t {
@@ -161,27 +160,26 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 				i.contents = append(make([]has.Thing, 0, l), i.contents...)
 			}
 
-			found = true
+			found = j
 			break
 		}
 	}
 
-	if !found {
+	// If Thing to move not found just abort the move
+	if found == -1 {
 		return
 	}
 
-	// If Thing added was a Narrative move it to the front of the slice
-	// and adjust the Narrative/Thing split.
-	if n {
+	// If Thing added was a Narrative move it to the front of the slice and
+	// adjust the Narrative/Thing split. Otherwsie just append Thing to the end
+	// of the slice.
+	if found < i.split {
 		to.contents = append(to.contents, nil)
 		copy(to.contents[1:], to.contents[0:])
 		to.contents[0] = t
 		i.split--
 		to.split++
-	}
-
-	// If Thing added not a Narrative just append it to the end of the slice
-	if !n {
+	} else {
 		to.contents = append(to.contents, t)
 	}
 
