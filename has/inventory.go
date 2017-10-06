@@ -60,12 +60,12 @@ type Inventory interface {
 	// Disabled returns a slice of Thing for items that are out of play (disabled).
 	Disabled() []Thing
 
-	// AddDisabled adds a Thing to an Inventory and marks it as being initially
-	// out of play (disabled).
-	AddDisabled(Thing)
+	// Add puts a Thing into an Inventory and marks it as being initially out of
+	// play (disabled).
+	Add(Thing)
 
-	// RemoveDisabled takes a disabled Thing out of an Inventory.
-	RemoveDisabled(Thing)
+	// Remove takes a disabled Thing out of an Inventory.
+	Remove(Thing)
 
 	// Disable marks a Thing in an Inventory as being out of play.
 	Disable(Thing)

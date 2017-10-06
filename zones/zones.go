@@ -273,7 +273,7 @@ func (z *zone) linkupStoreInventory() {
 				continue
 			}
 			i := attr.FindInventory(s)
-			i.AddDisabled(t.Thing)
+			i.Add(t.Thing)
 			i.Enable(t.Thing)
 		}
 	}
@@ -304,7 +304,7 @@ func (z *zone) linkupStoreLocation() {
 				s.Add(attr.NewInventory(s.Thing))
 				continue
 			}
-			i.AddDisabled(s.Thing)
+			i.Add(s.Thing)
 			i.Enable(s.Thing)
 		}
 	}
@@ -327,7 +327,7 @@ func (z *zone) linkupInventory() {
 				continue
 			}
 			t := s.Copy()
-			i.AddDisabled(t)
+			i.Add(t)
 			i.Enable(t)
 			t.SetOrigins()
 			attr.FindAction(t).Action()
@@ -355,7 +355,7 @@ func (z *zone) linkupLocation() {
 			}
 			t := s.Copy()
 			i := attr.FindInventory(l)
-			i.AddDisabled(t)
+			i.Add(t)
 			i.Enable(t)
 			t.SetOrigins()
 			attr.FindAction(t).Action()

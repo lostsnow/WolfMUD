@@ -151,7 +151,7 @@ func (r *Reset) Spawn() has.Thing {
 	// is the original that respawns. Then add copy back into the world.
 	l := FindLocate(c)
 	l.SetOrigin(nil)
-	l.Where().AddDisabled(c)
+	l.Where().Add(c)
 	l.Where().Enable(c)
 
 	return c

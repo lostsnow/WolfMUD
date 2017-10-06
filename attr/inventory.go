@@ -79,7 +79,7 @@ func NewInventory(t ...has.Thing) *Inventory {
 	}
 
 	for _, t := range t {
-		i.AddDisabled(t)
+		i.Add(t)
 		i.Enable(t)
 	}
 
@@ -137,8 +137,8 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	to, ok := where.(*Inventory)
 	if !ok {
 		i.Disable(t)
-		i.RemoveDisabled(t)
-		to.AddDisabled(t)
+		i.Remove(t)
+		to.Add(t)
 		to.Enable(t)
 		return
 	}
@@ -195,18 +195,12 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	return
 }
 
-// AddDisabled adds a Thing to an Inventory marking at as being initially out
+// Add puts a Thing into an Inventory marking at as being initially out
 // of play. The Locate attribute of the Thing will be updated to reference the
 // Inventory the Thing is put into. If the Thing does not have a Locate
-// attribute one will be added.
-//
-//  TODO: AddDisable is only required because if we use Inventory.Add followed
-//  by an Inventory.Disable the Add would trigger events and loop. This needs
-//  to be cleaned up, possibly by making Add/Remove act on the disabled slice
-//  only. This would mean a Thing can only be added to or removed from the
-//  world when disabled and once in the world and enabled can only be moved
-//  from Inventory to Inventory.
-func (i *Inventory) AddDisabled(t has.Thing) {
+// attribute one will be added. The Thing may be enabled and put in play by
+// calling Enable.
+func (i *Inventory) Add(t has.Thing) {
 	i.disabled = append(i.disabled, t)
 
 	// If Locate attribute found update it, otherwise add a new one
@@ -217,12 +211,12 @@ func (i *Inventory) AddDisabled(t has.Thing) {
 	t.Add(NewLocate(i))
 }
 
-// RemoveDisabled takes a disabled Thing from an Inventory.
+// Remove takes a disabled Thing out of an Inventory.
 //
 // NOTE: Once the Thing is removed it will no longer be under a lock. Ideally
 // once a Thing is removed Thing.Free should be called to release the Thing for
 // garbage collection.
-func (i *Inventory) RemoveDisabled(t has.Thing) {
+func (i *Inventory) Remove(t has.Thing) {
 	for j, a := range i.disabled {
 		if a == t {
 			copy(i.disabled[j:], i.disabled[j+1:])
@@ -437,11 +431,11 @@ func (i *Inventory) Copy() has.Attribute {
 	ni := NewInventory()
 	for _, a := range i.contents {
 		c := a.Copy()
-		ni.AddDisabled(c)
+		ni.Add(c)
 		ni.Enable(c)
 	}
 	for _, a := range i.disabled {
-		ni.AddDisabled(a.Copy())
+		ni.Add(a.Copy())
 	}
 	return ni
 }
