@@ -72,7 +72,6 @@ func Load() {
 	for _, path := range zoneFiles() {
 		if z := loadZone(path); len(z.locations)+len(z.store) > 0 {
 			zones[z.ref] = z
-			continue
 		}
 	}
 
