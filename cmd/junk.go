@@ -122,25 +122,22 @@ func (j junk) dispose(t has.Thing) {
 	}
 
 	l := attr.FindLocate(t)
+	w := l.Where()
 	o := l.Origin()
 	r := attr.FindReset(t)
 
+	attr.FindAction(t).Abort()
+
 	// If Thing has no reset or origin remove it and free for garbage collection
 	if !r.Found() || o == nil {
-		l.Where().Remove(t)
+		w.Disable(t)
+		w.Remove(t)
 		t.Free()
 		return
 	}
 
-	// Move Thing to its origin ready for reset. If Thing is spawnable and we get
-	// a copy of the Thing we have to dispose of the copy. In which case the
-	// original will already have been disabled and registered for a reset.
-	c := l.Where().Move(t, o)
-	if c.UID() != t.UID() {
-		j.dispose(c)
-		return
-	}
-
+	// Move Thing to its origin and register for a reset
+	w.Move(t, o)
 	o.Disable(t)
 	r.Reset()
 

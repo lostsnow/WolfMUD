@@ -58,10 +58,14 @@ func (drop) process(s *state) {
 	name = attr.FindName(what).Name(name)
 
 	// Move the item from our inventory to our location
-	if from.Move(what, s.where) == nil {
-		s.msg.Actor.SendBad("You cannot drop ", name, ".")
-		return
-	}
+	from.Move(what, s.where)
+
+	// As the Thing is now just laying on the ground check if it should register
+	// for clean up
+	attr.FindCleanup(what).Cleanup()
+
+	// Re-enable actions if available
+	attr.FindAction(what).Action()
 
 	who := attr.FindName(s.actor).Name("Someone")
 

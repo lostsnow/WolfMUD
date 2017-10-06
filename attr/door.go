@@ -183,8 +183,9 @@ func (d *Door) OtherSide() {
 		return
 	}
 
-	// Add 'other side' to opposing location's inventory
+	// Add 'other side' to opposing location's inventory and enable it
 	i.Add(t)
+	i.Enable(t)
 
 }
 
