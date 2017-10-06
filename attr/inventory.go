@@ -228,6 +228,11 @@ func (i *Inventory) RemoveDisabled(t has.Thing) {
 			copy(i.disabled[j:], i.disabled[j+1:])
 			i.disabled[len(i.disabled)-1] = nil
 			i.disabled = i.disabled[:len(i.disabled)-1]
+
+			if len(i.disabled) == 0 && cap(i.disabled) != 0 {
+				i.disabled = []has.Thing{}
+			}
+
 			return
 		}
 	}
