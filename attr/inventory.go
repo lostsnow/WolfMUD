@@ -29,7 +29,7 @@ func init() {
 // NOTE: The contents slice is split into two parts. Things with a Narrative
 // attribute are added to the beginning of the slice. All other Things are
 // appended to the end of the slice. Which items are narrative and which are
-// not is tracked by split:
+// not is automatically tracked by split:
 //
 //	narratives := contents[:split]
 //	other := contents[split:]
@@ -69,7 +69,8 @@ var (
 )
 
 // NewInventory returns a new Inventory attribute initialised with the
-// specified Things as initial contents.
+// specified Things as initial contents. All of the Thing added will be enabled
+// and in play - although the Thing itself may not be enabled and in play.
 func NewInventory(t ...has.Thing) *Inventory {
 	i := &Inventory{
 		Attribute: Attribute{},
@@ -123,8 +124,8 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Move removes a Thing from the receiver Inventory and puts it into the
-// 'where' Inventory. After the move the Thing's Locate attribute will be
+// Move removes an enabled Thing from the receiver Inventory and puts it into
+// the 'where' Inventory. After the move the Thing's Locate attribute will be
 // updated to reflect the new Inventory it is in.
 func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 
