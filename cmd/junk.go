@@ -127,6 +127,7 @@ func (j junk) dispose(t has.Thing) {
 	r := attr.FindReset(t)
 
 	attr.FindAction(t).Abort()
+	attr.FindCleanup(t).Abort()
 
 	// If Thing has no reset or origin remove it and free for garbage collection
 	if !r.Found() || o == nil {
