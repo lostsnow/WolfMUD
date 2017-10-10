@@ -116,6 +116,19 @@ func (r *Reset) Reset() {
 	r.Cancel = event.Queue(r.Parent(), "$RESET", r.after, r.jitter)
 }
 
+// Abort causes an outstanding reset event to be cancelled for the parent
+// Thing.
+func (r *Reset) Abort() {
+	if r == nil {
+		return
+	}
+
+	if r.Cancel != nil {
+		close(r.Cancel)
+		r.Cancel = nil
+	}
+}
+
 // Spawn returns a non-spawnable copy of a Thing and schedules the original
 // Thing to reset if Reset.spawn is true. Otherwise it returns the original
 // Thing.
