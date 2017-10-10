@@ -87,6 +87,7 @@ func (reset) process(s *state) {
 		s.msg.Observers[origin].SendInfo(def)
 	}
 
+	attr.FindReset(s.actor).Abort()
 	origin.Enable(s.actor)
 	attr.FindAction(s.actor).Action()
 
