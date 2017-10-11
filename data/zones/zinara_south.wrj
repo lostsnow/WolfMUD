@@ -132,7 +132,7 @@ south, either way you see just more forest.
     Alias: CAVE, TRACK
 Inventory: N1
     Exits: E→L10
-ZoneLinks: S→
+ZoneLinks: S→ZINARACAVES:L1
 
 You are on a small track leading through the forest. The track goes east into
 the forest and south into a small cave partially hidden by the undergrowth.
