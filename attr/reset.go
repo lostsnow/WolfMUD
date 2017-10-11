@@ -11,7 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for Reset attribute.
@@ -73,15 +73,15 @@ func (r *Reset) Found() bool {
 // Unmarshal is used to turn the passed data into a new Reset attribute.
 func (*Reset) Unmarshal(data []byte) has.Attribute {
 	r := NewReset(0, 0, false)
-	for _, pairs := range recordjar.Decode.PairList(data) {
+	for _, pairs := range decode.PairList(data) {
 		field, data := pairs[0], []byte(pairs[1])
 		switch field {
 		case "AFTER":
-			r.after = recordjar.Decode.Duration(data)
+			r.after = decode.Duration(data)
 		case "JITTER":
-			r.jitter = recordjar.Decode.Duration(data)
+			r.jitter = decode.Duration(data)
 		case "SPAWN":
-			r.spawn = recordjar.Decode.Boolean(data)
+			r.spawn = decode.Boolean(data)
 		}
 	}
 	return r

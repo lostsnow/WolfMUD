@@ -12,7 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for Door attribute.
@@ -210,7 +210,7 @@ func (n *Door) Found() bool {
 func (*Door) Unmarshal(data []byte) has.Attribute {
 
 	door := NewDoor(0, false, time.Duration(0), time.Duration(0))
-	pairs := recordjar.Decode.PairList(data)
+	pairs := decode.PairList(data)
 
 	for _, pair := range pairs {
 		field, sdata, bdata := pair[0], pair[1], []byte(pair[1])
@@ -219,11 +219,11 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 			e := NewExits()
 			door.direction, _ = e.NormalizeDirection(sdata)
 		case "RESET":
-			door.reset = recordjar.Decode.Duration(bdata)
+			door.reset = decode.Duration(bdata)
 		case "JITTER":
-			door.jitter = recordjar.Decode.Duration(bdata)
+			door.jitter = decode.Duration(bdata)
 		case "OPEN":
-			door.initOpen = recordjar.Decode.Boolean(bdata)
+			door.initOpen = decode.Boolean(bdata)
 			door.open = door.initOpen
 		default:
 			log.Printf("Door.unmarshal unknown attribute: %q: %q", field, sdata)

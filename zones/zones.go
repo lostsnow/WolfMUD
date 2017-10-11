@@ -28,6 +28,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // zone represents a self contained collection of Things. The Things are split
@@ -133,10 +134,10 @@ func loadZone(path string) zone {
 
 	// check if the first record is a zone record
 	if name, ok := jar[0]["ZONE"]; ok {
-		z.name = recordjar.Decode.String(name)
+		z.name = decode.String(name)
 
 		if ref, ok := jar[0]["REF"]; ok {
-			z.ref = recordjar.Decode.Keyword(ref)
+			z.ref = decode.Keyword(ref)
 		}
 
 		// Zone record finished with so dispose of it
@@ -161,7 +162,7 @@ func loadZone(path string) zone {
 			log.Printf("[Record %d]: Not added to zone, no reference found", i)
 			continue
 		}
-		ref := recordjar.Decode.Keyword(record["REF"])
+		ref := decode.Keyword(record["REF"])
 
 		t := attr.NewThing()
 		t.Unmarshal(i, record)
@@ -231,7 +232,7 @@ func (z *zone) linkupExits() {
 	log.Printf("  Linking exits")
 	for lref, l := range z.locations {
 		from := attr.FindExits(l.Thing)
-		for _, pair := range recordjar.Decode.PairList(l.Record["EXITS"]) {
+		for _, pair := range decode.PairList(l.Record["EXITS"]) {
 
 			if pair[1] == "" { // Ignore incomplete links
 				continue
@@ -259,7 +260,7 @@ func (z *zone) linkupExits() {
 func (z *zone) linkupStoreInventory() {
 	log.Printf("  Linking temporary store inventories")
 	for sref, s := range z.store {
-		for _, tref := range recordjar.Decode.KeywordList(s.Record["INVENTORY"]) {
+		for _, tref := range decode.KeywordList(s.Record["INVENTORY"]) {
 			t, ok := z.store[tref]
 			if !ok {
 				if _, ok = z.locations[tref]; !ok {
@@ -286,7 +287,7 @@ func (z *zone) linkupStoreInventory() {
 func (z *zone) linkupStoreLocation() {
 	log.Printf("  Linking temporary store locations")
 	for sref, s := range z.store {
-		for _, tref := range recordjar.Decode.KeywordList(s.Record["LOCATION"]) {
+		for _, tref := range decode.KeywordList(s.Record["LOCATION"]) {
 			t, ok := z.store[tref]
 			if !ok {
 				if _, ok := z.locations[tref]; !ok {
@@ -319,7 +320,7 @@ func (z *zone) linkupInventory() {
 	log.Printf("  Copying (Inventory)")
 	for _, l := range z.locations {
 		i := attr.FindInventory(l)
-		for _, iref := range recordjar.Decode.KeywordList(l.Record["INVENTORY"]) {
+		for _, iref := range decode.KeywordList(l.Record["INVENTORY"]) {
 			s, ok := z.store[iref]
 			if !ok {
 				log.Printf("Invalid Inventory reference: ref not found %s", iref)
@@ -344,7 +345,7 @@ func (z *zone) linkupInventory() {
 func (z *zone) linkupLocation() {
 	log.Printf("  Copying (Location)")
 	for _, s := range z.store {
-		for _, ref := range recordjar.Decode.KeywordList(s.Record["LOCATION"]) {
+		for _, ref := range decode.KeywordList(s.Record["LOCATION"]) {
 			l, ok := z.locations[ref]
 			if !ok {
 				if _, ok = z.store[ref]; !ok {
@@ -470,7 +471,7 @@ func linkupZones() {
 			if !ok {
 				continue
 			}
-			for _, pair := range recordjar.Decode.PairList(links) {
+			for _, pair := range decode.PairList(links) {
 
 				if pair[1] == "" { // Ignore incomplete link
 					continue
@@ -486,7 +487,7 @@ func linkupZones() {
 				}
 
 				// split link into zone ref and location ref pairs we are linking to
-				for _, pairs := range recordjar.Decode.PairList([]byte(link)) {
+				for _, pairs := range decode.PairList([]byte(link)) {
 
 					if pairs[1] == "" { // Ignore incomplete link
 						continue

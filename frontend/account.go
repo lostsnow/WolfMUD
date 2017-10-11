@@ -22,6 +22,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -230,21 +231,21 @@ func (a *account) write() {
 	// Create account record
 	hash := base64.URLEncoding.EncodeToString(a.password[:])
 	rec := recordjar.Record{
-		"ACCOUNT":  recordjar.Encode.String(a.account),
-		"PASSWORD": recordjar.Encode.String(hash),
-		"SALT":     recordjar.Encode.Bytes(a.salt),
-		"CREATED":  recordjar.Encode.DateTime(time.Now()),
+		"ACCOUNT":  encode.String(a.account),
+		"PASSWORD": encode.String(hash),
+		"SALT":     encode.Bytes(a.salt),
+		"CREATED":  encode.DateTime(time.Now()),
 	}
 	jar = append(jar, rec)
 
 	// Create player record
 	rec = recordjar.Record{
-		"NAME":        recordjar.Encode.String(a.name),
-		"ALIAS":       recordjar.Encode.Keyword(a.name),
-		"GENDER":      recordjar.Encode.Keyword(a.gender),
-		"REF":         recordjar.Encode.Keyword("R1"),
-		"INVENTORY":   recordjar.Encode.KeywordList([]string{}),
-		"DESCRIPTION": recordjar.Encode.String("This is an adventurer, just like you!"),
+		"NAME":        encode.String(a.name),
+		"ALIAS":       encode.Keyword(a.name),
+		"GENDER":      encode.Keyword(a.gender),
+		"REF":         encode.Keyword("R1"),
+		"INVENTORY":   encode.KeywordList([]string{}),
+		"DESCRIPTION": encode.String("This is an adventurer, just like you!"),
 	}
 	jar = append(jar, rec)
 

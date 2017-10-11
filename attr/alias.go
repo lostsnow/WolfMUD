@@ -11,7 +11,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for Alias attribute.
@@ -110,7 +110,7 @@ func (a *Alias) Found() bool {
 
 // Unmarshal is used to turn the passed data into a new Alias attribute.
 func (*Alias) Unmarshal(data []byte) has.Attribute {
-	return NewAlias(recordjar.Decode.KeywordList(data)...)
+	return NewAlias(decode.KeywordList(data)...)
 }
 
 func (a *Alias) Dump() []string {
