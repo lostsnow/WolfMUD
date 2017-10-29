@@ -121,7 +121,9 @@ func (take) process(s *state) {
 	attr.FindAction(tWhat).Abort()
 
 	// Check if item respawns when taken
-	tWhat = attr.FindReset(tWhat).Spawn()
+	if s := attr.FindReset(tWhat).Spawn(); s != nil {
+		tWhat = s
+	}
 
 	// Move the item from container to our inventory
 	cWhere.Move(tWhat, tWhere)

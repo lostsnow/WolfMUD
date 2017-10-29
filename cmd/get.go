@@ -75,7 +75,9 @@ func (get) process(s *state) {
 	attr.FindAction(what).Abort()
 
 	// Check if item respawns when picked up
-	what = attr.FindReset(what).Spawn()
+	if s := attr.FindReset(what).Spawn(); s != nil {
+		what = s
+	}
 
 	// Move the item from our location to our inventory
 	s.where.Move(what, to)

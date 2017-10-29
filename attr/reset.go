@@ -130,18 +130,12 @@ func (r *Reset) Abort() {
 }
 
 // Spawn returns a non-spawnable copy of a Thing and schedules the original
-// Thing to reset if Reset.spawn is true. Otherwise it returns the original
-// Thing.
+// Thing to reset if Reset.spawn is true. Otherwise it returns nil.
 func (r *Reset) Spawn() has.Thing {
 
-	// If not spawnable just exit
-	if r == nil {
+	// If no Reset or not spawnable return nil
+	if r == nil || !r.spawn {
 		return nil
-	}
-
-	// If not spawnable return original thing
-	if !r.spawn {
-		return r.Parent()
 	}
 
 	// Make a copy of original Thing, update origins of the copy to point to any
