@@ -337,6 +337,8 @@ This is a small basin fixed to the wall at a height of about 4 foot.
       Ref: L10N3
      Name: some water
   Aliases: WATER
+   Vetoes: TAKE→You try to take some water from the basin but it flows through
+           your fingers.
 
 This water is slightly pink in colour, but seems to be fresh.
 %%
