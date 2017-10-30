@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -127,49 +128,49 @@ func init() {
 
 		// Main server settings
 		case "SERVER.HOST":
-			Server.Host = recordjar.Decode.String(data)
+			Server.Host = decode.String(data)
 		case "SERVER.PORT":
-			Server.Port = recordjar.Decode.String(data)
+			Server.Port = decode.String(data)
 		case "SERVER.IDLETIMEOUT":
-			Server.IdleTimeout = recordjar.Decode.Duration(data)
+			Server.IdleTimeout = decode.Duration(data)
 		case "SERVER.MAXPLAYERS":
-			Server.MaxPlayers = recordjar.Decode.Integer(data)
+			Server.MaxPlayers = decode.Integer(data)
 		case "SERVER.GREETING":
-			Server.Greeting = text.Colorize(recordjar.Decode.Bytes(data))
+			Server.Greeting = text.Colorize(decode.Bytes(data))
 
 		// Stats settings
 		case "STATS.RATE":
-			Stats.Rate = recordjar.Decode.Duration(data)
+			Stats.Rate = decode.Duration(data)
 		case "STATS.GC":
-			Stats.GC = recordjar.Decode.Boolean(data)
+			Stats.GC = decode.Boolean(data)
 
 		// Inventory settings
 		case "INVENTORY.COMPACT":
-			Inventory.Compact = recordjar.Decode.Integer(data)
+			Inventory.Compact = decode.Integer(data)
 		case "INVENTORY.CROWDSIZE":
-			Inventory.CrowdSize = recordjar.Decode.Integer(data)
+			Inventory.CrowdSize = decode.Integer(data)
 
 		// Login settings
 		case "LOGIN.ACCOUNTLENGTH":
-			Login.AccountLength = recordjar.Decode.Integer(data)
+			Login.AccountLength = decode.Integer(data)
 		case "LOGIN.PASSWORDLENGTH":
-			Login.PasswordLength = recordjar.Decode.Integer(data)
+			Login.PasswordLength = decode.Integer(data)
 		case "LOGIN.SALTLENGTH":
-			Login.SaltLength = recordjar.Decode.Integer(data)
+			Login.SaltLength = decode.Integer(data)
 
 		// Debug settings
 		case "DEBUG.LONGLOG":
-			Debug.LongLog = recordjar.Decode.Boolean(data)
+			Debug.LongLog = decode.Boolean(data)
 		case "DEBUG.PANIC":
-			Debug.Panic = recordjar.Decode.Boolean(data)
+			Debug.Panic = decode.Boolean(data)
 		case "DEBUG.ALLOWDUMP":
-			Debug.AllowDump = recordjar.Decode.Boolean(data)
+			Debug.AllowDump = decode.Boolean(data)
 		case "DEBUG.ALLOWDEBUG":
-			Debug.AllowDebug = recordjar.Decode.Boolean(data)
+			Debug.AllowDebug = decode.Boolean(data)
 		case "DEBUG.EVENTS":
-			Debug.Events = recordjar.Decode.Boolean(data)
+			Debug.Events = decode.Boolean(data)
 		case "DEBUG.THINGS":
-			Debug.Things = recordjar.Decode.Boolean(data)
+			Debug.Things = decode.Boolean(data)
 
 		// Unknow setting
 		default:
