@@ -273,8 +273,10 @@ func (z *zone) linkupStoreInventory() {
 				continue
 			}
 			i := attr.FindInventory(s)
+			i.Lock()
 			i.Add(t.Thing)
 			i.Enable(t.Thing)
+			i.Unlock()
 		}
 	}
 }
@@ -301,11 +303,13 @@ func (z *zone) linkupStoreLocation() {
 			}
 			i := attr.FindInventory(t)
 			if !i.Found() {
-				s.Add(attr.NewInventory(s.Thing))
-				continue
+				i = attr.NewInventory()
+				s.Add(i)
 			}
+			i.Lock()
 			i.Add(s.Thing)
 			i.Enable(s.Thing)
+			i.Unlock()
 		}
 	}
 }
@@ -320,6 +324,7 @@ func (z *zone) linkupInventory() {
 	log.Printf("  Copying (Inventory)")
 	for _, l := range z.locations {
 		i := attr.FindInventory(l)
+		i.Lock()
 		for _, iref := range decode.KeywordList(l.Record["INVENTORY"]) {
 			s, ok := z.store[iref]
 			if !ok {
@@ -332,6 +337,7 @@ func (z *zone) linkupInventory() {
 			t.SetOrigins()
 			attr.FindAction(t).Action()
 		}
+		i.Unlock()
 	}
 }
 
@@ -355,10 +361,12 @@ func (z *zone) linkupLocation() {
 			}
 			t := s.Copy()
 			i := attr.FindInventory(l)
+			i.Lock()
 			i.Add(t)
 			i.Enable(t)
 			t.SetOrigins()
 			attr.FindAction(t).Action()
+			i.Unlock()
 		}
 	}
 }
@@ -411,11 +419,13 @@ func checkDoorsHaveOtherSide() {
 	for _, z := range zones {
 		for _, l := range z.locations {
 			i := attr.FindInventory(l)
+			i.Lock()
 			for _, t := range append(i.Contents(), i.Narratives()...) {
 				if d := attr.FindDoor(t); d.Found() {
 					d.OtherSide()
 				}
 			}
+			i.Unlock()
 		}
 	}
 }
