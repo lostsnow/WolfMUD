@@ -11,7 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for Cleanup attribute.
@@ -86,13 +86,13 @@ func (c *Cleanup) Found() bool {
 // Unmarshal is used to turn the passed data into a new Cleanup attribute.
 func (*Cleanup) Unmarshal(data []byte) has.Attribute {
 	c := NewCleanup(0, 0)
-	for _, pairs := range recordjar.Decode.PairList(data) {
+	for _, pairs := range decode.PairList(data) {
 		field, data := pairs[0], []byte(pairs[1])
 		switch field {
 		case "AFTER":
-			c.after = recordjar.Decode.Duration(data)
+			c.after = decode.Duration(data)
 		case "JITTER":
-			c.jitter = recordjar.Decode.Duration(data)
+			c.jitter = decode.Duration(data)
 		}
 	}
 	return c

@@ -51,9 +51,10 @@ type Exits interface {
 	Unlink(direction byte)
 
 	// Within returns all location Inventories within the given number of moves
-	// from the receiver's location. The inventories are returned as a slice of
-	// Inventory slices. The first slice is the number of moves from the current
-	// location. The second slice is a list of the Inventory reachable for that
-	// number of moves.
-	Within(moves int) [][]Inventory
+	// from the given from Inventory. The inventories are returned as a slice of
+	// Inventory slices. The first slice index represents the number of moves.
+	// This indexes a slice that contains all locations within that number of
+	// moves. The first index, representing 0 moves, is always the current
+	// location.
+	Within(moves int, from Inventory) [][]Inventory
 }

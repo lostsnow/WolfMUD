@@ -8,7 +8,7 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for OnReset attribute.
@@ -53,7 +53,7 @@ func (or *OnReset) Found() bool {
 
 // Unmarshal is used to turn the passed data into a new OnReset attribute.
 func (*OnReset) Unmarshal(data []byte) has.Attribute {
-	return NewOnReset(recordjar.Decode.String(data))
+	return NewOnReset(decode.String(data))
 }
 
 func (or *OnReset) Dump() []string {

@@ -15,6 +15,9 @@ type Reset interface {
 	// Reset causes the parent Thing to be scheduled for a reset.
 	Reset()
 
+	// Abort cancels any outstanding reset events.
+	Abort()
+
 	// Spawn returns a non-spawnable copy of the parent Thing and schedules the
 	// original to be respawned.
 	Spawn() Thing

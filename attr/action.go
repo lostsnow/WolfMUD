@@ -11,7 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for Action attribute.
@@ -64,13 +64,13 @@ func (a *Action) Found() bool {
 // Unmarshal is used to turn the passed data into a new Action attribute.
 func (*Action) Unmarshal(data []byte) has.Attribute {
 	a := NewAction(0, 0)
-	for _, pairs := range recordjar.Decode.PairList(data) {
+	for _, pairs := range decode.PairList(data) {
 		field, data := pairs[0], []byte(pairs[1])
 		switch field {
 		case "AFTER":
-			a.after = recordjar.Decode.Duration(data)
+			a.after = decode.Duration(data)
 		case "JITTER":
-			a.jitter = recordjar.Decode.Duration(data)
+			a.jitter = decode.Duration(data)
 		}
 	}
 	return a

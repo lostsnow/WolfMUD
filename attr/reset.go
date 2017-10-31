@@ -11,7 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Register marshaler for Reset attribute.
@@ -73,15 +73,15 @@ func (r *Reset) Found() bool {
 // Unmarshal is used to turn the passed data into a new Reset attribute.
 func (*Reset) Unmarshal(data []byte) has.Attribute {
 	r := NewReset(0, 0, false)
-	for _, pairs := range recordjar.Decode.PairList(data) {
+	for _, pairs := range decode.PairList(data) {
 		field, data := pairs[0], []byte(pairs[1])
 		switch field {
 		case "AFTER":
-			r.after = recordjar.Decode.Duration(data)
+			r.after = decode.Duration(data)
 		case "JITTER":
-			r.jitter = recordjar.Decode.Duration(data)
+			r.jitter = decode.Duration(data)
 		case "SPAWN":
-			r.spawn = recordjar.Decode.Boolean(data)
+			r.spawn = decode.Boolean(data)
 		}
 	}
 	return r
@@ -116,11 +116,24 @@ func (r *Reset) Reset() {
 	r.Cancel = event.Queue(r.Parent(), "$RESET", r.after, r.jitter)
 }
 
+// Abort causes an outstanding reset event to be cancelled for the parent
+// Thing.
+func (r *Reset) Abort() {
+	if r == nil {
+		return
+	}
+
+	if r.Cancel != nil {
+		close(r.Cancel)
+		r.Cancel = nil
+	}
+}
+
 // Spawn returns a non-spawnable copy of a Thing and schedules the original
-// Thing to reset if Reset.spawn is true. Otherwise it only returns nil.
+// Thing to reset if Reset.spawn is true. Otherwise it returns nil.
 func (r *Reset) Spawn() has.Thing {
 
-	// If not spawnable just exit
+	// If no Reset or not spawnable return nil
 	if r == nil || !r.spawn {
 		return nil
 	}
@@ -131,17 +144,22 @@ func (r *Reset) Spawn() has.Thing {
 	c := p.Copy()
 	c.SetOrigins()
 
-	// Add original Thing to Inventory disabled and register a reset for it
+	// Disable original Thing and register a reset for it
 	o := FindLocate(p).Origin()
-	o.AddDisabled(p)
+	o.Disable(p)
 	r.Reset()
 
-	// Remove reset attribute from copied Thing and set origin to nil so it will
-	// be disposed of when cleaned up as it is the original that respawns.
+	// Remove reset attribute from copied Thing
 	R := FindReset(c)
 	c.Remove(R)
 	R.Free()
-	FindLocate(c).SetOrigin(nil)
+
+	// Set origin of copy to nil so it will be disposed of when cleaned up as it
+	// is the original that respawns. Then add copy back into the world.
+	l := FindLocate(c)
+	l.SetOrigin(nil)
+	l.Where().Add(c)
+	l.Where().Enable(c)
 
 	return c
 }

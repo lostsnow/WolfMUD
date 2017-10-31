@@ -13,12 +13,14 @@ import (
 
 // Syntax: QUIT
 func init() {
-	AddHandler(Quit, "QUIT")
+	addHandler(quit{}, "QUIT")
 }
+
+type quit cmd
 
 // The Quit command acts as a hook for processing - such as cleanup - to be
 // done when a player quits the game.
-func Quit(s *state) {
+func (quit) process(s *state) {
 
 	who := attr.FindName(s.actor).Name("someone")
 
@@ -37,6 +39,7 @@ func Quit(s *state) {
 	// Remove the player from the world
 	if s.where != nil {
 		s.msg.Observer.SendInfo(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+		s.where.Disable(s.actor)
 		s.where.Remove(s.actor)
 	}
 

@@ -1,0 +1,392 @@
+// Copyright 2018 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included with
+// the source code.
+%%
+        Ref: ZINARACAVES
+       Zone: Caves near Zinara
+     Author: Andrew 'Diddymus' Rolfe
+
+This are the caves south of Zinara.
+%%
+        Ref: L1
+       Name: Entrance to caves
+    Aliases: ENTRANCE
+      Exits: S→L2
+  ZoneLinks: N→ZINARASOUTH:L13
+
+You have found the entrance to some caves. Heading south takes you into the
+caves. To the north a more plesant looking track runs off into the forest.
+%%
+      Ref: L2
+     Name: Tunnel into the caves
+  Aliases: TUNNEL
+    Exits: N→L1 S→L3
+
+You are in a low tunnel that slopes downwards into the caves. The occasional
+sound of dripping water echoes far off in the distance.
+%%
+      Ref: L3
+     Name: Small chamber
+  Aliases: CHAMBER
+    Exits: N→L2 E→L6 S→L4 W→L5
+Inventory: L3N1
+
+You are in a small domed underground chamber, the floor of which is covered in
+fine white sand. From here exits head off in all directions.
+%%
+      Ref: L4
+     Name: Passage
+  Aliases: PASSAGE
+    Exits: N→L3 S→L13
+
+You are in a small passage leading through solid rock. It twists and turns
+running roughly north and south.
+%%
+      Ref: L5
+     Name: Short passage
+  Aliases: PASSAGE
+    Exits: E→L3 W→L26
+
+You are in a short passageway running east to west. To the west it ends at a
+wooden door.
+%%
+      Ref: L6
+     Name: Windy passage
+  Aliases: PASSAGE
+    Exits: W→L3 D→L7
+Inventory: N1
+
+You are in a passageway that ends to the east in a flight of stairs carved
+into the rock floor and leading down. From the stairs a chilling wind is
+blowing, moaning as of a lost soul.
+%%
+      Ref: L7
+     Name: Windy stairs
+  Aliases: STAIRS
+    Exits: U→L6 D→L8
+Inventory: N1
+
+You are on a set of stairs that curl their way through the solid rock around
+you. A chill wind blows at you from the darkness below, coming up from a
+narrow opening. Above the stairs open out into a larger area.
+%%
+      Ref: L8
+     Name: Rock bridge
+  Aliases: BRIDGE
+    Exits: N→L25 E→L9 S→L25 W→L7 D→L25
+Inventory: L8N1
+
+You are on a narrow rock bridge running east/west over a wide chasm. Around
+you a chill wind howls trying to pull you off into the depths below. Eastward
+an archway has been carved framing an opening in the sheer rock face.
+%%
+      Ref: L9
+     Name: Archway
+  Aliases: ARCHWAY
+    Exits: E→L10 W→L8
+Inventory: L9N1 L9N2
+
+You are on a small ledge on the side of a large chasm. Stretching out westward
+across the chasm is a narrow rock bridge. To the east is a large engraved
+archway.
+%%
+      Ref: L10
+     Name: Chamber
+  Aliases: CHAMBER
+    Exits: N→L12 E→L11 S→L24 W→L9
+Inventory: L10N1 L10N2
+
+You are in a large square chamber. The walls of this chamber have been lined
+with smooth blocks of stone. A basin has been attached to one of the walls
+here.
+%%
+// L11?
+%%
+// L12?
+%%
+      Ref: L13
+     Name: Bend in passage
+  Aliases: BEND PASSAGE
+    Exits: N→L4 E→L14
+
+The passage here takes a sharp bend. It runs to the north and also to the
+east.
+%%
+      Ref: L14
+     Name: Dim passage
+  Aliases: PASSAGE DIM
+    Exits: W→L13 D→L15
+
+You are in a dim east/west running passageway. To the east end a set of stairs
+lead downward.
+%%
+      Ref: L15
+     Name: Stairs
+  Aliases: STAIRS
+    Exits: U→L14 D→L16
+
+You are on a set of stairs that curl their way through the solid rock around
+you. In the darkness below you can make out a passage. Above the stairs out
+out into a larger area.
+%%
+      Ref: L16
+     Name: Musty passage
+  Aliases: PASSAGE MUSTY
+    Exits: E→L17 U→L15
+
+This passage has a very musty smell to it. Eastward you can actually see mold
+and fungus spreading along the walls and floor. There are also some stairs
+here leading up.
+%%
+      Ref: L17
+     Name: Large cavern
+  Aliases: CAVERN
+    Exits: E→L19 S→L18 W→L16
+Inventory: N3
+
+You are in a huge cavern. It is very damp and cool providing ideal conditions
+for a huge type of toadstool to grow here. Some of them are over ten feet tall
+and six foot wide. In the cavern wall to the west you can see a narrow
+passage.
+%%
+      Ref: L18
+     Name: Large cavern
+  Aliases: CAVERN
+    Exits: N→L17 E→L20
+Inventory: N3
+
+You are in a huge cavern. It is very damp and cool providing ideal conditions
+for a huge type of toadstool to grow here. Some of them are over ten feet tall
+and six foot wide.
+%%
+      Ref: L19
+     Name: Large cavern
+  Aliases: CAVERN
+    Exits: E→L21 S→L20 W→L17
+Inventory: N3
+
+You are in a huge cavern. It is very damp and cool providing ideal conditions
+for a huge type of toadstool to grow here.
+%%
+      Ref: L20
+     Name: Giant toadstool
+  Aliases: CAVERN TOADSTOOL
+    Exits: N→L19 E→L22 W→L18 U→L29
+Inventory: N3
+
+You are standing in front of a giant toadstool. So huge in fact that you can
+see some has cut stairs into it.They lead around and around until they
+disappear through a hole in the cap.
+%%
+      Ref: L21
+     Name: Large cavern
+  Aliases: CAVERN
+    Exits: N→L23 S→L22 W→L19
+Inventory: N3
+
+You are in a huge cavern. It is very damp and cool providing ideal conditions
+for a huge type of toadstool to grow here. Some of the are over ten feet tall
+and six foot wide. In the cavern wall to the north you can see a narrow
+passage leading into darkness.
+%%
+      Ref: L22
+     Name: Large cavern
+  Aliases: CAVERN
+    Exits: N→L21 W→L20
+Inventory: N3
+
+You are in a huge cavern. It is very damp and cool providing ideal conditions
+for a huge type of toadstool to grow here. Some of the are over ten feet tall
+and six foot wide.
+%%
+      Ref: L23
+     Name: Passage of cobwebs
+  Aliases: PASSAGE COBWEBS
+    Exits: N→L21 E→L28 S→L23 W→L23
+Inventory: N4
+
+You are in a passageway that is choked with cobwebs. As you move amongst them
+their touch is gentle, almost ghost like.
+%%
+      Ref: L24
+     Name: Passage of cobwebs
+  Aliases: PASSAGE COBWEBS
+    Exits: N→L24 E→L27 S→L10 W→L24
+Inventory: N4
+
+You are in a passageway that is choked with cobwebs. As you move amongst them
+their touch is gentle, almost ghost like.
+%%
+      Ref: L25
+     Name: Chasm
+  Aliases: CHASM
+    Exits: U→L8
+
+You step off of the rock bridge and are suspended in thin air for a very, very
+brief while. Then gravity takes effect and plunges you down into the
+darkness... you never see what you hit.
+%%
+// L26?
+%%
+      Ref: L27
+     Name: Passage of cobwebs
+  Aliases: PASSAGE COBWEBS
+    Exits: N→L28 E→L24 S→L27 W→L24
+Inventory: N4
+
+You are in a passageway that is choked with cobwebs. As you move amongst them
+their touch is gentle, almost ghost like.
+%%
+      Ref: L28
+     Name: Passage of cobwebs
+  Aliases: PASSAGE COBWEBS
+    Exits: N→L28 E→L27 S→L28 W→L23
+Inventory: N4
+
+You are in a passageway that is choked with cobwebs. As you move amongst them
+their touch is gentle, almost ghost like.
+%%
+      Ref: L29
+     Name: On top of a giant toadstool
+  Aliases: CAVERN TOADSTOOL
+    Exits: D→L20
+Inventory: N3 O1
+
+You are standing on top of one of giant toadstools. Around you you can see a
+vast cavern, it's floor covered by a forest of these toadstools. The one you
+are on has a hole cut into the cap allowing access down via some stairs cut
+into the stalk.
+%%
+//
+// Objects
+//
+%%
+      Ref: O1
+     Name: a glass ball
+  Aliases: BALL GLASSBALL
+    Reset: AFTER→1m30s JITTER→1m SPAWN→true
+  OnReset: You hear the labouring of someone climbing up the stairs. Suddenly
+           a head appears from the hole. You see it is a small man in a white
+           coat. He carefully takes a small glass ball from his pocket and
+           places it on the cap of the toadstool. He then makes his way back
+           down again and is gone.
+  Cleanup: AFTER→1m30s JITTER→1m
+OnCleanup: There is a small plinking noise as the glass ball turns black,
+           cracks and then splits before disintegrating into a pile of sand.
+
+As you pear into it you see a small twinkle of light right at it's centre.
+%%
+//
+// Narratives
+//
+%%
+      Ref: L3N1
+     Name: some white sand
+  Aliases: SAND
+Narrative:
+  Vetoes: GET→The sand quickly flows through your fingers.
+
+This is very fine white sand. As you pick some up to examine it closer it
+escapes through your fingers.
+%%
+      Ref: L8N1
+     Name: a rock bridge
+  Aliases: BRIDGE
+Narrative:
+
+This is a very narrow rock bridge. It seems to been just a long narrow slab of
+rock that has been laid over the chasm below.
+%%
+      Ref: L9N1
+     Name: archway
+  Aliases: ARCH ARCHWAY
+Narrative:
+
+This is a large archway constructed from blocks about two feet square. You
+notice some runes etched into the blocks.
+%%
+      Ref: L9N2
+     Name: some carved runes
+  Aliases: RUNE RUNES
+Narrative:
+  Writing: The runes depict little people carved into two groups of four
+           warriors, all carrying spears. In the first group the spears point
+           right, up, left then up. In the second group the first three
+           warriors have spears pointing right but the last warrior's spear
+           points up.
+
+The runes are of little people carved into the rock. Maybe if you tried to
+read them?
+%%
+      Ref: L10N1
+     Name: the smooth walls
+  Aliases: WALL WALLS BLOCK BLOCKS
+Narrative:
+
+They are cool to the touch.
+%%
+      Ref: L10N2
+     Name: a basin
+  Aliases: BASIN
+Narrative:
+Inventory: L10N3
+
+This is a small basin fixed to the wall at a height of about 4 foot.
+%%
+      Ref: L10N3
+     Name: some water
+  Aliases: WATER
+   Vetoes: TAKE→You try to take some water from the basin but it flows through
+           your fingers.
+
+This water is slightly pink in colour, but seems to be fresh.
+%%
+      Ref: L16N1
+     Name: some fungus
+  Aliases: FUNGUS
+Narrative:
+
+The fungus is mostly fine, spindly toadstools that turn to dust when you touch them.
+%%
+      Ref: L16N2
+     Name: some mold
+  Aliases: MOLD
+Narrative:
+
+The mould spreads out in green and purple patches on the walls and floor.
+%%
+      Ref: N1
+     Name: some stone stairs
+  Aliases: STAIR STAIRS
+Narrative:
+ Location: L6 L7 L14 L15 L16
+
+These stairs are carved straight out of the solid rock. They seem very worn as
+if they were, or are, often used.
+%%
+      Ref: N2
+     Name: the chasm
+  Aliases: CHASM
+Narrative:
+ Location: L8 L9
+
+This is a very deep, dark chasm. Looking over the edge of the bridge you still
+cannot see into it's inky depths.
+%%
+      Ref: N3
+     Name: giant toadstools
+  Aliases: TOADSTOOL TOADSTOOLS
+Narrative:
+
+These huge toadstools are massive. They also seem to have red and white
+spotted caps on them!
+%%
+      Ref: N4
+     Name: Cobwebs
+  Aliases: COBWEB COBWEBS
+Narrative:
+
+They are very fragile and break when you touch them, causing a tiny shiver to
+disperse across the rest like a wave.
+%%

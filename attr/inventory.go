@@ -29,7 +29,7 @@ func init() {
 // NOTE: The contents slice is split into two parts. Things with a Narrative
 // attribute are added to the beginning of the slice. All other Things are
 // appended to the end of the slice. Which items are narrative and which are
-// not is tracked by split:
+// not is automatically tracked by split:
 //
 //	narratives := contents[:split]
 //	other := contents[split:]
@@ -69,7 +69,8 @@ var (
 )
 
 // NewInventory returns a new Inventory attribute initialised with the
-// specified Things as initial contents.
+// specified Things as initial contents. All of the Thing added will be enabled
+// and in play - although the Thing itself may not be enabled and in play.
 func NewInventory(t ...has.Thing) *Inventory {
 	i := &Inventory{
 		Attribute: Attribute{},
@@ -80,6 +81,7 @@ func NewInventory(t ...has.Thing) *Inventory {
 
 	for _, t := range t {
 		i.Add(t)
+		i.Enable(t)
 	}
 
 	return i
@@ -108,7 +110,7 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.split, len(i.disabled)))
+	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.playerCount, i.split, len(i.disabled)))
 	for _, i := range i.contents {
 		for _, i := range i.Dump() {
 			buff = append(buff, DumpFmt("%s", i))
@@ -122,53 +124,27 @@ func (i *Inventory) Dump() (buff []string) {
 	return buff
 }
 
-// Add puts a Thing into an Inventory. If the Thing does not have a Locate
-// attribute one will be added automatically, otherwise the existing Locate
-// attribute will be updated. On success Add will return the Thing actually
-// added to the inventory - which may not be the Thing passed in, it may be a
-// copy. It is therefore important to use the Thing returned after calling Add.
-// On failure Add returns nil.
-func (i *Inventory) Add(t has.Thing) has.Thing {
-	if i == nil {
-		return nil
-	}
-	return (*Inventory)(nil).Move(t, i)
-}
-
-// Remove takes a Thing from an Inventory. On success Remove will return the
-// Thing actually removed from the inventory - which may not be the Thing
-// passed in, it may be a copy. It is therefore important to use the Thing
-// returned after calling Remove. If Remove fails it will return nil.
-func (i *Inventory) Remove(t has.Thing) has.Thing {
-	if i == nil {
-		return nil
-	}
-	return i.Move(t, nil)
-}
-
-// Move removes a Thing from one Inventory and puts it into another Inventory.
-// On success Move will return the Thing moved - which may not be the Thing
-// passed in, it may be a copy. It is therefore important to use the Thing
-// returned after calling Move. If Move fails it will return nil.
-//
-// If the receiver is a *Inventory typed nil the Thing will only be added to an
-// inventory. If the to Inventory is nil the Thing will only be removed from
-// the receiver Inventory. In both cases the Thing's Locate attribute will be
-// updated or one added if missing.
-func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
+// Move removes an enabled Thing from the receiver Inventory and puts it into
+// the 'where' Inventory. After the move the Thing's Locate attribute will be
+// updated to reflect the new Inventory it is in.
+func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 
 	if t == nil {
-		return t
+		return
 	}
 
-	n := FindNarrative(t).Found()
-	p := FindPlayer(t).Found()
-	l := FindLocate(t)
-	found := false
-
-	if i == nil {
-		goto ADD
+	// If where to move to is not an actual *Inventory we can't manipulate the
+	// contents directly and so have to take the (very) slow path...
+	to, ok := where.(*Inventory)
+	if !ok {
+		i.Disable(t)
+		i.Remove(t)
+		to.Add(t)
+		to.Enable(t)
+		return
 	}
+
+	found := -1
 
 	for j, c := range i.contents {
 		if c == t {
@@ -185,103 +161,76 @@ func (i *Inventory) Move(t has.Thing, to has.Inventory) has.Thing {
 				i.contents = append(make([]has.Thing, 0, l), i.contents...)
 			}
 
-			// TODO: Need to check for players or mobiles
-			if p {
-				i.playerCount--
-			}
-
-			// If Thing removed was a Narrative adjust Narrative/Thing split
-			if n {
-				i.split--
-			}
-
-			// If not a player cancel any cleanup and check if removing a Thing
-			// triggers a re-spawning. Players don't respawn but they do move from
-			// location to location a lot which would cause needless calls to Spawn.
-			if !p {
-				FindCleanup(t).Abort()
-				FindAction(t).Abort()
-				if s := FindReset(t).Spawn(); s != nil {
-					t = s
-				}
-			}
-
-			found = true
+			found = j
+			break
 		}
 	}
 
-	if !found {
-		return nil
+	// If Thing to move not found just abort the move
+	if found == -1 {
+		return
 	}
 
-ADD:
-
-	To, ok := to.(*Inventory)
-
-	if to == nil {
-		goto UPDATE
-	}
-
-	// If to is not an actual *Inventory have to take the slow path
-	if !ok {
-		return to.Add(t)
-	}
-
-	// If Thing added was a Narrative move it to the front of the slice
-	// and adjust the Narrative/Thing split.
-	if n {
-		To.contents = append(To.contents, nil)
-		copy(To.contents[1:], To.contents[0:])
-		To.contents[0] = t
-		To.split++
-	}
-
-	// If Thing added not a Narrative just append it to the end of the slice
-	if !n {
-		To.contents = append(To.contents, t)
+	// If Thing added was a Narrative move it to the front of the slice and
+	// adjust the Narrative/Thing split. Otherwsie just append Thing to the end
+	// of the slice.
+	if found < i.split {
+		to.contents = append(to.contents, nil)
+		copy(to.contents[1:], to.contents[0:])
+		to.contents[0] = t
+		i.split--
+		to.split++
+	} else {
+		to.contents = append(to.contents, t)
 	}
 
 	// TODO: Need to check for players or mobiles
-	if p {
-		To.playerCount++
+	if FindPlayer(t).Found() {
+		i.playerCount--
+		to.playerCount++
 	}
 
-	if !p {
-		FindAction(t).Action()
-	}
+	// Update Where attribute on Thing with 'to' Inventory
+	FindLocate(t).SetWhere(to)
 
-UPDATE:
-
-	// Give thing a locate attribute if it doesn't have one, else just update it
-	if !l.Found() {
-		t.Add(NewLocate(To))
-	} else {
-		l.SetWhere(To)
-	}
-
-	// If Thing is not a player but is moved from one Inventory to another and
-	// does not end up being carried then register Thing for cleanup as it's now
-	// just left laying around. This has to be checked after the Locate attribute
-	// has been updated so we know the final location.
-	if !p && i != nil && To != nil && !To.Carried() {
-		FindCleanup(t).Cleanup()
-	}
-
-	return t
+	return
 }
 
-// AddDisabled adds a Thing to an Inventory marking at as being initially out
-// of play.
-//
-//  TODO: AddDisable is only required because if we use Inventory.Add followed
-//  by an Inventory.Disable the Add would trigger events and loop. This needs
-//  to be cleaned up, possibly by making Add/Remove act on the disabled slice
-//  only. This would mean a Thing can only be added to or removed from the
-//  world when disabled and once in the world and enabled can only be moved
-//  from Inventory to Inventory.
-func (i *Inventory) AddDisabled(t has.Thing) {
+// Add puts a Thing into an Inventory marking at as being initially out
+// of play. The Locate attribute of the Thing will be updated to reference the
+// Inventory the Thing is put into. If the Thing does not have a Locate
+// attribute one will be added. The Thing may be enabled and put in play by
+// calling Enable.
+func (i *Inventory) Add(t has.Thing) {
 	i.disabled = append(i.disabled, t)
-	FindLocate(t).SetWhere(i)
+
+	// If Locate attribute found update it, otherwise add a new one
+	if l := FindLocate(t); l.Found() {
+		l.SetWhere(i)
+		return
+	}
+	t.Add(NewLocate(i))
+}
+
+// Remove takes a disabled Thing out of an Inventory.
+//
+// NOTE: Once the Thing is removed it will no longer be under a lock. Ideally
+// once a Thing is removed Thing.Free should be called to release the Thing for
+// garbage collection.
+func (i *Inventory) Remove(t has.Thing) {
+	for j, a := range i.disabled {
+		if a == t {
+			copy(i.disabled[j:], i.disabled[j+1:])
+			i.disabled[len(i.disabled)-1] = nil
+			i.disabled = i.disabled[:len(i.disabled)-1]
+
+			if len(i.disabled) == 0 && cap(i.disabled) != 0 {
+				i.disabled = []has.Thing{}
+			}
+
+			return
+		}
+	}
 }
 
 // Enabled marks a Thing in an Inventory as being in play.
@@ -291,7 +240,23 @@ func (i *Inventory) Enable(t has.Thing) {
 			copy(i.disabled[j:], i.disabled[j+1:])
 			i.disabled[len(i.disabled)-1] = nil
 			i.disabled = i.disabled[:len(i.disabled)-1]
-			i.Add(t)
+
+			// If Thing added was a Narrative move it to the front of the slice and
+			// adjust the Narrative/Thing split. If Thing added not a Narrative just
+			// append it to the end of the slice
+			if FindNarrative(t).Found() {
+				i.contents = append(i.contents, nil)
+				copy(i.contents[1:], i.contents[0:])
+				i.contents[0] = t
+				i.split++
+			} else {
+				i.contents = append(i.contents, t)
+			}
+
+			if FindPlayer(t).Found() {
+				i.playerCount++
+			}
+
 			return
 		}
 	}
@@ -299,9 +264,26 @@ func (i *Inventory) Enable(t has.Thing) {
 
 // Disable marks a Thing in an Inventory as being out of play.
 func (i *Inventory) Disable(t has.Thing) {
-	i.Remove(t)
-	i.disabled = append(i.disabled, t)
-	FindLocate(t).SetWhere(i)
+	for j, c := range i.contents {
+		if c == t {
+			copy(i.contents[j:], i.contents[j+1:])
+			i.contents[len(i.contents)-1] = nil
+			i.contents = i.contents[:len(i.contents)-1]
+			i.disabled = append(i.disabled, t)
+			FindLocate(t).SetWhere(i)
+
+			// If Thing removed was a Narrative adjust Narrative/Thing split
+			if FindNarrative(t).Found() {
+				i.split--
+			}
+
+			if FindPlayer(t).Found() {
+				i.playerCount--
+			}
+
+			return
+		}
+	}
 }
 
 // Search returns the first Inventory Thing that matches the alias passed. If
@@ -449,6 +431,11 @@ func (i *Inventory) Copy() has.Attribute {
 	}
 	ni := NewInventory()
 	for _, a := range i.contents {
+		c := a.Copy()
+		ni.Add(c)
+		ni.Enable(c)
+	}
+	for _, a := range i.disabled {
 		ni.Add(a.Copy())
 	}
 	return ni
@@ -462,6 +449,10 @@ func (i *Inventory) Free() {
 	}
 	for x, t := range i.contents {
 		i.contents[x] = nil
+		t.Free()
+	}
+	for x, t := range i.disabled {
+		i.disabled[x] = nil
 		t.Free()
 	}
 	i.Attribute.Free()

@@ -11,10 +11,12 @@ import (
 
 // Syntax: ( INVENTORY | INV )
 func init() {
-	AddHandler(Inventory, "INV", "INVENTORY")
+	addHandler(inventory{}, "INV", "INVENTORY")
 }
 
-func Inventory(s *state) {
+type inventory cmd
+
+func (inventory) process(s *state) {
 
 	// Try and find out if we are carrying anything
 	inv := attr.FindInventory(s.actor).Contents()

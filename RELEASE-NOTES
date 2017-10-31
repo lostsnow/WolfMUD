@@ -6,6 +6,63 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.8 Released Tuesday 31st October, 2017
+==============================================================================
+
+Added
+
+  - The Reset attribute now has an Abort method to cancel reset events.
+  - New player zone, Zinara Caves - was the newbie zone in the Java version.
+
+Changed
+
+  - The exits.Within method now take an additional has.Inventory parameter. See
+    fixes below for details.
+  - Command handlers are now types instead of simple functions.
+  - Implementation of JUNK command cleaned up.
+  - The VERSION command now includes the version of the compiler used.
+  - The handler for the empty command is now in its own cmd/cmd.go file.
+  - The state.handleCommand method has been moved to the handler.go file.
+  - The cmd package no longer exports the AddHandler function.
+  - If something is in the game it is always somewhere. Therefore, we can drop
+    redundant checks of where we are from command processing.
+  - Logic for removing events has been dropped from the Inventory attribute and
+    moved to the GET and TAKE commands. This means the logic does not have to
+    processed every time a Thing is moved - only when the GET or TAKE commands
+    are used. It also removes a lot of 'magic' from the Inventory code.
+  - Logic for adding events has been dropped from the Inventory attribute and
+    moved to the DROP and PUT commands. This means the logic does not have to
+    processed every time a Thing is moved - only when the DROP or PUT commands
+    are used. It also removes a lot of 'magic' from the Inventory code.
+  - The JUNK command no longer has to deal with the weird issue of handling
+    copies that are spawned when junking a respawnable Thing.
+  - The Inventory.Move method no longer checks if a Thing has a Locate
+    attribute. This is now only done when a Thing is first added to an
+    Inventory.
+  - The Inventory Move method no longer returns a Thing.
+  - The player count is now included in the DUMP information for an Inventory.
+  - The Inventory Add and Remove methods now add and remove Thing to or from
+    the Inventory disabled list. The AddDisabled method has been dropped.
+  - Split RecordJar encoder/decode in own sub-packages.
+
+Fixed
+
+  - Made exits.Within work as expected/intended. The first returned slice
+    should always be the current location. If the current location had no exits
+    the parent could not be determined to find the current location so it was
+    not populated in the returned slice. As a result the exits.Within method
+    now takes an additional has.Inventory parameter for the current location.
+  - The Inventory attribute Copy and Free methods should also process Thing in
+    the disabled list.
+  - The JUNK command should cancel action events and the $RESET command
+    re-enable them.
+  - The JUNK command should cancel active Cleanup events.
+  - Fix Thing spawn check in GET and TAKE commands which prevented Thing
+    without a Reset attribute from being taken, even though on screen messages
+    indicate success.
+  - Fix data race cause by zone loader not locking Inventory attributes while
+    manipulating them.
+
 v0.0.7 Released Sunday 10th September, 2017
 ==============================================================================
 

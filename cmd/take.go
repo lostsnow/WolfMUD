@@ -12,10 +12,12 @@ import (
 
 // Syntax: TAKE item container
 func init() {
-	AddHandler(Take, "TAKE")
+	addHandler(take{}, "TAKE")
 }
 
-func Take(s *state) {
+type take cmd
+
+func (take) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to take something out of something else...")
@@ -114,12 +116,17 @@ func Take(s *state) {
 		return
 	}
 
-	// Move the item from container to our inventory
-	if cWhere.Move(tWhat, tWhere) == nil {
-		s.msg.Actor.SendBad("Something stops you taking ", tName, " from ", cName, "...")
-		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
-		return
+	// Cancel any Cleanup or Action events
+	attr.FindCleanup(tWhat).Abort()
+	attr.FindAction(tWhat).Abort()
+
+	// Check if item respawns when taken
+	if s := attr.FindReset(tWhat).Spawn(); s != nil {
+		tWhat = s
 	}
+
+	// Move the item from container to our inventory
+	cWhere.Move(tWhat, tWhere)
 
 	s.msg.Actor.SendGood("You take ", tName, " from ", cName, ".")
 	s.msg.Observer.SendInfo("You see ", who, " take something from ", cName, ".")

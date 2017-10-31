@@ -17,11 +17,6 @@ type Inventory interface {
 	Attribute
 	sync.Locker
 
-	// Add puts a Thing into the Inventory. On success Add will return the Thing
-	// that was actually added to the Inventory which may be a copy of the passed
-	// Thing. On failure Add returns nil.
-	Add(Thing) Thing
-
 	// Contents returns a []Thing representing the contents of the Inventory.
 	Contents() []Thing
 
@@ -47,20 +42,13 @@ type Inventory interface {
 	// LockID returns the unique locking ID for an Inventory.
 	LockID() uint64
 
-	// Remove takes a Thing out of the Inventory. On success Remove will return
-	// the Thing that was actually removed from the Inventory which may be a copy
-	// of the passed Thing. On failure Remove returns nil.
-	Remove(Thing) Thing
-
 	// Search returns the first Thing in an Inventory that has a matching Alias.
 	// If there are no matches nil is returned.
 	Search(alias string) Thing
 
 	// Move removes a Thing from the receiver Inventory and places it into the
-	// passed Inventory. On success Move will return the Thing that was actually
-	// moved which may be a copy of the passed Thing. On failure Move returns
-	// nil.
-	Move(Thing, Inventory) Thing
+	// passed Inventory.
+	Move(Thing, Inventory)
 
 	// Carried return true if putting an item in an Inventory results in it being
 	// carried by a player, otherwise false.
@@ -72,9 +60,12 @@ type Inventory interface {
 	// Disabled returns a slice of Thing for items that are out of play (disabled).
 	Disabled() []Thing
 
-	// AddDisabled adds a Thing to an Inventory and marks it as being initially
-	// out of play (disabled).
-	AddDisabled(Thing)
+	// Add puts a Thing into an Inventory and marks it as being initially out of
+	// play (disabled).
+	Add(Thing)
+
+	// Remove takes a disabled Thing out of an Inventory.
+	Remove(Thing)
 
 	// Disable marks a Thing in an Inventory as being out of play.
 	Disable(Thing)

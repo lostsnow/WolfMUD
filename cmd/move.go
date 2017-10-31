@@ -13,7 +13,7 @@ import (
 //				 | SW | SOUTHWEST | W | WEST | NW | NORTHWEST | U | UP | D | DOWN)
 //
 func init() {
-	AddHandler(Move,
+	addHandler(move{},
 		"N", "NE", "E", "SE", "S", "SW", "W", "NW", "U", "D",
 		"NORTH", "NORTHEAST", "EAST", "SOUTHEAST",
 		"SOUTH", "SOUTHWEST", "WEST", "NORTHWEST",
@@ -21,15 +21,11 @@ func init() {
 	)
 }
 
-func Move(s *state) {
+type move cmd
+
+func (move) process(s *state) {
 
 	from := s.where
-
-	// A thing can only move itself if it knows where it is
-	if from == nil {
-		s.msg.Actor.SendInfo("You are not sure where you are, let alone where you are going!")
-		return
-	}
 
 	// Is where we are exitable?
 	exits := attr.FindExits(from.Parent())
@@ -74,10 +70,7 @@ func Move(s *state) {
 	}
 
 	// Move us from where we are to our new location
-	if s.actor = from.Move(s.actor, to); s.actor == nil {
-		s.msg.Actor.SendBad("Something stops you from leaving here!")
-		return
-	}
+	from.Move(s.actor, to)
 
 	// Re-point where we are and re-alias observer
 	s.where = to

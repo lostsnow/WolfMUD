@@ -12,10 +12,12 @@ import (
 
 // Syntax: SNEEZE
 func init() {
-	AddHandler(Sneeze, "SNEEZE")
+	addHandler(sneeze{}, "SNEEZE")
 }
 
-func Sneeze(s *state) {
+type sneeze cmd
+
+func (sneeze) process(s *state) {
 
 	var locations [][]has.Inventory
 
@@ -25,7 +27,7 @@ func Sneeze(s *state) {
 	for radius := 1; radius < 3; radius++ {
 
 		// Get all location Inventory within current radius
-		locations = attr.FindExits(s.where.Parent()).Within(radius)
+		locations = attr.FindExits(s.where.Parent()).Within(radius, s.where)
 
 		// Try locking all of the locations we found
 		lockAdded := false

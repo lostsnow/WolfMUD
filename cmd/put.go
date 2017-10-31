@@ -11,10 +11,12 @@ import (
 
 // Syntax: PUT item container
 func init() {
-	AddHandler(Put, "PUT")
+	addHandler(put{}, "PUT")
 }
 
-func Put(s *state) {
+type put cmd
+
+func (put) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to put something into something else...")
@@ -95,9 +97,12 @@ func Put(s *state) {
 	}
 
 	// Remove item from where it is and put it in the container
-	if tWhere.Move(tWhat, cWhere) == nil {
-		s.msg.Actor.SendBad("Something stops you putting ", tName, " anywhere.")
-		return
+	tWhere.Move(tWhat, cWhere)
+
+	// If a Thing is not put in a carried container the Thing is now just laying
+	// around so check if it should register for clean up
+	if !cWhere.Carried() {
+		attr.FindCleanup(tWhat).Cleanup()
 	}
 
 	s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")

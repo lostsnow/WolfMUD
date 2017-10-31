@@ -18,6 +18,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -114,8 +115,8 @@ func (l *login) passwordProcess() {
 	}
 
 	record := jar[0]
-	salt := recordjar.Decode.Bytes(record["SALT"])
-	password := recordjar.Decode.String(record["PASSWORD"])
+	salt := decode.Bytes(record["SALT"])
+	password := decode.String(record["PASSWORD"])
 
 	// Calculate hash for salt+password then zero buffer used and input
 	si := make([]byte, len(salt)+len(l.input))

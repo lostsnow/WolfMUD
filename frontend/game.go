@@ -49,6 +49,7 @@ func (g *game) gameInit() {
 	i2.Lock()
 	attr.FindPlayer(g.player).SetPromptStyle(has.StyleBrief)
 	start.Add(g.player)
+	start.Enable(g.player)
 	stats.Add(g.player)
 	i2.Unlock()
 	i1.Unlock()

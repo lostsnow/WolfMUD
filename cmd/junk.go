@@ -13,10 +13,12 @@ import (
 
 // Syntax: JUNK item
 func init() {
-	AddHandler(Junk, "JUNK")
+	addHandler(junk{}, "JUNK")
 }
 
-func Junk(s *state) {
+type junk cmd
+
+func (j junk) process(s *state) {
 
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("You go to junk... something?")
@@ -53,7 +55,7 @@ func Junk(s *state) {
 	// Make sure we are locking the reset origin of the Thing to junk and the
 	// origins of all of its content (recursively) if it has an Inventory.
 	lc := len(s.locks)
-	junkLockAll(s, what)
+	j.lockOrigins(s, what)
 	if len(s.locks) != lc {
 		return
 	}
@@ -66,12 +68,12 @@ func Junk(s *state) {
 
 	// Check if item is an Inventory. If it is check recusivly if its content can
 	// be junked
-	if !junkCheckVetoes(what) {
+	if j.vetoed(what) {
 		s.msg.Actor.SendBad(text.TitleFirst(name), " seems to contain something that cannot be junked.")
 		return
 	}
 
-	junkDispose(what)
+	j.dispose(what)
 
 	who := attr.FindName(s.actor).Name("Someone")
 
@@ -80,62 +82,65 @@ func Junk(s *state) {
 	s.ok = true
 }
 
-// NOTE: junkLockAll is a temporary function until commands are made types and
-// we can attach a lockAll method to the Junk type.
-func junkLockAll(s *state, t has.Thing) {
+// lockOrigins adds locks for the origin of the passed Thing and the origins of
+// all of its Inventory content recursively.
+func (j junk) lockOrigins(s *state, t has.Thing) {
 	o := attr.FindLocate(t).Origin()
 	s.AddLock(o)
 	i := attr.FindInventory(t)
 	for _, c := range i.Contents() {
-		junkLockAll(s, c)
+		j.lockOrigins(s, c)
 	}
 }
 
-// NOTE: junkCheckVetoes is a temporary function until commands are made types
-// and we can attach a checkVetoes method to the Junk type.
-func junkCheckVetoes(t has.Thing) bool {
+// vetoed checks the Inventory content (recursively) of the passed Thing to see
+// if any of the content vetoes the JUNK command. If anything vetoes the JUNK
+// command returns true otherwise returns false.
+func (j junk) vetoed(t has.Thing) bool {
 	if i := attr.FindInventory(t); i.Found() {
 		for _, t := range i.Contents() {
 			if veto := attr.FindVetoes(t).Check("JUNK"); veto != nil {
-				return false
+				return true
 			}
-			if !junkCheckVetoes(t) {
-				return false
+			if j.vetoed(t) {
+				return true
 			}
 		}
 	}
-	return true
+	return false
 }
 
-// NOTE: junkDispose is a temporary function until commands are made types and
-// we can attach a dispose method to the Junk type.
-func junkDispose(t has.Thing) {
+// dispose takes a thing out of play. If the Thing has a Reset attribute and an
+// origin it will be schedued for a reset. Otherwise the Thing will be removed
+// and released for garbase collection.
+func (j junk) dispose(t has.Thing) {
 
-	// Recurse into inventories
+	// Recurse into inventories and junk content
 	i := attr.FindInventory(t)
 	for _, c := range i.Contents() {
-		junkDispose(c)
+		j.dispose(c)
 	}
 
 	l := attr.FindLocate(t)
-	if l.Origin() == nil {
-		l.Where().Remove(t)
+	w := l.Where()
+	o := l.Origin()
+	r := attr.FindReset(t)
+
+	attr.FindAction(t).Abort()
+	attr.FindCleanup(t).Abort()
+
+	// If Thing has no reset or origin remove it and free for garbage collection
+	if !r.Found() || o == nil {
+		w.Disable(t)
+		w.Remove(t)
 		t.Free()
 		return
 	}
 
-	// When disposing of an item we can just call Reset on both resetable and
-	// respawnable items. For respawnable items it avoids making a copy.
-	if r := attr.FindReset(t); r.Found() {
-		o := l.Origin()
-		l.Where().Move(t, o)
-		if l.Origin() != nil {
-			o.Disable(t)
-			r.Reset()
-			return
-		}
-	}
+	// Move Thing to its origin and register for a reset
+	w.Move(t, o)
+	o.Disable(t)
+	r.Reset()
 
-	t.Free()
 	return
 }

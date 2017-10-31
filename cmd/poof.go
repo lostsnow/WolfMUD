@@ -11,10 +11,12 @@ import (
 
 // Syntax: $POOF
 func init() {
-	AddHandler(Poof, "$POOF")
+	addHandler(poof{}, "$POOF")
 }
 
-func Poof(s *state) {
+type poof cmd
+
+func (poof) process(s *state) {
 
 	name := attr.FindName(s.actor).Name("Someone")
 

@@ -16,10 +16,12 @@ import (
 // actor. This means that we cannot pass a unique alias to $RESET. As a
 // consequence only a Thing can reset itself.
 func init() {
-	AddHandler(Reset, "$reset")
+	addHandler(reset{}, "$reset")
 }
 
-func Reset(s *state) {
+type reset cmd
+
+func (reset) process(s *state) {
 
 	// Find Inventory where reset is going to take place and make sure we are
 	// locking it
@@ -85,6 +87,9 @@ func Reset(s *state) {
 		s.msg.Observers[origin].SendInfo(def)
 	}
 
+	attr.FindReset(s.actor).Abort()
 	origin.Enable(s.actor)
+	attr.FindAction(s.actor).Action()
+
 	s.ok = true
 }

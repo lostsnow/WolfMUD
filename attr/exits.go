@@ -329,27 +329,27 @@ func (e *Exits) LeadsTo(direction byte) has.Inventory {
 }
 
 // Within returns all of the locations within the given number of moves from
-// the location specified by the receiver. It is 3D and will follow up and down
-// exits as well. The locations are returned as a slice of Inventory slices.
-// The first slice represents the cwnumber of moves. The second slice is all
-// locations within that number of moves. The first slice, moves 0, is always
-// the current location.
+// the location specified by from Inventory. It is 3D and will follow up and
+// down exits as well. The locations are returned as a slice of Inventory
+// slices. The first slice index represents the number of moves. This indexes a
+// slice that contains all locations within that number of moves. The first
+// index, representing 0 moves, is always the current location.
 //
 // Assume the following map of the Tavern and surrounding locations:
 //
-//                ____________________________________________________________
-//               |1             |3             |5              |6             |
-//               |  Fireplace       Entrance     Between           Bakery     |
-//               |                               Tavern/Bakery                |
-//               |__                         __|__           __|______________|
-//               |2              4             |7              |8             |
-//               |  Common Room     Bar        | Street outside    Pawn Shop  |
-//               |                             | Pawn Shop                    |
-//               |______________|______________|__           __|______________|
-//                              |10            |9              |
-//                              |   Outside      Fountain      |
-//                              |   Armourer     Square        |
-//                              |______________|_______________|
+//     ____________________________________________________________
+//    |1             |3             |5              |6             |
+//    |  Fireplace       Entrance     Between           Bakery     |
+//    |                               Tavern/Bakery                |
+//    |__                         __|__           __|______________|
+//    |2              4             |7              |8             |
+//    |  Common Room     Bar        | Street outside    Pawn Shop  |
+//    |                             | Pawn Shop                    |
+//    |______________|______________|__           __|______________|
+//                   |10            |9              |
+//                   |   Outside      Fountain      |
+//                   |   Armourer     Square        |
+//                   |______________|_______________|
 //
 //
 // If we are at location 7 on the map then Within(2) will return all locations
@@ -364,15 +364,14 @@ func (e *Exits) LeadsTo(direction byte) has.Inventory {
 // The above numbers e.g. 5,8,9 refer to the map locations. In reality they
 // would actually be references to has.Inventory interface types.
 //
+// If there are no Inventories reachable at a given number of moves the slice
+// indexed with have zero length.
+//
 // See cmd/sneeze.go for an example of using the Within method.
-func (e *Exits) Within(moves int) (locations [][]has.Inventory) {
-	if e == nil {
-		return
-	}
+func (e *Exits) Within(moves int, from has.Inventory) (locations [][]has.Inventory) {
 
 	// Add current location at zero moves
-	center := FindInventory(e.Parent())
-	locations = append(locations, []has.Inventory{center})
+	locations = append(locations, []has.Inventory{from})
 
 	// Go through each number of moves expanding from the center/current location
 	for m := 1; m <= moves; m++ {
