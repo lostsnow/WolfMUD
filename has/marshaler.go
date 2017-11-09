@@ -14,7 +14,6 @@ type Marshaler interface {
 	// If the returned Attribute is an untyped nil it should be ignored.
 	Unmarshal([]byte) Attribute
 
-	// Marshaler takes the Attribute and returns a []byte that represents the
-	// Attribute.
-	Marshal(Attribute) []byte
+	// Marshal returns a tag and []byte that represents an Attribute.
+	Marshal() (tag string, data []byte)
 }
