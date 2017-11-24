@@ -87,8 +87,8 @@ func (c *Cleanup) Found() bool {
 // Unmarshal is used to turn the passed data into a new Cleanup attribute.
 func (*Cleanup) Unmarshal(data []byte) has.Attribute {
 	c := NewCleanup(0, 0)
-	for _, pairs := range decode.PairList(data) {
-		field, data := pairs[0], []byte(pairs[1])
+	for field, data := range decode.PairList(data) {
+		data := []byte(data)
 		switch field {
 		case "AFTER":
 			c.after = decode.Duration(data)

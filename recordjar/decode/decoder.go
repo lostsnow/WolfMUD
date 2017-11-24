@@ -33,35 +33,40 @@ func KeywordList(data []byte) []string {
 	return strings.Fields(strings.ToUpper(string(data)))
 }
 
-// PairList returns the []byte data as uppercassed pairs of strings in a slice.
+// PairList returns the []byte data as uppercassed pairs of strings in a map.
 // The data is first split on whitespace and extra whitespace is stripped. The
 // 'words' are then split into pairs on the first non-unicode letter or digit.
 // If we take exits as an example:
 //
 //  Exits: E→L3 SE→L4 S→ W
 //
-// Results in four pairs:
+// Results in a map with four pairs:
 //
-//  [2]string{"E","L3"}
-//  [2]string{"SE","L4"}
-//  [2]string{"S",""}
-//  [2]string{"W",""}
+//  map[string]string {
+//    "E": "L3",
+//    "SE": "L4",
+//    "S": "",
+//    "W": "",
+//  }
 //
 // Here the separator used is → but any non-unicode letter or digit may be
 // used.
-func PairList(data []byte) (pairs [][2]string) {
+func PairList(data []byte) (pairs map[string]string) {
+
+	pairs = make(map[string]string)
+
 	for _, pair := range strings.Fields(string(data)) {
 		runes := []rune(strings.ToUpper(pair))
 		split := false
 		for i, r := range runes {
 			if !unicode.IsDigit(r) && !unicode.IsLetter(r) {
-				pairs = append(pairs, [2]string{string(runes[:i]), string(runes[i+1:])})
+				pairs[string(runes[:i])] = string(runes[i+1:])
 				split = true
 				break
 			}
 		}
 		if !split {
-			pairs = append(pairs, [2]string{string(runes[:]), ""})
+			pairs[string(runes[:])] = ""
 		}
 	}
 	return

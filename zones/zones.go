@@ -232,13 +232,12 @@ func (z *zone) linkupExits() {
 	log.Printf("  Linking exits")
 	for lref, l := range z.locations {
 		from := attr.FindExits(l.Thing)
-		for _, pair := range decode.PairList(l.Record["EXITS"]) {
+		for edir, eref := range decode.PairList(l.Record["EXITS"]) {
 
-			if pair[1] == "" { // Ignore incomplete links
+			if edir == "" { // Ignore incomplete links
 				continue
 			}
 
-			edir, eref := pair[0], pair[1]
 			ndir, err := from.NormalizeDirection(edir)
 			if err != nil {
 				log.Printf("Location %s: invalid direction ignored %s", lref, edir)
@@ -481,12 +480,11 @@ func linkupZones() {
 			if !ok {
 				continue
 			}
-			for _, pair := range decode.PairList(links) {
+			for dir, link := range decode.PairList(links) {
 
-				if pair[1] == "" { // Ignore incomplete link
+				if link == "" { // Ignore incomplete link
 					continue
 				}
-				dir, link := pair[0], pair[1]
 
 				// Check direction is valid
 				from := attr.FindExits(loc)
@@ -497,12 +495,11 @@ func linkupZones() {
 				}
 
 				// split link into zone ref and location ref pairs we are linking to
-				for _, pairs := range decode.PairList([]byte(link)) {
+				for tzref, tlref := range decode.PairList([]byte(link)) {
 
-					if pairs[1] == "" { // Ignore incomplete link
+					if tlref == "" { // Ignore incomplete link
 						continue
 					}
-					tzref, tlref := pairs[0], pairs[1]
 
 					// Check destination exists
 					if _, ok := zones[tzref].locations[tlref]; !ok {
