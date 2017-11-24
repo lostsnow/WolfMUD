@@ -6,6 +6,7 @@
 package attr
 
 import (
+	"log"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
@@ -82,6 +83,8 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 			r.jitter = decode.Duration(data)
 		case "SPAWN":
 			r.spawn = decode.Boolean(data)
+		default:
+			log.Printf("Reset.unmarshal unknown attribute: %q: %q", field, data)
 		}
 	}
 	return r
