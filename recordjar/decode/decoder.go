@@ -110,21 +110,26 @@ func KeyedString(data []byte) (pair [2]string) {
 	return
 }
 
-// KeyedStringList splits the []byte on a colon (:) separator and passes each
-// result through KeyedString. KeyedStringList is a shorthand for combining
-// StringList and KeyedString. For example the follow RecordJar record's data:
+// KeyedStringList splits the []byte data into a map of keywords and strings.
+// The []byte data is first split on a colon (:) separator to determine the
+// pairs. The keyword is then split from the beginning of each pair on the
+// first non-unicode letter or digit. For example:
 //
 //  Vetoes:  GET→You can't get it.
 //        : DROP→You can't drop it.
 //
-// Would produce a slice with two entries:
+// Would produce a map with two entries:
 //
-//  [2]string{"GET", "You can't get it."}
-//  [2]string{"DROP", "You can't drop it."}
+//  map[string]string{
+//    "GET": "You can't get it.",
+//    "DROP": "You can't drop it.",
+//  }
 //
-func KeyedStringList(data []byte) (list [][2]string) {
+func KeyedStringList(data []byte) (list map[string]string) {
+	list = make(map[string]string)
 	for _, w := range StringList(data) {
-		list = append(list, KeyedString([]byte(w)))
+		pair := KeyedString([]byte(w))
+		list[pair[0]] = pair[1]
 	}
 	return
 }
