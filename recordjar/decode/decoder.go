@@ -83,29 +83,24 @@ func StringList(data []byte) (s []string) {
 	return
 }
 
-// KeyedString returns the []byte data as an uppercassed keywrd and a string.
-// The keyword is split from the beginning of the []byte on the first
+// KeyedString returns the []byte data as an uppercassed keyword and a string
+// value. The keyword is split from the beginning of the []byte on the first
 // non-unicode letter or digit. For example:
 //
 //   input: []byte("GET→You can't get it.")
-//  output: [2]string{"GET", "You can't get it."}
+//  output: "GET", "You can't get it."
 //
 // Here the separator used is → but any non-unicode letter or digit may be
 // used.
-func KeyedString(data []byte) (pair [2]string) {
-	runes := []rune(string(data))
-	split := false
+func KeyedString(data []byte) (name, value string) {
+	name = string(data)
+	runes := []rune(name)
 	for i, r := range runes {
 		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) {
-			key := strings.TrimSpace(strings.ToUpper(string(runes[:i])))
-			data := strings.TrimSpace(string(runes[i+1:]))
-			pair = [2]string{key, data}
-			split = true
-			break
+			name = strings.TrimSpace(strings.ToUpper(string(runes[:i])))
+			value = strings.TrimSpace(string(runes[i+1:]))
+			return
 		}
-	}
-	if !split {
-		pair = [2]string{string(runes[:]), ""}
 	}
 	return
 }
@@ -128,8 +123,8 @@ func KeyedString(data []byte) (pair [2]string) {
 func KeyedStringList(data []byte) (list map[string]string) {
 	list = make(map[string]string)
 	for _, w := range StringList(data) {
-		pair := KeyedString([]byte(w))
-		list[pair[0]] = pair[1]
+		name, value := KeyedString([]byte(w))
+		list[name] = value
 	}
 	return
 }
