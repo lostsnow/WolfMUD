@@ -89,15 +89,17 @@ func StringList(data []byte) (s []string) {
 // Here the separator used is → but any non-unicode letter or digit may be
 // used.
 func KeyedString(data []byte) (name, value string) {
+
 	name = string(data)
-	runes := []rune(name)
-	for i, r := range runes {
-		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) {
-			name = strings.TrimSpace(strings.ToUpper(string(runes[:i])))
-			value = strings.TrimSpace(string(runes[i+1:]))
-			return
-		}
+
+	if i, l := indexSeparator(name); i != -1 {
+		value = name[i+l:]
+		name = name[:i]
 	}
+
+	name = strings.TrimSpace(strings.ToUpper(name))
+	value = strings.TrimSpace(value)
+
 	return
 }
 
