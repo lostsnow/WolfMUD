@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // String returns the []bytes data as a string.
@@ -164,6 +165,19 @@ func Integer(data []byte) (i int) {
 	var err error
 	if i, err = strconv.Atoi(string(data)); err != nil {
 		log.Printf("Integer field has invalid value %q, using default: %d", data, i)
+	}
+	return
+}
+
+// indexSeparator returns the position and length in bytes of the first
+// separator rune found. If no separator is found the position returned will be
+// -1 and the length returned will be 0.
+func indexSeparator(s string) (index int, size int) {
+	index = strings.IndexFunc(s, func(r rune) bool {
+		return !unicode.In(r, unicode.Digit, unicode.Letter, unicode.White_Space)
+	})
+	if index != -1 {
+		_, size = utf8.DecodeRune([]byte(s[index:]))
 	}
 	return
 }
