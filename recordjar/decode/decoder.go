@@ -68,7 +68,7 @@ func PairList(data []byte) (pairs map[string]string) {
 	return
 }
 
-// StringList returns the []byte date as a []string by splitting the data on a
+// StringList returns the []byte data as a []string by splitting the data on a
 // colon separator.
 func StringList(data []byte) (s []string) {
 	for _, t := range strings.Split(string(data), ":") {
