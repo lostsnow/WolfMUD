@@ -56,19 +56,14 @@ func PairList(data []byte) (pairs map[string]string) {
 
 	pairs = make(map[string]string)
 
-	for _, pair := range strings.Fields(string(data)) {
-		runes := []rune(strings.ToUpper(pair))
-		split := false
-		for i, r := range runes {
-			if !unicode.IsDigit(r) && !unicode.IsLetter(r) {
-				pairs[string(runes[:i])] = string(runes[i+1:])
-				split = true
-				break
-			}
+	for _, name := range strings.Fields(string(data)) {
+		name = strings.TrimSpace(strings.ToUpper(name))
+		value := ""
+		if i, l := indexSeparator(name); i != -1 {
+			value = name[i+l:]
+			name = name[:i]
 		}
-		if !split {
-			pairs[string(runes[:])] = ""
-		}
+		pairs[name] = value
 	}
 	return
 }
