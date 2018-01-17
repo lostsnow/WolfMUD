@@ -814,7 +814,7 @@ This is a small, green, rubber ball.
      Ref: O3
     Name: a small red ball
  Aliases: BALL
-   Reset: AFTER→0s JITTER→2m SPAWN=true
+   Reset: AFTER→0s JITTER→2m SPAWN
  Cleanup: AFTER→1s
 Location: O4A
 

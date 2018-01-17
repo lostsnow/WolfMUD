@@ -218,7 +218,8 @@ ZONE RECORDS
     closed - perhaps it's just leaning against a wall? :)
 
     OPEN defines whether the door is initially open or closed. If omitted
-    defaults to false (closed).
+    defaults to false (closed). Just specifying OPEN with no value is
+    a shorthand for OPEN→True.
 
     RESET defines the delay after which the door should automatically be reset
     to its initial state of open or closed - as defined by OPEN above. The
@@ -410,6 +411,8 @@ ZONE RECORDS
 
     If AFTER and JITTER are not specified the minimum reset period will be 1
     second. If SPAWN is not specified it will default to false.
+
+    Just specifying SPAWN with no value is a shorthand for SPAWN→True.
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.

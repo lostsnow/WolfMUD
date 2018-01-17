@@ -148,10 +148,20 @@ func Duration(data []byte) (t time.Duration) {
 // Boolean returns the []byte data as a boolean value. The data is parsed using
 // strconv.ParseBool and will default to false if the data cannot be parsed.
 // Using strconv.parseBool allows true and false to be represented in many ways.
+// As a special case data of length zero will default to true. This allows true
+// to be represented as the presence or absence of just a keyword. For example:
+//
+//  Door: EXIT→E RESET→1m JITTER→1m OPEN
+//
+// Here OPEN is a boolean and will default to true.
 func Boolean(data []byte) (b bool) {
+	s := strings.TrimSpace(string(data))
+	if len(s) == 0 {
+		return true
+	}
 	var err error
-	if b, err = strconv.ParseBool(string(data)); err != nil {
-		log.Printf("Boolean field has invalid value %q, using default: %t", data, b)
+	if b, err = strconv.ParseBool(s); err != nil {
+		log.Printf("Boolean field has invalid value %q, using default: %t", s, b)
 	}
 	return
 }
