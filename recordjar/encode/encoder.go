@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // String returns the given string as a []byte.
@@ -31,23 +32,26 @@ func KeywordList(s []string) []byte {
 	return bytes.ToUpper([]byte(strings.Join(s, " ")))
 }
 
-// PairList returns the passed slice of string pairs as an uppercased []byte.
+// PairList returns the passed map of string pairs as an uppercased []byte.
 // Each pair of strings is separated with the given delimiter. All of the
 // string pairs are then concatenated together separated by whitespace.
 //
-//	exits := [][2]string{
-//		[2]string{"E", "L3"},
-//		[2]string{"SE", "L4"},
-//		[2]string{"S", "L2"},
+//	exits := map[string]string{
+//		"E":  "L3",
+//		"SE": "L4",
+//		"S":  "L2",
 //	}
-//	data := PairList(exits, "→")
+//	data := PairList(exits, '→')
 //
 // Results in data being a byte slice containing "E→L3 SE→L4 S→L2".
-func PairList(data [][2]string, delimeter string) (pairs []byte) {
-	for _, pair := range data {
-		pairs = append(pairs, bytes.ToUpper([]byte(pair[0]))...)
-		pairs = append(pairs, delimeter...)
-		pairs = append(pairs, bytes.ToUpper([]byte(pair[1]))...)
+func PairList(data map[string]string, delimeter rune) (pairs []byte) {
+	d := make([]byte, utf8.RuneLen(delimeter))
+	utf8.EncodeRune(d, delimeter)
+
+	for name, value := range data {
+		pairs = append(pairs, bytes.ToUpper([]byte(name))...)
+		pairs = append(pairs, d...)
+		pairs = append(pairs, bytes.ToUpper([]byte(value))...)
 		pairs = append(pairs, ' ')
 	}
 	if len(data) > 0 {

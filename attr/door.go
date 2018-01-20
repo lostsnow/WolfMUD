@@ -210,14 +210,13 @@ func (n *Door) Found() bool {
 func (*Door) Unmarshal(data []byte) has.Attribute {
 
 	door := NewDoor(0, false, time.Duration(0), time.Duration(0))
-	pairs := decode.PairList(data)
 
-	for _, pair := range pairs {
-		field, sdata, bdata := pair[0], pair[1], []byte(pair[1])
+	for field, data := range decode.PairList(data) {
+		bdata := []byte(data)
 		switch field {
 		case "EXIT":
 			e := NewExits()
-			door.direction, _ = e.NormalizeDirection(sdata)
+			door.direction, _ = e.NormalizeDirection(data)
 		case "RESET":
 			door.reset = decode.Duration(bdata)
 		case "JITTER":
@@ -226,7 +225,7 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 			door.initOpen = decode.Boolean(bdata)
 			door.open = door.initOpen
 		default:
-			log.Printf("Door.unmarshal unknown attribute: %q: %q", field, sdata)
+			log.Printf("Door.unmarshal unknown attribute: %q: %q", field, data)
 		}
 	}
 	return door

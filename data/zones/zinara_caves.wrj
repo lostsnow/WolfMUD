@@ -265,7 +265,7 @@ into the stalk.
       Ref: O1
      Name: a glass ball
   Aliases: BALL GLASSBALL
-    Reset: AFTER→1m30s JITTER→1m SPAWN→true
+    Reset: AFTER→1m30s JITTER→1m SPAWN
   OnReset: You hear the labouring of someone climbing up the stairs. Suddenly
            a head appears from the hole. You see it is a small man in a white
            coat. He carefully takes a small glass ball from his pocket and

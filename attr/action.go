@@ -6,6 +6,7 @@
 package attr
 
 import (
+	"log"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
@@ -64,13 +65,15 @@ func (a *Action) Found() bool {
 // Unmarshal is used to turn the passed data into a new Action attribute.
 func (*Action) Unmarshal(data []byte) has.Attribute {
 	a := NewAction(0, 0)
-	for _, pairs := range decode.PairList(data) {
-		field, data := pairs[0], []byte(pairs[1])
+	for field, data := range decode.PairList(data) {
+		data := []byte(data)
 		switch field {
 		case "AFTER":
 			a.after = decode.Duration(data)
 		case "JITTER":
 			a.jitter = decode.Duration(data)
+		default:
+			log.Printf("Action.unmarshal unknown attribute: %q: %q", field, data)
 		}
 	}
 	return a

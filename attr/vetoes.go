@@ -68,11 +68,11 @@ func (v *Vetoes) Found() bool {
 // Unmarshal is used to turn the passed data into a new Vetoes attribute.
 func (*Vetoes) Unmarshal(data []byte) has.Attribute {
 	veto := []has.Veto{}
-	for _, pair := range decode.KeyedStringList(data) {
-		if pair[0] == "" || pair[1] == "" {
+	for cmd, msg := range decode.KeyedStringList(data) {
+		if cmd == "" || msg == "" {
 			continue // Ignore incomplete pairs
 		}
-		veto = append(veto, NewVeto(pair[0], pair[1]))
+		veto = append(veto, NewVeto(cmd, msg))
 	}
 	return NewVetoes(veto...)
 }

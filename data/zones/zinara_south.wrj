@@ -144,7 +144,7 @@ the forest and south into a small cave partially hidden by the undergrowth.
       Ref: O1
      Name: a small mushroom
     Alias: MUSHROOM
-    Reset: AFTER→1m JITTER→1m SPAWN→TRUE
+    Reset: AFTER→1m JITTER→1m SPAWN
   OnReset: A small mushroom blooms in the undergrowth.
   Cleanup: AFTER→1m JITTER→1m
 OnCleanup: A gentle cloud of spoors leaves the mushroom before it blackens,

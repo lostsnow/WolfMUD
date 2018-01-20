@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Jar represents the collection of Records in a recordjar.
@@ -162,18 +164,19 @@ func Read(in io.Reader, freetext string) Jar {
 // input the fieldname used for the free text block in the jar.
 //
 // For details of the recordjar format see the separate package documentation.
-//
-// TODO: Add wrapping of long values.
 func (j Jar) Write(out io.Writer, freetext string) {
 
-	freetext = (string)(bytes.ToTitle([]byte(freetext)))
+	freetext = text.TitleFirst(strings.ToLower(freetext))
 
 	var (
 		maxLen int
 		buf    bytes.Buffer
+		sepLen int = len(": ")
 	)
 
 	for _, rec := range j {
+
+		// Find maximum field name length used in the current record
 		maxLen = 0
 		for field := range rec {
 			if field == freetext {
@@ -183,18 +186,32 @@ func (j Jar) Write(out io.Writer, freetext string) {
 				maxLen = len(field)
 			}
 		}
+
+		// Add one to the maximum field name length so we always write at least one
+		// leading space before the field name.
 		maxLen++
+
 		for field, data := range rec {
 			if field == freetext {
 				continue
 			}
-			buf.Write(bytes.Repeat([]byte(" "), maxLen-len(field)))
-			buf.Write(bytes.Title(bytes.ToLower([]byte(field))))
-			buf.WriteString(": ")
-			buf.Write(data)
-			buf.WriteString("\n")
+			data = text.Fold(data, 80-maxLen-sepLen)
+			data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
+			for i, l := range bytes.Split(data, []byte("\n")) {
+				if i == 0 {
+					buf.Write(bytes.Repeat([]byte(" "), maxLen-len(field)))
+					buf.WriteString(text.TitleFirst(strings.ToLower(field)))
+					buf.WriteString(": ")
+				} else {
+					buf.Write(bytes.Repeat([]byte(" "), maxLen+sepLen))
+				}
+				buf.Write(l)
+				buf.WriteString("\n")
+			}
 		}
 		if data, ok := rec[freetext]; ok {
+			data = text.Fold(data, 80)
+			data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
 			buf.WriteString("\n")
 			buf.Write(data)
 			buf.WriteString("\n")

@@ -6,6 +6,7 @@
 package attr
 
 import (
+	"log"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
@@ -73,8 +74,8 @@ func (r *Reset) Found() bool {
 // Unmarshal is used to turn the passed data into a new Reset attribute.
 func (*Reset) Unmarshal(data []byte) has.Attribute {
 	r := NewReset(0, 0, false)
-	for _, pairs := range decode.PairList(data) {
-		field, data := pairs[0], []byte(pairs[1])
+	for field, data := range decode.PairList(data) {
+		data := []byte(data)
 		switch field {
 		case "AFTER":
 			r.after = decode.Duration(data)
@@ -82,6 +83,8 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 			r.jitter = decode.Duration(data)
 		case "SPAWN":
 			r.spawn = decode.Boolean(data)
+		default:
+			log.Printf("Reset.unmarshal unknown attribute: %q: %q", field, data)
 		}
 	}
 	return r
