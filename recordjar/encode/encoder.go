@@ -95,6 +95,44 @@ func KeyedString(name, value string, delimiter rune) (data []byte) {
 	return data
 }
 
+// KeyedStringList returns the map of names and strings as a list of colon
+// separated keyed strings. For example:
+//
+//	m := map[string]string{
+//		"get":  "You cannot get that!",
+//		"look": "Your eyes hurt to look at it!",
+//	}
+//	data := KeyedStringList(m, '→')
+//
+// Results in data being a byte slice containing "GET→You cannot get that! :
+// LOOK→Your eyes hurt to look at it!".
+//
+// BUG(diddymus): The strings should be formatted with the separating colon
+// starting on a new line with the colon aligned with the colon separating the
+// keyword:
+//
+//  keyword: GET→You cannot get that!
+//         : LOOK→Your eyes hurt to look at it!
+//
+// However this is not currently possible and so the strings are simply
+// concatenated together:
+//
+//  keyword: GET→You cannot get that! : LOOK→Your eyes hurt to look at it!
+//
+func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
+	for name, value := range pairs {
+		data = append(data, KeyedString(name, value, delimiter)...)
+		data = append(data, " : "...)
+	}
+
+	// Chop off final " : " appended to data
+	if l := len(data); l > 3 {
+		data = data[0 : l-3 : l-3]
+	}
+
+	return data
+}
+
 // Bytes returns a copy of the passed []byte. Important so we don't
 // accidentally pin a larger backing array in memory via the slice.
 func Bytes(dataIn []byte) []byte {
