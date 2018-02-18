@@ -60,6 +60,25 @@ func PairList(data map[string]string, delimiter rune) (pairs []byte) {
 	return
 }
 
+// StringList returns a list of strings delimited by a colon separator.
+//
+// BUG(diddymus): The strings should be formatted with the separating colon
+// starting on a new line with the colon aligned with the colon separating the
+// keyword:
+//
+//  keyword: String one
+//         : String two
+//         : String three
+//
+// However this is not currently possible and so the strings are simply
+// concatenated together:
+//
+//  keyword: String one : String two : String three
+//
+func StringList(data []string) []byte {
+	return []byte(strings.Join(data, " : "))
+}
+
 // Bytes returns a copy of the passed []byte. Important so we don't
 // accidentally pin a larger backing array in memory via the slice.
 func Bytes(dataIn []byte) []byte {
