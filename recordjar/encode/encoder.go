@@ -44,9 +44,9 @@ func KeywordList(s []string) []byte {
 //	data := PairList(exits, '→')
 //
 // Results in data being a byte slice containing "E→L3 SE→L4 S→L2".
-func PairList(data map[string]string, delimeter rune) (pairs []byte) {
-	d := make([]byte, utf8.RuneLen(delimeter))
-	utf8.EncodeRune(d, delimeter)
+func PairList(data map[string]string, delimiter rune) (pairs []byte) {
+	d := make([]byte, utf8.RuneLen(delimiter))
+	utf8.EncodeRune(d, delimiter)
 
 	for name, value := range data {
 		pairs = append(pairs, bytes.ToUpper([]byte(name))...)
