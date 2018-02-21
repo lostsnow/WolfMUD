@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Cleanup attribute.
@@ -99,6 +100,19 @@ func (*Cleanup) Unmarshal(data []byte) has.Attribute {
 		}
 	}
 	return c
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (c *Cleanup) Marshal() (tag string, data []byte) {
+	tag = "cleanup"
+	data = encode.PairList(
+		map[string]string{
+			"after":  string(encode.Duration(c.after)),
+			"jitter": string(encode.Duration(c.jitter)),
+		},
+		'→',
+	)
+	return
 }
 
 func (c *Cleanup) Dump() (buff []string) {
