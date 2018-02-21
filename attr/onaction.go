@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for OnAction attribute.
@@ -55,6 +56,11 @@ func (oa *OnAction) Found() bool {
 // Unmarshal is used to turn the passed data into a new OnAction attribute.
 func (*OnAction) Unmarshal(data []byte) has.Attribute {
 	return NewOnAction(decode.StringList(data))
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (oa *OnAction) Marshal() (tag string, data []byte) {
+	return "onaction", encode.StringList(oa.actions)
 }
 
 func (oa *OnAction) Dump() (buf []string) {
