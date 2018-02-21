@@ -753,7 +753,7 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
  OnReset: A rabbit hops into view.
   Action: AFTER→15s JITTER→15s
 OnAction: The rabbit hops around a bit.
-        : You see the rabbit twitch it's little nose, Ahh...
+        : You see the rabbit twitch its little nose, Ahh...
         : The rabbit makes a soft squeaking and chattering noise.
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
@@ -784,7 +784,7 @@ OnAction: The cat starts to claw at the furniture, scratching deep gouges into
 
 The tavern cat is a ball of fur with one golden eye, the other eye replaced by
 a large scar. It senses you watching it and returns your gaze with a steady
-one of it's own.
+one of its own.
 %%
 //
 // OBJECTS
