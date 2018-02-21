@@ -50,9 +50,9 @@ func (a *Attribute) SetParent(t has.Thing) {
 
 // FOR DEVELOPMENT ONLY SO WE DON'T HAVE TO IMPLEMENT Marshal ON ALL THE
 // ATTRIBUTES AT ONCE. REMOVE AS SOON AS ALL ATTRIBUTES UPDATED.
-func (a *Attribute) Marshal(attr has.Attribute) []byte {
+func (a *Attribute) Marshal() (string, []byte) {
 	log.Println("[DEBUG] dummy marshal")
-	return []byte{}
+	return "", []byte{}
 }
 
 // Free makes sure references are nil'ed when the Attribute is freed. Other

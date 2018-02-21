@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Action attribute.
@@ -77,6 +78,19 @@ func (*Action) Unmarshal(data []byte) has.Attribute {
 		}
 	}
 	return a
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (a *Action) Marshal() (tag string, data []byte) {
+	tag = "action"
+	data = encode.PairList(
+		map[string]string{
+			"after":  string(encode.Duration(a.after)),
+			"jitter": string(encode.Duration(a.jitter)),
+		},
+		'→',
+	)
+	return
 }
 
 func (a *Action) Dump() (buff []string) {

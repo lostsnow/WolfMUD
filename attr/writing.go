@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Writing attribute.
@@ -62,6 +63,11 @@ func (w *Writing) Found() bool {
 // Unmarshal is used to turn the passed data into a new Writing attribute.
 func (*Writing) Unmarshal(data []byte) has.Attribute {
 	return NewWriting(decode.String(data))
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (w *Writing) Marshal() (tag string, data []byte) {
+	return "writing", encode.String(w.writing)
 }
 
 func (w *Writing) Dump() []string {

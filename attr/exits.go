@@ -11,6 +11,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Exits attribute.
@@ -151,6 +152,23 @@ func (e *Exits) Found() bool {
 // Unmarshal is used to turn the passed data into a new Exits attribute.
 func (*Exits) Unmarshal(data []byte) has.Attribute {
 	return NewExits()
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (e *Exits) Marshal() (tag string, data []byte) {
+	exits := make(map[string]string)
+	for i, e := range e.exits {
+		if e == nil {
+			continue
+		}
+		exits[string(NewExits().ToName(byte(i)))] = e.Parent().UID()
+	}
+	if len(exits) < 2 {
+		tag = "exit"
+	} else {
+		tag = "exits"
+	}
+	return tag, encode.PairList(exits, '→')
 }
 
 func (e *Exits) Dump() []string {

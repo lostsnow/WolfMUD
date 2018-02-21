@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Alias attribute.
@@ -111,6 +112,30 @@ func (a *Alias) Found() bool {
 // Unmarshal is used to turn the passed data into a new Alias attribute.
 func (*Alias) Unmarshal(data []byte) has.Attribute {
 	return NewAlias(decode.KeywordList(data)...)
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (a *Alias) Marshal() (tag string, data []byte) {
+
+	// Make a list of aliases but exclude the unique alias. If we don't then the
+	// unique aliases will keep being added to the list.
+	uid := a.Parent().UID()
+	aliases := []string{}
+	for alias := range a.aliases {
+		if alias == uid {
+			continue
+		}
+		aliases = append(aliases, alias)
+	}
+
+	if len(aliases) < 2 {
+		tag = "alias"
+	} else {
+		tag = "aliases"
+	}
+
+	data = encode.KeywordList(aliases)
+	return
 }
 
 func (a *Alias) Dump() []string {

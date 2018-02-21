@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Description attribute.
@@ -63,6 +64,11 @@ func (d *Description) Found() bool {
 // Unmarshal is used to turn the passed data into a new Description attribute.
 func (*Description) Unmarshal(data []byte) has.Attribute {
 	return NewDescription(decode.String(data))
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (d *Description) Marshal() (tag string, data []byte) {
+	return "description", encode.String(d.description)
 }
 
 func (d *Description) Dump() []string {

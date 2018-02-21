@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for OnCleanup attribute.
@@ -54,6 +55,11 @@ func (oc *OnCleanup) Found() bool {
 // Unmarshal is used to turn the passed data into a new OnCleanup attribute.
 func (*OnCleanup) Unmarshal(data []byte) has.Attribute {
 	return NewOnCleanup(decode.String(data))
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (oc *OnCleanup) Marshal() (tag string, data []byte) {
+	return "oncleanup", encode.String(oc.text)
 }
 
 func (oc *OnCleanup) Dump() []string {

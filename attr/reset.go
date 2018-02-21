@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Reset attribute.
@@ -88,6 +89,20 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 		}
 	}
 	return r
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (r *Reset) Marshal() (tag string, data []byte) {
+	tag = "reset"
+	data = encode.PairList(
+		map[string]string{
+			"after":  string(encode.Duration(r.after)),
+			"jitter": string(encode.Duration(r.jitter)),
+			"spawn":  string(encode.Boolean(r.spawn)),
+		},
+		'→',
+	)
+	return
 }
 
 func (r *Reset) Dump() (buff []string) {

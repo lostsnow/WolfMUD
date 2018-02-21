@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Door attribute.
@@ -229,6 +230,21 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 		}
 	}
 	return door
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (d *Door) Marshal() (tag string, data []byte) {
+	tag = "door"
+	data = encode.PairList(
+		map[string]string{
+			"exit":   string(NewExits().ToName(d.direction)),
+			"reset":  string(encode.Duration(d.reset)),
+			"jitter": string(encode.Duration(d.jitter)),
+			"open":   string(encode.Boolean(d.initOpen)),
+		},
+		'→',
+	)
+	return
 }
 
 func (d *Door) Dump() (buff []string) {
