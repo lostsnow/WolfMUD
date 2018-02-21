@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"strings"
 	"sync"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
@@ -181,6 +182,27 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 	}
 
 	return
+}
+
+// Marshal marshals a Thing to a recordjar record containing all of the
+// Attribute details.
+func (t *Thing) Marshal() recordjar.Record {
+
+	var (
+		tag  string
+		data []byte
+	)
+
+	rec := recordjar.Record{}
+	rec["Ref"] = []byte(t.UID())
+	for _, a := range t.Attrs() {
+		tag, data = a.Marshal()
+		if tag == "" {
+			continue
+		}
+		rec[strings.Title(tag)] = data
+	}
+	return rec
 }
 
 func (t *Thing) Dump() (buff []string) {
