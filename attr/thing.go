@@ -224,9 +224,7 @@ func (t *Thing) SetOrigins() {
 
 	// Set our origin to that of the parent Inventory
 	if l := FindLocate(t); l.Found() {
-		if i := FindInventory(l.Where().Parent()); i.Found() {
-			l.SetOrigin(i)
-		}
+		l.SetOrigin(l.Where())
 	}
 
 	// Find our Inventory
