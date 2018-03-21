@@ -176,10 +176,13 @@ func (j Jar) Write(out io.Writer, freetext string) {
 
 	for _, rec := range j {
 
-		// Find maximum field name length used in the current record
+		// Find maximum field name length used in the current record.
+		// Also record a normalised version of the field names used.
 		maxLen = 0
+		norm := map[string]string{}
 		for field := range rec {
-			if field == freetext {
+			norm[field] = text.TitleFirst(strings.ToLower(field))
+			if norm[field] == freetext {
 				continue
 			}
 			if len(field) > maxLen {
@@ -188,7 +191,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 		}
 
 		for field, data := range rec {
-			if field == freetext {
+			if norm[field] == freetext {
 				continue
 			}
 			data = text.Fold(data, 80-maxLen-sepLen)
@@ -196,7 +199,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			for i, l := range bytes.Split(data, []byte("\n")) {
 				if i == 0 {
 					buf.Write(bytes.Repeat([]byte(" "), maxLen-len(field)))
-					buf.WriteString(text.TitleFirst(strings.ToLower(field)))
+					buf.WriteString(norm[field])
 					buf.WriteString(": ")
 				} else {
 					buf.Write(bytes.Repeat([]byte(" "), maxLen+sepLen))
@@ -205,12 +208,15 @@ func (j Jar) Write(out io.Writer, freetext string) {
 				buf.WriteString("\n")
 			}
 		}
-		if data, ok := rec[freetext]; ok {
-			data = text.Fold(data, 80)
-			data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
-			buf.WriteString("\n")
-			buf.Write(data)
-			buf.WriteString("\n")
+		for f, n := range norm {
+			if n == freetext {
+				data := text.Fold(rec[f], 80)
+				data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
+				buf.WriteString("\n")
+				buf.Write(data)
+				buf.WriteString("\n")
+				break
+			}
 		}
 		buf.WriteString("%%\n")
 		buf.WriteTo(out)
