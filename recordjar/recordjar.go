@@ -187,10 +187,6 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			}
 		}
 
-		// Add one to the maximum field name length so we always write at least one
-		// leading space before the field name.
-		maxLen++
-
 		for field, data := range rec {
 			if field == freetext {
 				continue
