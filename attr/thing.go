@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"runtime"
-	"strings"
 	"sync"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
@@ -194,13 +193,13 @@ func (t *Thing) Marshal() recordjar.Record {
 	)
 
 	rec := recordjar.Record{}
-	rec["Ref"] = []byte(t.UID())
+	rec["ref"] = []byte(t.UID())
 	for _, a := range t.Attrs() {
 		tag, data = a.Marshal()
 		if tag == "" {
 			continue
 		}
-		rec[strings.Title(tag)] = data
+		rec[tag] = data
 	}
 	return rec
 }
