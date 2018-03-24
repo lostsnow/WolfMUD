@@ -206,7 +206,7 @@ func (t *Thing) Marshal() recordjar.Record {
 
 func (t *Thing) Dump() (buff []string) {
 	t.rwmutex.RLock()
-	buff = append(buff, DumpFmt("%s, %d attributes:", t, len(t.attrs)))
+	buff = append(buff, DumpFmt("%s, collectable: %t, %d attributes:", t, t.Collectable(), len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
@@ -267,6 +267,13 @@ func (t *Thing) SetOrigins() {
 		}
 		t.SetOrigins()
 	}
+}
+
+// Collectable returns true if a Thing can be kept by a player, otherwise
+// returns false. This is a helper routine so that the definition of what is
+// considered collectable can be easily changed.
+func (t *Thing) Collectable() bool {
+	return FindLocate(t).Origin() == nil
 }
 
 // UID returns the unique identifier for a specific Thing or an empty string if
