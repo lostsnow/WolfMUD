@@ -83,12 +83,10 @@ func (j junk) process(s *state) {
 }
 
 // lockOrigins adds locks for the origin of the passed Thing and the origins of
-// all of its Inventory content recursively.
+// all of the content of its Inventory - recursively.
 func (j junk) lockOrigins(s *state, t has.Thing) {
-	o := attr.FindLocate(t).Origin()
-	s.AddLock(o)
-	i := attr.FindInventory(t)
-	for _, c := range i.Contents() {
+	s.AddLock(attr.FindLocate(t).Origin())
+	for _, c := range attr.FindInventory(t).Contents() {
 		j.lockOrigins(s, c)
 	}
 }
