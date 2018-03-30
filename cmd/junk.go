@@ -91,19 +91,15 @@ func (j junk) lockOrigins(s *state, t has.Thing) {
 	}
 }
 
-// vetoed checks the Inventory content (recursively) of the passed Thing to see
-// if any of the content vetoes the JUNK command. If anything vetoes the JUNK
-// command returns true otherwise returns false.
+// vetoed checks the content of an Inventory (recursively) of the passed Thing
+// to see if any of the content vetoes the JUNK command. If anything vetoes the
+// JUNK command returns true otherwise returns false.
 func (j junk) vetoed(t has.Thing) bool {
-	if i := attr.FindInventory(t); i.Found() {
-		for _, t := range i.Contents() {
-			if veto := attr.FindVetoes(t).Check("JUNK"); veto != nil {
-				return true
-			}
-			if j.vetoed(t) {
-				return true
-			}
+	for _, t := range attr.FindInventory(t).Contents() {
+		if attr.FindVetoes(t).Check("JUNK") != nil {
+			return true
 		}
+		return j.vetoed(t)
 	}
 	return false
 }
