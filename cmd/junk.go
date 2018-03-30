@@ -110,9 +110,8 @@ func (j junk) vetoed(t has.Thing) bool {
 // a reset will be scheduled.
 func (j junk) dispose(t has.Thing) {
 
-	// Recurse into inventories and junk content
-	i := attr.FindInventory(t)
-	for _, c := range i.Contents() {
+	// Recurse into inventories and dispose of the content
+	for _, c := range attr.FindInventory(t).Contents() {
 		j.dispose(c)
 	}
 
