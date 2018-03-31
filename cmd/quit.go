@@ -18,18 +18,31 @@ func init() {
 
 type quit cmd
 
-// The Quit command acts as a hook for processing - such as cleanup - to be
-// done when a player quits the game.
-func (quit) process(s *state) {
+// The Quit command acts as a hook for processing to be done when a player
+// quits the game.
+func (q quit) process(s *state) {
 
-	who := attr.FindName(s.actor).Name("someone")
+	// Instance of a junk command to handle locking and disposal
+	j := junk{}
 
-	// Drop any items we are carrying.
-	//
-	// NOTE: In future this needs to be updated to only drop temporary items.
-	from := attr.FindInventory(s.actor)
-	for _, t := range from.Contents() {
-		s.scriptAll("DROP", t.UID())
+	// Make sure we are locking the reset origins for all of the player's
+	// Inventory items so that they can be disposed of via junking.
+	lc := len(s.locks)
+	j.lockOrigins(s, s.actor)
+	if len(s.locks) != lc {
+		return
+	}
+
+	// Save player
+	s.scriptActor("SAVE")
+
+	// Junk everything we are carrying so it will either be reset or disposed of.
+	// By calling junk.dispose directly we are bypassing all of the normal JUNK
+	// command's Veto and Narrative checking. We also run silently without
+	// generating any of the JUNK command's normal messages. This is deliberate
+	// so that everything gets reset or disposed of when a player quits.
+	for _, t := range attr.FindInventory(s.actor).Contents() {
+		j.dispose(t)
 	}
 
 	// Reset the player's prompt while the Player is still in the Inventory we
@@ -38,6 +51,7 @@ func (quit) process(s *state) {
 
 	// Remove the player from the world
 	if s.where != nil {
+		who := attr.FindName(s.actor).Name("someone")
 		s.msg.Observer.SendInfo(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 		s.where.Disable(s.actor)
 		s.where.Remove(s.actor)
