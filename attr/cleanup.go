@@ -23,7 +23,9 @@ func init() {
 
 // Cleanup implements an Attribute for disposing of Things left laying around
 // in the game world. When an item is dropped it will be cleaned up after a
-// delay period has elapsed. Otherwise the world will get cluttered with items.
+// delay period has elapsed. Otherwise the world would get cluttered with
+// items.
+//
 // The delay period is between Cleanup.after and Cleanup.after+Cleanup.jitter.
 // If a Thing is being cleaned up and is in its delay period the Cleanup.Cancel
 // channel will be non-nil and the clean up may be aborted by closing the
@@ -46,7 +48,7 @@ func init() {
 // cancelled. If the item has an Inventory its content - checked recursively -
 // will have any pending clean ups cancelled. If we don't cancel pending clean
 // ups recursively then putting an item into a container and then picking the
-// container up would result in the item still being scheduled for a clean up
+// container up would result in the item still being scheduled for a clean up,
 // resulting in the item disappearing from the container.
 type Cleanup struct {
 	Attribute
