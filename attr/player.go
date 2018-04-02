@@ -28,6 +28,7 @@ type Player struct {
 	Attribute
 	io.Writer
 	has.PromptStyle
+	acct *account
 }
 
 // Some interfaces we want to make sure we implement
@@ -38,7 +39,7 @@ var (
 // NewPlayer returns a new Player attribute initialised with the specified
 // Writer which is used to send data back to the associated client.
 func NewPlayer(w io.Writer) *Player {
-	return &Player{Attribute{}, w, has.StyleBrief}
+	return &Player{Attribute{}, w, has.StyleBrief, &account{}}
 }
 
 func (p *Player) Dump() []string {
@@ -127,6 +128,12 @@ func (p *Player) Check(cmd ...string) has.Veto {
 		return NewVeto(cmd[0], "You can't junk "+FindName(p.Parent()).Name("Someone")+"!")
 	}
 	return nil
+}
+
+// Account returns the account information for a player. This can be used to
+// Marshal, Unmarshal or set a player's account information.
+func (p *Player) Account() *account {
+	return p.acct
 }
 
 // account contains information about the player's account. An account only
