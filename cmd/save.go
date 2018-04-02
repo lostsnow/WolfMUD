@@ -27,8 +27,13 @@ type save cmd
 
 func (sa save) process(s *state) {
 
-	// Recursively save collectable items in player's inventory into a new jar.
+	// Setup account header
+	acct := attr.FindPlayer(s.actor).(*attr.Player).Account()
+	header := acct.Marshal()
+
+	// Save account header and player to Jar
 	jar := &recordjar.Jar{}
+	*jar = append(*jar, header)
 	sa.inventory(jar, s.actor)
 	sa.fixInventory(jar)
 
