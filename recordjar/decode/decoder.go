@@ -145,6 +145,19 @@ func Duration(data []byte) (t time.Duration) {
 	return t
 }
 
+// DateTime returns the []byte data as a time.Time. The data is parsed using
+// time.Parse and is expected to conform to RFC1123 - as written by
+// encode.DateTime. If there is an error parsing the data the date and time
+// will default to the current date and time.
+func DateTime(data []byte) (t time.Time) {
+	var err error
+	if t, err = time.Parse(time.RFC1123, string(data)); err != nil {
+		t = time.Now()
+		log.Printf("DateTime field has invalid value %q, using default: %s", data, t)
+	}
+	return t
+}
+
 // Boolean returns the []byte data as a boolean value. The data is parsed using
 // strconv.ParseBool and will default to false if the data cannot be parsed.
 // Using strconv.parseBool allows true and false to be represented in many ways.
