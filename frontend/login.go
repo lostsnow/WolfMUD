@@ -161,3 +161,48 @@ func (l *login) passwordProcess() {
 
 	NewMenu(l.frontend)
 }
+
+// assemblePlayer unmarshals a Jar and returns a Thing representing the player,
+// complete with inventory items.
+//
+// BUG(diddymus): assemblePlayer is very fragile and makes assumptions. For
+// example it assumes jar[0] (the first record) is for the player.
+//
+// BUG(diddymus): Need to add error handling for unexpected/missing fields.
+func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
+
+	// Temporary store
+	store := map[string]*attr.Thing{}
+
+	// Load jar into store
+	for x, record := range jar {
+		ref := decode.Keyword(record["REF"])
+		store[ref] = attr.NewThing()
+		store[ref].Unmarshal(x+1, record)
+	}
+
+	// Link up inventories in the store using references NOT copies
+	for _, record := range jar {
+		ref := decode.Keyword(record["REF"])
+		if i := attr.FindInventory(store[ref]); i.Found() {
+			i.Lock()
+			for _, ref := range decode.KeywordList(record["INVENTORY"]) {
+				i.Add(store[ref])
+				i.Enable(store[ref])
+			}
+			i.Unlock()
+		}
+	}
+
+	// Find and extract player as a copy - resolves any references as copies too
+	ref := decode.Keyword(jar[0]["REF"])
+	p := store[ref].Copy().(*attr.Thing)
+
+	// Cleanup store
+	for ref, t := range store {
+		delete(store, ref)
+		t.Free()
+	}
+
+	return p
+}
