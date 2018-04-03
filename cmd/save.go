@@ -37,8 +37,10 @@ func (sa save) process(s *state) {
 	sa.inventory(jar, s.actor)
 	sa.fixInventory(jar)
 
-	temp := filepath.Join(config.Server.DataDir, "players", "save.tmp")
-	real := filepath.Join(config.Server.DataDir, "players", "save.wrj")
+	// Setup filenames for saving Jar
+	acctname := decode.String(header["account"])
+	temp := filepath.Join(config.Server.DataDir, "players", acctname+".tmp")
+	real := filepath.Join(config.Server.DataDir, "players", acctname+".wrj")
 
 	// Write out player jar to temporary file
 	wrj, err := os.Create(temp)
