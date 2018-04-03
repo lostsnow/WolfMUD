@@ -134,9 +134,6 @@ func (l *login) passwordProcess() {
 		return
 	}
 
-	// Drop header record from jar
-	jar = jar[1:]
-
 	// Check if account already in use to prevent multiple logins
 	accounts.Lock()
 	if _, inuse := accounts.inuse[l.account]; inuse {
@@ -150,11 +147,15 @@ func (l *login) passwordProcess() {
 	accounts.inuse[l.account] = struct{}{}
 	accounts.Unlock()
 
+	// Create a new player attribute and unmarshal the player account details
+	// into it from the header record. Then drop processed header from the jar.
+	p := attr.NewPlayer(l.output)
+	p.Account().Unmarshal(record)
+	jar = jar[1:]
+
 	// Assemble player
-	record = jar[0]
-	l.player = attr.NewThing()
-	l.player.(*attr.Thing).Unmarshal(1, record)
-	l.player.Add(attr.NewPlayer(l.output))
+	l.player = l.assemblePlayer(jar)
+	l.player.Add(p)
 
 	// Greet returning player
 	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Reset)
