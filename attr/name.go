@@ -78,7 +78,7 @@ func (n *Name) Marshal() (tag string, data []byte) {
 }
 
 func (n *Name) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", n, n.name)}
+	return []string{DumpFmt("%p %[1]T: %q", n, n.name)}
 }
 
 // Name returns the name stored in the attribute. If the receiver is nil or the

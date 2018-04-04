@@ -72,7 +72,7 @@ func (d *Description) Marshal() (tag string, data []byte) {
 }
 
 func (d *Description) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", d, d.description)}
+	return []string{DumpFmt("%p %[1]T: %q", d, d.description)}
 }
 
 // Description returns the descriptive string of the attribute.
