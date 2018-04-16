@@ -46,7 +46,7 @@ func (sa save) process(s *state) {
 	wrj, err := os.Create(temp)
 	if err != nil {
 		log.Printf("Error saving player: %s, %s", temp, err)
-		s.msg.Actor.SendInfo("Oops! There was an error saving. Please notify admin.")
+		s.msg.Actor.SendBad("Oops! There was an error saving. Please notify admin.")
 		return
 	}
 
@@ -55,7 +55,7 @@ func (sa save) process(s *state) {
 		err = wrj.Chmod(0660)
 		if err != nil {
 			wrj.Close()
-			s.msg.Actor.SendInfo("Oops! There was an error saving. Please notify admin.")
+			s.msg.Actor.SendBad("Oops! There was an error saving. Please notify admin.")
 			log.Printf("Error changing save file permissions: %s, %s", temp, err)
 			return
 		}
@@ -69,13 +69,13 @@ func (sa save) process(s *state) {
 	// should be an atomic operation but is dependant on the underlying file
 	// system and operating system being used.
 	if err := os.Rename(temp, real); err != nil {
-		s.msg.Actor.SendInfo("Oops! There was an error saving. Please notify admin.")
+		s.msg.Actor.SendBad("Oops! There was an error saving. Please notify admin.")
 		log.Printf("Error renaming save file: %s, %s, %s", temp, real, err)
 		return
 	}
 
 	log.Printf("Player saved: %s", real)
-	s.msg.Actor.SendInfo("You have been saved.")
+	s.msg.Actor.SendGood("You have been saved.")
 	s.ok = true
 }
 
