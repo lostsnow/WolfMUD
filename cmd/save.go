@@ -74,7 +74,7 @@ func (sa save) process(s *state) {
 		return
 	}
 
-	log.Printf("Player saved: %s", real)
+	log.Printf("Player saved: %s.wrj", acctname)
 	s.msg.Actor.SendGood("You have been saved.")
 	s.ok = true
 }
