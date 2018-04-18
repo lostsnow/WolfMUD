@@ -22,28 +22,20 @@ type quit cmd
 // quits the game.
 func (q quit) process(s *state) {
 
-	// Instance of a junk command to handle locking and disposal
-	j := junk{}
-
 	// Make sure we are locking the reset origins for all of the player's
 	// Inventory items so that they can be disposed of via junking.
 	lc := len(s.locks)
-	j.lockOrigins(s, s.actor)
+	junk{}.lockOrigins(s, s.actor)
 	if len(s.locks) != lc {
 		return
 	}
 
+	// Dispose of player's non-collectables items. Doing this before saving means
+	// the SAVE command has potentially less items to look through.
+	q.dispose(s, s.actor)
+
 	// Save player
 	s.scriptActor("SAVE")
-
-	// Junk everything we are carrying so it will either be reset or disposed of.
-	// By calling junk.dispose directly we are bypassing all of the normal JUNK
-	// command's Veto and Narrative checking. We also run silently without
-	// generating any of the JUNK command's normal messages. This is deliberate
-	// so that everything gets reset or disposed of when a player quits.
-	for _, t := range attr.FindInventory(s.actor).Contents() {
-		j.dispose(t)
-	}
 
 	// Reset the player's prompt while the Player is still in the Inventory we
 	// are locking.
@@ -61,4 +53,21 @@ func (q quit) process(s *state) {
 	stats.Remove(s.actor)
 
 	s.ok = true
+}
+
+// dispose junks any non-collectable items the player is carrying so that the
+// items will be reset. By calling junk.dispose directly we are bypassing all
+// of the normal JUNK command's Veto and Narrative checking. As junk.dispose
+// will also run silently, without generating any of the JUNK command's normal
+// messages, we need to generate our own. This is deliberate so that all
+// non-collectable items will be forced to reset when a player quits.
+func (q quit) dispose(s *state, t has.Thing) {
+	for _, t := range attr.FindInventory(t).Contents() {
+		if !t.Collectable() {
+			s.msg.Actor.SendInfo("You junk ", attr.FindName(t).Name("something"), ".")
+			junk{}.dispose(t)
+			continue
+		}
+		q.dispose(s, t)
+	}
 }
