@@ -22,142 +22,141 @@ type Jar []Record
 // Record represents the separate records in a recordjar.
 type Record map[string][]byte
 
-// splitLine is a regex to split fields and data in a recordjar.
-var splitLine = regexp.MustCompile(`^(?:([^\s:]+):)?\s*(.*?)$`)
+// splitLine is a regex to split name and data in a recordjar.
+var splitLine = regexp.MustCompile(`^(?:\s*([^\s:]+):)?\s*(.*?)$`)
 
 var (
 	comment   = []byte("//") // Comment marker
 	separator = []byte("%%") // Record separator marker
 )
 
-// Read takes as input an io.Reader assuming the data to be in the WolfMUD
-// recordjar format and the fieldname to use for the free text block. The input
-// is parsed into a jar which is then returned.
+// Read takes as input an io.Reader - assuming the data to be in the WolfMUD
+// recordjar format - and the field name to use for the freetext block. The
+// input is parsed into a jar which is then returned.
 //
 // For details of the recordjar format see the separate package documentation.
-func Read(in io.Reader, freetext string) Jar {
+func Read(in io.Reader, freetext string) (j Jar) {
 
-	// work variables for the current field and it's data
 	var (
-		b         *bufio.Reader // Buffered reader for the input
-		j         Jar           // Jar being built
-		r         Record        // Current jar record
-		raw       []byte        // Current raw line
-		line      []byte        // Current clean (trimmed) line
-		tokens    [][]byte      // Line split into field / data tokens
-		field     string        // Current field name
-		data      []byte        // Current data
-		ok        bool          // Map key checking flag
-		blankLine bool          // Flag when previous line is blank
-		err       error
+		b   *bufio.Reader
+		ok  bool
+		err error
+
+		// Variables for processing current line
+		line   []byte   // current line from Reader
+		tokens [][]byte // temp vars for name:data pair parsed from line
+		name   string   // current name from line
+		data   []byte   // current data from line
+		field  string   // current field being processed (may differ from name)
+
+		// Some flags to improve code readability
+		noName     = false // true if line has no name
+		noData     = false // true if line has no data
+		noLine     = false // true if line has no name and no data
+		noLastLine = false // true if last line had no name and no data
 	)
 
-	b = bufio.NewReader(in)
-	j = Jar{}
-	r = Record{}
+	// If not using a buffered Reader, make it buffered
+	if b, ok = in.(*bufio.Reader); !ok {
+		b = bufio.NewReader(in)
+	}
 
-	// Make sure the name to use for the free text block is uppercased.
+	// Make sure the field name to use for freetext is uppercased
 	freetext = strings.ToUpper(freetext)
 
-	// Start off assuming last field seen was the special freetext field. If the
-	// record does not actually start with free text then the field name found
-	// will overwrite this. This has the effect of allowing a record to consist
-	// of just a free text block without having to precede it with a blank line.
-	lastField := freetext
+	// Setup an initially empty record for the Jar
+	r := Record{}
 
-	// Helper: if current record not empty add it to the jar and create a new
-	// record. Also reset lastField to the free text block field - see above.
-	addJar := func() {
-		if len(r) > 0 {
-			j = append(j, r)
-			r = Record{}
-		}
-		lastField = freetext
-		blankLine = false
-	}
-
-	// Main processing loop
 	for err == nil {
+		line, err = b.ReadBytes('\n')
 
-		raw, err = b.ReadBytes('\n')
-
-		// If not processing freetext block
-		if _, ok = r[freetext]; !ok {
-
-			line = bytes.TrimSpace(raw)
-
-			switch {
-			case len(line) == 0:
-				// Ignore blank lines caused by errors, otherwise start free text block.
-				// Also need to check if first line is a blank line in which case we
-				// include it in the freetextblock and not as a separator.
-				if err == nil {
-					r[freetext] = []byte{}
-					blankLine = lastField == freetext
-				}
-				continue
-			case bytes.HasPrefix(line, comment):
-				continue
-			case bytes.Equal(line, separator):
-				addJar()
-				continue
-			}
-
-			tokens = splitLine.FindSubmatch(line)
-			field, data = string(bytes.ToUpper(tokens[1])), tokens[2]
-
-			// If we have no field name and we are processing the freetext block the
-			// free text block started on the first line of the record. So we have to
-			// store the line for the free text block with only the right side
-			// stripped of whitespace.
-			if field == "" && lastField == freetext {
-				r[freetext] = bytes.TrimRightFunc(raw, unicode.IsSpace)
-				continue
-			}
-
-			if field != "" {
-				lastField = field
-			}
-
-			if _, ok = r[lastField]; ok {
-				r[lastField] = append(r[lastField], ' ')
-			}
-			r[lastField] = append(r[lastField], data...)
-
-		} else {
-			// Processing freetext block if we get here
-
-			// Only trim right to keep leading whitespace...
-			line = bytes.TrimRightFunc(raw, unicode.IsSpace)
-
-			// ... but trim left to check for a record separator
-			if bytes.Equal(bytes.TrimLeftFunc(line, unicode.IsSpace), separator) {
-				addJar()
-				continue
-			}
-
-			// If previous line was blank or current line is empty or starts with
-			// whitespace append a line feed
-			if blankLine || len(line) == 0 || bytes.IndexFunc(line, unicode.IsSpace) == 0 {
-				r[freetext] = append(r[freetext], '\n')
-			}
-
-			blankLine = len(line) == 0
-
-			// If didn't append a line feed and we already have text append a space
-			if l := len(r[freetext]); l != 0 && r[freetext][l-1] != '\n' {
-				r[freetext] = append(r[freetext], ' ')
-			}
-
-			// Append actual line data
-			r[freetext] = append(r[freetext], line...)
+		// If we read no data and find EOF continue and let loop exit
+		if len(line) == 0 && err == io.EOF {
+			continue
 		}
 
+		// Read and parse current line
+		line = bytes.TrimRightFunc(line, unicode.IsSpace)
+		tokens = splitLine.FindSubmatch(line)
+		name, data = string(bytes.ToUpper(tokens[1])), tokens[2]
+
+		noName = len(name) == 0
+		noData = len(data) == 0
+		noLine = noName && noData
+
+		// Ignore comments found outside of freetext block
+		if noName && field != freetext && bytes.HasPrefix(data, comment) {
+			continue
+		}
+
+		// Handle record separator by recording current Record in Jar and setting
+		// up a new next record, reset lastField seen and noLastLine flag.
+		if noName && bytes.Equal(data, separator) {
+			if len(r) > 0 {
+				j = append(j, r)
+				r = Record{}
+			}
+			field = ""
+			noLastLine = false
+			continue
+		}
+
+		// If we get a new name store it as the current field being processed
+		if !noName {
+			field = name
+		}
+
+		// Switch to freetext field if empty line and we are not already processing
+		// the freetext block. If there was no lastField processed we need to
+		// record the blank line so that it is included in the freetext block. This
+		// lets us have a record that is freetext only and can start with a blank
+		// line, which is not counted as a separator line.
+		if noLine && field != freetext {
+			if field == "" {
+				noLastLine = true
+			}
+			field = freetext
+			continue
+		}
+
+		// Handle freetext if already processing the freetext block, or we have no
+		// field - in which case assume we are starting the freetext block
+		if field == freetext || field == "" {
+
+			// If last line was blank, current line is blank or current line starts
+			// with whitespace and we already have some text in the freetext block,
+			// then append a new line to terminate the last line and start a new one.
+			// If not terminating last line, but we have some data in the freetext
+			// already, then append a space before appending the current line.
+			if noLastLine || noLine || (len(r[freetext]) != 0 && bytes.IndexFunc(line, unicode.IsSpace) == 0) {
+				r[freetext] = append(r[freetext], '\n')
+			} else {
+				if _, ok = r[freetext]; ok {
+					r[freetext] = append(r[freetext], ' ')
+				}
+			}
+
+			r[freetext] = append(r[freetext], line...)
+
+			noLastLine = noLine
+			field = freetext
+			continue
+		}
+
+		// Handle field. Append a space before appending text if continuation
+		if _, ok = r[field]; ok {
+			r[field] = append(r[field], ' ')
+		}
+		r[field] = append(r[field], data...)
 	}
 
-	addJar() // Add last record to the jar
+	// Append last record to the Jar if we have one
+	if len(r) > 0 {
+		j = append(j, r)
+		r = Record{}
+	}
 
-	return j
+	return
 }
 
 // Write writes out a Record Jar to the specified io.Writer. It also takes as

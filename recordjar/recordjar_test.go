@@ -309,7 +309,7 @@ Some text two.
 			"\tTabbed text two.\n",
 			Jar{
 				Record{
-					"FREETEXT": []byte("\tTabbed text two.\n"),
+					"FREETEXT": []byte("\tTabbed text two."),
 				},
 			},
 		},
@@ -335,7 +335,21 @@ Some text two.
 			},
 		},
 
-		// Server greeting
+		// Freetext with an embedded comment
+		{
+			`
+This is a freetext block.
+
+  // This is not a comment but more free text!
+
+This is a freetext block.
+` + "\n",
+			Jar{
+				Record{"FREETEXT": []byte("\nThis is a freetext block.\n\n  // This is not a comment but more free text!\n\nThis is a freetext block.\n")},
+			},
+		},
+
+		// Server greeting - final "\n" is expected when from a text file
 		{
 			`
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
@@ -346,7 +360,7 @@ WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
     Fantasy
 
 Welcome to WolfMUD!
-`,
+` + "\n",
 			Jar{
 				Record{"FREETEXT": []byte("\nWolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe\n\n    World\n    Of\n    Living\n    Fantasy\n\nWelcome to WolfMUD!\n")},
 			},
