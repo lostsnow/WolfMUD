@@ -3,7 +3,7 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// The event package implements WolfMUD's asynchronous scripting mechanism.
+// Package event implements WolfMUD's asynchronous scripting mechanism.
 package event
 
 import (

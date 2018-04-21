@@ -3,10 +3,10 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// The zones package implements WolfMUD's high level zone loading. Zones are
-// used to group together multiple Thing into manageable groups. Zones can be
-// used to put together a universe, a world, a city, a town, a complex building
-// or a patch of forest. A zone can be a single Thing or a few thousand but
+// Package zones implements WolfMUD's high level zone loading. Zones are used
+// to group together multiple Thing into manageable groups. Zones can be used
+// to put together a universe, a world, a city, a town, a complex building or a
+// patch of forest. A zone can be a single Thing or a few thousand but
 // typically each zone will have a few hundred Thing which represent everything
 // within an area of the game. Each zone is then linked together to make up the
 // complete game world.
