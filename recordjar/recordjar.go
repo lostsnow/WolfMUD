@@ -22,8 +22,20 @@ type Jar []Record
 // Record represents the separate records in a recordjar.
 type Record map[string][]byte
 
-// splitLine is a regex to split name and data in a recordjar.
-var splitLine = regexp.MustCompile(`^(?:\s*([^\s:]+):)?\s*(.*?)$`)
+// splitLine is a regex to split fields and data in a recordjar .wrj file. The
+// result of a FindSubmatch should always be a [][]byte of length 3 consisting
+// of: the string matched, the field name, the data.
+var splitLine = regexp.MustCompile(text.Uncomment(`
+	^            # match start of string
+	(?:          # non-capture group for 'field:'
+		\s*        # don't capture whitespace before 'field'
+	  ([^\s:]+)  # capture 'field' - non-whitespace/non-colon
+	  :          # non-capture match of colon as field:value separator
+	)?           # match non-captured 'field:' zero or once, prefer once
+	\s*          # consume any whitepace - leading or after 'field:' if matched
+	(.*?)        # capture everything left umatched, not greedy
+	$            # match at end of string
+`))
 
 var (
 	comment   = []byte("//") // Comment marker
