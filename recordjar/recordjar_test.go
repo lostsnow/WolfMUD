@@ -11,45 +11,39 @@ import (
 	"testing"
 )
 
-func compareJars(t *testing.T, j1, j2 Jar) {
-j1:
-	for x, rec := range j1 {
-		for inField, inData := range rec {
+// compare is a helper to compare two Jars j1 and j2. Parameter n can be used
+// to identify which jar in a number of jars is being compared.
+func compareJars(t *testing.T, id string, j1, j2 Jar) {
+
+	const (
+		extra   = "has extra"
+		missing = "is missing"
+	)
+
+	t.Helper()
+	f := func(reason string) {
+		t.Helper()
+		for x, r := range j1 {
 			if x > len(j2)-1 {
-				t.Errorf("cannot compare output with extra input record %d containing:\n%s", x, printRecord(rec))
-				continue j1
+				t.Errorf("jar %q, %s record %d", id, reason, x)
+				continue
 			}
-			if outData, ok := j2[x][inField]; !ok {
-				t.Errorf("record %d field %+q missing from output: %+q\n", x, inField, inData)
-			} else {
-				if !bytes.Equal(outData, inData) {
-					t.Errorf("record %d field %+q data mismatch:\n\tHave: %+q\n\tWant: %+q\n", x, inField, inData, outData)
+			for field, value := range r {
+				if _, ok := j2[x][field]; !ok {
+					t.Errorf("jar %q, record %d - output %s field %q", id, x, reason, field)
+					continue
+				}
+				if reason == extra && !bytes.Equal(value, j2[x][field]) {
+					t.Errorf("jar %q, record %d, field: %q\nhave: %q\nwant: %q", id, x, field, value, j2[x][field])
 				}
 			}
 		}
-		if x > len(j2)-1 {
-			t.Errorf("cannot compare output with extra input record %d", x)
-			continue
-		}
-		for outField, outData := range j2[x] {
-			if _, ok := j1[x][outField]; !ok {
-				t.Errorf("record %d field %+q not found in input: %+q\n", x, outField, outData)
-			}
-		}
 	}
-
-	if d := len(j2) - len(j1); d > 0 {
-		for x := len(j1); x < len(j2); x++ {
-			t.Errorf("extra record %d in output containing:\n%s\n", x, printRecord(j2[x]))
-		}
-	}
-}
-
-func printRecord(r Record) (out []byte) {
-	for field, data := range r {
-		out = append(out, fmt.Sprintf("%+q: %+q\n", field, data)...)
-	}
-	return
+	// Compare j1 with j2, then j2 with j1. First compare will report extra records
+	// and fields, second compare will report missing records and fields.
+	f(missing)
+	j1, j2 = j2, j1
+	f(extra)
 }
 
 func TestSimpleRead(t *testing.T) {
@@ -367,11 +361,11 @@ Welcome to WolfMUD!
 		},
 	}
 
-	for _, test := range tests {
+	for x, test := range tests {
 		b := bytes.NewBufferString(test.data)
 
 		j := Read(b, "freetext")
-		compareJars(t, j, test.Jar)
+		compareJars(t, fmt.Sprintf("%d", x), j, test.Jar)
 	}
 
 }
