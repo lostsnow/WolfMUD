@@ -22,7 +22,8 @@ import (
 // creating a Thing and then adding Attributes to it which implement specific
 // functionality. Concurrent access to a Thing is safe.
 type Thing struct {
-	uid string
+	uid   string
+	freed bool
 
 	rwmutex sync.RWMutex
 	attrs   []has.Attribute
@@ -77,17 +78,27 @@ func (t *Thing) Free() {
 	if t == nil {
 		return
 	}
+
 	t.rwmutex.Lock()
+
 	for i := range t.attrs {
 		t.attrs[i].Free()
 		t.attrs[i] = nil
 	}
 	t.attrs = nil
-	t.rwmutex.Unlock()
 
-	c := <-ThingCount
-	c--
-	ThingCount <- c
+	// If Thing wasn't already freed, flag it freed and decrement Thing count.
+	// This check is needed so that when references to a Thing are used instead
+	// of copies - as in the temporary stores used to load zones or players - we
+	// don't screw up the Thing count.
+	if !t.freed {
+		t.freed = true
+		c := <-ThingCount
+		c--
+		ThingCount <- c
+	}
+
+	t.rwmutex.Unlock()
 }
 
 // Add is used to add the passed Attributes to a Thing. When an Attribute is

@@ -188,7 +188,7 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		if i := attr.FindInventory(store[ref]); i.Found() {
 			i.Lock()
 			for _, ref := range decode.KeywordList(record["INVENTORY"]) {
-				t := store[ref].Copy()
+				t := store[ref]
 				i.Add(t)
 				i.Enable(t)
 			}
