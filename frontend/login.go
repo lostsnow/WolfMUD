@@ -179,6 +179,7 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 	for x, record := range jar {
 		ref := decode.Keyword(record["REF"])
 		store[ref] = attr.NewThing()
+		store[ref].NotUnique()
 		store[ref].Unmarshal(x+1, record)
 	}
 

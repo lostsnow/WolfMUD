@@ -180,6 +180,7 @@ func loadZone(path string) zone {
 				log.Printf("[Record %d] Warning: overwriting duplicate reference reference %s", i, ref)
 			}
 			z.store[ref] = taggedThing{t, record}
+			z.store[ref].Thing.NotUnique()
 		}
 
 	}
