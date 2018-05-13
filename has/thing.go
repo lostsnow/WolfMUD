@@ -47,4 +47,7 @@ type Thing interface {
 	// UID returns the unique identifier for a Thing or an empty string if the
 	// unique ID is unavailable.
 	UID() string
+
+	// Mark a Thing as no longer being unique.
+	NotUnique()
 }

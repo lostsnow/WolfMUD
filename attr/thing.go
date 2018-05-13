@@ -22,8 +22,7 @@ import (
 // creating a Thing and then adding Attributes to it which implement specific
 // functionality. Concurrent access to a Thing is safe.
 type Thing struct {
-	uid   string
-	freed bool
+	uid string
 
 	rwmutex sync.RWMutex
 	attrs   []has.Attribute
@@ -81,18 +80,17 @@ func (t *Thing) Free() {
 
 	t.rwmutex.Lock()
 
+	if t.uid != "" && len(t.attrs) == 0 {
+		log.Printf("Warning, already freed: %s", t)
+	}
+
 	for i := range t.attrs {
 		t.attrs[i].Free()
 		t.attrs[i] = nil
 	}
 	t.attrs = nil
 
-	// If Thing wasn't already freed, flag it freed and decrement Thing count.
-	// This check is needed so that when references to a Thing are used instead
-	// of copies - as in the temporary stores used to load zones or players - we
-	// don't screw up the Thing count.
-	if !t.freed {
-		t.freed = true
+	if t.uid != "" {
 		c := <-ThingCount
 		c--
 		ThingCount <- c
@@ -295,6 +293,25 @@ func (t *Thing) UID() string {
 		return ""
 	}
 	return t.uid
+}
+
+// NotUnique marks a Thing as no longer being unique and clears the Thing's
+// UID. It also decrements ThingCount by one to account for the fact that
+// calling Free will no longer decrement ThingCount for multiple references of
+// this Thing. Calling NotUnique on a Thing more than once is safe.
+//
+// You almost never, ever, want to call this function! The only time this
+// should be used is when creating temporary stores - such as when loading
+// zones or players.
+func (t *Thing) NotUnique() {
+	if t == nil || t.uid == "" {
+		return
+	}
+
+	c := <-ThingCount
+	c--
+	ThingCount <- c
+	t.uid = ""
 }
 
 // String causes a Thing to implement the Stringer interface so that a Thing
