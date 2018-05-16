@@ -89,6 +89,12 @@ func (*Player) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 
+// Marshal returns a tag and []byte that represents the receiver. In this case
+// we return empty values as the Player attribute is not persisted.
+func (*Player) Marshal() (string, []byte) {
+	return "", []byte{}
+}
+
 // Write writes the specified byte slice to the associated client.
 func (p *Player) Write(b []byte) (n int, err error) {
 	if p == nil {

@@ -6,7 +6,6 @@
 package attr
 
 import (
-	"log"
 	"sync"
 
 	"code.wolfmud.org/WolfMUD.git/has"
@@ -46,13 +45,6 @@ func (a *Attribute) SetParent(t has.Thing) {
 	a.rwmutex.Lock()
 	a.parent = t
 	a.rwmutex.Unlock()
-}
-
-// FOR DEVELOPMENT ONLY SO WE DON'T HAVE TO IMPLEMENT Marshal ON ALL THE
-// ATTRIBUTES AT ONCE. REMOVE AS SOON AS ALL ATTRIBUTES UPDATED.
-func (a *Attribute) Marshal() (string, []byte) {
-	log.Println("[DEBUG] dummy marshal")
-	return "", []byte{}
 }
 
 // Free makes sure references are nil'ed when the Attribute is freed. Other
