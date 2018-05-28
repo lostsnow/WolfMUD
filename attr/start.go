@@ -64,6 +64,11 @@ func (*Start) Unmarshal(data []byte) has.Attribute {
 	return NewStart()
 }
 
+// Marshal returns a tag and []byte that represents the receiver.
+func (*Start) Marshal() (tag string, data []byte) {
+	return "start", data
+}
+
 func (s *Start) Dump() []string {
 	return []string{DumpFmt("%p %[1]T", s)}
 }

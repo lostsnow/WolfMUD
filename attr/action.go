@@ -6,12 +6,14 @@
 package attr
 
 import (
+	"log"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Action attribute.
@@ -64,16 +66,31 @@ func (a *Action) Found() bool {
 // Unmarshal is used to turn the passed data into a new Action attribute.
 func (*Action) Unmarshal(data []byte) has.Attribute {
 	a := NewAction(0, 0)
-	for _, pairs := range decode.PairList(data) {
-		field, data := pairs[0], []byte(pairs[1])
+	for field, data := range decode.PairList(data) {
+		data := []byte(data)
 		switch field {
 		case "AFTER":
 			a.after = decode.Duration(data)
 		case "JITTER":
 			a.jitter = decode.Duration(data)
+		default:
+			log.Printf("Action.unmarshal unknown attribute: %q: %q", field, data)
 		}
 	}
 	return a
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (a *Action) Marshal() (tag string, data []byte) {
+	tag = "action"
+	data = encode.PairList(
+		map[string]string{
+			"after":  string(encode.Duration(a.after)),
+			"jitter": string(encode.Duration(a.jitter)),
+		},
+		'→',
+	)
+	return
 }
 
 func (a *Action) Dump() (buff []string) {

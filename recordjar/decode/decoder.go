@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // String returns the []bytes data as a string.
@@ -33,41 +34,41 @@ func KeywordList(data []byte) []string {
 	return strings.Fields(strings.ToUpper(string(data)))
 }
 
-// PairList returns the []byte data as uppercassed pairs of strings in a slice.
+// PairList returns the []byte data as uppercassed pairs of strings in a map.
 // The data is first split on whitespace and extra whitespace is stripped. The
 // 'words' are then split into pairs on the first non-unicode letter or digit.
 // If we take exits as an example:
 //
 //  Exits: E→L3 SE→L4 S→ W
 //
-// Results in four pairs:
+// Results in a map with four pairs:
 //
-//  [2]string{"E","L3"}
-//  [2]string{"SE","L4"}
-//  [2]string{"S",""}
-//  [2]string{"W",""}
+//  map[string]string {
+//    "E": "L3",
+//    "SE": "L4",
+//    "S": "",
+//    "W": "",
+//  }
 //
 // Here the separator used is → but any non-unicode letter or digit may be
 // used.
-func PairList(data []byte) (pairs [][2]string) {
-	for _, pair := range strings.Fields(string(data)) {
-		runes := []rune(strings.ToUpper(pair))
-		split := false
-		for i, r := range runes {
-			if !unicode.IsDigit(r) && !unicode.IsLetter(r) {
-				pairs = append(pairs, [2]string{string(runes[:i]), string(runes[i+1:])})
-				split = true
-				break
-			}
+func PairList(data []byte) (pairs map[string]string) {
+
+	pairs = make(map[string]string)
+
+	for _, name := range strings.Fields(string(data)) {
+		name = strings.TrimSpace(strings.ToUpper(name))
+		value := ""
+		if i, l := indexSeparator(name); i != -1 {
+			value = name[i+l:]
+			name = name[:i]
 		}
-		if !split {
-			pairs = append(pairs, [2]string{string(runes[:]), ""})
-		}
+		pairs[name] = value
 	}
 	return
 }
 
-// StringList returns the []byte date as a []string by splitting the data on a
+// StringList returns the []byte data as a []string by splitting the data on a
 // colon separator.
 func StringList(data []byte) (s []string) {
 	for _, t := range strings.Split(string(data), ":") {
@@ -78,48 +79,50 @@ func StringList(data []byte) (s []string) {
 	return
 }
 
-// KeyedString returns the []byte data as an uppercassed keywrd and a string.
-// The keyword is split from the beginning of the []byte on the first
+// KeyedString returns the []byte data as an uppercassed keyword and a string
+// value. The keyword is split from the beginning of the []byte on the first
 // non-unicode letter or digit. For example:
 //
 //   input: []byte("GET→You can't get it.")
-//  output: [2]string{"GET", "You can't get it."}
+//  output: "GET", "You can't get it."
 //
 // Here the separator used is → but any non-unicode letter or digit may be
 // used.
-func KeyedString(data []byte) (pair [2]string) {
-	runes := []rune(string(data))
-	split := false
-	for i, r := range runes {
-		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !unicode.IsSpace(r) {
-			key := strings.TrimSpace(strings.ToUpper(string(runes[:i])))
-			data := strings.TrimSpace(string(runes[i+1:]))
-			pair = [2]string{key, data}
-			split = true
-			break
-		}
+func KeyedString(data []byte) (name, value string) {
+
+	name = string(data)
+
+	if i, l := indexSeparator(name); i != -1 {
+		value = name[i+l:]
+		name = name[:i]
 	}
-	if !split {
-		pair = [2]string{string(runes[:]), ""}
-	}
+
+	name = strings.TrimSpace(strings.ToUpper(name))
+	value = strings.TrimSpace(value)
+
 	return
 }
 
-// KeyedStringList splits the []byte on a colon (:) separator and passes each
-// result through KeyedString. KeyedStringList is a shorthand for combining
-// StringList and KeyedString. For example the follow RecordJar record's data:
+// KeyedStringList splits the []byte data into a map of keywords and strings.
+// The []byte data is first split on a colon (:) separator to determine the
+// pairs. The keyword is then split from the beginning of each pair on the
+// first non-unicode letter or digit. For example:
 //
 //  Vetoes:  GET→You can't get it.
 //        : DROP→You can't drop it.
 //
-// Would produce a slice with two entries:
+// Would produce a map with two entries:
 //
-//  [2]string{"GET", "You can't get it."}
-//  [2]string{"DROP", "You can't drop it."}
+//  map[string]string{
+//    "GET": "You can't get it.",
+//    "DROP": "You can't drop it.",
+//  }
 //
-func KeyedStringList(data []byte) (list [][2]string) {
+func KeyedStringList(data []byte) (list map[string]string) {
+	list = make(map[string]string)
 	for _, w := range StringList(data) {
-		list = append(list, KeyedString([]byte(w)))
+		name, value := KeyedString([]byte(w))
+		list[name] = value
 	}
 	return
 }
@@ -142,13 +145,36 @@ func Duration(data []byte) (t time.Duration) {
 	return t
 }
 
+// DateTime returns the []byte data as a time.Time. The data is parsed using
+// time.Parse and is expected to conform to RFC1123 - as written by
+// encode.DateTime. If there is an error parsing the data the date and time
+// will default to the current date and time.
+func DateTime(data []byte) (t time.Time) {
+	var err error
+	if t, err = time.Parse(time.RFC1123, string(data)); err != nil {
+		t = time.Now()
+		log.Printf("DateTime field has invalid value %q, using default: %s", data, t)
+	}
+	return t
+}
+
 // Boolean returns the []byte data as a boolean value. The data is parsed using
 // strconv.ParseBool and will default to false if the data cannot be parsed.
 // Using strconv.parseBool allows true and false to be represented in many ways.
+// As a special case data of length zero will default to true. This allows true
+// to be represented as the presence or absence of just a keyword. For example:
+//
+//  Door: EXIT→E RESET→1m JITTER→1m OPEN
+//
+// Here OPEN is a boolean and will default to true.
 func Boolean(data []byte) (b bool) {
+	s := strings.TrimSpace(string(data))
+	if len(s) == 0 {
+		return true
+	}
 	var err error
-	if b, err = strconv.ParseBool(string(data)); err != nil {
-		log.Printf("Boolean field has invalid value %q, using default: %t", data, b)
+	if b, err = strconv.ParseBool(s); err != nil {
+		log.Printf("Boolean field has invalid value %q, using default: %t", s, b)
 	}
 	return
 }
@@ -159,6 +185,19 @@ func Integer(data []byte) (i int) {
 	var err error
 	if i, err = strconv.Atoi(string(data)); err != nil {
 		log.Printf("Integer field has invalid value %q, using default: %d", data, i)
+	}
+	return
+}
+
+// indexSeparator returns the position and length in bytes of the first
+// separator rune found. If no separator is found the position returned will be
+// -1 and the length returned will be 0.
+func indexSeparator(s string) (index int, size int) {
+	index = strings.IndexFunc(s, func(r rune) bool {
+		return !unicode.In(r, unicode.Digit, unicode.Letter, unicode.White_Space)
+	})
+	if index != -1 {
+		_, size = utf8.DecodeRune([]byte(s[index:]))
 	}
 	return
 }

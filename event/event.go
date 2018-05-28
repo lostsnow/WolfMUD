@@ -3,7 +3,7 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// The event package implements WolfMUD's asynchronous scripting mechanism.
+// Package event implements WolfMUD's asynchronous scripting mechanism.
 package event
 
 import (
@@ -27,15 +27,15 @@ var Script func(t has.Thing, input string) string
 // Cancel channel should be closed to cancel the pending event that was queued.
 type Cancel chan<- struct{}
 
-// Queue schedules a scripted event to happen after the given delay period. The
-// command specified in the input will run with access to scripting only
-// commands starting with a '$' symbol. The event can be cancelled by closing
-// the returned Cancel channel. The thing is the Thing for which the input will
-// be scripted. The input is the command to script. The delay is the period
-// after which the command will be run. The jitter is a random amount that can
-// be added to the delay. So the actual delay for an event will be between
-// delay and delay+jitter. For a totally random event delay can be 0s. The
-// minimum period+jitter will be 1 second, adjusted if required.
+// Queue schedules a scripted event to happen after the given delay period.
+// Events can use any normal player commands and in addition have access to
+// scripting only commands starting with the '$' symbol. The event can be
+// cancelled by closing the returned Cancel channel. The passed in Thing is
+// expected to be the 'actor' for the event. The input is the command to
+// script. The delay is the period after which the command will be run. The
+// jitter is a random amount that can be added to the delay. So the actual
+// delay for an event will be between delay and delay+jitter. For a totally
+// random event delay can be 0s.
 func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Duration) Cancel {
 
 	// Manually find the proper name of the thing instead of using attr.FindName

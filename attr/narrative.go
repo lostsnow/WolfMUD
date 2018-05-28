@@ -94,6 +94,11 @@ func (*Narrative) Unmarshal(data []byte) has.Attribute {
 	return NewNarrative()
 }
 
+// Marshal returns a tag and []byte that represents the receiver.
+func (n *Narrative) Marshal() (tag string, data []byte) {
+	return "narrative", data
+}
+
 // ImplementsNarrative is a marker method so that we can specifically identify
 // a Narrative.
 func (*Narrative) ImplementsNarrative() {}

@@ -40,7 +40,14 @@ type Thing interface {
 	// one.
 	SetOrigins()
 
+	// Collectable returns true if a Thing can be kept by a player, otherwise
+	// returns false.
+	Collectable() bool
+
 	// UID returns the unique identifier for a Thing or an empty string if the
 	// unique ID is unavailable.
 	UID() string
+
+	// Mark a Thing as no longer being unique.
+	NotUnique()
 }

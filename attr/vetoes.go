@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Vetoes attribute.
@@ -68,13 +69,31 @@ func (v *Vetoes) Found() bool {
 // Unmarshal is used to turn the passed data into a new Vetoes attribute.
 func (*Vetoes) Unmarshal(data []byte) has.Attribute {
 	veto := []has.Veto{}
-	for _, pair := range decode.KeyedStringList(data) {
-		if pair[0] == "" || pair[1] == "" {
+	for cmd, msg := range decode.KeyedStringList(data) {
+		if cmd == "" || msg == "" {
 			continue // Ignore incomplete pairs
 		}
-		veto = append(veto, NewVeto(pair[0], pair[1]))
+		veto = append(veto, NewVeto(cmd, msg))
 	}
 	return NewVetoes(veto...)
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (v *Vetoes) Marshal() (tag string, data []byte) {
+
+	pairs := map[string]string{}
+
+	for _, veto := range v.vetoes {
+		pairs[veto.Command()] = veto.Message()
+	}
+
+	if len(v.vetoes) < 2 {
+		tag = "veto"
+	} else {
+		tag = "vetoes"
+	}
+
+	return tag, encode.KeyedStringList(pairs, '→')
 }
 
 func (v *Vetoes) Dump() (buff []string) {

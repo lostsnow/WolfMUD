@@ -753,7 +753,7 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
  OnReset: A rabbit hops into view.
   Action: AFTER→15s JITTER→15s
 OnAction: The rabbit hops around a bit.
-        : You see the rabbit twitch it's little nose, Ahh...
+        : You see the rabbit twitch its little nose, Ahh...
         : The rabbit makes a soft squeaking and chattering noise.
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
@@ -784,7 +784,7 @@ OnAction: The cat starts to claw at the furniture, scratching deep gouges into
 
 The tavern cat is a ball of fur with one golden eye, the other eye replaced by
 a large scar. It senses you watching it and returns your gaze with a steady
-one of it's own.
+one of its own.
 %%
 //
 // OBJECTS
@@ -814,7 +814,7 @@ This is a small, green, rubber ball.
      Ref: O3
     Name: a small red ball
  Aliases: BALL
-   Reset: AFTER→0s JITTER→2m SPAWN=true
+   Reset: AFTER→0s JITTER→2m SPAWN
  Cleanup: AFTER→1s
 Location: O4A
 
@@ -881,4 +881,24 @@ OnCleanup: Light gleams off the fish of gold before it fades away and is gone.
 
 This is a small, finely carved fish that appears to have been made from solid
 gold.
+%%
+      Ref: O9
+     Name: a small sack
+  Aliases: SACK
+    Reset: AFTER→1m JITTER→1m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L1
+Inventory:
+
+This is a small sack, handy for carrying things in.
+%%
+      Ref: O10
+     Name: a small bag
+  Aliases: BAG
+    Reset: AFTER→1m JITTER→1m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L1
+Inventory:
+
+This is a small bag, handy for carrying things in.
 %%

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // String returns the given string as a []byte.
@@ -31,29 +32,105 @@ func KeywordList(s []string) []byte {
 	return bytes.ToUpper([]byte(strings.Join(s, " ")))
 }
 
-// PairList returns the passed slice of string pairs as an uppercased []byte.
+// PairList returns the passed map of string pairs as an uppercased []byte.
 // Each pair of strings is separated with the given delimiter. All of the
 // string pairs are then concatenated together separated by whitespace.
 //
-//	exits := [][2]string{
-//		[2]string{"E", "L3"},
-//		[2]string{"SE", "L4"},
-//		[2]string{"S", "L2"},
+//	exits := map[string]string{
+//		"E":  "L3",
+//		"SE": "L4",
+//		"S":  "L2",
 //	}
-//	data := PairList(exits, "→")
+//	data := PairList(exits, '→')
 //
 // Results in data being a byte slice containing "E→L3 SE→L4 S→L2".
-func PairList(data [][2]string, delimeter string) (pairs []byte) {
-	for _, pair := range data {
-		pairs = append(pairs, bytes.ToUpper([]byte(pair[0]))...)
-		pairs = append(pairs, delimeter...)
-		pairs = append(pairs, bytes.ToUpper([]byte(pair[1]))...)
+func PairList(data map[string]string, delimiter rune) (pairs []byte) {
+	d := make([]byte, utf8.RuneLen(delimiter))
+	utf8.EncodeRune(d, delimiter)
+
+	for name, value := range data {
+		pairs = append(pairs, bytes.ToUpper([]byte(name))...)
+		pairs = append(pairs, d...)
+		pairs = append(pairs, bytes.ToUpper([]byte(value))...)
 		pairs = append(pairs, ' ')
 	}
 	if len(data) > 0 {
 		pairs = pairs[0 : len(pairs)-1]
 	}
 	return
+}
+
+// StringList returns a list of strings delimited by a colon separator.
+//
+// BUG(diddymus): The strings should be formatted with the separating colon
+// starting on a new line with the colon aligned with the colon separating the
+// keyword:
+//
+//  keyword: String one
+//         : String two
+//         : String three
+//
+// However this is not currently possible and so the strings are simply
+// concatenated together:
+//
+//  keyword: String one : String two : String three
+//
+func StringList(data []string) []byte {
+	return []byte(strings.Join(data, " : "))
+}
+
+// KeyedString returns the name uppercased and concatenated to the value using
+// the delimiter, as a []byte. For example:
+//
+//  KeyedString("get", "You cannot get that!", '→')
+//
+// Results in a []byte containing "GET→You cannot get that!".
+func KeyedString(name, value string, delimiter rune) (data []byte) {
+	d := make([]byte, utf8.RuneLen(delimiter))
+	utf8.EncodeRune(d, delimiter)
+
+	data = append(data, Keyword(name)...)
+	data = append(data, d...)
+	data = append(data, value...)
+	return data
+}
+
+// KeyedStringList returns the map of names and strings as a list of colon
+// separated keyed strings. For example:
+//
+//	m := map[string]string{
+//		"get":  "You cannot get that!",
+//		"look": "Your eyes hurt to look at it!",
+//	}
+//	data := KeyedStringList(m, '→')
+//
+// Results in data being a byte slice containing "GET→You cannot get that! :
+// LOOK→Your eyes hurt to look at it!".
+//
+// BUG(diddymus): The strings should be formatted with the separating colon
+// starting on a new line with the colon aligned with the colon separating the
+// keyword:
+//
+//  keyword: GET→You cannot get that!
+//         : LOOK→Your eyes hurt to look at it!
+//
+// However this is not currently possible and so the strings are simply
+// concatenated together:
+//
+//  keyword: GET→You cannot get that! : LOOK→Your eyes hurt to look at it!
+//
+func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
+	for name, value := range pairs {
+		data = append(data, KeyedString(name, value, delimiter)...)
+		data = append(data, " : "...)
+	}
+
+	// Chop off final " : " appended to data
+	if l := len(data); l > 3 {
+		data = data[0 : l-3 : l-3]
+	}
+
+	return data
 }
 
 // Bytes returns a copy of the passed []byte. Important so we don't
@@ -65,9 +142,20 @@ func Bytes(dataIn []byte) []byte {
 }
 
 // Duration returns the given time.Duration as a []byte. The byte slice will
-// have the format "0h0m0.0s".
+// have the format "0h0m0.0s" although leading and trailing zero units will be
+// omitted.
 func Duration(d time.Duration) []byte {
-	return []byte(d.String())
+	b := []byte(d.String())
+	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("m0s")) {
+		b = b[:l-2]
+	}
+	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("h0m")) {
+		b = b[:l-1]
+	}
+	if len(b) == 0 {
+		b = []byte("0s")
+	}
+	return b
 }
 
 // Duration returns the given time.Duration as a []byte. The byte slice will be

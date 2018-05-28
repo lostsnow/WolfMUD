@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
@@ -83,41 +84,34 @@ func (j junk) process(s *state) {
 }
 
 // lockOrigins adds locks for the origin of the passed Thing and the origins of
-// all of its Inventory content recursively.
+// all of the content of its Inventory - recursively.
 func (j junk) lockOrigins(s *state, t has.Thing) {
-	o := attr.FindLocate(t).Origin()
-	s.AddLock(o)
-	i := attr.FindInventory(t)
-	for _, c := range i.Contents() {
+	s.AddLock(attr.FindLocate(t).Origin())
+	for _, c := range attr.FindInventory(t).Contents() {
 		j.lockOrigins(s, c)
 	}
 }
 
-// vetoed checks the Inventory content (recursively) of the passed Thing to see
-// if any of the content vetoes the JUNK command. If anything vetoes the JUNK
-// command returns true otherwise returns false.
+// vetoed checks the content of an Inventory (recursively) of the passed Thing
+// to see if any of the content vetoes the JUNK command. If anything vetoes the
+// JUNK command returns true otherwise returns false.
 func (j junk) vetoed(t has.Thing) bool {
-	if i := attr.FindInventory(t); i.Found() {
-		for _, t := range i.Contents() {
-			if veto := attr.FindVetoes(t).Check("JUNK"); veto != nil {
-				return true
-			}
-			if j.vetoed(t) {
-				return true
-			}
+	for _, t := range attr.FindInventory(t).Contents() {
+		if attr.FindVetoes(t).Check("JUNK") != nil {
+			return true
 		}
+		return j.vetoed(t)
 	}
 	return false
 }
 
-// dispose takes a thing out of play. If the Thing has a Reset attribute and an
-// origin it will be schedued for a reset. Otherwise the Thing will be removed
-// and released for garbase collection.
+// dispose takes a thing out of play. If the Thing is collectable it will be
+// removed and released for garbage collection. If the Thing is not collectable
+// a reset will be scheduled.
 func (j junk) dispose(t has.Thing) {
 
-	// Recurse into inventories and junk content
-	i := attr.FindInventory(t)
-	for _, c := range i.Contents() {
+	// Recurse into inventories and dispose of the content
+	for _, c := range attr.FindInventory(t).Contents() {
 		j.dispose(c)
 	}
 
@@ -129,17 +123,27 @@ func (j junk) dispose(t has.Thing) {
 	attr.FindAction(t).Abort()
 	attr.FindCleanup(t).Abort()
 
-	// If Thing has no reset or origin remove it and free for garbage collection
-	if !r.Found() || o == nil {
+	// If Thing is collectable remove it and free for garbage collection
+	if t.Collectable() {
 		w.Disable(t)
 		w.Remove(t)
 		t.Free()
 		return
 	}
 
-	// Move Thing to its origin and register for a reset
+	// Move Thing to its origin and disable it, as it is out of play
 	w.Move(t, o)
 	o.Disable(t)
+
+	// If we don't have a reset attribute then invoke a "$RESET" on the fly to
+	// force a reset. The reset will happen almost immediately and players will
+	// see any relevant reset messages.
+	if !r.Found() {
+		event.Queue(t, "$RESET", 0, 0)
+		return
+	}
+
+	// Register for a reset use reset attribute
 	r.Reset()
 
 	return

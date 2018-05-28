@@ -87,8 +87,8 @@ func (l *login) passwordProcess() {
 	// Can we open the account file? The filename is the MD5 hash of the account
 	// ID. That way the filename is of a known format [0-9a-f]{32}\.wrj and we
 	// don't have to trust user input for filenames hitting the filesystem.
-	p := filepath.Join(config.Server.DataDir, "players", l.account+".wrj")
-	wrj, err := os.Open(p)
+	fp := filepath.Join(config.Server.DataDir, "players", l.account+".wrj")
+	wrj, err := os.Open(fp)
 	if err != nil {
 		log.Printf("Error opening account: %s", err)
 		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
@@ -134,9 +134,6 @@ func (l *login) passwordProcess() {
 		return
 	}
 
-	// Drop header record from jar
-	jar = jar[1:]
-
 	// Check if account already in use to prevent multiple logins
 	accounts.Lock()
 	if _, inuse := accounts.inuse[l.account]; inuse {
@@ -150,14 +147,65 @@ func (l *login) passwordProcess() {
 	accounts.inuse[l.account] = struct{}{}
 	accounts.Unlock()
 
+	// Create a new player attribute and unmarshal the player account details
+	// into it from the header record. Then drop processed header from the jar.
+	p := attr.NewPlayer(l.output)
+	p.Account().Unmarshal(record)
+	jar = jar[1:]
+
 	// Assemble player
-	record = jar[0]
-	l.player = attr.NewThing()
-	l.player.(*attr.Thing).Unmarshal(1, record)
-	l.player.Add(attr.NewPlayer(l.output))
+	l.player = l.assemblePlayer(jar)
+	l.player.Add(p)
 
 	// Greet returning player
 	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Reset)
 
 	NewMenu(l.frontend)
+}
+
+// assemblePlayer unmarshals a Jar and returns a Thing representing the player,
+// complete with inventory items.
+//
+// BUG(diddymus): assemblePlayer is very fragile and makes assumptions. For
+// example it assumes jar[0] (the first record) is for the player.
+//
+// BUG(diddymus): Need to add error handling for unexpected/missing fields.
+func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
+
+	// Temporary store
+	store := map[string]*attr.Thing{}
+
+	// Load jar into store
+	for x, record := range jar {
+		ref := decode.Keyword(record["REF"])
+		store[ref] = attr.NewThing()
+		store[ref].NotUnique()
+		store[ref].Unmarshal(x+1, record)
+	}
+
+	// Link up inventories in the store using references NOT copies
+	for _, record := range jar {
+		ref := decode.Keyword(record["REF"])
+		if i := attr.FindInventory(store[ref]); i.Found() {
+			i.Lock()
+			for _, ref := range decode.KeywordList(record["INVENTORY"]) {
+				t := store[ref]
+				i.Add(t)
+				i.Enable(t)
+			}
+			i.Unlock()
+		}
+	}
+
+	// Find and extract player as a copy - resolves any references as copies too
+	ref := decode.Keyword(jar[0]["REF"])
+	p := store[ref].Copy().(*attr.Thing)
+
+	// Cleanup store
+	for ref, t := range store {
+		delete(store, ref)
+		t.Free()
+	}
+
+	return p
 }

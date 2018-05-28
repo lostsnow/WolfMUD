@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Door attribute.
@@ -185,6 +186,7 @@ func (d *Door) OtherSide() {
 
 	// Add 'other side' to opposing location's inventory and enable it
 	i.Add(t)
+	t.SetOrigins()
 	i.Enable(t)
 
 }
@@ -210,14 +212,13 @@ func (n *Door) Found() bool {
 func (*Door) Unmarshal(data []byte) has.Attribute {
 
 	door := NewDoor(0, false, time.Duration(0), time.Duration(0))
-	pairs := decode.PairList(data)
 
-	for _, pair := range pairs {
-		field, sdata, bdata := pair[0], pair[1], []byte(pair[1])
+	for field, data := range decode.PairList(data) {
+		bdata := []byte(data)
 		switch field {
 		case "EXIT":
 			e := NewExits()
-			door.direction, _ = e.NormalizeDirection(sdata)
+			door.direction, _ = e.NormalizeDirection(data)
 		case "RESET":
 			door.reset = decode.Duration(bdata)
 		case "JITTER":
@@ -226,10 +227,25 @@ func (*Door) Unmarshal(data []byte) has.Attribute {
 			door.initOpen = decode.Boolean(bdata)
 			door.open = door.initOpen
 		default:
-			log.Printf("Door.unmarshal unknown attribute: %q: %q", field, sdata)
+			log.Printf("Door.unmarshal unknown attribute: %q: %q", field, data)
 		}
 	}
 	return door
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (d *Door) Marshal() (tag string, data []byte) {
+	tag = "door"
+	data = encode.PairList(
+		map[string]string{
+			"exit":   string(NewExits().ToName(d.direction)),
+			"reset":  string(encode.Duration(d.reset)),
+			"jitter": string(encode.Duration(d.jitter)),
+			"open":   string(encode.Boolean(d.initOpen)),
+		},
+		'→',
+	)
+	return
 }
 
 func (d *Door) Dump() (buff []string) {

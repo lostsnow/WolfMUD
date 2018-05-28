@@ -70,6 +70,12 @@ func (*Locate) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 
+// Marshal returns a tag and []byte that represents the receiver. In this case
+// we return empty values as the Locate attribute is not persisted.
+func (*Locate) Marshal() (string, []byte) {
+	return "", []byte{}
+}
+
 func (l *Locate) Dump() (buf []string) {
 	origin := "Nowhere"
 	l.rwmutex.RLock()

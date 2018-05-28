@@ -77,17 +77,26 @@ func (t *Thing) Free() {
 	if t == nil {
 		return
 	}
+
 	t.rwmutex.Lock()
+
+	if t.uid != "" && len(t.attrs) == 0 {
+		log.Printf("Warning, already freed: %s", t)
+	}
+
 	for i := range t.attrs {
 		t.attrs[i].Free()
 		t.attrs[i] = nil
 	}
 	t.attrs = nil
-	t.rwmutex.Unlock()
 
-	c := <-ThingCount
-	c--
-	ThingCount <- c
+	if t.uid != "" {
+		c := <-ThingCount
+		c--
+		ThingCount <- c
+	}
+
+	t.rwmutex.Unlock()
 }
 
 // Add is used to add the passed Attributes to a Thing. When an Attribute is
@@ -183,9 +192,30 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 	return
 }
 
+// Marshal marshals a Thing to a recordjar record containing all of the
+// Attribute details.
+func (t *Thing) Marshal() recordjar.Record {
+
+	var (
+		tag  string
+		data []byte
+	)
+
+	rec := recordjar.Record{}
+	rec["ref"] = []byte(t.UID())
+	for _, a := range t.Attrs() {
+		tag, data = a.Marshal()
+		if tag == "" {
+			continue
+		}
+		rec[tag] = data
+	}
+	return rec
+}
+
 func (t *Thing) Dump() (buff []string) {
 	t.rwmutex.RLock()
-	buff = append(buff, DumpFmt("%s, %d attributes:", t, len(t.attrs)))
+	buff = append(buff, DumpFmt("%s, collectable: %t, %d attributes:", t, t.Collectable(), len(t.attrs)))
 	for _, a := range t.attrs {
 		for _, a := range a.Dump() {
 			buff = append(buff, DumpFmt("%s", a))
@@ -224,9 +254,7 @@ func (t *Thing) SetOrigins() {
 
 	// Set our origin to that of the parent Inventory
 	if l := FindLocate(t); l.Found() {
-		if i := FindInventory(l.Where().Parent()); i.Found() {
-			l.SetOrigin(i)
-		}
+		l.SetOrigin(l.Where())
 	}
 
 	// Find our Inventory
@@ -250,6 +278,13 @@ func (t *Thing) SetOrigins() {
 	}
 }
 
+// Collectable returns true if a Thing can be kept by a player, otherwise
+// returns false. This is a helper routine so that the definition of what is
+// considered collectable can be easily changed.
+func (t *Thing) Collectable() bool {
+	return FindLocate(t).Origin() == nil
+}
+
 // UID returns the unique identifier for a specific Thing or an empty string if
 // the unique ID is unavailable. The unique ID should be automatically assigned
 // to any Thing created by calling NewThing or Copy.
@@ -258,6 +293,25 @@ func (t *Thing) UID() string {
 		return ""
 	}
 	return t.uid
+}
+
+// NotUnique marks a Thing as no longer being unique and clears the Thing's
+// UID. It also decrements ThingCount by one to account for the fact that
+// calling Free will no longer decrement ThingCount for multiple references of
+// this Thing. Calling NotUnique on a Thing more than once is safe.
+//
+// You almost never, ever, want to call this function! The only time this
+// should be used is when creating temporary stores - such as when loading
+// zones or players.
+func (t *Thing) NotUnique() {
+	if t == nil || t.uid == "" {
+		return
+	}
+
+	c := <-ThingCount
+	c--
+	ThingCount <- c
+	t.uid = ""
 }
 
 // String causes a Thing to implement the Stringer interface so that a Thing

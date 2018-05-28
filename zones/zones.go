@@ -3,10 +3,10 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-// The zones package implements WolfMUD's high level zone loading. Zones are
-// used to group together multiple Thing into manageable groups. Zones can be
-// used to put together a universe, a world, a city, a town, a complex building
-// or a patch of forest. A zone can be a single Thing or a few thousand but
+// Package zones implements WolfMUD's high level zone loading. Zones are used
+// to group together multiple Thing into manageable groups. Zones can be used
+// to put together a universe, a world, a city, a town, a complex building or a
+// patch of forest. A zone can be a single Thing or a few thousand but
 // typically each zone will have a few hundred Thing which represent everything
 // within an area of the game. Each zone is then linked together to make up the
 // complete game world.
@@ -180,6 +180,7 @@ func loadZone(path string) zone {
 				log.Printf("[Record %d] Warning: overwriting duplicate reference reference %s", i, ref)
 			}
 			z.store[ref] = taggedThing{t, record}
+			z.store[ref].Thing.NotUnique()
 		}
 
 	}
@@ -232,13 +233,12 @@ func (z *zone) linkupExits() {
 	log.Printf("  Linking exits")
 	for lref, l := range z.locations {
 		from := attr.FindExits(l.Thing)
-		for _, pair := range decode.PairList(l.Record["EXITS"]) {
+		for edir, eref := range decode.PairList(l.Record["EXITS"]) {
 
-			if pair[1] == "" { // Ignore incomplete links
+			if edir == "" { // Ignore incomplete links
 				continue
 			}
 
-			edir, eref := pair[0], pair[1]
 			ndir, err := from.NormalizeDirection(edir)
 			if err != nil {
 				log.Printf("Location %s: invalid direction ignored %s", lref, edir)
@@ -481,12 +481,11 @@ func linkupZones() {
 			if !ok {
 				continue
 			}
-			for _, pair := range decode.PairList(links) {
+			for dir, link := range decode.PairList(links) {
 
-				if pair[1] == "" { // Ignore incomplete link
+				if link == "" { // Ignore incomplete link
 					continue
 				}
-				dir, link := pair[0], pair[1]
 
 				// Check direction is valid
 				from := attr.FindExits(loc)
@@ -497,12 +496,11 @@ func linkupZones() {
 				}
 
 				// split link into zone ref and location ref pairs we are linking to
-				for _, pairs := range decode.PairList([]byte(link)) {
+				for tzref, tlref := range decode.PairList([]byte(link)) {
 
-					if pairs[1] == "" { // Ignore incomplete link
+					if tlref == "" { // Ignore incomplete link
 						continue
 					}
-					tzref, tlref := pairs[0], pairs[1]
 
 					// Check destination exists
 					if _, ok := zones[tzref].locations[tlref]; !ok {

@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for OnReset attribute.
@@ -54,6 +55,11 @@ func (or *OnReset) Found() bool {
 // Unmarshal is used to turn the passed data into a new OnReset attribute.
 func (*OnReset) Unmarshal(data []byte) has.Attribute {
 	return NewOnReset(decode.String(data))
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (or *OnReset) Marshal() (tag string, data []byte) {
+	return "onreset", encode.String(or.text)
 }
 
 func (or *OnReset) Dump() []string {

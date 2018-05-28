@@ -9,6 +9,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 )
 
 // Register marshaler for Inventory attribute.
@@ -107,6 +108,15 @@ func FindInventory(t has.Thing) has.Inventory {
 // Unmarshal is used to turn the passed data into a new Inventory attribute.
 func (*Inventory) Unmarshal(data []byte) has.Attribute {
 	return NewInventory()
+}
+
+// Marshal returns a tag and []byte that represents the receiver.
+func (i *Inventory) Marshal() (tag string, data []byte) {
+	var refs []string
+	for _, t := range i.contents {
+		refs = append(refs, t.UID())
+	}
+	return "inventory", encode.KeywordList(refs)
 }
 
 func (i *Inventory) Dump() (buff []string) {

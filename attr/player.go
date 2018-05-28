@@ -7,9 +7,13 @@ package attr
 
 import (
 	"io"
+	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -24,6 +28,7 @@ type Player struct {
 	Attribute
 	io.Writer
 	has.PromptStyle
+	acct *account
 }
 
 // Some interfaces we want to make sure we implement
@@ -34,7 +39,7 @@ var (
 // NewPlayer returns a new Player attribute initialised with the specified
 // Writer which is used to send data back to the associated client.
 func NewPlayer(w io.Writer) *Player {
-	return &Player{Attribute{}, w, has.StyleBrief}
+	return &Player{Attribute{}, w, has.StyleBrief, &account{}}
 }
 
 func (p *Player) Dump() []string {
@@ -84,6 +89,12 @@ func (*Player) Unmarshal(data []byte) has.Attribute {
 	return nil
 }
 
+// Marshal returns a tag and []byte that represents the receiver. In this case
+// we return empty values as the Player attribute is not persisted.
+func (*Player) Marshal() (string, []byte) {
+	return "", []byte{}
+}
+
 // Write writes the specified byte slice to the associated client.
 func (p *Player) Write(b []byte) (n int, err error) {
 	if p == nil {
@@ -123,4 +134,45 @@ func (p *Player) Check(cmd ...string) has.Veto {
 		return NewVeto(cmd[0], "You can't junk "+FindName(p.Parent()).Name("Someone")+"!")
 	}
 	return nil
+}
+
+// Account returns the account information for a player. This can be used to
+// Marshal, Unmarshal or set a player's account information.
+func (p *Player) Account() *account {
+	return p.acct
+}
+
+// account contains information about the player's account. An account only
+// contains the hashes for the account id and passwords.
+type account struct {
+	account  string    // Account hash
+	password string    // Password hash
+	salt     string    // Printable salt
+	created  time.Time // Timestamp account was created
+}
+
+// Set new account information for a player account.
+func (a *account) Set(ahash, phash, salt string, created time.Time) {
+	a.account = ahash
+	a.password = phash
+	a.salt = salt
+	a.created = created
+}
+
+// Marshal a player's account information into a recordjar.Record.
+func (a *account) Marshal() recordjar.Record {
+	return recordjar.Record{
+		"account":  encode.String(a.account),
+		"password": encode.String(a.password),
+		"salt":     encode.String(a.salt),
+		"created":  encode.DateTime(a.created),
+	}
+}
+
+// Unmarshal a recordjar.Record into a player's account information.
+func (a *account) Unmarshal(r recordjar.Record) {
+	a.account = decode.String(r["ACCOUNT"])
+	a.password = decode.String(r["PASSWORD"])
+	a.salt = decode.String(r["SALT"])
+	a.created = decode.DateTime(r["CREATED"])
 }

@@ -24,7 +24,7 @@ type reset cmd
 func (reset) process(s *state) {
 
 	// Find Inventory where reset is going to take place and make sure we are
-	// locking it
+	// locking it.
 	//
 	// TODO: Now we are using Inventory disabling is this check still required?
 	origin := attr.FindLocate(s.actor).Origin()
@@ -40,8 +40,8 @@ func (reset) process(s *state) {
 	e := attr.FindExits(p)
 
 	// Reset will not be seen if it does not happen in a location and we have no
-	// message. It also will not be seen if we have specifically have an empty
-	// message. So just add Thing.
+	// message. The reset  will also not be seen if we specifically have an empty
+	// message. In both cases just silently add the Thing.
 	if (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
 		origin.Enable(s.actor)
 		s.ok = true

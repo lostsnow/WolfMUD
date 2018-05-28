@@ -12,7 +12,6 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,9 +19,8 @@ import (
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
-	"code.wolfmud.org/WolfMUD.git/recordjar"
-	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -226,81 +224,40 @@ func salt(l int) []byte {
 // At the moment if there is an error writing the player file the player is
 // still let in and their details not saved for next time they log in.
 func (a *account) write() {
-	jar := recordjar.Jar{}
 
-	// Create account record
-	hash := base64.URLEncoding.EncodeToString(a.password[:])
-	rec := recordjar.Record{
-		"ACCOUNT":  encode.String(a.account),
-		"PASSWORD": encode.String(hash),
-		"SALT":     encode.Bytes(a.salt),
-		"CREATED":  encode.DateTime(time.Now()),
-	}
-	jar = append(jar, rec)
-
-	// Create player record
-	rec = recordjar.Record{
-		"NAME":        encode.String(a.name),
-		"ALIAS":       encode.Keyword(a.name),
-		"GENDER":      encode.Keyword(a.gender),
-		"REF":         encode.Keyword("R1"),
-		"INVENTORY":   encode.KeywordList([]string{}),
-		"DESCRIPTION": encode.String("This is an adventurer, just like you!"),
-	}
-	jar = append(jar, rec)
-
-	temp := filepath.Join(config.Server.DataDir, "players", a.account+".tmp")
-	real := filepath.Join(config.Server.DataDir, "players", a.account+".wrj")
+	fp := filepath.Join(config.Server.DataDir, "players", a.account+".wrj")
 
 	// Lock accounts to prevent races while manipulating files
 	accounts.Lock()
 	defer accounts.Unlock()
 
 	// Check if account ID is already registered
-	if _, err := os.Stat(real); !os.IsNotExist(err) {
+	if _, err := os.Stat(fp); !os.IsNotExist(err) {
 		a.buf.Send(text.Bad, "The account ID you used is not available.\n", text.Reset)
 		NewLogin(a.frontend)
 		return
 	}
 
-	// Write record jar to temporary file
-	wrj, err := os.Create(temp)
-	if err != nil {
-		log.Printf("Error creating account: %s, %s", temp, err)
-		return
-	}
-
-	if config.Server.SetPermissions {
-		err = wrj.Chmod(0660)
-		if err != nil {
-			wrj.Close()
-			log.Printf("Error changing account permissions: %s, %s", temp, err)
-			return
-		}
-	}
-
-	jar.Write(wrj, "DESCRIPTION")
-	wrj.Close()
-
-	// If all went well rename the temporary file to the real file. The rename
-	// should be an atomic operation but is dependant on the underlying file
-	// system and operating system being used.
-	if err := os.Rename(temp, real); err != nil {
-		log.Printf("Error renaming account: %s, %s, %s", temp, real, err)
-		return
-	}
-	log.Printf("New account created: %s", real)
-
 	a.frontend.account = a.account
 	accounts.inuse[a.frontend.account] = struct{}{}
 
+	// Setup player account information
+	hash := base64.URLEncoding.EncodeToString(a.password[:])
+	p := attr.NewPlayer(a.output)
+	p.Account().Set(a.account, hash, string(a.salt), time.Now())
+
 	// Assemble player
 	a.player = attr.NewThing()
-	a.player.(*attr.Thing).Unmarshal(1, rec)
-	a.player.Add(attr.NewPlayer(a.output))
+	a.player.Add(attr.NewName(a.name))
+	a.player.Add(attr.NewAlias(a.name))
+	a.player.Add(attr.NewGender(a.gender))
+	a.player.Add(attr.NewDescription("This is an adventurer, just like you!"))
+	a.player.Add(attr.NewInventory())
+	a.player.Add(p)
+	cmd.Parse(a.player, "SAVE")
 
 	// Greet new player
-	a.buf.Send(text.Good, "Welcome ", attr.FindName(a.player).Name("Someone"), "!", text.Reset)
+	a.buf.Send(text.Good, "\nWelcome ", attr.FindName(a.player).Name("Someone"), "!", text.Reset)
 
 	NewMenu(a.frontend)
 }
