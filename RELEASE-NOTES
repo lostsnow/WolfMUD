@@ -6,6 +6,68 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.9 Released Monday 28th May, 2018
+==============================================================================
+
+Added
+
+  - The recordjar.decode.indexSeparator helper function.
+  - Boolean values can now be present/absent as well as set to true/false in
+    zones files. For example OPEN is the same as OPEN=true, omitting OPEN is
+    the same as OPEN=false. Included zone files updated where appropriate.
+  - Added StringList, KeyedString and KeyedStringList functions to package
+    recordjar/encode.
+  - All attributes now implement a Marshal method.
+  - Added an attr.Thing.Collectable method.
+  - New SAVE command to write player data to player files.
+  - Added a collectable bag and sack to the tavern in the Zinara zone for
+    testing player saves with containers.
+  - Added 'on the fly' resets to cmd.junk.dispose method so that items without
+    a reset specified can be forcibly reset.
+  - Added recordjar.decode.DateTime function.
+  - Added frontend.login.assemblePlayer to build a player from a recordjar.Jar.
+  - New attr.Gender attribute.
+  - New text.Uncomment function to remove comments embedded in strings. For
+    example in regular expressions commented like Perl's /x modifier.
+  - Commented recordjar.splitLine regular expression and added tests.
+  - New attr.Thing.NotUnique method to mark a Thing as non-unique when building
+    temporary stores - when loading zone and player record jar files (*.wrj).
+
+Changed
+
+  - Improved reporting of unknown attributes when loading zone/player files.
+  - The recordjar/decode functions PairList and StringList now return a
+    map[string]string instead of [][2]string.
+  - The recordjar/encode PairList now takes a map[string]string and rune
+    delimiter instead of [][2]string and a string delimiter.
+  - The recordjar/decode function KeyedString now returns name and value
+    strings instead of a [2]string array.
+  - Cleaned up the KeyedString and PairList functions in recordjar/decode.
+  - attr.Attribute.Marshal now returns a tag string and []byte data.
+  - The QUIT command now saves players. Any non-collectable items are disposed
+    of and reset.
+  - Added account information to attr.Player so that an account header record
+    can be written to the player file when saving the player.
+  - frontend.login.passwordProcess now uses frontend.login.assemblePlayer.
+  - Updated frontend.account.write to build a new player using attr.* types.
+    Resulting new player file is written using the new SAVE command.
+  - recordjar.Read reimplemented for clarity.
+  - recordjar_test.compareJar helper rewritten and renamed compare.
+  - Tests for recordjar.Jar.Write rewritten, cleaned up and improved.
+  - Temporary attr.Attribute.Marshal method used in development dropped.
+
+Fixed
+
+  - The recordjar.Jar.Write now wraps long lines to 80 characters and
+    title-cases field names.
+  - In attr.Thing.SetOrigin drop redundant Inventory lookup.
+  - recordjar.Jar.Write no long writes an extra leading space before a field
+    name.
+  - recordjar.Jar.Write now normalises field names.
+  - recordjar.encode.Duration now omits trailing zero units.
+  - Added missing colon to Name and Description attributes in DUMP command.
+  - All package comments now start with 'Package X...'.
+
 v0.0.8 Released Tuesday 31st October, 2017
 ==============================================================================
 
