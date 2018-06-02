@@ -40,7 +40,7 @@ func compare(t *testing.T, id string, j1, j2 Jar) {
 					continue
 				}
 				if reason == extra && !bytes.Equal(value, j2[x][field]) {
-					t.Errorf("jar %q, record %d, field: %q\nhave: %q\nwant: %q", id, x, field, value, j2[x][field])
+					t.Errorf("jar %q, record %d, field: %q\nhave: %q\nwant: %q", id, x, field, j2[x][field], value)
 				}
 			}
 		}
