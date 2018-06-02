@@ -171,18 +171,7 @@ func TestRead_strings(t *testing.T) {
 	}
 }
 
-var greeting = Record{
-	"FREETEXT": []byte(`
-WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
-
-    World
-    Of
-    Living
-    Fantasy
-
-Welcome to WolfMUD!
-`),
-}
+var greeting = Record{"FREETEXT": []byte("\nWolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe\n\n    World\n    Of\n    Living\n    Fantasy\n\nWelcome to WolfMUD!\n")}
 
 var location = Record{
 	"REF":       []byte("L1"),
