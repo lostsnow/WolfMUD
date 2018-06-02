@@ -171,20 +171,21 @@ func TestRead_strings(t *testing.T) {
 	}
 }
 
-var greeting = Record{"FREETEXT": []byte("\nWolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe\n\n    World\n    Of\n    Living\n    Fantasy\n\nWelcome to WolfMUD!\n")}
-
-var location = Record{
-	"REF":       []byte("L1"),
-	"START":     []byte(""),
-	"NAME":      []byte("Fireplace"),
-	"ALIASES":   []byte("TAVERN FIREPLACE"),
-	"EXITS":     []byte("E→L3 SE→L4 S→L2"),
-	"INVENTORY": []byte("L1N1"),
-	"FREETEXT":  []byte("You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance."),
-}
-
 // Test larger data from files being parsed into Jars.
 func TestRead_files(t *testing.T) {
+
+	greeting := Record{"FREETEXT": []byte("\nWolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe\n\n    World\n    Of\n    Living\n    Fantasy\n\nWelcome to WolfMUD!\n")}
+
+	location := Record{
+		"REF":       []byte("L1"),
+		"START":     []byte(""),
+		"NAME":      []byte("Fireplace"),
+		"ALIASES":   []byte("TAVERN FIREPLACE"),
+		"EXITS":     []byte("E→L3 SE→L4 S→L2"),
+		"INVENTORY": []byte("L1N1"),
+		"FREETEXT":  []byte("You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance."),
+	}
+
 	for _, test := range []struct {
 		filename string
 		want     Jar
