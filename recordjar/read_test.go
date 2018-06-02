@@ -11,15 +11,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"testing"
 
 	. "code.wolfmud.org/WolfMUD.git/recordjar"
 )
 
-// compare is a helper to compare two Jars j1 and j2. Parameter n can be used
-// to identify which jar in a number of jars is being compared.
-func compare(t *testing.T, id string, j1, j2 Jar) {
+// compare is a helper to compare two Jars j1 and j2.
+func compare(t *testing.T, j1, j2 Jar) {
 
 	const (
 		extra   = "has extra"
@@ -31,16 +29,16 @@ func compare(t *testing.T, id string, j1, j2 Jar) {
 		t.Helper()
 		for x, r := range j1 {
 			if x > len(j2)-1 {
-				t.Errorf("jar %q, %s record %d", id, reason, x)
+				t.Errorf("%s record %d", reason, x)
 				continue
 			}
 			for field, value := range r {
 				if _, ok := j2[x][field]; !ok {
-					t.Errorf("jar %q, record %d - output %s field %q", id, x, reason, field)
+					t.Errorf("record %d - output %s field %q", x, reason, field)
 					continue
 				}
 				if reason == extra && !bytes.Equal(value, j2[x][field]) {
-					t.Errorf("jar %q, record %d, field: %q\nhave: %q\nwant: %q", id, x, field, j2[x][field], value)
+					t.Errorf("record %d, field: %q\nhave: %q\nwant: %q", x, field, j2[x][field], value)
 				}
 			}
 		}
@@ -166,9 +164,9 @@ func TestRead_strings(t *testing.T) {
 			},
 		}},
 	} {
-		t.Run(strconv.Itoa(x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("#%d_%q", x, test.data), func(t *testing.T) {
 			have := Read(bytes.NewBufferString(test.data), "freetext")
-			compare(t, strconv.Itoa(x), have, test.want)
+			compare(t, have, test.want)
 		})
 	}
 }
@@ -226,7 +224,7 @@ func TestRead_files(t *testing.T) {
 			}
 
 			have := Read(f, "freetext")
-			compare(t, test.filename, have, test.want)
+			compare(t, have, test.want)
 
 			f.Close()
 		})
@@ -236,7 +234,7 @@ func TestRead_files(t *testing.T) {
 // Test freetext data from files being parsed into Jars. This is easier with
 // files than with string literals.
 func TestRead_freetext(t *testing.T) {
-	for x, test := range []struct {
+	for _, test := range []struct {
 		filename string
 		want     string
 	}{
@@ -256,7 +254,7 @@ func TestRead_freetext(t *testing.T) {
 
 			have := Read(f, "freetext")
 			want := Jar{Record{"FREETEXT": []byte(test.want)}}
-			compare(t, strconv.Itoa(x), have, want)
+			compare(t, have, want)
 
 			f.Close()
 		})
