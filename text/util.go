@@ -12,6 +12,10 @@ import (
 // TitleFirst will return the passed string with the first rune in the string
 // Titlecased.
 func TitleFirst(s string) string {
+	if s == "" {
+		return ""
+	}
+
 	r := []rune(s)
 	r[0] = unicode.ToTitle(r[0])
 	return string(r)
