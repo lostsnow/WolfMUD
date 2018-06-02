@@ -122,6 +122,12 @@ func TestRead_strings(t *testing.T) {
 			Record{"F2": []byte("D2")},
 		}},
 
+		// Colon given with no field name
+		{":", Jar{Record{"FREETEXT": []byte(":")}}},
+		{"  :", Jar{Record{"FREETEXT": []byte("  :")}}},
+		{"\t:", Jar{Record{"FREETEXT": []byte("\t:")}}},
+		{"F1: d1a\n  : d1b", Jar{Record{"F1": []byte("d1a : d1b")}}},
+
 		// Multiple records and freetext + ending separator
 		{"F1:D1\n\nThe quick brown fox\n%%\nF2:D2\n\njumps over the lazy dog.\n%%\n",
 			Jar{
