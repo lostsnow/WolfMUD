@@ -88,6 +88,9 @@ func TestRead_strings(t *testing.T) {
 		// Field split over multiple lines
 		{"F1: d1a\n    d1b", Jar{Record{"F1": []byte("d1a d1b")}}},
 
+		// Duplicate field names
+		{"F1: d1a\nF1: d1b", Jar{Record{"F1": []byte("d1a d1b")}}},
+
 		// Whitespace around separator
 		{"f1: d1\n  %%", Jar{Record{"F1": []byte("d1")}}},
 		{"f1: d1\n%%  ", Jar{Record{"F1": []byte("d1")}}},
