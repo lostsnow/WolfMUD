@@ -44,7 +44,7 @@ type temporary interface {
 // account system etc.
 type client struct {
 	*net.TCPConn            // The client's network connection
-	remoteAddr   string     // Client's remote address
+	seq          uint64     // Connection sequence number
 	err          chan error // Error channel to sync between input & output
 
 	frontend interface { // The current frontend in use
@@ -54,7 +54,7 @@ type client struct {
 }
 
 // newClient returns an initialised client for the passed connection.
-func newClient(conn *net.TCPConn) *client {
+func newClient(conn *net.TCPConn, seq uint64) *client {
 
 	// Setup connection parameters
 	conn.SetKeepAlive(true)
@@ -64,18 +64,18 @@ func newClient(conn *net.TCPConn) *client {
 	conn.SetReadBuffer(inputBuffer)
 
 	c := &client{
-		TCPConn:    conn,
-		remoteAddr: conn.RemoteAddr().String(),
-		err:        make(chan error, 1),
+		TCPConn: conn,
+		seq:     seq,
+		err:     make(chan error, 1),
 	}
 
 	c.err <- nil
-
 	c.leaseAcquire()
 
 	// Setup frontend if no error acquiring a lease
 	if c.Error() == nil {
 		c.frontend = frontend.New(c)
+		log.Printf("[%d] connection from %s", c.seq, conn.RemoteAddr().String())
 		c.frontend.Parse([]byte(""))
 	}
 
@@ -90,7 +90,7 @@ func (c *client) process() {
 	defer func() {
 		if !config.Debug.Panic {
 			if err := recover(); err != nil {
-				log.Printf("CLIENT PANICKED: %s", c.remoteAddr)
+				log.Printf("[%d] CLIENT PANICKED:", c.seq)
 				log.Printf("%s: %s", err, debug.Stack())
 			}
 		}
@@ -234,16 +234,16 @@ func (c *client) close() {
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
 	if c.Error() == io.EOF {
-		log.Printf("Connection dropped by remote client: %s", c.remoteAddr)
+		log.Printf("[%d] connection dropped by remote client", c.seq)
 	} else {
-		log.Printf("Connection error: %s, %s", c.Error(), c.remoteAddr)
+		log.Printf("[%d] connection error: %s", c.seq, c.Error())
 	}
 
 	// Make sure connection closed down and deallocated
 	if err := c.Close(); err != nil {
-		log.Printf("Error closing connection: %s", err)
+		log.Printf("[%d] error closing connection: %s", c.seq, err)
 	} else {
-		log.Printf("Connection closed: %s", c.remoteAddr)
+		log.Printf("[%d] connection closed", c.seq)
 	}
 	c.TCPConn = nil
 
