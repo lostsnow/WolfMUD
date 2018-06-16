@@ -227,11 +227,8 @@ func (c *client) close() {
 		c.Write([]byte(text.Bad + "\nServer too busy. Please come back in a short while.\n"))
 	}
 
-	// Say goodbye to client
-	c.Write([]byte(text.Info + "\nBye bye...\n\n"))
-
-	// Revert to default colors
-	c.Write([]byte(text.Reset))
+	// Say goodbye to client and reset default colors
+	c.Write([]byte(text.Info + "\nBye bye...\n\n" + text.Reset))
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
