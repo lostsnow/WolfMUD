@@ -75,7 +75,9 @@ func newClient(conn *net.TCPConn, seq uint64) *client {
 	// Setup frontend if no error acquiring a lease
 	if c.Error() == nil {
 		c.frontend = frontend.New(c)
-		log.Printf("[%d] connection from %s", c.seq, conn.RemoteAddr().String())
+		if config.Server.LogClient {
+			log.Printf("[%d] connection from %s", c.seq, conn.RemoteAddr().String())
+		}
 		c.frontend.Parse([]byte(""))
 	}
 

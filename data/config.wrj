@@ -11,6 +11,7 @@
   Server.Port:        4001
   Server.IdleTimeout: 10m
   Server.MaxPlayers:  1024
+  Server.LogClient:   false
 //
 // Stats configuration
 //
