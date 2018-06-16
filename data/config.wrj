@@ -7,28 +7,28 @@
 // options and their settings see docs/configuration-file.txt.
 //
 // Server configuration
-	Server.Host:				127.0.0.1
-	Server.Port:				4001
-	Server.IdleTimeout: 10m
+  Server.Host:        127.0.0.1
+  Server.Port:        4001
+  Server.IdleTimeout: 10m
   Server.MaxPlayers:  1024
 //
 // Stats configuration
 //
-	Stats.Rate:	10s
-	Stats.GC:		false
+  Stats.Rate: 10s
+  Stats.GC:   false
 //
 // Inventory configuration
 //
-	Inventory.Compact:		 8
-	Inventory.CrowdSize:	10
+  Inventory.Compact:     8
+  Inventory.CrowdSize:  10
 //
 // Login configuration
 //
 // NOTE: Lengths are minimums
 //
-	Login.AccountLength:	10
-	Login.PasswordLength: 10
-	Login.SaltLength:			32
+  Login.AccountLength:  10
+  Login.PasswordLength: 10
+  Login.SaltLength:     32
 //
 // Debug configuration
 //
