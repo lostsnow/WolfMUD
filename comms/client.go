@@ -9,7 +9,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"log"
 	"net"
 	"runtime/debug"
 	"time"
@@ -17,6 +16,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/frontend"
+	"code.wolfmud.org/WolfMUD.git/log"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -44,8 +44,8 @@ type temporary interface {
 // account system etc.
 type client struct {
 	*net.TCPConn            // The client's network connection
-	seq          uint64     // Connection sequence number
 	err          chan error // Error channel to sync between input & output
+	log          log.Conn   // Connection specific logger
 
 	frontend interface { // The current frontend in use
 		Parse([]byte) error
@@ -65,8 +65,8 @@ func newClient(conn *net.TCPConn, seq uint64) *client {
 
 	c := &client{
 		TCPConn: conn,
-		seq:     seq,
 		err:     make(chan error, 1),
+		log:     log.NewConn(seq),
 	}
 
 	c.err <- nil
@@ -74,9 +74,9 @@ func newClient(conn *net.TCPConn, seq uint64) *client {
 
 	// Setup frontend if no error acquiring a lease
 	if c.Error() == nil {
-		c.frontend = frontend.New(c)
+		c.frontend = frontend.New(c.log, c)
 		if config.Server.LogClient {
-			log.Printf("[%d] connection from %s", c.seq, conn.RemoteAddr().String())
+			c.log("connection from %s", conn.RemoteAddr().String())
 		}
 		c.frontend.Parse([]byte(""))
 	}
@@ -92,8 +92,8 @@ func (c *client) process() {
 	defer func() {
 		if !config.Debug.Panic {
 			if err := recover(); err != nil {
-				log.Printf("[%d] CLIENT PANICKED:", c.seq)
-				log.Printf("%s: %s", err, debug.Stack())
+				c.log("CLIENT PANICKED:")
+				c.log("%s: %s", err, debug.Stack())
 			}
 		}
 		c.close()
@@ -233,16 +233,16 @@ func (c *client) close() {
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
 	if c.Error() == io.EOF {
-		log.Printf("[%d] connection dropped by remote client", c.seq)
+		c.log("connection dropped by remote client")
 	} else {
-		log.Printf("[%d] connection error: %s", c.seq, c.Error())
+		c.log("connection error: %s", c.Error())
 	}
 
 	// Make sure connection closed down and deallocated
 	if err := c.Close(); err != nil {
-		log.Printf("[%d] error closing connection: %s", c.seq, err)
+		c.log("error closing connection: %s", err)
 	} else {
-		log.Printf("[%d] connection closed", c.seq)
+		c.log("connection closed")
 	}
 	c.TCPConn = nil
 
