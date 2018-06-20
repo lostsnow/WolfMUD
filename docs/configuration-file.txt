@@ -52,9 +52,20 @@ FIELDS & VALUES
   Server.LogClient
     Determines if the IP address and source port number of the connecting
     client should be logged in the server log. Depending on legislation and
-    regulations it may be prohibited to log and save this information. The
-    default value is false, to NOT log the incoming IP address and source port
-    number.
+    regulations it may be prohibited to log and save this information. Some
+    error messages may contain the client IP address and source port number.
+    In these cases if Server.LogClient is false the IP address and port will
+    be replaced with '???' instead:
+
+      connection error: write tcp 127.0.0.1:4001->127.0.0.1:36200: write:
+      broken pipe
+
+    becomes:
+
+      connection error: write tcp 127.0.0.1:4001->???: write: broken pipe
+
+    The default value is false, to NOT log the incoming IP address and source
+    port number.
 
   Stats.Rate: period
     The period is the frequency at which statistics are collected and

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"runtime/debug"
+	"strings"
 	"time"
 	"unicode"
 
@@ -235,7 +236,15 @@ func (c *client) close() {
 	if c.Error() == io.EOF {
 		c.log("connection dropped by remote client")
 	} else {
-		c.log("connection error: %s", c.Error())
+		if config.Server.LogClient {
+			c.log("connection error: %s", c.Error())
+		} else {
+			// If not logging client IP addresses make sure we don't leak them in any
+			// error messages from the standard library
+			e := c.Error().Error()
+			e = strings.Replace(e, c.RemoteAddr().String(), "???", -1)
+			c.log("connection error: %s", e)
+		}
 	}
 
 	// Make sure connection closed down and deallocated
