@@ -159,6 +159,8 @@ func (l *login) passwordProcess() {
 	// Greet returning player
 	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Reset)
 
+	l.log("Account login: %s.wrj", l.account)
+
 	NewMenu(l.frontend)
 }
 
