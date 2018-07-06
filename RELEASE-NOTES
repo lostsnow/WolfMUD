@@ -6,6 +6,38 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.10 Released Friday 6th July, 2018
+==============================================================================
+
+Added
+
+  - Added test in recordjar/read_test.go for duplicate field names.
+  - Added tests in recordjar/read_test.go for colons without field names.
+  - New configuration option Server.LogClient to enable or disable logging of
+    connecting client's IP address on initial connection. Defaults to disabled.
+  - New log package for per-connection logging.
+  - Log account login.
+  - Log account creation.
+
+Changed
+
+  - Improved reporting on which jar test failed in recordjar/read_test.go
+  - The comms package now logs using per-connection sequence numbers.
+  - Combine writing of "bye bye" and resetting default colours when closing
+    connection to client.
+  - Switched comms and frontend packages to use new log package.
+  - If the new configuration option Server.LogClient is set to false don't leak
+    IP addresses via system error messages. Instead replace the 'address:port'
+    string with '???' when logging the error.
+
+Fixed
+
+  - Corrected comments in frontend.go to reference closedError instead of
+    Error.
+  - Fixed panic when empty string passed to text.TitleFirst function.
+  - In recordjar/read_test.go reported values for mismatches are reversed.
+  - Cleaned up white-space in the default configuration file.
+
 v0.0.9 Released Monday 28th May, 2018
 ==============================================================================
 
