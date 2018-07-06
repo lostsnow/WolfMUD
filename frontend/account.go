@@ -246,6 +246,8 @@ func (a *account) write() {
 	p := attr.NewPlayer(a.output)
 	p.Account().Set(a.account, hash, string(a.salt), time.Now())
 
+	a.log("New account created: %s.wrj", a.account)
+
 	// Assemble player
 	a.player = attr.NewThing()
 	a.player.Add(attr.NewName(a.name))

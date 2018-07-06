@@ -34,6 +34,7 @@ var Server = struct {
 	Greeting       []byte        // Connection greeting
 	IdleTimeout    time.Duration // Idle connection disconnect time
 	MaxPlayers     int           // Max number of players allowed to login at once
+	LogClient      bool          // Log connecting IP address and port of client?
 	DataDir        string        // Main data directory
 	SetPermissions bool          // Set permissions on created account files?
 }{
@@ -135,6 +136,8 @@ func init() {
 			Server.IdleTimeout = decode.Duration(data)
 		case "SERVER.MAXPLAYERS":
 			Server.MaxPlayers = decode.Integer(data)
+		case "SERVER.LOGCLIENT":
+			Server.LogClient = decode.Boolean(data)
 		case "SERVER.GREETING":
 			Server.Greeting = text.Colorize(decode.Bytes(data))
 

@@ -33,6 +33,8 @@ func Listen(host, port string) {
 
 	log.Printf("Accepting connections on: %s", addr)
 
+	seq := uint64(0)
+
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
@@ -40,9 +42,9 @@ func Listen(host, port string) {
 			continue
 		}
 
-		log.Printf("Connection from: %s", conn.RemoteAddr())
-		c := newClient(conn)
+		c := newClient(conn, seq)
 		go c.process()
+		seq++
 
 		runtime.Gosched()
 	}

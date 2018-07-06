@@ -11,7 +11,6 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -90,7 +89,7 @@ func (l *login) passwordProcess() {
 	fp := filepath.Join(config.Server.DataDir, "players", l.account+".wrj")
 	wrj, err := os.Open(fp)
 	if err != nil {
-		log.Printf("Error opening account: %s", err)
+		l.log("Error opening account: %s.wrj", err)
 		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
@@ -99,7 +98,7 @@ func (l *login) passwordProcess() {
 	// Read the account file as a recordjar
 	jar := recordjar.Read(wrj, "description")
 	if err := wrj.Close(); err != nil {
-		log.Printf("Error closing account: %s", err)
+		l.log("Error closing account: %s.wrj", err)
 		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
@@ -108,7 +107,7 @@ func (l *login) passwordProcess() {
 	// The recordjar should have at least two records: account header and player.
 	// If not something is wrong with the data.
 	if len(jar) < 2 {
-		log.Printf("Account file corrupted: %s.wrj", l.account)
+		l.log("Account file corrupted: %s.wrj", l.account)
 		l.buf.Send(text.Bad, "Sorry, there is a problem with your account, please contact the admins.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
@@ -128,7 +127,7 @@ func (l *login) passwordProcess() {
 
 	// Check password is valid
 	if (base64.URLEncoding.EncodeToString(hash[:])) != password {
-		log.Printf("Password invalid for: %s.wrj", l.account)
+		l.log("Password invalid for: %s.wrj", l.account)
 		l.buf.Send(text.Bad, "Acount ID or password is incorrect.\n", text.Reset)
 		NewLogin(l.frontend)
 		return
@@ -137,7 +136,7 @@ func (l *login) passwordProcess() {
 	// Check if account already in use to prevent multiple logins
 	accounts.Lock()
 	if _, inuse := accounts.inuse[l.account]; inuse {
-		log.Printf("Account already logged in: %s", l.account)
+		l.log("Account already logged in: %s.wrj", l.account)
 		l.buf.Send(text.Bad, "Acount is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n", text.Reset)
 		NewLogin(l.frontend)
 		accounts.Unlock()
@@ -159,6 +158,8 @@ func (l *login) passwordProcess() {
 
 	// Greet returning player
 	l.buf.Send(text.Good, "Welcome back ", attr.FindName(l.player).Name("Someone"), "!", text.Reset)
+
+	l.log("Account login: %s.wrj", l.account)
 
 	NewMenu(l.frontend)
 }

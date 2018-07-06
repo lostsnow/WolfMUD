@@ -37,6 +37,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/cmd"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/log"
 	"code.wolfmud.org/WolfMUD.git/message"
 	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/text"
@@ -67,8 +68,9 @@ func (closedError) Error() string {
 	return "frontend closed"
 }
 
-// Temporary always returns true for a frontend.Error. A frontend.Error is
-// considered temporary as recovery is easy - create a new frontend instance.
+// Temporary always returns true for a frontend.closedError. A closedError is
+// considered temporary as recovery can be performed by creating a new frontend
+// instance.
 func (closedError) Temporary() bool {
 	return true
 }
@@ -83,16 +85,18 @@ type frontend struct {
 	player   has.Thing       // The current player instance (ingame or not)
 	account  string          // The current account hash (also key to accounts)
 	err      error           // First error to occur else nil
+	log      log.Conn        // Per connection logging
 }
 
-// New returns an instance of frontend initialised with the given io.Writer.
-// The io.Writer is used to send responses back from calling Parse. The new
-// frontend is initialised with a message buffer and nextFunc setup to call
-// greetingDisplay.
-func New(output io.Writer) *frontend {
+// New returns an initialised instance of frontend. The passed log.Conn is used
+// by the instance for per-connection logging. The io.Writer is used to write
+// data back to the client. The instance is also setup with greetingDisplay as
+// the nextFunc to call.
+func New(log log.Conn, output io.Writer) *frontend {
 	f := &frontend{
 		buf:    message.AcquireBuffer(),
 		output: output,
+		log:    log,
 	}
 	f.buf.OmitLF(true)
 	f.nextFunc = f.greetingDisplay
@@ -139,8 +143,8 @@ func (f *frontend) Close() {
 // stripped of leading and trailing whitespace before being stored in the
 // frontend state. Any response from processing the input is written to the
 // io.Writer passed to the initial New function that created the frontend. If
-// the frontend is closed during processing a frontend.Error will be returned
-// else nil.
+// the frontend is closed during processing a frontend.closedError will be
+// returned else nil.
 func (f *frontend) Parse(input []byte) error {
 
 	// If we already have an error just return it

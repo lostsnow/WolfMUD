@@ -11,15 +11,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"testing"
 
 	. "code.wolfmud.org/WolfMUD.git/recordjar"
 )
 
-// compare is a helper to compare two Jars j1 and j2. Parameter n can be used
-// to identify which jar in a number of jars is being compared.
-func compare(t *testing.T, id string, j1, j2 Jar) {
+// compare is a helper to compare two Jars j1 and j2.
+func compare(t *testing.T, j1, j2 Jar) {
 
 	const (
 		extra   = "has extra"
@@ -31,16 +29,16 @@ func compare(t *testing.T, id string, j1, j2 Jar) {
 		t.Helper()
 		for x, r := range j1 {
 			if x > len(j2)-1 {
-				t.Errorf("jar %q, %s record %d", id, reason, x)
+				t.Errorf("%s record %d", reason, x)
 				continue
 			}
 			for field, value := range r {
 				if _, ok := j2[x][field]; !ok {
-					t.Errorf("jar %q, record %d - output %s field %q", id, x, reason, field)
+					t.Errorf("record %d - output %s field %q", x, reason, field)
 					continue
 				}
 				if reason == extra && !bytes.Equal(value, j2[x][field]) {
-					t.Errorf("jar %q, record %d, field: %q\nhave: %q\nwant: %q", id, x, field, value, j2[x][field])
+					t.Errorf("record %d, field: %q\nhave: %q\nwant: %q", x, field, j2[x][field], value)
 				}
 			}
 		}
@@ -88,6 +86,9 @@ func TestRead_strings(t *testing.T) {
 		// Field split over multiple lines
 		{"F1: d1a\n    d1b", Jar{Record{"F1": []byte("d1a d1b")}}},
 
+		// Duplicate field names
+		{"F1: d1a\nF1: d1b", Jar{Record{"F1": []byte("d1a d1b")}}},
+
 		// Whitespace around separator
 		{"f1: d1\n  %%", Jar{Record{"F1": []byte("d1")}}},
 		{"f1: d1\n%%  ", Jar{Record{"F1": []byte("d1")}}},
@@ -118,6 +119,12 @@ func TestRead_strings(t *testing.T) {
 			Record{"F1": []byte("D1")},
 			Record{"F2": []byte("D2")},
 		}},
+
+		// Colon given with no field name
+		{":", Jar{Record{"FREETEXT": []byte(":")}}},
+		{"  :", Jar{Record{"FREETEXT": []byte("  :")}}},
+		{"\t:", Jar{Record{"FREETEXT": []byte("\t:")}}},
+		{"F1: d1a\n  : d1b", Jar{Record{"F1": []byte("d1a : d1b")}}},
 
 		// Multiple records and freetext + ending separator
 		{"F1:D1\n\nThe quick brown fox\n%%\nF2:D2\n\njumps over the lazy dog.\n%%\n",
@@ -157,38 +164,28 @@ func TestRead_strings(t *testing.T) {
 			},
 		}},
 	} {
-		t.Run(strconv.Itoa(x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("#%d_%q", x, test.data), func(t *testing.T) {
 			have := Read(bytes.NewBufferString(test.data), "freetext")
-			compare(t, strconv.Itoa(x), have, test.want)
+			compare(t, have, test.want)
 		})
 	}
 }
 
-var greeting = Record{
-	"FREETEXT": []byte(`
-WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
-
-    World
-    Of
-    Living
-    Fantasy
-
-Welcome to WolfMUD!
-`),
-}
-
-var location = Record{
-	"REF":       []byte("L1"),
-	"START":     []byte(""),
-	"NAME":      []byte("Fireplace"),
-	"ALIASES":   []byte("TAVERN FIREPLACE"),
-	"EXITS":     []byte("E→L3 SE→L4 S→L2"),
-	"INVENTORY": []byte("L1N1"),
-	"FREETEXT":  []byte("You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance."),
-}
-
 // Test larger data from files being parsed into Jars.
 func TestRead_files(t *testing.T) {
+
+	greeting := Record{"FREETEXT": []byte("\nWolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe\n\n    World\n    Of\n    Living\n    Fantasy\n\nWelcome to WolfMUD!\n")}
+
+	location := Record{
+		"REF":       []byte("L1"),
+		"START":     []byte(""),
+		"NAME":      []byte("Fireplace"),
+		"ALIASES":   []byte("TAVERN FIREPLACE"),
+		"EXITS":     []byte("E→L3 SE→L4 S→L2"),
+		"INVENTORY": []byte("L1N1"),
+		"FREETEXT":  []byte("You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance."),
+	}
+
 	for _, test := range []struct {
 		filename string
 		want     Jar
@@ -217,7 +214,7 @@ func TestRead_files(t *testing.T) {
 			}
 
 			have := Read(f, "freetext")
-			compare(t, test.filename, have, test.want)
+			compare(t, have, test.want)
 
 			f.Close()
 		})
@@ -227,7 +224,7 @@ func TestRead_files(t *testing.T) {
 // Test freetext data from files being parsed into Jars. This is easier with
 // files than with string literals.
 func TestRead_freetext(t *testing.T) {
-	for x, test := range []struct {
+	for _, test := range []struct {
 		filename string
 		want     string
 	}{
@@ -247,7 +244,7 @@ func TestRead_freetext(t *testing.T) {
 
 			have := Read(f, "freetext")
 			want := Jar{Record{"FREETEXT": []byte(test.want)}}
-			compare(t, strconv.Itoa(x), have, want)
+			compare(t, have, want)
 
 			f.Close()
 		})

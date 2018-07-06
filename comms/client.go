@@ -9,14 +9,15 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"log"
 	"net"
 	"runtime/debug"
+	"strings"
 	"time"
 	"unicode"
 
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/frontend"
+	"code.wolfmud.org/WolfMUD.git/log"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -44,8 +45,8 @@ type temporary interface {
 // account system etc.
 type client struct {
 	*net.TCPConn            // The client's network connection
-	remoteAddr   string     // Client's remote address
 	err          chan error // Error channel to sync between input & output
+	log          log.Conn   // Connection specific logger
 
 	frontend interface { // The current frontend in use
 		Parse([]byte) error
@@ -54,7 +55,7 @@ type client struct {
 }
 
 // newClient returns an initialised client for the passed connection.
-func newClient(conn *net.TCPConn) *client {
+func newClient(conn *net.TCPConn, seq uint64) *client {
 
 	// Setup connection parameters
 	conn.SetKeepAlive(true)
@@ -64,18 +65,20 @@ func newClient(conn *net.TCPConn) *client {
 	conn.SetReadBuffer(inputBuffer)
 
 	c := &client{
-		TCPConn:    conn,
-		remoteAddr: conn.RemoteAddr().String(),
-		err:        make(chan error, 1),
+		TCPConn: conn,
+		err:     make(chan error, 1),
+		log:     log.NewConn(seq),
 	}
 
 	c.err <- nil
-
 	c.leaseAcquire()
 
 	// Setup frontend if no error acquiring a lease
 	if c.Error() == nil {
-		c.frontend = frontend.New(c)
+		c.frontend = frontend.New(c.log, c)
+		if config.Server.LogClient {
+			c.log("connection from %s", conn.RemoteAddr().String())
+		}
 		c.frontend.Parse([]byte(""))
 	}
 
@@ -90,8 +93,8 @@ func (c *client) process() {
 	defer func() {
 		if !config.Debug.Panic {
 			if err := recover(); err != nil {
-				log.Printf("CLIENT PANICKED: %s", c.remoteAddr)
-				log.Printf("%s: %s", err, debug.Stack())
+				c.log("CLIENT PANICKED:")
+				c.log("%s: %s", err, debug.Stack())
 			}
 		}
 		c.close()
@@ -225,25 +228,30 @@ func (c *client) close() {
 		c.Write([]byte(text.Bad + "\nServer too busy. Please come back in a short while.\n"))
 	}
 
-	// Say goodbye to client
-	c.Write([]byte(text.Info + "\nBye bye...\n\n"))
-
-	// Revert to default colors
-	c.Write([]byte(text.Reset))
+	// Say goodbye to client and reset default colors
+	c.Write([]byte(text.Info + "\nBye bye...\n\n" + text.Reset))
 
 	// io.EOF does not give address info so handle specially, otherwise just
 	// report the error
 	if c.Error() == io.EOF {
-		log.Printf("Connection dropped by remote client: %s", c.remoteAddr)
+		c.log("connection dropped by remote client")
 	} else {
-		log.Printf("Connection error: %s, %s", c.Error(), c.remoteAddr)
+		if config.Server.LogClient {
+			c.log("connection error: %s", c.Error())
+		} else {
+			// If not logging client IP addresses make sure we don't leak them in any
+			// error messages from the standard library
+			e := c.Error().Error()
+			e = strings.Replace(e, c.RemoteAddr().String(), "???", -1)
+			c.log("connection error: %s", e)
+		}
 	}
 
 	// Make sure connection closed down and deallocated
 	if err := c.Close(); err != nil {
-		log.Printf("Error closing connection: %s", err)
+		c.log("error closing connection: %s", err)
 	} else {
-		log.Printf("Connection closed: %s", c.remoteAddr)
+		c.log("connection closed")
 	}
 	c.TCPConn = nil
 

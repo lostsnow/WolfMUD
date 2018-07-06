@@ -49,6 +49,24 @@ FIELDS & VALUES
     number of players a server can actually support will be system specific.
     The default maximum number of players is 1024.
 
+  Server.LogClient
+    Determines if the IP address and source port number of the connecting
+    client should be logged in the server log. Depending on legislation and
+    regulations it may be prohibited to log and save this information. Some
+    error messages may contain the client IP address and source port number.
+    In these cases if Server.LogClient is false the IP address and port will
+    be replaced with '???' instead:
+
+      connection error: write tcp 127.0.0.1:4001->127.0.0.1:36200: write:
+      broken pipe
+
+    becomes:
+
+      connection error: write tcp 127.0.0.1:4001->???: write: broken pipe
+
+    The default value is false, to NOT log the incoming IP address and source
+    port number.
+
   Stats.Rate: period
     The period is the frequency at which statistics are collected and
     displayed by the server. The period can use a combination of hours (h),
@@ -161,6 +179,7 @@ EXAMPLES
   Server.Port:          4001
   Server.IdleTimeout:   10m
   Server.MaxPlayers:    1024
+  Server.LogClient:     false
   Stats.Rate:           10s
   Stats.GC:             false
   Inventory.Compact:    8
