@@ -100,6 +100,10 @@ func TestRead_strings(t *testing.T) {
 			Record{"F1": []byte("d1a d1b"), "F2": []byte("d2")},
 		}},
 
+		// Field starting with a non-ASCII letter
+		{"1F:d1", Jar{Record{"1F": []byte("d1")}}},
+		{"ΔF:d1", Jar{Record{"ΔF": []byte("d1")}}},
+
 		// Whitespace around separator
 		{"f1: d1\n  %%", Jar{Record{"F1": []byte("d1")}}},
 		{"f1: d1\n%%  ", Jar{Record{"F1": []byte("d1")}}},
