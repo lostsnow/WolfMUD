@@ -187,6 +187,9 @@ func Read(in io.Reader, freetext string) (j Jar) {
 //
 // BUG(diddymus): There is no provision for writing out comments.
 // BUG(diddymus): The empty field "" is invalid, currently dropped silently.
+// BUG(diddymus): Unicode used in field names not normalised so 'Nаme' with a
+// Cyrillic 'а' (U+0430) and 'Name' with a latin 'a' (U+0061) would be
+// different fields.
 func (j Jar) Write(out io.Writer, freetext string) {
 
 	const maxLineWidth = 80           // Maximum length of a line in a .wrj file
