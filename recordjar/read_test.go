@@ -141,6 +141,62 @@ func TestRead_strings(t *testing.T) {
 		{"\t:", Jar{Record{"FREETEXT": []byte("\t:")}}},
 		{"F1: d1a\n  : d1b", Jar{Record{"F1": []byte("d1a : d1b")}}},
 
+		// Free text section only
+		{"The quick brown fox jumps over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section over multiple lines - line endings not preserved
+		{"The quick brown\nfox jumps over\nthe lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section over multiple indented lines - line endings preserved on
+		// indented lines.
+		{"The quick brown\n  fox jumps over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown\n  fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section with comment
+		{"// A comment\nThe quick brown fox jumps over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section with leading blank line - should not be mistaken for a
+		// separator line and should appear as part of free text block
+		{"\nThe quick brown fox jumps over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("\nThe quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section with comment and leading blank line
+		{"// A comment\n\nThe quick brown fox jumps over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("\nThe quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
 		// Multiple records and freetext + ending separator
 		{"F1:D1\n\nThe quick brown fox\n%%\nF2:D2\n\njumps over the lazy dog.\n%%\n",
 			Jar{
