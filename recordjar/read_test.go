@@ -62,8 +62,16 @@ func TestRead_strings(t *testing.T) {
 		{"  %%", Jar{}},
 		{"%%  ", Jar{}},
 		{"  %%  ", Jar{}},
+		{"\t%%", Jar{}},
+		{"%%\t", Jar{}},
+		{"\t%%\t", Jar{}},
 		{"%%\n%%", Jar{}},
 		{"// Comment\n%%", Jar{}},
+		{"//Comment\n%%", Jar{}},
+		{"  // Comment\n%%", Jar{}},
+		{"  //Comment\n%%", Jar{}},
+		{"\t// Comment\n%%", Jar{}},
+		{"\t//Comment\n%%", Jar{}},
 
 		// Single field
 		{"F1: d1", Jar{Record{"F1": []byte("d1")}}},
