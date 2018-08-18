@@ -96,6 +96,9 @@ func TestRead_strings(t *testing.T) {
 
 		// Duplicate field names
 		{"F1: d1a\nF1: d1b", Jar{Record{"F1": []byte("d1a d1b")}}},
+		{"F1: d1a\nF2: d2\nF1: d1b", Jar{
+			Record{"F1": []byte("d1a d1b"), "F2": []byte("d2")},
+		}},
 
 		// Whitespace around separator
 		{"f1: d1\n  %%", Jar{Record{"F1": []byte("d1")}}},
