@@ -182,6 +182,9 @@ func Read(in io.Reader, freetext string) (j Jar) {
 //
 // For details of the recordjar format see the separate package documentation.
 //
+// TODO(diddymus): Uppercase character after a hyphen in field names so that
+// we can have 'On-Action', 'On-Reset', 'On-Cleanup' automatically.
+//
 // BUG(diddymus): There is no provision for writing out comments.
 // BUG(diddymus): The empty field "" is invalid, currently dropped silently.
 func (j Jar) Write(out io.Writer, freetext string) {
