@@ -29,8 +29,8 @@ type Record map[string][]byte
 var splitLine = regexp.MustCompile(text.Uncomment(`
 	^            # match start of string
 	(?:          # non-capture group for 'field:'
-		\s*        # don't capture whitespace before 'field'
-	  ([^\s:]+)  # capture 'field' - non-whitespace/non-colon
+	  \s*        # don't capture white space before 'field'
+	  ([^\s:]+)  # capture 'field' - non-white-space/non-colon
 	  :          # non-capture match of colon as field:value separator
 	)?           # match non-captured 'field:' zero or once, prefer once
 	\s*          # consume any whitepace - leading or after 'field:' if matched
@@ -44,7 +44,7 @@ var (
 )
 
 // Read takes as input an io.Reader - assuming the data to be in the WolfMUD
-// recordjar format - and the field name to use for the freetext block. The
+// recordjar format - and the field name to use for the free text section. The
 // input is parsed into a jar which is then returned.
 //
 // For details of the recordjar format see the separate package documentation.
@@ -76,7 +76,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		b = bufio.NewReader(in)
 	}
 
-	// Make sure the field name to use for freetext is uppercased
+	// Make sure the field name to use for free text section is uppercased
 	freetext = strings.ToUpper(freetext)
 
 	// Setup an initially empty record for the Jar
@@ -99,7 +99,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		noData = len(data) == 0
 		noLine = noName && noData
 
-		// Ignore comments found outside of freetext block
+		// Ignore comments found outside of free text section
 		if noName && field != freetext && bytes.HasPrefix(data, comment) {
 			continue
 		}
@@ -121,11 +121,12 @@ func Read(in io.Reader, freetext string) (j Jar) {
 			field = name
 		}
 
-		// Switch to freetext field if empty line and we are not already processing
-		// the freetext block. If there was no lastField processed we need to
-		// record the blank line so that it is included in the freetext block. This
-		// lets us have a record that is freetext only and can start with a blank
-		// line, which is not counted as a separator line.
+		// Switch to free text field if an empty line and we are not already
+		// processing the free text section. If there was no lastField processed we
+		// need to record the blank line so that it is included in the free text
+		// section. This lets us have a record that has only a free text section
+		// and can start with a blank line, which is not counted as a separator
+		// line.
 		if noLine && field != freetext {
 			if field == "" {
 				noLastLine = true
@@ -134,15 +135,17 @@ func Read(in io.Reader, freetext string) (j Jar) {
 			continue
 		}
 
-		// Handle freetext if already processing the freetext block, or we have no
-		// field - in which case assume we are starting the freetext block
+		// Handle data as free text if already processing the free text section, or
+		// we have no field - in which case assume we are starting a free text
+		// section
 		if field == freetext || field == "" {
 
 			// If last line was blank, current line is blank or current line starts
-			// with whitespace and we already have some text in the freetext block,
-			// then append a new line to terminate the last line and start a new one.
-			// If not terminating last line, but we have some data in the freetext
-			// already, then append a space before appending the current line.
+			// with white space and we already have some text in the free text
+			// section, then append a new line to terminate the last line and start a
+			// new one. If not terminating last line, but we have some data in the
+			// free text section already, then append a space before appending the
+			// current line.
 			if noLastLine || noLine || (len(r[freetext]) != 0 && bytes.IndexFunc(line, unicode.IsSpace) == 0) {
 				r[freetext] = append(r[freetext], '\n')
 			} else {
@@ -175,10 +178,10 @@ func Read(in io.Reader, freetext string) (j Jar) {
 }
 
 // Write writes out a Record Jar to the specified io.Writer. The freetext
-// string is used to specify which fieldname in a record should be used for the
-// freetext block. For example, if the freetext string is 'Description' then
-// any fields named description in a record will be written out in the freetext
-// block.
+// string is used to specify which field name in a record should be used for
+// the free text section. For example, if the freetext string is 'Description'
+// then any fields named description in a record will be written out in the
+// free text section.
 //
 // For details of the recordjar format see the separate package documentation.
 //
@@ -199,7 +202,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 	// A slice of spaces we can re-slice to get variable lengths of padding
 	padding := bytes.Repeat([]byte(" "), maxLineWidth-separatorLength)
 
-	// Normalise passed in freetext field name
+	// Normalise passed in field name for free text section
 	freetext = text.TitleFirst(strings.ToLower(freetext))
 
 	for _, rec := range j {
@@ -219,7 +222,8 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			field = text.TitleFirst(strings.ToLower(field))
 			norm[field], keys = data, append(keys, field)
 
-			if field == freetext { // Ignore freetext field name (never written out)
+			// Ignore field name for free text section as field name never written out
+			if field == freetext {
 				continue
 			}
 
@@ -232,7 +236,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 		sort.Strings(keys)
 		for _, field := range keys {
 
-			// Ignore the freetext field as it has to be written last
+			// Ignore the free text section field as it has to be written last
 			if field == freetext {
 				continue
 			}
@@ -262,10 +266,10 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			}
 		}
 
-		// Write out the freetext block, if we have one.
+		// Write out the free text section, if we have one.
 		if data, ok := norm[freetext]; ok {
 
-			// Write separator line if record has fields other than freetext block.
+			// Write separator line if record has a fields section
 			if len(norm) > 1 {
 				buf.WriteByte('\n')
 			}

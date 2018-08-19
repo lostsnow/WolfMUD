@@ -179,7 +179,7 @@ func TestRead_strings(t *testing.T) {
 		},
 
 		// Free text section with leading blank line - should not be mistaken for a
-		// separator line and should appear as part of free text block
+		// separator line and should appear as part of free text section
 		{"\nThe quick brown fox jumps over the lazy dog.\n%%\n",
 			Jar{
 				Record{
@@ -197,7 +197,7 @@ func TestRead_strings(t *testing.T) {
 			},
 		},
 
-		// Multiple records and freetext + ending separator
+		// Multiple records and free text section + ending separator
 		{"F1:D1\n\nThe quick brown fox\n%%\nF2:D2\n\njumps over the lazy dog.\n%%\n",
 			Jar{
 				Record{
@@ -211,7 +211,7 @@ func TestRead_strings(t *testing.T) {
 			},
 		},
 
-		// Multiple records and freetext, with NO ending separator
+		// Multiple records and free text section, NO ending separator
 		{"F1:D1\n\nThe quick brown fox\n%%\nF2:D2\n\njumps over the lazy dog.\n", Jar{
 			Record{
 				"F1":       []byte("D1"),
@@ -223,7 +223,7 @@ func TestRead_strings(t *testing.T) {
 			},
 		}},
 
-		// Multiple records and freetext, with NO ending separator or new line
+		// Multiple records and free text section, NO ending separator or new line
 		{"F1:D1\n\nThe quick brown fox\n%%\nF2:D2\n\njumps over the lazy dog.", Jar{
 			Record{
 				"F1":       []byte("D1"),
@@ -292,8 +292,8 @@ func TestRead_files(t *testing.T) {
 	}
 }
 
-// Test freetext data from files being parsed into Jars. This is easier with
-// files than with string literals.
+// Test free text section from files being parsed into Jars. This is easier
+// with files than with string literals.
 func TestRead_freetext(t *testing.T) {
 	for _, test := range []struct {
 		filename string
