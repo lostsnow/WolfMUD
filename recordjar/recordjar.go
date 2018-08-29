@@ -203,6 +203,8 @@ func Read(in io.Reader, freetext string) (j Jar) {
 // BUG(diddymus): Unicode used in field names not normalised so 'Nаme' with a
 // Cyrillic 'а' (U+0430) and 'Name' with a latin 'a' (U+0061) would be
 // different fields.
+// BUG: If a continuation line starts with ": " and we outdent it we don't
+// refold lines even though we have two extra character positions available.
 func (j Jar) Write(out io.Writer, freetext string) {
 
 	var buf bytes.Buffer // Temporary buffer for current record
@@ -266,9 +268,15 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			}
 			buf.Write(LF)
 
-			// Write continuation data lines
+			// Write continuation data lines. If a continuation line starts with ": "
+			// then outdent it so that the colon lines up with the field name/data
+			// separator.
 			for _, l := range lines[1:] {
-				buf.Write(padding[0 : maxFieldLen+fSeparatorLen])
+				if len(l) >= fSeparatorLen && bytes.Equal(l[0:2], fSeparator) {
+					buf.Write(padding[0:maxFieldLen])
+				} else {
+					buf.Write(padding[0 : maxFieldLen+fSeparatorLen])
+				}
 				buf.Write(l)
 				buf.Write(LF)
 			}

@@ -60,23 +60,10 @@ func PairList(data map[string]string, delimiter rune) (pairs []byte) {
 	return
 }
 
-// StringList returns a list of strings delimited by a colon separator.
-//
-// BUG(diddymus): The strings should be formatted with the separating colon
-// starting on a new line with the colon aligned with the colon separating the
-// keyword:
-//
-//  keyword: String one
-//         : String two
-//         : String three
-//
-// However this is not currently possible and so the strings are simply
-// concatenated together:
-//
-//  keyword: String one : String two : String three
-//
+// StringList returns a list of strings delimited by a colon separator. Each
+// string in the list will start with the delimiter on a new line.
 func StringList(data []string) []byte {
-	return []byte(strings.Join(data, " : "))
+	return []byte(strings.Join(data, "\n: "))
 }
 
 // KeyedString returns the name uppercased and concatenated to the value using
@@ -98,34 +85,23 @@ func KeyedString(name, value string, delimiter rune) (data []byte) {
 // KeyedStringList returns the map of names and strings as a list of colon
 // separated keyed strings. For example:
 //
-//	m := map[string]string{
-//		"get":  "You cannot get that!",
-//		"look": "Your eyes hurt to look at it!",
-//	}
-//	data := KeyedStringList(m, '→')
+//  m := map[string]string{
+//    "get":  "You cannot get that!",
+//    "look": "Your eyes hurt to look at it!",
+//  }
+//  data := KeyedStringList(m, '→')
 //
-// Results in data being a byte slice containing "GET→You cannot get that! :
-// LOOK→Your eyes hurt to look at it!".
+// Results in data containing:
 //
-// BUG(diddymus): The strings should be formatted with the separating colon
-// starting on a new line with the colon aligned with the colon separating the
-// keyword:
-//
-//  keyword: GET→You cannot get that!
-//         : LOOK→Your eyes hurt to look at it!
-//
-// However this is not currently possible and so the strings are simply
-// concatenated together:
-//
-//  keyword: GET→You cannot get that! : LOOK→Your eyes hurt to look at it!
+//  GET→You cannot get that!\n: LOOK→Your eyes hurt to look at it!
 //
 func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
 	for name, value := range pairs {
 		data = append(data, KeyedString(name, value, delimiter)...)
-		data = append(data, " : "...)
+		data = append(data, "\n: "...)
 	}
 
-	// Chop off final " : " appended to data
+	// Chop off final "\n: " appended to data
 	if l := len(data); l > 3 {
 		data = data[0 : l-3 : l-3]
 	}

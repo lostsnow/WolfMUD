@@ -96,6 +96,12 @@ func TestWrite_strings(t *testing.T) {
 			"F1: d1\nF2: d2a\n    d2b\n%%\n",
 		},
 
+		// Single field with continued data line starting with ': '
+		{
+			Jar{Record{"F1": []byte("d1\n: d2")}},
+			"F1: d1\n  : d2\n%%\n",
+		},
+
 		// Single record with free text section (field name in multiple cases)
 		{Jar{Record{"ft": []byte("free text.")}}, "free text.\n%%\n"},
 		{Jar{Record{"Ft": []byte("Free Text.")}}, "Free Text.\n%%\n"},
