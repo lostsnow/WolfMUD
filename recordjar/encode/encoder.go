@@ -126,7 +126,7 @@ func Duration(d time.Duration) []byte {
 		b = b[:l-2]
 	}
 	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("h0m")) {
-		b = b[:l-1]
+		b = b[:l-2]
 	}
 	if len(b) == 0 {
 		b = []byte("0s")
