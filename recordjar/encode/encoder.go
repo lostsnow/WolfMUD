@@ -134,7 +134,7 @@ func Duration(d time.Duration) []byte {
 	return b
 }
 
-// Duration returns the given time.Duration as a []byte. The byte slice will be
+// DateTime returns the given time.Time as a []byte. The byte slice will be
 // formatted according to RFC1123. For example "Mon, 02 Jan 2006 15:04:05 MST".
 func DateTime(t time.Time) []byte {
 	return []byte(t.Format(time.RFC1123))
