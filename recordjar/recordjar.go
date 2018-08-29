@@ -38,9 +38,19 @@ var splitLine = regexp.MustCompile(text.Uncomment(`
 	$            # match at end of string
 `))
 
+const (
+	maxLineWidth = 78 // Maximum length of a line in a .wrj file
+)
+
 var (
-	comment   = []byte("//") // Comment marker
-	separator = []byte("%%") // Record separator marker
+	comment       = []byte("//") // Comment marker
+	rSeparator    = []byte("%%") // Record separator marker
+	fSeparator    = []byte(": ") // Field/data separator as []byte
+	fSeparatorLen = len(fSeparator)
+	CR            = []byte("\r")
+	LF            = []byte("\n")
+	Empty         = []byte{}
+	Space         = []byte(" ")
 )
 
 // Read takes as input an io.Reader - assuming the data to be in the WolfMUD
@@ -106,7 +116,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 		// Handle record separator by recording current Record in Jar and setting
 		// up a new next record, reset lastField seen and noLastLine flag.
-		if noName && bytes.Equal(data, separator) {
+		if noName && bytes.Equal(data, rSeparator) {
 			if len(r) > 0 {
 				j = append(j, r)
 				r = Record{}
@@ -195,12 +205,10 @@ func Read(in io.Reader, freetext string) (j Jar) {
 // different fields.
 func (j Jar) Write(out io.Writer, freetext string) {
 
-	const maxLineWidth = 80           // Maximum length of a line in a .wrj file
-	const separatorLength = len(": ") // Length of field/data separator
-	var buf bytes.Buffer              // Temporary buffer for current record
+	var buf bytes.Buffer // Temporary buffer for current record
 
 	// A slice of spaces we can re-slice to get variable lengths of padding
-	padding := bytes.Repeat([]byte(" "), maxLineWidth-separatorLength)
+	padding := bytes.Repeat(Space, maxLineWidth-fSeparatorLen)
 
 	// Normalise passed in field name for free text section
 	freetext = text.TitleFirst(strings.ToLower(freetext))
@@ -244,25 +252,25 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			// Fold the field data, which will now have network '\r\n' line endings.
 			// Strip the '\r' to get Unix line endings. Finally split the data into
 			// separate lines using `\n` as the delimiter.
-			data := text.Fold(norm[field], maxLineWidth-maxFieldLen-separatorLength)
-			data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
-			lines := bytes.Split(data, []byte("\n"))
+			data := text.Fold(norm[field], maxLineWidth-maxFieldLen-fSeparatorLen)
+			data = bytes.Replace(data, CR, Empty, -1)
+			lines := bytes.Split(data, LF)
 
 			// Write field name, separator, and first data line
 			buf.Write(padding[0 : maxFieldLen-len(field)])
 			buf.WriteString(field)
 			buf.WriteByte(':')
 			if len(lines[0]) != 0 {
-				buf.WriteByte(' ')
+				buf.Write(Space)
 				buf.Write(lines[0])
 			}
-			buf.WriteByte('\n')
+			buf.Write(LF)
 
 			// Write continuation data lines
 			for _, l := range lines[1:] {
-				buf.Write(padding[0 : maxFieldLen+separatorLength])
+				buf.Write(padding[0 : maxFieldLen+fSeparatorLen])
 				buf.Write(l)
-				buf.WriteByte('\n')
+				buf.Write(LF)
 			}
 		}
 
@@ -271,18 +279,19 @@ func (j Jar) Write(out io.Writer, freetext string) {
 
 			// Write separator line if record has a fields section
 			if len(norm) > 1 {
-				buf.WriteByte('\n')
+				buf.Write(LF)
 			}
 
 			data = text.Fold(data, maxLineWidth)
-			data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
+			data = bytes.Replace(data, CR, Empty, -1)
 			buf.Write(data)
-			buf.WriteByte('\n')
+			buf.Write(LF)
 		}
 
 		// If we have written any fields for the record, write a record separator.
 		if len(norm) > 0 {
-			buf.WriteString("%%\n")
+			buf.Write(rSeparator)
+			buf.Write(LF)
 		}
 		buf.WriteTo(out)
 	}
