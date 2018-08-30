@@ -135,9 +135,11 @@ func Duration(d time.Duration) []byte {
 }
 
 // DateTime returns the given time.Time as a []byte. The byte slice will be
-// formatted according to RFC1123. For example "Mon, 02 Jan 2006 15:04:05 MST".
+// formatted according to RFC1123 and converted to the UTC timezone.
+//
+// For example, "Mon, 02 Jan 2006 15:04:05 UTC".
 func DateTime(t time.Time) []byte {
-	return []byte(t.Format(time.RFC1123))
+	return []byte(t.UTC().Format(time.RFC1123))
 }
 
 // Boolean returns the given boolean as a []byte containing either "TRUE" or
