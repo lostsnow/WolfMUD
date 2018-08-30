@@ -134,34 +134,32 @@ func KeyedString(name, value string, delimiter rune) (data []byte) {
 
 	data = append(data, Keyword(name)...)
 	data = append(data, d...)
-	data = append(data, value...)
+	data = append(data, strings.TrimSpace(value)...)
 	return data
 }
 
 // KeyedStringList returns the map of names and strings as a list of colon
 // separated keyed strings. For example:
 //
-//  m := map[string]string{
-//    "get":  "You cannot get that!",
-//    "look": "Your eyes hurt to look at it!",
-//  }
-//  data := KeyedStringList(m, '→')
+//	m := map[string]string{
+//		"get":  "You cannot get that!",
+//		"look": "Your eyes hurt to look at it!",
+//	}
+//	data := KeyedStringList(m, '→')
 //
 // Results in data containing:
 //
 //  GET→You cannot get that!\n: LOOK→Your eyes hurt to look at it!
 //
 func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
+	s := make([]string, len(pairs))
+	pos := 0
 	for name, value := range pairs {
-		data = append(data, KeyedString(name, value, delimiter)...)
-		data = append(data, "\n: "...)
+		s[pos] = string(KeyedString(name, value, delimiter))
+		pos++
 	}
-
-	// Chop off final "\n: " appended to data
-	if l := len(data); l > 3 {
-		data = data[0 : l-3 : l-3]
-	}
-
+	sort.Strings(s)
+	return []byte(strings.Join(s, "\n: "))
 	return data
 }
 
