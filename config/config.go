@@ -98,7 +98,8 @@ var Debug = struct {
 func init() {
 
 	// Setup global logging format
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.Lmicroseconds)
+	log.SetFlags( log.LstdFlags | log.Lshortfile | log.Lmicroseconds | log.LUTC)
+	log.Printf("Server started, logging using UTC timezone.")
 
 	// Seed default random source
 	rand.Seed(time.Now().UnixNano())
@@ -190,7 +191,7 @@ func init() {
 	}
 
 	if !Debug.LongLog {
-		log.SetFlags(log.Ldate | log.Ltime)
+		log.SetFlags(log.LstdFlags | log.LUTC )
 		log.Printf("Switching to short log format.")
 	}
 }
