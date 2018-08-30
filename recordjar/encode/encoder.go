@@ -67,9 +67,12 @@ func KeywordList(s []string) []byte {
 	return []byte(strings.Join(u[0:pos], " "))
 }
 
-// PairList returns the passed map of string pairs as an uppercased []byte.
-// Each pair of strings is separated with the given delimiter. All of the
-// string pairs are then concatenated together separated by whitespace.
+// PairList returns the passed map of string name/value pairs as an uppercased
+// []byte. Each name/value pair is separated with the given delimiter. Any
+// white space will be removed, either leading, trailing or within a name or
+// value - a name or value with white space would actually be more than a
+// single pair of name/value. All of the string name/delimiter/value pairs are
+// then concatenated together separated by white space.
 //
 //	exits := map[string]string{
 //		"E":  "L3",
@@ -78,21 +81,34 @@ func KeywordList(s []string) []byte {
 //	}
 //	data := PairList(exits, '→')
 //
-// Results in data being a byte slice containing "E→L3 SE→L4 S→L2".
-func PairList(data map[string]string, delimiter rune) (pairs []byte) {
-	d := make([]byte, utf8.RuneLen(delimiter))
-	utf8.EncodeRune(d, delimiter)
+// Results in data being a byte slice containing "E→L3 SE→L4 S→L2". Multiple
+// name/value pairs will have consistent ordering. It should be noted that
+// using a space for a delimiter will result in a keyword list, not a pair
+// list, which may cause problems when the field is decoded again.
+func PairList(data map[string]string, delimiter rune) []byte {
+
+	pairs := make([]string, len(data))
+	pos := 0
+	b := strings.Builder{}
 
 	for name, value := range data {
-		pairs = append(pairs, bytes.ToUpper([]byte(name))...)
-		pairs = append(pairs, d...)
-		pairs = append(pairs, bytes.ToUpper([]byte(value))...)
-		pairs = append(pairs, ' ')
+
+		// Shortcut if just a name and no value
+		if len(value) == 0 {
+			pairs[pos] = string(Keyword(name))
+			pos++
+			continue
+		}
+
+		b.Write(Keyword(name))
+		b.WriteRune(delimiter)
+		b.Write(Keyword(value))
+		pairs[pos] = b.String()
+		pos++
+		b.Reset()
 	}
-	if len(data) > 0 {
-		pairs = pairs[0 : len(pairs)-1]
-	}
-	return
+	sort.Strings(pairs[0:pos])
+	return []byte(strings.Join(pairs[0:pos], " "))
 }
 
 // StringList returns a list of strings delimited by a colon separator. Each
