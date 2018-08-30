@@ -114,7 +114,12 @@ func PairList(data map[string]string, delimiter rune) []byte {
 // StringList returns a list of strings delimited by a colon separator. Each
 // string in the list will start with the delimiter on a new line.
 func StringList(data []string) []byte {
-	return []byte(strings.Join(data, "\n: "))
+	s := make([]string, len(data))
+	for x := range data {
+		s[x] = strings.TrimSpace(data[x])
+	}
+	sort.Strings(s)
+	return []byte(strings.Join(s, "\n: "))
 }
 
 // KeyedString returns the name uppercased and concatenated to the value using
