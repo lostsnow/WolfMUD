@@ -172,19 +172,12 @@ func Bytes(dataIn []byte) []byte {
 }
 
 // Duration returns the given time.Duration as a []byte. The byte slice will
-// have the format "0h0m0.0s" although leading and trailing zero units will be
-// omitted.
+// have the format "0h0m0s" and is rounded (half up) to the nearest second.
+// Leading and trailing zero units will be omitted.
 func Duration(d time.Duration) []byte {
-	b := []byte(d.String())
-	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("m0s")) {
-		b = b[:l-2]
-	}
-	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("h0m")) {
-		b = b[:l-2]
-	}
-	if len(b) == 0 {
-		b = []byte("0s")
-	}
+	b := []byte(d.Round(time.Second).String())
+	b = bytes.Replace(b, []byte("m0s"), []byte("m"), 1)
+	b = bytes.Replace(b, []byte("h0m"), []byte("h"), 1)
 	return b
 }
 
