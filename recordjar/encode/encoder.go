@@ -14,9 +14,10 @@ import (
 	"unicode/utf8"
 )
 
-// String returns the given string as a []byte.
+// String returns the given string as a []byte with leading and trailing white
+// space removed.
 func String(s string) []byte {
-	return []byte(s)
+	return bytes.TrimSpace([]byte(s))
 }
 
 // Keyword returns the passed string as an uppercased []byte. This is helpful
