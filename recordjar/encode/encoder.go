@@ -133,8 +133,12 @@ func KeyedString(name, value string, delimiter rune) (data []byte) {
 	utf8.EncodeRune(d, delimiter)
 
 	data = append(data, Keyword(name)...)
-	data = append(data, d...)
-	data = append(data, strings.TrimSpace(value)...)
+
+	v := strings.TrimSpace(value)
+	if len(v) != 0 {
+		data = append(data, d...)
+		data = append(data, v...)
+	}
 	return data
 }
 
