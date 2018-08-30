@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -22,9 +23,19 @@ func String(s string) []byte {
 
 // Keyword returns the passed string as an uppercased []byte. This is helpful
 // for keeping IDs and references consistent and independent of how they appear
-// in e.g. data files.
+// in e.g. data files. Any white space will be removed, either leading,
+// trailing or within the keyword - a keyword with white space would actually
+// be two or more keywords.
 func Keyword(s string) []byte {
-	return bytes.ToUpper([]byte(s))
+
+	out := make([]rune, 0, len(s))
+	for _, r := range s {
+		if !unicode.IsSpace(r) {
+			out = append(out, unicode.ToUpper(r))
+		}
+	}
+
+	return []byte(string(out))
 }
 
 // KeywordList returns the []string data as a whitespace separated, uppercased
