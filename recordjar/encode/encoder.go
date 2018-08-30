@@ -8,6 +8,7 @@ package encode
 
 import (
 	"bytes"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -38,10 +39,32 @@ func Keyword(s string) []byte {
 	return []byte(string(out))
 }
 
-// KeywordList returns the []string data as a whitespace separated, uppercased
-// slice of bytes.
+// KeywordList returns the []string data as a white space separated, uppercased
+// slice of bytes. Multiple keywords will have consistent ordering. Duplicate
+// keywords will be omitted. Any white space will be removed, either leading,
+// trailing or within a keyword - a keyword with white space would actually be
+// two or more keywords.
 func KeywordList(s []string) []byte {
-	return bytes.ToUpper([]byte(strings.Join(s, " ")))
+
+	u := make([]string, len(s))
+	pos := 0
+
+	for x := range s {
+		u[pos] = string(Keyword(s[x]))
+		if u[pos] == "" {
+			continue
+		}
+		for _, y := range u[0:pos] {
+			if y == u[pos] {
+				pos--
+				break
+			}
+		}
+		pos++
+	}
+	sort.Strings(u[0:pos])
+
+	return []byte(strings.Join(u[0:pos], " "))
 }
 
 // PairList returns the passed map of string pairs as an uppercased []byte.
