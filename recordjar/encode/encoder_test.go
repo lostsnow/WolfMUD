@@ -17,35 +17,36 @@ import (
 func TestString(t *testing.T) {
 	for _, test := range []struct {
 		data string
-		want []byte
+		want string
 	}{
-		{"", []byte("")},
-		{"all lowercase", []byte("all lowercase")},
-		{"ALL UPPERCASE", []byte("ALL UPPERCASE")},
-		{"All Titlecase", []byte("All Titlecase")},
-		{"AlL MiXeDcAsE", []byte("AlL MiXeDcAsE")},
-		{" Leading Space", []byte("Leading Space")},
-		{"  Leading Space", []byte("Leading Space")},
-		{"Trailing Space ", []byte("Trailing Space")},
-		{"Trailing Space  ", []byte("Trailing Space")},
-		{" Both Space ", []byte("Both Space")},
-		{"  Both Space  ", []byte("Both Space")},
-		{"\tLeading Tab", []byte("Leading Tab")},
-		{"\t\tLeading Tab", []byte("Leading Tab")},
-		{"Trailing Tab\t", []byte("Trailing Tab")},
-		{"Trailing Tab\t\t", []byte("Trailing Tab")},
-		{"\tBoth Tab\t", []byte("Both Tab")},
-		{"\t\tBoth Tab\t\t", []byte("Both Tab")},
-		{"\t Leading Tab", []byte("Leading Tab")},
-		{"Trailing Tab\t ", []byte("Trailing Tab")},
-		{"\t Both Tab\t ", []byte("Both Tab")},
-		{" \tLeading Tab", []byte("Leading Tab")},
-		{"Trailing Tab \t", []byte("Trailing Tab")},
-		{" \tBoth Tab \t", []byte("Both Tab")},
+		{"", ""},
+		{"all lowercase", "all lowercase"},
+		{"ALL UPPERCASE", "ALL UPPERCASE"},
+		{"All Titlecase", "All Titlecase"},
+		{"AlL MiXeDcAsE", "AlL MiXeDcAsE"},
+		{" Leading Space", "Leading Space"},
+		{"  Leading Space", "Leading Space"},
+		{"Trailing Space ", "Trailing Space"},
+		{"Trailing Space  ", "Trailing Space"},
+		{" Both Space ", "Both Space"},
+		{"  Both Space  ", "Both Space"},
+		{"\tLeading Tab", "Leading Tab"},
+		{"\t\tLeading Tab", "Leading Tab"},
+		{"Trailing Tab\t", "Trailing Tab"},
+		{"Trailing Tab\t\t", "Trailing Tab"},
+		{"\tBoth Tab\t", "Both Tab"},
+		{"\t\tBoth Tab\t\t", "Both Tab"},
+		{"\t Leading Tab", "Leading Tab"},
+		{"Trailing Tab\t ", "Trailing Tab"},
+		{"\t Both Tab\t ", "Both Tab"},
+		{" \tLeading Tab", "Leading Tab"},
+		{"Trailing Tab \t", "Trailing Tab"},
+		{" \tBoth Tab \t", "Both Tab"},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := String(test.data)
-			if !bytes.Equal(have, test.want) {
+
+			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
@@ -75,32 +76,32 @@ func BenchmarkString(b *testing.B) {
 func TestKeyword(t *testing.T) {
 	for _, test := range []struct {
 		data string
-		want []byte
+		want string
 	}{
-		{"", []byte{}},
-		{" ", []byte{}},
-		{"  ", []byte{}},
-		{"\t", []byte{}},
-		{"\t\t", []byte{}},
-		{"keyword", []byte("KEYWORD")},
-		{" keyword", []byte("KEYWORD")},
-		{"  keyword", []byte("KEYWORD")},
-		{"keyword ", []byte("KEYWORD")},
-		{"keyword  ", []byte("KEYWORD")},
-		{" keyword ", []byte("KEYWORD")},
-		{"  keyword  ", []byte("KEYWORD")},
-		{"\tkeyword", []byte("KEYWORD")},
-		{"keyword\t", []byte("KEYWORD")},
-		{"\tkeyword\t", []byte("KEYWORD")},
-		{"keyword\n", []byte("KEYWORD")},
-		{"spaced  keyword", []byte("SPACEDKEYWORD")},
-		{"spaced   keyword", []byte("SPACEDKEYWORD")},
-		{"spaced\tkeyword", []byte("SPACEDKEYWORD")},
-		{"spaced\t\tkeyword", []byte("SPACEDKEYWORD")},
+		{"", ""},
+		{" ", ""},
+		{"  ", ""},
+		{"\t", ""},
+		{"\t\t", ""},
+		{"keyword", "KEYWORD"},
+		{" keyword", "KEYWORD"},
+		{"  keyword", "KEYWORD"},
+		{"keyword ", "KEYWORD"},
+		{"keyword  ", "KEYWORD"},
+		{" keyword ", "KEYWORD"},
+		{"  keyword  ", "KEYWORD"},
+		{"\tkeyword", "KEYWORD"},
+		{"keyword\t", "KEYWORD"},
+		{"\tkeyword\t", "KEYWORD"},
+		{"keyword\n", "KEYWORD"},
+		{"spaced  keyword", "SPACEDKEYWORD"},
+		{"spaced   keyword", "SPACEDKEYWORD"},
+		{"spaced\tkeyword", "SPACEDKEYWORD"},
+		{"spaced\t\tkeyword", "SPACEDKEYWORD"},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := Keyword(test.data)
-			if !bytes.Equal(have, test.want) {
+			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
@@ -187,29 +188,29 @@ func TestPairList(t *testing.T) {
 	for _, test := range []struct {
 		data  map[string]string
 		delim rune
-		want  []byte
+		want  string
 	}{
-		{map[string]string{}, '→', []byte{}},
-		{map[string]string{"a": ""}, '→', []byte("A")},
-		{map[string]string{"a": "z"}, '→', []byte("A→Z")},
-		{map[string]string{"a": "z"}, ':', []byte("A:Z")},
-		{map[string]string{"a": "", "b": ""}, '→', []byte("A B")},
-		{map[string]string{"a": "z", "b": "y"}, '→', []byte("A→Z B→Y")},
-		{map[string]string{"z": "a", "y": "b"}, '→', []byte("Y→B Z→A")},
-		{map[string]string{"a": "y z"}, '→', []byte("A→YZ")},
-		{map[string]string{"a": "z", "b": "y"}, ' ', []byte("A Z B Y")},
+		{map[string]string{}, '→', ""},
+		{map[string]string{"a": ""}, '→', "A"},
+		{map[string]string{"a": "z"}, '→', "A→Z"},
+		{map[string]string{"a": "z"}, ':', "A:Z"},
+		{map[string]string{"a": "", "b": ""}, '→', "A B"},
+		{map[string]string{"a": "z", "b": "y"}, '→', "A→Z B→Y"},
+		{map[string]string{"z": "a", "y": "b"}, '→', "Y→B Z→A"},
+		{map[string]string{"a": "y z"}, '→', "A→YZ"},
+		{map[string]string{"a": "z", "b": "y"}, ' ', "A Z B Y"},
 
 		// Actual data
 		{
 			map[string]string{"N": "L1", "NE": "L3", "E": "L4"}, '→',
-			[]byte("E→L4 NE→L3 N→L1"),
+			"E→L4 NE→L3 N→L1",
 		},
 
 		//
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := PairList(test.data, test.delim)
-			if !bytes.Equal(have, test.want) {
+			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
@@ -240,16 +241,19 @@ func BenchmarkPairList(b *testing.B) {
 func TestStringList(t *testing.T) {
 	for _, test := range []struct {
 		data []string
-		want []byte
+		want string
 	}{
-		{[]string{}, []byte{}},
-		{[]string{" a", "b ", " c "}, []byte("a\n: b\n: c")},
-		{[]string{"c", "b", "a"}, []byte("a\n: b\n: c")},
-		{[]string{"the quick brown", "fox jumps over", "the lazy dog."}, []byte("fox jumps over\n: the lazy dog.\n: the quick brown")},
+		{[]string{}, ""},
+		{[]string{" a", "b ", " c "}, "a\n: b\n: c"},
+		{[]string{"c", "b", "a"}, "a\n: b\n: c"},
+		{
+			[]string{"the quick brown", "fox jumps over", "the lazy dog."},
+			"fox jumps over\n: the lazy dog.\n: the quick brown",
+		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := StringList(test.data)
-			if !bytes.Equal(have, test.want) {
+			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
@@ -333,25 +337,25 @@ func TestKeyedStringList(t *testing.T) {
 	for _, test := range []struct {
 		data  map[string]string
 		delim rune
-		want  []byte
+		want  string
 	}{
-		{map[string]string{}, '→', []byte{}},
-		{map[string]string{"a": ""}, '→', []byte("A")},
-		{map[string]string{"": "z"}, '→', []byte("→z")}, // correct?
-		{map[string]string{"a": "z"}, '→', []byte("A→z")},
-		{map[string]string{"a": "z", "b": "y"}, '→', []byte("A→z\n: B→y")},
+		{map[string]string{}, '→', ""},
+		{map[string]string{"a": ""}, '→', "A"},
+		{map[string]string{"": "z"}, '→', "→z"}, // correct?
+		{map[string]string{"a": "z"}, '→', "A→z"},
+		{map[string]string{"a": "z", "b": "y"}, '→', "A→z\n: B→y"},
 		{
 			map[string]string{"a": "z", "b": "y", "c": "x"},
-			'→', []byte("A→z\n: B→y\n: C→x"),
+			'→', "A→z\n: B→y\n: C→x",
 		},
 		{
 			map[string]string{"c": "x", "b": "y", "a": "z"},
-			'→', []byte("A→z\n: B→y\n: C→x"),
+			'→', "A→z\n: B→y\n: C→x",
 		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := KeyedStringList(test.data, test.delim)
-			if !bytes.Equal(have, test.want) {
+			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
@@ -493,4 +497,3 @@ func TestInteger(t *testing.T) {
 		})
 	}
 }
-
