@@ -383,13 +383,50 @@ func BenchmarkKeyedStringList(b *testing.B) {
 
 func TestBytes(t *testing.T) {
 	for _, test := range []struct {
-		data []byte
+		data string
+		want string
 	}{
-		{[]byte("Some text")},
+		{"Some text", "Some text"},
+		{" Leading space", "Leading space"},
+		{"\tLeading tab", "Leading tab"},
+		{"Trailing space ", "Trailing space"},
+		{"Trailing tab\t", "Trailing tab"},
+		{" Both space ", "Both space"},
+		{"\tBoth tab\t", "Both tab"},
+		{"\nLeft LF", "\nLeft LF"},
+		{"Right LF\n", "Right LF\n"},
+		{"\nLeft and right LF\n", "\nLeft and right LF\n"},
+		{" \nLeading space+Left LF", "\nLeading space+Left LF"},
+		{"\t\nLeading tab+Left LF", "\nLeading tab+Left LF"},
+		{"Right LF+Trailing space\n ", "Right LF+Trailing space\n"},
+		{"Right LF+Trailing tab\n\t", "Right LF+Trailing tab\n"},
+		{" \nLeft & right LF+space\n ", "\nLeft & right LF+space\n"},
+		{"\t\nLeft & right LF+tab\n\t", "\nLeft & right LF+tab\n"},
+		{"\n Left LF+space", "\n Left LF+space"},
+		{"\n\tLeft LF+tab", "\n\tLeft LF+tab"},
+		{"Right space+LF \n", "Right space+LF \n"},
+		{"Right tab+LF\t\n", "Right tab+LF\t\n"},
+		{
+			"\n Left LF+space, right space+LF \n",
+			"\n Left LF+space, right space+LF \n",
+		},
+		{"\n\tLeft LF+tab, right tab+LF\t\n", "\n\tLeft LF+tab, right tab+LF\t\n"},
+		{" \n Left space+LF+space", "\n Left space+LF+space"},
+		{"\t\n\tLeft tab+LF+tab", "\n\tLeft tab+LF+tab"},
+		{"Right space+LF+space \n ", "Right space+LF+space \n"},
+		{"Right tab+LF+tab\t\n\t", "Right tab+LF+tab\t\n"},
+		{
+			" \n Left space+LF+space, right space+LF+space \n ",
+			"\n Left space+LF+space, right space+LF+space \n",
+		},
+		{
+			"\t\n\tLeft tab+LF+tab, right tab+LF+tab\t\n\t",
+			"\n\tLeft tab+LF+tab, right tab+LF+tab\t\n",
+		},
 	} {
-		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
-			want := test.data
-			have := Bytes(test.data)
+		t.Run(fmt.Sprintf("%s", test.want), func(t *testing.T) {
+			want := []byte(test.data)
+			have := Bytes(want)
 
 			// Take address of last element [cap(x)-1] from the maximum sized slice
 			// x[0:cap(x)] and if they are the same then slices overlap
@@ -397,6 +434,10 @@ func TestBytes(t *testing.T) {
 			wantEnd := &want[0:cap(want)][cap(want)-1]
 			if haveEnd == wantEnd {
 				t.Errorf("have and want overlap: %+q", have)
+			}
+
+			if !bytes.Equal(have, []byte(test.want)) {
+				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
 	}

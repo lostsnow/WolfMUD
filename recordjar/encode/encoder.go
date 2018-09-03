@@ -17,7 +17,9 @@ import (
 )
 
 // String returns the given string as a []byte with leading and trailing white
-// space removed.
+// space removed. This should only be used for fields, not the free text
+// section - which can contain meaningful leading or trailing blank lines. For
+// the free text section encode.Bytes is preferred.
 func String(s string) []byte {
 	return bytes.TrimSpace([]byte(s))
 }
@@ -168,10 +170,19 @@ func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
 }
 
 // Bytes returns a copy of the passed []byte. Important so we don't
-// accidentally pin a larger backing array in memory via the slice.
+// accidentally pin a larger backing array in memory via the slice. Any leading
+// or trailing white space will be trimmed EXCEPT new lines '\n', which the
+// trimming will end at. This is the preferred way to encode a free text
+// section as it allows for leading/trailing blank lines.
 func Bytes(dataIn []byte) []byte {
 	dataOut := make([]byte, len(dataIn), len(dataIn))
 	copy(dataOut, dataIn)
+	dataOut = bytes.TrimFunc(dataOut, func(r rune) bool {
+		if r == '\n' {
+			return false
+		}
+		return unicode.IsSpace(r)
+	})
 	return dataOut
 }
 
