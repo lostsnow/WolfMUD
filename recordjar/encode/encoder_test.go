@@ -482,19 +482,19 @@ func TestDuration(t *testing.T) {
 
 func TestDateTime(t *testing.T) {
 	for _, test := range []struct {
-		yyyy              int
-		mm                time.Month
-		dd, h, m, s, nsec int
-		loc               string
-		want              string
+		data string
+		want string
 	}{
-		{1971, time.January, 1, 11, 59, 59, 0, "UTC", "Fri, 01 Jan 1971 11:59:59 UTC"},
-		{1971, time.January, 1, 11, 59, 59, 0, "GMT", "Fri, 01 Jan 1971 11:59:59 UTC"},
-		{1971, time.August, 1, 11, 59, 59, 0, "Europe/London", "Sun, 01 Aug 1971 10:59:59 UTC"},
+		{"04 Sep 18 20:17 -0100", "Tue, 04 Sep 2018 21:17:00 UTC"},
+		{"04 Sep 18 21:17 +0000", "Tue, 04 Sep 2018 21:17:00 UTC"},
+		{"04 Sep 18 22:17 +0100", "Tue, 04 Sep 2018 21:17:00 UTC"},
 	} {
-		loc, _ := time.LoadLocation(test.loc)
-		t.Run(fmt.Sprintf("%d", test.yyyy), func(t *testing.T) {
-			d := time.Date(test.yyyy, test.mm, test.dd, test.h, test.m, test.s, test.nsec, loc)
+		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
+			d, err := time.Parse(time.RFC822Z, test.data)
+			if err != nil {
+				t.Errorf("\nCannot parse test data: %+q", test.data)
+				return
+			}
 			have := DateTime(d)
 			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
