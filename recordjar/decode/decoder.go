@@ -169,11 +169,20 @@ func KeyedStringList(data []byte) (list map[string]string) {
 }
 
 // Bytes returns a copy of the []byte data. Important so we don't accidentally
-// pin a larger backing array in memory via the slice.
-func Bytes(dataIn []byte) []byte {
-	dataOut := make([]byte, len(dataIn), len(dataIn))
-	copy(dataOut, dataIn)
-	return dataOut
+// pin a larger backing array in memory via the source slice. Any leading or
+// trailing white space will be trimmed EXCEPT new lines '\n', which the
+// trimming will end at. This is the preferred way to decode a free text
+// section as it allows for leading/trailing blank lines.
+func Bytes(data []byte) []byte {
+	out := make([]byte, len(data), len(data))
+	copy(out, data)
+	out = bytes.TrimFunc(out, func(r rune) bool {
+		if r == '\n' {
+			return false
+		}
+		return unicode.IsSpace(r)
+	})
+	return out
 }
 
 // Duration returns the []byte data as a time.Duration. The data is parsed
