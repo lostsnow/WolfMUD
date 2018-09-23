@@ -189,7 +189,20 @@ func Bytes(data []byte) []byte {
 // using time.ParseDuration and will default to 0 if the data cannot be parsed.
 func Duration(data []byte) (t time.Duration) {
 	var err error
-	if t, err = time.ParseDuration(strings.ToLower(string(data))); err != nil {
+
+	// Lower case passed duration and remove all white space
+	d := make([]rune, 0, len(data))
+	for _, r := range string(data) {
+		if r >= '0' && r <= '9' || r >= 'a' && r <= 'z' {
+			d = append(d, r)
+		} else {
+			if !unicode.IsSpace(r) {
+				d = append(d, unicode.ToLower(r))
+			}
+		}
+	}
+
+	if t, err = time.ParseDuration(string(d)); err != nil {
 		log.Printf("Duration field has invalid value %q, using default: %s", data, t)
 	}
 	return t
