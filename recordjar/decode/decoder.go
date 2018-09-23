@@ -68,9 +68,9 @@ func KeywordList(data []byte) []string {
 }
 
 // PairList returns the []byte data as uppercassed pairs of strings in a map.
-// The data is first split on whitespace and extra whitespace is stripped. The
-// 'words' are then split into pairs on the first non-unicode letter or digit.
-// If we take exits as an example:
+// The data is first split on white space and extra white space is stripped.
+// The pairs are then split into a name and value on the first non-letter,
+// non-digit. If we take exits as an example:
 //
 //  Exits: E→L3 SE→L4 S→ W
 //
@@ -83,20 +83,23 @@ func KeywordList(data []byte) []string {
 //    "W": "",
 //  }
 //
-// Here the separator used is → but any non-unicode letter or digit may be
-// used.
+// Here the separator used is '→' but any non-letter or non-digit may be used.
+// If the same name occurs more than once only the first instance will be used.
+// A name may appear by itself, as in 'E', or with a separator, as in 'E→' in
+// which case the value will be an empty string.
 func PairList(data []byte) (pairs map[string]string) {
+
+	var i, l int
+	var name string
 
 	pairs = make(map[string]string)
 
-	for _, name := range strings.Fields(string(data)) {
-		name = strings.TrimSpace(strings.ToUpper(name))
-		value := ""
-		if i, l := indexSeparator(name); i != -1 {
-			value = name[i+l:]
-			name = name[:i]
+	for _, data := range bytes.Fields(data) {
+		i, l = indexSeparator(data)
+		name = Keyword(data[:i])
+		if _, ok := pairs[name]; !ok {
+			pairs[name] = Keyword(data[i+l:])
 		}
-		pairs[name] = value
 	}
 	return
 }
@@ -114,26 +117,15 @@ func StringList(data []byte) (s []string) {
 
 // KeyedString returns the []byte data as an uppercassed keyword and a string
 // value. The keyword is split from the beginning of the []byte on the first
-// non-unicode letter or digit. For example:
+// non-letter or non-digit. For example:
 //
 //   input: []byte("GET→You can't get it.")
 //  output: "GET", "You can't get it."
 //
-// Here the separator used is → but any non-unicode letter or digit may be
-// used.
+// Here the separator used is '→' but any non-letter or non-digit may be used.
 func KeyedString(data []byte) (name, value string) {
-
-	name = string(data)
-
-	if i, l := indexSeparator(name); i != -1 {
-		value = name[i+l:]
-		name = name[:i]
-	}
-
-	name = strings.TrimSpace(strings.ToUpper(name))
-	value = strings.TrimSpace(value)
-
-	return
+	i, l := indexSeparator(data)
+	return Keyword(data[:i]), String(data[i+l:])
 }
 
 // KeyedStringList splits the []byte data into a map of keywords and strings.
@@ -232,15 +224,19 @@ func Integer(data []byte) (i int) {
 	return
 }
 
-// indexSeparator returns the position and length in bytes of the first
-// separator rune found. If no separator is found the position returned will be
-// -1 and the length returned will be 0.
-func indexSeparator(s string) (index int, size int) {
-	index = strings.IndexFunc(s, func(r rune) bool {
+// indexSeparator returns the position (starting at 0) and length in bytes of
+// the first separator rune found. If no separator is found the position
+// returned will be equal to the length of 'b' and the length returned will be
+// 0. The separator is taken to be the first rune found that is a not a letter,
+// digit or white space.
+func indexSeparator(b []byte) (index int, size int) {
+	index = bytes.IndexFunc(b, func(r rune) bool {
 		return !unicode.In(r, unicode.Digit, unicode.Letter, unicode.White_Space)
 	})
 	if index != -1 {
-		_, size = utf8.DecodeRune([]byte(s[index:]))
+		_, size = utf8.DecodeRune(b[index:])
+	} else {
+		index, size = len(b), 0
 	}
 	return
 }
