@@ -17,6 +17,9 @@ import (
 	"unicode/utf8"
 )
 
+// Define separator used for string lists
+var listSeparator = []byte(":")
+
 // String returns the []bytes data as a string with leading and trailing white
 // space removed. This should only be used to decode fields and not the free
 // text section. The decoder.Bytes function is preferred for the free text
@@ -105,11 +108,14 @@ func PairList(data []byte) (pairs map[string]string) {
 }
 
 // StringList returns the []byte data as a []string by splitting the data on a
-// colon separator.
+// colon separator. Any leading or trailing white space will be removed from
+// the returned strings.
 func StringList(data []byte) (s []string) {
-	for _, t := range strings.Split(string(data), ":") {
-		if w := strings.TrimSpace(t); w != "" {
-			s = append(s, w)
+	var w []byte
+
+	for _, t := range bytes.Split(data, listSeparator) {
+		if w = bytes.TrimSpace(t); len(w) > 0 {
+			s = append(s, string(w))
 		}
 	}
 	return
