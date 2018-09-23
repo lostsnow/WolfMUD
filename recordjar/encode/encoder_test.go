@@ -126,7 +126,7 @@ func BenchmarkKeyword(b *testing.B) {
 	}
 }
 
-func Test_KeywordList(t *testing.T) {
+func TestKeywordList(t *testing.T) {
 	for _, test := range []struct {
 		data []string
 		want string
