@@ -7,6 +7,7 @@
 package decode
 
 import (
+	"bytes"
 	"log"
 	"strconv"
 	"strings"
@@ -15,9 +16,13 @@ import (
 	"unicode/utf8"
 )
 
-// String returns the []bytes data as a string.
+// String returns the []bytes data as a string with leading and trailing white
+// space removed. This should only be used to decode fields and not the free
+// text section. The decoder.Bytes function is preferred for the free text
+// section as the section can contain meaningful leading and/or trailing blank
+// lines for formatting.
 func String(data []byte) string {
-	return string(data)
+	return string(bytes.TrimSpace(data))
 }
 
 // Keyword returns the []bytes data as an uppercased string. This is helpful
