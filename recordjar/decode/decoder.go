@@ -9,6 +9,7 @@ package decode
 import (
 	"bytes"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -43,9 +44,27 @@ func Keyword(data []byte) string {
 
 // KeywordList returns the []byte data as an uppercased slice of strings. The
 // data is split on whitespace, extra whitespace is stripped and the individual
-// 'words' are returned in the string slice.
+// 'words' are returned in the string slice. Duplicate keywrods will be
+// removed.
 func KeywordList(data []byte) []string {
-	return strings.Fields(strings.ToUpper(string(data)))
+
+	f := bytes.Fields(data)
+	k := make([]string, len(f))
+	pos := 0
+
+	for x := range f {
+		k[pos] = Keyword(f[x])
+		for _, y := range k[0:pos] {
+			if y == k[pos] {
+				pos--
+				break
+			}
+		}
+		pos++
+	}
+	sort.Strings(k[0:pos])
+
+	return k[0:pos]
 }
 
 // PairList returns the []byte data as uppercassed pairs of strings in a map.
