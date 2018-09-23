@@ -233,7 +233,8 @@ func DateTime(data []byte) (t time.Time) {
 
 // Boolean returns the []byte data as a boolean value. The data is parsed using
 // strconv.ParseBool and will default to false if the data cannot be parsed.
-// Using strconv.parseBool allows true and false to be represented in many ways.
+// Using strconv.parseBool allows true and false to be represented in many
+// ways. For example: 0, f, F, false, False, FALSE, 1, t, T, true, True, TRUE.
 // As a special case data of length zero will default to true. This allows true
 // to be represented as the presence or absence of just a keyword. For example:
 //
