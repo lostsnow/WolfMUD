@@ -254,7 +254,8 @@ func Boolean(data []byte) (b bool) {
 }
 
 // Integer returns the []byte data as an integer value. The []byte is parsed
-// using strconv.Atoi and will default to 0 if the data cannot be parsed.
+// using strconv.Atoi and will default to 0 if the data cannot be parsed. The
+// valid range is at least -2147483648 to 2147483647.
 func Integer(data []byte) (i int) {
 	var err error
 	if i, err = strconv.Atoi(string(data)); err != nil {
