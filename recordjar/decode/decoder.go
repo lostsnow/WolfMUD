@@ -137,7 +137,7 @@ func KeyedString(data []byte) (name, value string) {
 // KeyedStringList splits the []byte data into a map of keywords and strings.
 // The []byte data is first split on a colon (:) separator to determine the
 // pairs. The keyword is then split from the beginning of each pair on the
-// first non-unicode letter or digit. For example:
+// first non-letter or non-digit. For example:
 //
 //  Vetoes:  GET→You can't get it.
 //        : DROP→You can't drop it.
@@ -149,11 +149,21 @@ func KeyedString(data []byte) (name, value string) {
 //    "DROP": "You can't drop it.",
 //  }
 //
+// If a keyword is specified more than once only the first instance will be
+// used. Leading and trailing whitespace will be removed from the returned
+// strings.
 func KeyedStringList(data []byte) (list map[string]string) {
 	list = make(map[string]string)
-	for _, w := range StringList(data) {
-		name, value := KeyedString([]byte(w))
-		list[name] = value
+
+	// Don't reuse StringList as it adds duplicated white space trimming
+	for _, s := range bytes.Split(data, listSeparator) {
+		name, value := KeyedString(s)
+		if len(name) == 0 {
+			continue
+		}
+		if _, ok := list[name]; !ok {
+			list[name] = value
+		}
 	}
 	return
 }
