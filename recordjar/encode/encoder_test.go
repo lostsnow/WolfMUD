@@ -481,23 +481,25 @@ func TestDuration(t *testing.T) {
 }
 
 func TestDateTime(t *testing.T) {
-	for _, test := range []struct {
-		data string
-		want string
-	}{
-		{"04 Sep 18 20:17 -0100", "Tue, 04 Sep 2018 21:17:00 UTC"},
-		{"04 Sep 18 21:17 +0000", "Tue, 04 Sep 2018 21:17:00 UTC"},
-		{"04 Sep 18 22:17 +0100", "Tue, 04 Sep 2018 21:17:00 UTC"},
+
+	UTC := time.FixedZone("UTC", 0)
+	refdt := time.Date(2018, time.September, 20, 20, 24, 33, 0, UTC)
+	want := []byte("Thu, 20 Sep 2018 20:24:33 +0000")
+
+	for _, offset := range []int{
+		0, 5, -5,
 	} {
-		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
-			d, err := time.Parse(time.RFC822Z, test.data)
-			if err != nil {
-				t.Errorf("\nCannot parse test data: %+q", test.data)
-				return
-			}
-			have := DateTime(d)
-			if !bytes.Equal(have, []byte(test.want)) {
-				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
+		t.Run(fmt.Sprintf("%d", offset), func(t *testing.T) {
+
+			// Get reference date/time in test timezone
+			zoneName := fmt.Sprintf("UTC%+d", offset)
+			zone := time.FixedZone(zoneName, offset*60*60)
+			dt := refdt.In(zone)
+
+			have := DateTime(dt)
+
+			if !bytes.Equal(have, want) {
+				t.Errorf("\nhave %+q\nwant %+q", have, want)
 			}
 		})
 	}
