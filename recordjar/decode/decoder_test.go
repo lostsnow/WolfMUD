@@ -150,7 +150,7 @@ func TestKeywordList(t *testing.T) {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := KeywordList([]byte(test.data))
 			if len(have) != len(test.want) {
-				t.Errorf("unequal arrays\nhave %+q\nwant %+q", have, test.want)
+				t.Errorf("unequal slices\nhave %+q\nwant %+q", have, test.want)
 				return
 			}
 			for x := range have {
@@ -289,7 +289,7 @@ func TestStringList(t *testing.T) {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := StringList([]byte(test.data))
 			if len(have) != len(test.want) {
-				t.Errorf("unequal arrays\nhave %+q\nwant %+q", have, test.want)
+				t.Errorf("unequal slices\nhave %+q\nwant %+q", have, test.want)
 				return
 			}
 			for x := range have {
