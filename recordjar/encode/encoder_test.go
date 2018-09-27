@@ -300,8 +300,18 @@ func TestKeyedStringList(t *testing.T) {
 		want  string
 	}{
 		{map[string]string{}, '→', ""},
+		{map[string]string{"": " "}, '→', ""},
+		{map[string]string{" ": ""}, '→', ""},
+		{map[string]string{" ": " "}, '→', ""},
+		{map[string]string{"": "\t"}, '→', ""},
+		{map[string]string{"\t": ""}, '→', ""},
+		{map[string]string{"\t": "\t"}, '→', ""},
 		{map[string]string{"a": ""}, '→', "A"},
+		{map[string]string{"a": " "}, '→', "A"},
+		{map[string]string{"a": "\t"}, '→', "A"},
 		{map[string]string{"": "z"}, '→', ""},
+		{map[string]string{" ": "z"}, '→', ""},
+		{map[string]string{"\t": "z"}, '→', ""},
 		{map[string]string{"a": "z"}, '→', "A→z"},
 		{map[string]string{"a": "z", "b": "y"}, '→', "A→z\n: B→y"},
 		{
