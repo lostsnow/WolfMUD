@@ -125,19 +125,6 @@ func StringList(data []byte) (s []string) {
 	return
 }
 
-// KeyedString returns the []byte data as an uppercassed keyword and a string
-// value. The keyword is split from the beginning of the []byte on the first
-// non-letter or non-digit. For example:
-//
-//   input: []byte("GET→You can't get it.")
-//  output: "GET", "You can't get it."
-//
-// Here the separator used is '→' but any non-letter or non-digit may be used.
-func KeyedString(data []byte) (name, value string) {
-	i, l := indexSeparator(data)
-	return Keyword(data[:i]), String(data[i+l:])
-}
-
 // KeyedStringList splits the []byte data into a map of keywords and strings.
 // The []byte data is first split on a colon (:) separator to determine the
 // pairs. The keyword is then split from the beginning of each pair on the

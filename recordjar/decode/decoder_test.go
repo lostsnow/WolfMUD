@@ -324,55 +324,6 @@ func BenchmarkStringList(b *testing.B) {
 	}
 }
 
-func TestKeyedString(t *testing.T) {
-	for _, test := range []struct {
-		data      string
-		wantName  string
-		wantValue string
-	}{
-		{"", "", ""},
-		{"a", "A", ""},
-		{"a→", "A", ""},
-		{"→z", "", "z"},
-		{"a→z", "A", "z"},
-		{"a → z", "A", "z"},
-		{"a→z y", "A", "z y"},
-		{"a b → z y", "AB", "z y"},
-
-		// This behaviour is correct, but is it expected by users? 'a b c' become
-		// the keyword because a delimiter is not found and white space is removed
-		// from keywords...
-		{"a b c", "ABC", ""},
-	} {
-		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
-			haveName, haveValue := KeyedString([]byte(test.data))
-			if haveName != test.wantName || haveValue != test.wantValue {
-				t.Errorf(
-					"\nhave %+q %+q\nwant %+q %+q",
-					haveName, haveValue, test.wantName, test.wantValue,
-				)
-				return
-			}
-		})
-	}
-}
-
-func BenchmarkKeyedString(b *testing.B) {
-	for _, test := range []struct {
-		name string
-		data string
-	}{
-		{"Get", "Get→You can't get that!"},
-	} {
-		data := []byte(test.data)
-		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				_, _ = KeyedString(data)
-			}
-		})
-	}
-}
-
 func TestKeyedStringList(t *testing.T) {
 	for _, test := range []struct {
 		data string

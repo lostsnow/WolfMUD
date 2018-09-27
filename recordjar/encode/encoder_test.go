@@ -293,56 +293,6 @@ func BenchmarkStringList(b *testing.B) {
 	}
 }
 
-func TestKeyedString(t *testing.T) {
-	for _, test := range []struct {
-		key   string
-		value string
-		delim rune
-		want  string
-	}{
-		{"", "", '→', ""},
-		{"", "Some text", '→', "→Some text"}, // correct?
-		{"a", "", '→', "A"},
-		{"b", "Some text", '→', "B→Some text"},
-		{" c", "Some text", '→', "C→Some text"},
-		{"d ", "Some text", '→', "D→Some text"},
-		{" e ", "Some text", '→', "E→Some text"},
-		{"f", " Some text", '→', "F→Some text"},
-		{"g", "Some text ", '→', "G→Some text"},
-		{"h ", " Some text ", '→', "H→Some text"},
-		{"i i i", " Some text ", '→', "III→Some text"},
-	} {
-		t.Run(fmt.Sprintf("%s", test.key), func(t *testing.T) {
-			have := KeyedString(test.key, test.value, test.delim)
-			if !bytes.Equal(have, []byte(test.want)) {
-				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
-			}
-		})
-	}
-}
-
-func BenchmarkKeyedString(b *testing.B) {
-	for _, test := range []struct {
-		name  string
-		key   string
-		value string
-		delim rune
-	}{
-		{"no key", "", "Some text", '→'},
-		{"no value", "a", "", '→'},
-		{"no trim", "a", "Some text", '→'},
-		{"trim key", " a ", "Some text", '→'},
-		{"trim value", "a", " Some text ", '→'},
-		{"trim both", " a ", " Some text ", '→'},
-	} {
-		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				_ = KeyedString(test.key, test.value, test.delim)
-			}
-		})
-	}
-}
-
 func TestKeyedStringList(t *testing.T) {
 	for _, test := range []struct {
 		data  map[string]string

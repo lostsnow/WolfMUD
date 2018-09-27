@@ -129,26 +129,6 @@ func StringList(data []string) []byte {
 	return []byte(strings.Join(s, "\n: "))
 }
 
-// KeyedString returns the name uppercased and concatenated to the value using
-// the delimiter, as a []byte. For example:
-//
-//  KeyedString("get", "You cannot get that!", '→')
-//
-// Results in a []byte containing "GET→You cannot get that!".
-func KeyedString(name, value string, delimiter rune) (data []byte) {
-	d := make([]byte, utf8.RuneLen(delimiter))
-	utf8.EncodeRune(d, delimiter)
-
-	data = append(data, Keyword(name)...)
-
-	v := strings.TrimSpace(value)
-	if len(v) != 0 {
-		data = append(data, d...)
-		data = append(data, v...)
-	}
-	return data
-}
-
 // KeyedStringList returns the map of names and strings as a list of colon
 // separated keyed strings. For example:
 //
