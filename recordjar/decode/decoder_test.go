@@ -202,6 +202,7 @@ func TestPairList(t *testing.T) {
 		{"→", map[string]string{}},
 		{"→ →", map[string]string{}},
 		{"a→z", map[string]string{"A": "Z"}},
+		{"a→→z", map[string]string{"A": "→Z"}},
 		{"a:z", map[string]string{"A": "Z"}},
 		{"a b→", map[string]string{"A": "", "B": ""}},
 		{"a→ a→", map[string]string{"A": ""}},
