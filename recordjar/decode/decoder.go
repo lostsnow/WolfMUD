@@ -89,7 +89,8 @@ func KeywordList(data []byte) []string {
 // Here the separator used is '→' but any non-letter or non-digit may be used.
 // If the same name occurs more than once only the first instance will be used.
 // A name may appear by itself, as in 'E', or with a separator, as in 'E→' in
-// which case the value will be an empty string.
+// which case the value will be an empty string. If no name is given, for
+// example '→L3' any value will be ignored.
 func PairList(data []byte) (pairs map[string]string) {
 
 	var i, l int
@@ -100,6 +101,9 @@ func PairList(data []byte) (pairs map[string]string) {
 	for _, data := range bytes.Fields(data) {
 		i, l = indexSeparator(data)
 		name = Keyword(data[:i])
+		if name == "" {
+			continue
+		}
 		if _, ok := pairs[name]; !ok {
 			pairs[name] = Keyword(data[i+l:])
 		}
