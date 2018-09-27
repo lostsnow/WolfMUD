@@ -85,7 +85,7 @@ FIELD DATA TYPES
     The data is a single case insensitive word.
 
   KEYWORD LIST
-    The data is a list of whitespace separated, case insensitive words.
+    The data is a list of white space separated, case insensitive words.
 
   PAIR LIST
     The data is a white space separated list of pairs. Each pair is separated
@@ -466,7 +466,7 @@ ZONE RECORDS
     consisting of a line with only two percent signs '%%' or the end of the
     file is reached. If a record consists of a description only and no fields
     the preceding blank line is not required. Within a free text block blank
-    lines and leading whitespace is preserved.
+    lines and leading white space is preserved.
 
 SEE ALSO
 
