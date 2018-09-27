@@ -157,16 +157,19 @@ func KeyedString(data []byte) (name, value string) {
 // used. Leading and trailing whitespace will be removed from the returned
 // strings.
 func KeyedStringList(data []byte) (list map[string]string) {
+
+	var i, l int // index and length of list separator found
 	list = make(map[string]string)
 
 	// Don't reuse StringList as it adds duplicated white space trimming
 	for _, s := range bytes.Split(data, listSeparator) {
-		name, value := KeyedString(s)
+		i, l = indexSeparator(s)
+		name := Keyword(s[:i])
 		if len(name) == 0 {
 			continue
 		}
 		if _, ok := list[name]; !ok {
-			list[name] = value
+			list[name] = String(s[i+l:])
 		}
 	}
 	return

@@ -163,10 +163,23 @@ func KeyedString(name, value string, delimiter rune) (data []byte) {
 //  GET→You cannot get that!\n: LOOK→Your eyes hurt to look at it!
 //
 func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
+	d := make([]byte, utf8.RuneLen(delimiter))
+	utf8.EncodeRune(d, delimiter)
+
 	s := make([]string, len(pairs))
+	b := []byte{}
+	svalue := []byte{}
 	pos := 0
 	for name, value := range pairs {
-		s[pos] = string(KeyedString(name, value, delimiter))
+		b = Keyword(name)
+		if len(b) == 0 {
+			continue
+		}
+		if svalue = String(value); len(svalue) > 0 {
+			b = append(b, d...)
+			b = append(b, svalue...)
+		}
+		s[pos] = string(b)
 		pos++
 	}
 	sort.Strings(s)
