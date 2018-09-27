@@ -191,12 +191,20 @@ func TestPairList(t *testing.T) {
 		want  string
 	}{
 		{map[string]string{}, '→', ""},
+		{map[string]string{" ": ""}, '→', ""},
+		{map[string]string{"\t": ""}, '→', ""},
 		{map[string]string{"a": ""}, '→', "A"},
-		{map[string]string{"": "z"}, '→', "→Z"},
+		{map[string]string{"a": " "}, '→', "A"},
+		{map[string]string{"a": "\t"}, '→', "A"},
+		{map[string]string{"": "z"}, '→', ""},
+		{map[string]string{" ": "z"}, '→', ""},
+		{map[string]string{"\t": "z"}, '→', ""},
 		{map[string]string{"a": "z"}, '→', "A→Z"},
 		{map[string]string{"a": "z"}, ':', "A:Z"},
 		{map[string]string{"a": "", "b": ""}, '→', "A B"},
+		{map[string]string{"a": " ", "b": "\t"}, '→', "A B"},
 		{map[string]string{"a": "z", "b": "y"}, '→', "A→Z B→Y"},
+		{map[string]string{"a": " z ", "b": "\ty\t"}, '→', "A→Z B→Y"},
 		{map[string]string{"z": "a", "y": "b"}, '→', "Y→B Z→A"},
 		{map[string]string{"a": "y z"}, '→', "A→YZ"},
 		{map[string]string{"a": "z", "b": "y"}, ' ', "A Z B Y"},
@@ -342,7 +350,7 @@ func TestKeyedStringList(t *testing.T) {
 	}{
 		{map[string]string{}, '→', ""},
 		{map[string]string{"a": ""}, '→', "A"},
-		{map[string]string{"": "z"}, '→', "→z"}, // correct?
+		{map[string]string{"": "z"}, '→', ""},
 		{map[string]string{"a": "z"}, '→', "A→z"},
 		{map[string]string{"a": "z", "b": "y"}, '→', "A→z\n: B→y"},
 		{

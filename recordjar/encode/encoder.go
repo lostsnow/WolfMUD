@@ -86,28 +86,33 @@ func KeywordList(s []string) []byte {
 // Results in data being a byte slice containing "E→L3 SE→L4 S→L2". Multiple
 // name/value pairs will have consistent ordering. It should be noted that
 // using a space for a delimiter will result in a keyword list, not a pair
-// list, which may cause problems when the field is decoded again.
+// list, which may cause problems when the field is decoded again. If no name
+// is given for a pair any value will be ignored.
 func PairList(data map[string]string, delimiter rune) []byte {
+	d := make([]byte, utf8.RuneLen(delimiter))
+	utf8.EncodeRune(d, delimiter)
 
 	pairs := make([]string, len(data))
 	pos := 0
-	b := strings.Builder{}
 
 	for name, value := range data {
+		kname := Keyword(name)
+		if len(kname) == 0 {
+			continue
+		}
 
 		// Shortcut if just a name and no value
-		if len(value) == 0 {
-			pairs[pos] = string(Keyword(name))
+		kvalue := Keyword(value)
+		if len(kvalue) == 0 {
+			pairs[pos] = string(kname)
 			pos++
 			continue
 		}
 
-		b.Write(Keyword(name))
-		b.WriteRune(delimiter)
-		b.Write(Keyword(value))
-		pairs[pos] = b.String()
+		kname = append(kname, d...)
+		kname = append(kname, kvalue...)
+		pairs[pos] = string(kname)
 		pos++
-		b.Reset()
 	}
 	sort.Strings(pairs[0:pos])
 	return []byte(strings.Join(pairs[0:pos], " "))
