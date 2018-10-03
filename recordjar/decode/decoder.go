@@ -179,8 +179,9 @@ func Bytes(data []byte) []byte {
 	return out
 }
 
-// Duration returns the []byte data as a time.Duration. The data is parsed
-// using time.ParseDuration and will default to 0 if the data cannot be parsed.
+// Duration returns the []byte data as a time.Duration rounded (half up) to the
+// nearest second. The data is parsed using time.ParseDuration and will default
+// to 0 if the data cannot be parsed.
 func Duration(data []byte) (t time.Duration) {
 	var err error
 
@@ -199,6 +200,7 @@ func Duration(data []byte) (t time.Duration) {
 	if t, err = time.ParseDuration(string(d)); err != nil {
 		log.Printf("Duration field has invalid value %q, using default: %s", data, t)
 	}
+	t = t.Round(time.Second)
 	return t
 }
 

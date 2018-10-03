@@ -491,6 +491,11 @@ func TestDuration(t *testing.T) {
 	}{
 		{"", 0},
 		{"unparseable", 0},
+		{"100ms", 0},
+		{"0.1s", 0},
+		{"0.5s", 1 * time.Second},
+		{"0.9s", 1 * time.Second},
+		{"1s", 1 * time.Second},
 		{"1s", 1 * time.Second},
 		{"1S", 1 * time.Second},
 		{"1m", 1 * time.Minute},
