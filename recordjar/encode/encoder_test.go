@@ -395,21 +395,44 @@ func TestBytes(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.want), func(t *testing.T) {
-			want := []byte(test.data)
-			have := Bytes(want)
-
-			// Take address of last element [cap(x)-1] from the maximum sized slice
-			// x[0:cap(x)] and if they are the same then slices overlap
-			haveEnd := &have[0:cap(have)][cap(have)-1]
-			wantEnd := &want[0:cap(want)][cap(want)-1]
-			if haveEnd == wantEnd {
-				t.Errorf("have and want overlap: %+q", have)
-			}
+			have := Bytes([]byte(test.data))
 
 			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})
+	}
+}
+
+func TestBytesSideEfects(t *testing.T) {
+
+	// Setup test with access to backing array for checking
+	const sample = " Some Text "
+	data := [len(sample)]byte{}
+	copy(data[:], sample)
+	test := data[:]
+
+	have := Bytes(test)
+
+	// Make sure passed test data isn't accidentally modified
+	if !bytes.Equal(test, []byte(sample)) {
+		t.Errorf("passed parameter modified\nhave: %+q\nwant: %+q",
+			test, sample,
+		)
+	}
+
+	// Overwrite the returned result...
+	have = have[:cap(have)]
+	for x := range have {
+		have[x] = 0x00
+	}
+
+	// ...If the passed test data is not equal to our initial sample then we
+	// havn't had a copy returned as overwriting the result modified the sample
+	if !bytes.Equal(data[:], []byte(sample)) {
+		t.Errorf("copy not returned\nhave: %+q\nwant: %+q",
+			data[:], sample,
+		)
 	}
 }
 

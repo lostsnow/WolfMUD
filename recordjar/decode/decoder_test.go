@@ -438,33 +438,44 @@ func TestBytes(t *testing.T) {
 		//
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
-			orig := make([]byte, len(test.data))
-			copy(orig, test.data)
-
 			have := Bytes(test.data)
-
-			// Make sure test data isn't accidentally modified
-			if !bytes.Equal(orig, test.data) {
-				t.Errorf("passed parameter modified\nhave: %+q\nwant: %+q",
-					orig, test.data,
-				)
-			}
 
 			if !bytes.Equal(have, test.want) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
-
-			// Overwrite what we have, if the test data changes then we havn't had a
-			// copy returned
-			have = have[:cap(have)]
-			for x := range have {
-				have[x] = 0x00
-			}
-			if !bytes.Equal(orig, test.data) {
-				t.Errorf("copy not returned\nhave: %+q\nwant: %+q", test.data, orig)
-			}
-
 		})
+	}
+}
+
+func TestBytesSideEfects(t *testing.T) {
+
+	// Setup test with access to backing array for checking
+	const sample = " Some Text "
+	data := [len(sample)]byte{}
+	copy(data[:], sample)
+	test := data[:]
+
+	have := Bytes(test)
+
+	// Make sure passed test data isn't accidentally modified
+	if !bytes.Equal(test, []byte(sample)) {
+		t.Errorf("passed parameter modified\nhave: %+q\nwant: %+q",
+			test, sample,
+		)
+	}
+
+	// Overwrite the returned result...
+	have = have[:cap(have)]
+	for x := range have {
+		have[x] = 0x00
+	}
+
+	// ...If the passed test data is not equal to our initial sample then we
+	// havn't had a copy returned as overwriting the result modified the sample
+	if !bytes.Equal(data[:], []byte(sample)) {
+		t.Errorf("copy not returned\nhave: %+q\nwant: %+q",
+			data[:], sample,
+		)
 	}
 }
 
