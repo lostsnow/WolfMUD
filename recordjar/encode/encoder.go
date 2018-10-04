@@ -172,16 +172,16 @@ func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
 // or trailing white space will be trimmed EXCEPT new lines '\n', which the
 // trimming will end at. This is the preferred way to encode a free text
 // section as it allows for leading/trailing blank lines.
-func Bytes(dataIn []byte) []byte {
-	dataOut := make([]byte, len(dataIn), len(dataIn))
-	copy(dataOut, dataIn)
-	dataOut = bytes.TrimFunc(dataOut, func(r rune) bool {
+func Bytes(data []byte) []byte {
+	out := make([]byte, len(data), len(data))
+	copy(out, data)
+	out = bytes.TrimFunc(out, func(r rune) bool {
 		if r == '\n' {
 			return false
 		}
 		return unicode.IsSpace(r)
 	})
-	return dataOut
+	return out
 }
 
 // Duration returns the given time.Duration as a []byte. The byte slice will
