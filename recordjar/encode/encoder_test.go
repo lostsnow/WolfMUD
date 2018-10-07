@@ -356,6 +356,12 @@ func TestBytes(t *testing.T) {
 		data string
 		want string
 	}{
+		{"", ""},
+		{" ", ""},
+		{"\t", ""},
+		{"\n", "\n"},
+		{"\n\t\n", "\n\t\n"},
+		{"\t\n\t", "\n"},
 		{"Some text", "Some text"},
 		{" Leading space", "Leading space"},
 		{"\tLeading tab", "Leading tab"},
