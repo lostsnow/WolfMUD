@@ -588,6 +588,36 @@ func TestDateTime(t *testing.T) {
 	}
 }
 
+func TestDateTimeInvalid(t *testing.T) {
+
+	var want time.Time
+
+	for _, test := range []string{
+		"",
+		" ",
+		"\t",
+		"\n",
+		"invalid",
+		"Thu, 20 Sep 2018 20:24:33", // No timezone
+	} {
+		t.Run(fmt.Sprintf("%s", test), func(t *testing.T) {
+
+			have := DateTime([]byte(test))
+			want = time.Now().UTC().Round(time.Second)
+
+			// Allowing for upto 1 second difference between have and want to allow
+			// for processing time which may push us into the next second. Note this
+			// test may still fail on very slow systems.
+			if want.Sub(have) > time.Second {
+				t.Errorf("\nhave %12d %+q\nwant %12d %+q",
+					have.Unix(), have, want.Unix(), want,
+				)
+				return
+			}
+		})
+	}
+}
+
 func TestBoolean(t *testing.T) {
 	for _, test := range []struct {
 		data string
