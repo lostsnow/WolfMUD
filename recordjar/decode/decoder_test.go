@@ -572,6 +572,9 @@ func TestDateTime(t *testing.T) {
 		"Thu, 20 Sep 2018 21:24:33 +0100",
 		"Thu, 21 Sep 2018 01:24:33 +0500",
 		"Thu, 20 Sep 2018 15:24:33 -0500",
+		" Thu, 20 Sep 2018 20:24:33 +0000 ",
+		"\tThu, 20 Sep 2018 20:24:33 +0000\t",
+		"\nThu, 20 Sep 2018 20:24:33 +0000\n",
 	} {
 		t.Run(fmt.Sprintf("%s", test), func(t *testing.T) {
 			have := DateTime([]byte(test))

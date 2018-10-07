@@ -212,9 +212,10 @@ func Duration(data []byte) (t time.Duration) {
 // current date and time. The returned date/time will use the UTC timezone.
 func DateTime(data []byte) (t time.Time) {
 	var err error
-	if t, err = time.Parse(time.RFC1123Z, string(data)); err != nil {
+	stamp := String(data)
+	if t, err = time.Parse(time.RFC1123Z, stamp); err != nil {
 		// If not parsed as RFC1123Z try pre WolfMUD v0.0.11 legacy RFC1123
-		if t, err = time.Parse(time.RFC1123, string(data)); err != nil {
+		if t, err = time.Parse(time.RFC1123, stamp); err != nil {
 			t = time.Now()
 		}
 	}
