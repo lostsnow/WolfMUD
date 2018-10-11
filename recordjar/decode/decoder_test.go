@@ -72,24 +72,19 @@ func TestKeyword(t *testing.T) {
 	}{
 		{"", ""},
 		{" ", ""},
-		{"  ", ""},
 		{"\t", ""},
-		{"\t\t", ""},
 		{"keyword", "KEYWORD"},
 		{" keyword", "KEYWORD"},
-		{"  keyword", "KEYWORD"},
 		{"keyword ", "KEYWORD"},
-		{"keyword  ", "KEYWORD"},
 		{" keyword ", "KEYWORD"},
-		{"  keyword  ", "KEYWORD"},
 		{"\tkeyword", "KEYWORD"},
 		{"keyword\t", "KEYWORD"},
 		{"\tkeyword\t", "KEYWORD"},
 		{"keyword\n", "KEYWORD"},
-		{"spaced  keyword", "SPACEDKEYWORD"},
-		{"spaced   keyword", "SPACEDKEYWORD"},
-		{"spaced\tkeyword", "SPACEDKEYWORD"},
-		{"spaced\t\tkeyword", "SPACEDKEYWORD"},
+		{"\u2007keyword", "KEYWORD"},
+		{"key word", "KEYWORD"},
+		{"key\tword", "KEYWORD"},
+		{"key\u2007word", "KEYWORD"},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := Keyword([]byte(test.data))
@@ -108,7 +103,9 @@ func BenchmarkKeyword(b *testing.B) {
 		{"lower", "keyword"},
 		{"upper", "KEYWORD"},
 		{"mixed", "KeYwOrD"},
-		{"split", "split keyword"},
+		{"split", "key word"},
+		{"trim+lower", " keyword "},
+		{"trim+upper", " KEYWORD "},
 	} {
 		data := []byte(test.keyword)
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
