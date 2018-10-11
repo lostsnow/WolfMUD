@@ -20,28 +20,17 @@ func TestString(t *testing.T) {
 		want string
 	}{
 		{"", ""},
+		{" ", ""},
+		{"\t", ""},
 		{"all lowercase", "all lowercase"},
 		{"ALL UPPERCASE", "ALL UPPERCASE"},
-		{"All Titlecase", "All Titlecase"},
-		{"AlL MiXeDcAsE", "AlL MiXeDcAsE"},
 		{" Leading Space", "Leading Space"},
-		{"  Leading Space", "Leading Space"},
 		{"Trailing Space ", "Trailing Space"},
-		{"Trailing Space  ", "Trailing Space"},
 		{" Both Space ", "Both Space"},
-		{"  Both Space  ", "Both Space"},
 		{"\tLeading Tab", "Leading Tab"},
-		{"\t\tLeading Tab", "Leading Tab"},
 		{"Trailing Tab\t", "Trailing Tab"},
-		{"Trailing Tab\t\t", "Trailing Tab"},
 		{"\tBoth Tab\t", "Both Tab"},
-		{"\t\tBoth Tab\t\t", "Both Tab"},
-		{"\t Leading Tab", "Leading Tab"},
-		{"Trailing Tab\t ", "Trailing Tab"},
-		{"\t Both Tab\t ", "Both Tab"},
-		{" \tLeading Tab", "Leading Tab"},
-		{"Trailing Tab \t", "Trailing Tab"},
-		{" \tBoth Tab \t", "Both Tab"},
+		{"\u2007Unicode", "Unicode"},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := String(test.data)
@@ -59,11 +48,14 @@ func BenchmarkString(b *testing.B) {
 		keyword string
 	}{
 		{"plain", "some text"},
-		{"spaces-1", " some text "},
-		{"spaces-2", "  some text  "},
-		{"tabs-1", "\tsome text\t"},
-		{"tabs-2", "\t\tsome text\t\t"},
-		{"mixed", "\t some text \t"},
+		{"leading-space", " some text"},
+		{"trailing-space", " some text "},
+		{"both-space", " some text "},
+		{"leading-tab", " some text"},
+		{"trailing-tab", " some text "},
+		{"both-tab", " some text "},
+		{"long-both-space", " the quick brown fox jumps over the lazy dog "},
+		{"figure-space", "\u2007Figure space"},
 	} {
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
