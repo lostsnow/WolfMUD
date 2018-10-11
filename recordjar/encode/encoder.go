@@ -48,25 +48,25 @@ func Keyword(s string) []byte {
 // two or more keywords.
 func KeywordList(s []string) []byte {
 
-	u := make([]string, len(s))
+	k := make([]string, len(s))
 	pos := 0
 
 	for x := range s {
-		u[pos] = string(Keyword(s[x]))
-		if u[pos] == "" {
+		k[pos] = string(Keyword(s[x]))
+		if k[pos] == "" {
 			continue
 		}
-		for _, y := range u[0:pos] {
-			if y == u[pos] {
+		for _, y := range k[0:pos] {
+			if y == k[pos] {
 				pos--
 				break
 			}
 		}
 		pos++
 	}
-	sort.Strings(u[0:pos])
+	sort.Strings(k[0:pos])
 
-	return []byte(strings.Join(u[0:pos], " "))
+	return []byte(strings.Join(k[0:pos], " "))
 }
 
 // PairList returns the passed map of string name/value pairs as an uppercased
