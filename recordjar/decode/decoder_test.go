@@ -122,13 +122,14 @@ func TestKeywordList(t *testing.T) {
 		want []string
 	}{
 		{"", []string{}},
-		{"", []string{}},
 		{" ", []string{}},
-		{"  ", []string{}},
+		{"\t", []string{}},
+		{"\t \t", []string{}},
 		{"a keyword test", []string{"A", "KEYWORD", "TEST"}},
 		{" a keyword test ", []string{"A", "KEYWORD", "TEST"}},
-		{"  a keyword  test  ", []string{"A", "KEYWORD", "TEST"}},
 		{"\ta keyword\t \ttest\t", []string{"A", "KEYWORD", "TEST"}},
+		{"key\u2008word", []string{"KEY", "WORD"}},
+		{"keyword \t", []string{"KEYWORD"}},
 		{"z y x", []string{"X", "Y", "Z"}},
 		{"ABC ABC XYZ XYZ", []string{"ABC", "XYZ"}},
 		{"ABC abc XYZ xyz", []string{"ABC", "XYZ"}},
@@ -168,7 +169,8 @@ func BenchmarkKeywordList(b *testing.B) {
 		{"6x10",
 			"ffffffffff eeeeeeeeee dddddddddd cccccccccc bbbbbbbbbb aaaaaaaaaa",
 		},
-		{"Real", "L2N1 L2N2 L2N3 M4"},
+		{"Inventory-lower", "l2n1 l2n2 l2n3 m4"},
+		{"Inventory-upper", "L2N1 L2N2 L2N3 M4"},
 	} {
 		data := []byte(test.keywords)
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
