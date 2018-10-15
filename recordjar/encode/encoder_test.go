@@ -192,8 +192,8 @@ func TestPairList(t *testing.T) {
 		{map[string]string{" ": "z"}, '→', ""},
 		{map[string]string{"\t": "z"}, '→', ""},
 		{map[string]string{"a": "z"}, '→', "A→Z"},
-		{map[string]string{"a": "→z"}, '→', "A→→Z"},
 		{map[string]string{"a": "z"}, ':', "A:Z"},
+		{map[string]string{"a": "→z"}, '→', "A→→Z"},
 		{map[string]string{"a": "", "b": ""}, '→', "A B"},
 		{map[string]string{"a": " ", "b": "\t"}, '→', "A B"},
 		{map[string]string{"a": "z", "b": "y"}, '→', "A→Z B→Y"},
@@ -202,7 +202,7 @@ func TestPairList(t *testing.T) {
 		{map[string]string{"a": "y z"}, '→', "A→YZ"},
 		{map[string]string{"a": "z", "b": "y"}, ' ', "A Z B Y"},
 
-		// Actual data
+		// Actual exit data
 		{
 			map[string]string{"N": "L1", "NE": "L3", "E": "L4"}, '→',
 			"E→L4 NE→L3 N→L1",
@@ -227,10 +227,16 @@ func BenchmarkPairList(b *testing.B) {
 	}{
 		{"ASCII delim", map[string]string{"a": "b"}, '→'},
 		{"Unicode Delim", map[string]string{"a": "b"}, ':'},
-		{"2x1", map[string]string{"a": "z", "b": "y"}, '→'},
-		{"3x1", map[string]string{"a": "z", "b": "y", "c": "x"}, '→'},
-		{"3x3", map[string]string{"aaa": "z", "bbb": "y", "ccc": "x"}, '→'},
-		{"3x6", map[string]string{"aaaaaa": "z", "bbbbbb": "y", "cccccc": "x"}, '→'},
+		{"Exits x1", map[string]string{"N": "L1"}, '→'},
+		{"Exits x2", map[string]string{"N": "L1", "NE": "L3"}, '→'},
+		{"Exits x3", map[string]string{"N": "L1", "NE": "L3", "E": "L4"}, '→'},
+		{
+			"Door",
+			map[string]string{"EXIT": "E", "RESET": "1m", "JITTER": "1m", "OPEN": ""},
+			'→',
+		},
+		{"Action", map[string]string{"AFTER": "15s", "JITTER": "15s"}, '→'},
+		{"Reset", map[string]string{"AFTER": "0s", "JITTER": "12m", "SPAWN": ""}, '→'},
 	} {
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {

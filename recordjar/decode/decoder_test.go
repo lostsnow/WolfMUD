@@ -187,30 +187,35 @@ func TestPairList(t *testing.T) {
 		want map[string]string
 	}{
 		{"", map[string]string{}},
+		{" ", map[string]string{}},
+		{"\t", map[string]string{}},
+		{"→", map[string]string{}},
+		{"→→", map[string]string{}},
 		{"a", map[string]string{"A": ""}},
 		{"a→", map[string]string{"A": ""}},
-		{"→z", map[string]string{}},
-		{"→", map[string]string{}},
-		{"→ →", map[string]string{}},
 		{"a→z", map[string]string{"A": "Z"}},
-		{"a→→z", map[string]string{"A": "→Z"}},
+		{"a→zy", map[string]string{"A": "ZY"}},
 		{"a:z", map[string]string{"A": "Z"}},
+		{"→z", map[string]string{}},
+		{"→→z", map[string]string{}},
+		{"a→→", map[string]string{"A": "→"}},
+		{"a→→z", map[string]string{"A": "→Z"}},
 		{"a b→", map[string]string{"A": "", "B": ""}},
 		{"a→ a→", map[string]string{"A": ""}},
 		{"a→z b→y", map[string]string{"A": "Z", "B": "Y"}},
-		{"y→b z→a", map[string]string{"Z": "A", "Y": "B"}},
-		{"a→zy", map[string]string{"A": "ZY"}},
+		{"b→z a→y", map[string]string{"A": "Y", "B": "Z"}},
+		{"a→z b:y", map[string]string{"A": "Z", "B": "Y"}},
+		{"a→z\tb→y", map[string]string{"A": "Z", "B": "Y"}},
+		{"\ta→z\tb→y\t", map[string]string{"A": "Z", "B": "Y"}},
 
 		// Should only get first occurance of duplicate keyword
 		{"a→z a→y", map[string]string{"A": "Z"}},
 
-		// Actual data
+		// Actual exit data
 		{
 			"E→L4 NE→L3 N→L1",
 			map[string]string{"N": "L1", "NE": "L3", "E": "L4"},
 		},
-
-		//
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := PairList([]byte(test.data))
