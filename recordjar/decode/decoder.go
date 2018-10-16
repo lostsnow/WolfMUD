@@ -122,6 +122,7 @@ func StringList(data []byte) (s []string) {
 			s = append(s, string(w))
 		}
 	}
+	sort.Strings(s)
 	return
 }
 
