@@ -337,6 +337,17 @@ func TestKeyedStringList(t *testing.T) {
 			map[string]string{"c": "x", "b": "y", "a": "z"},
 			'→', "A→z\n: B→y\n: C→x",
 		},
+
+		// Real vetoes data
+		{
+			map[string]string{
+				"GET": "The rock seems quite immovable.",
+				"PUT": "You can't put the rock anywhere.",
+			},
+			'→',
+			"GET→The rock seems quite immovable.\n" +
+				": PUT→You can't put the rock anywhere.",
+		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := KeyedStringList(test.data, test.delim)
@@ -353,10 +364,24 @@ func BenchmarkKeyedStringList(b *testing.B) {
 		data  map[string]string
 		delim rune
 	}{
-		{"x1", map[string]string{"a": "z"}, '→'},
-		{"x2", map[string]string{"a": "z", "b": "y"}, '→'},
-		{"ordered", map[string]string{"a": "z", "b": "y", "c": "x"}, '→'},
-		{"unordered", map[string]string{"c": "x", "b": "y", "a": "z"}, '→'},
+		{"Veto x1",
+			map[string]string{
+				"GET": "The rock seems quite immovable.",
+			}, '→',
+		},
+		{"Veto x2",
+			map[string]string{
+				"GET": "The rock seems quite immovable.",
+				"PUT": "You can't put the rock anywhere.",
+			}, '→',
+		},
+		{"Veto x3",
+			map[string]string{
+				"GET":  "The rock seems quite immovable.",
+				"PUT":  "You can't put the rock anywhere.",
+				"TAKE": "You can't take the rock anywhere.",
+			}, '→',
+		},
 	} {
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
