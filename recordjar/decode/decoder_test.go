@@ -275,6 +275,7 @@ func TestStringList(t *testing.T) {
 		{"a:", []string{"a"}},
 		{":a", []string{"a"}},
 		{"a:b", []string{"a", "b"}},
+		{"b:a", []string{"a", "b"}},
 		{"a:b:", []string{"a", "b"}},
 		{":a:b", []string{"a", "b"}},
 		{":a:b:", []string{"a", "b"}},
@@ -282,6 +283,18 @@ func TestStringList(t *testing.T) {
 		{" a : b ", []string{"a", "b"}},
 		{"a b : c d", []string{"a b", "c d"}},
 		{": a\n: b", []string{"a", "b"}},
+
+		// Actual OnAction data
+		{
+			" The frog croaks a bit.\n" +
+				" : The little frog leaps high into the air.\n" +
+				" : The frog hops around a bit.\n",
+			[]string{
+				"The frog croaks a bit.",
+				"The frog hops around a bit.",
+				"The little frog leaps high into the air.",
+			},
+		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			have := StringList([]byte(test.data))
@@ -305,11 +318,26 @@ func BenchmarkStringList(b *testing.B) {
 		strings string
 	}{
 		{"OnAction x1", "The rabbit hops around a bit."},
-		{"OnAction x2", "The rabbit hops around a bit. : You see the rabbit twitch its little nose, Ahh..."},
-		{"OnAction x3", "The rabbit hops around a bit. : You see the rabbit twitch its little nose, Ahh... : The rabbit makes a soft squeaking and chattering noise."},
+		{
+			"OnAction x2",
+			"The rabbit hops around a bit. " +
+				": You see the rabbit twitch its little nose, Ahh...",
+		},
+		{
+			"OnAction x3",
+			"The rabbit hops around a bit. " +
+				": You see the rabbit twitch its little nose, Ahh... " +
+				": The rabbit makes a soft squeaking and chattering noise.",
+		},
 
-		// Actually a KeyedStringList which also uses StringList to split the list
-		{"Veto x3", "GET→The rock seems quite immovable. : PUT→You can't put the rock anywhere. : TAKE→You can't take the rock anywhere."},
+		// Actually a KeyedStringList but it can be split using StringList for
+		// benchmarking
+		{
+			"Veto x3",
+			"GET→The rock seems quite immovable. " +
+				": PUT→You can't put the rock anywhere. " +
+				": TAKE→You can't take the rock anywhere.",
+		},
 	} {
 		data := []byte(test.strings)
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {

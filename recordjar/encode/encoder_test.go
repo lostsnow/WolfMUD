@@ -254,9 +254,17 @@ func TestStringList(t *testing.T) {
 		{[]string{}, ""},
 		{[]string{" a", "b ", " c "}, "a\n: b\n: c"},
 		{[]string{"c", "b", "a"}, "a\n: b\n: c"},
+
+		// Actual OnAction data
 		{
-			[]string{"the quick brown", "fox jumps over", "the lazy dog."},
-			"fox jumps over\n: the lazy dog.\n: the quick brown",
+			[]string{
+				"The frog croaks a bit.",
+				"The little frog leaps high into the air.",
+				"The frog hops around a bit.",
+			},
+			"The frog croaks a bit.\n" +
+				": The frog hops around a bit.\n" +
+				": The little frog leaps high into the air.",
 		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
@@ -273,14 +281,23 @@ func BenchmarkStringList(b *testing.B) {
 		name string
 		data []string
 	}{
-		{"3x1", []string{"a", "b", "c"}},
-		{"3x3", []string{"aaa", "bbb", "ccc"}},
-		{"3x6", []string{"aaaaaa", "bbbbbb", "cccccc"}},
-		// Same line + folding
-		{"4x10", []string{"aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc", "dddddddddd"}},
-		// "\n: " separator for each item
-		{"5x10", []string{
-			"aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc", "dddddddddd", "eeeeeeeeee",
+		{"OnAction x1", []string{"The frog croaks a bit."}},
+		{"OnAction x2", []string{
+			"The frog croaks a bit.",
+			"The little frog leaps high into the air.",
+		}},
+		{"OnAction x3", []string{
+			"The frog croaks a bit.",
+			"The little frog leaps high into the air.",
+			"The frog hops around a bit.",
+		}},
+
+		// Actually a KeyedStringList but it can be split using StringList for
+		// benchmarking
+		{"Veto x3", []string{
+			"GET→The rock seems quite immovable.",
+			"PUT→You can't put the rock anywhere.",
+			"TAKE→You can't take the rock anywhere.",
 		}},
 	} {
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
