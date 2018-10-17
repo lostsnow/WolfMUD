@@ -393,7 +393,7 @@ func TestKeyedStringList(t *testing.T) {
 		// Should only get first occurance of duplicate keyword
 		{"a→z:a→y", map[string]string{"A": "z"}},
 
-		// Real vetoes data:
+		// Real vetoes data
 		{
 			"GET→The rock seems quite immovable. : PUT→You can't put the rock anywhere.",
 			map[string]string{
