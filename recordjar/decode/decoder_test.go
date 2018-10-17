@@ -446,25 +446,75 @@ func BenchmarkKeyedStringList(b *testing.B) {
 
 func TestBytes(t *testing.T) {
 	for _, test := range []struct {
-		data []byte
-		want []byte
+		data string
+		want string
 	}{
-		{[]byte(""), []byte("")},
-		{[]byte(" "), []byte("")},
-		{[]byte("a"), []byte("a")},
-		{[]byte(" a "), []byte("a")},
-		{[]byte("\na\n"), []byte("\na\n")},
-		{[]byte(" \n a \n "), []byte("\n a \n")},
+		// Basic tests
+		{"", ""},
+		{" ", ""},
+		{"\t", ""},
+		{"\n", "\n"},
+		{"\n\t\n", "\n\t\n"},
+		{"\t\n\t", "\n"},
+		{"Some text", "Some text"},
+
+		// Leading white space
+		{" Leading space", "Leading space"},
+		{"\tLeading tab", "Leading tab"},
+		{"\nLeading LF", "\nLeading LF"},
+		{" \nLeading space+LF", "\nLeading space+LF"},
+		{"\n Leading LF+space", "\n Leading LF+space"},
+		{"\t\nLeading tab+LF", "\nLeading tab+LF"},
+		{"\n\tLeading LF+tab", "\n\tLeading LF+tab"},
+		{" \n Leading space+LF+space", "\n Leading space+LF+space"},
+		{"\t\n\tLeading tab+LF+tab", "\n\tLeading tab+LF+tab"},
+
+		// Trailing white space
+		{"Trailing space ", "Trailing space"},
+		{"Trailing tab\t", "Trailing tab"},
+		{"Trailing LF\n", "Trailing LF\n"},
+		{"Trailing LF+space\n ", "Trailing LF+space\n"},
+		{"Trailing space+LF \n", "Trailing space+LF \n"},
+		{"Trailing LF+tab\n\t", "Trailing LF+tab\n"},
+		{"Trailing tab+LF\t\n", "Trailing tab+LF\t\n"},
+		{"Trailing space+LF+space \n ", "Trailing space+LF+space \n"},
+		{"Trailing tab+LF+tab\t\n\t", "Trailing tab+LF+tab\t\n"},
+
+		// Leading and trailing white space (same both ends)
+		{" Both space ", "Both space"},
+		{"\tBoth tab\t", "Both tab"},
+		{"\nBoth LF\n", "\nBoth LF\n"},
+		{" \nBoth LF+space\n ", "\nBoth LF+space\n"},
+		{"\t\nBoth LF+tab\n\t", "\nBoth LF+tab\n"},
+
+		// Leading and trailing white space (RHS mirror of LHS)
+		{
+			"\n Leading LF+space, Trailing space+LF \n",
+			"\n Leading LF+space, Trailing space+LF \n",
+		},
+		{
+			"\n\tLeading LF+tab, Trailing tab+LF\t\n",
+			"\n\tLeading LF+tab, Trailing tab+LF\t\n",
+		},
+		{
+			" \n Leading space+LF+space, Trailing space+LF+space \n ",
+			"\n Leading space+LF+space, Trailing space+LF+space \n",
+		},
+		{
+			"\t\n\tLeading tab+LF+tab, Trailing tab+LF+tab\t\n\t",
+			"\n\tLeading tab+LF+tab, Trailing tab+LF+tab\t\n",
+		},
 
 		// Real data, description of tavern fireplace
-		{[]byte("You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance."), []byte("You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance.")},
-
-		//
+		{
+			"You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance.",
+			"You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance.",
+		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
-			have := Bytes(test.data)
+			have := Bytes([]byte(test.data))
 
-			if !bytes.Equal(have, test.want) {
+			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("\nhave %+q\nwant %+q", have, test.want)
 			}
 		})

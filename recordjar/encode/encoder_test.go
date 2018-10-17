@@ -396,6 +396,7 @@ func TestBytes(t *testing.T) {
 		data string
 		want string
 	}{
+		// Basic tests
 		{"", ""},
 		{" ", ""},
 		{"\t", ""},
@@ -403,41 +404,58 @@ func TestBytes(t *testing.T) {
 		{"\n\t\n", "\n\t\n"},
 		{"\t\n\t", "\n"},
 		{"Some text", "Some text"},
+
+		// Leading white space
 		{" Leading space", "Leading space"},
 		{"\tLeading tab", "Leading tab"},
+		{"\nLeading LF", "\nLeading LF"},
+		{" \nLeading space+LF", "\nLeading space+LF"},
+		{"\n Leading LF+space", "\n Leading LF+space"},
+		{"\t\nLeading tab+LF", "\nLeading tab+LF"},
+		{"\n\tLeading LF+tab", "\n\tLeading LF+tab"},
+		{" \n Leading space+LF+space", "\n Leading space+LF+space"},
+		{"\t\n\tLeading tab+LF+tab", "\n\tLeading tab+LF+tab"},
+
+		// Trailing white space
 		{"Trailing space ", "Trailing space"},
 		{"Trailing tab\t", "Trailing tab"},
+		{"Trailing LF\n", "Trailing LF\n"},
+		{"Trailing LF+space\n ", "Trailing LF+space\n"},
+		{"Trailing space+LF \n", "Trailing space+LF \n"},
+		{"Trailing LF+tab\n\t", "Trailing LF+tab\n"},
+		{"Trailing tab+LF\t\n", "Trailing tab+LF\t\n"},
+		{"Trailing space+LF+space \n ", "Trailing space+LF+space \n"},
+		{"Trailing tab+LF+tab\t\n\t", "Trailing tab+LF+tab\t\n"},
+
+		// Leading and trailing white space (same both ends)
 		{" Both space ", "Both space"},
 		{"\tBoth tab\t", "Both tab"},
-		{"\nLeft LF", "\nLeft LF"},
-		{"Right LF\n", "Right LF\n"},
-		{"\nLeft and right LF\n", "\nLeft and right LF\n"},
-		{" \nLeading space+Left LF", "\nLeading space+Left LF"},
-		{"\t\nLeading tab+Left LF", "\nLeading tab+Left LF"},
-		{"Right LF+Trailing space\n ", "Right LF+Trailing space\n"},
-		{"Right LF+Trailing tab\n\t", "Right LF+Trailing tab\n"},
-		{" \nLeft & right LF+space\n ", "\nLeft & right LF+space\n"},
-		{"\t\nLeft & right LF+tab\n\t", "\nLeft & right LF+tab\n"},
-		{"\n Left LF+space", "\n Left LF+space"},
-		{"\n\tLeft LF+tab", "\n\tLeft LF+tab"},
-		{"Right space+LF \n", "Right space+LF \n"},
-		{"Right tab+LF\t\n", "Right tab+LF\t\n"},
+		{"\nBoth LF\n", "\nBoth LF\n"},
+		{" \nBoth LF+space\n ", "\nBoth LF+space\n"},
+		{"\t\nBoth LF+tab\n\t", "\nBoth LF+tab\n"},
+
+		// Leading and trailing white space (RHS mirror of LHS)
 		{
-			"\n Left LF+space, right space+LF \n",
-			"\n Left LF+space, right space+LF \n",
-		},
-		{"\n\tLeft LF+tab, right tab+LF\t\n", "\n\tLeft LF+tab, right tab+LF\t\n"},
-		{" \n Left space+LF+space", "\n Left space+LF+space"},
-		{"\t\n\tLeft tab+LF+tab", "\n\tLeft tab+LF+tab"},
-		{"Right space+LF+space \n ", "Right space+LF+space \n"},
-		{"Right tab+LF+tab\t\n\t", "Right tab+LF+tab\t\n"},
-		{
-			" \n Left space+LF+space, right space+LF+space \n ",
-			"\n Left space+LF+space, right space+LF+space \n",
+			"\n Leading LF+space, Trailing space+LF \n",
+			"\n Leading LF+space, Trailing space+LF \n",
 		},
 		{
-			"\t\n\tLeft tab+LF+tab, right tab+LF+tab\t\n\t",
-			"\n\tLeft tab+LF+tab, right tab+LF+tab\t\n",
+			"\n\tLeading LF+tab, Trailing tab+LF\t\n",
+			"\n\tLeading LF+tab, Trailing tab+LF\t\n",
+		},
+		{
+			" \n Leading space+LF+space, Trailing space+LF+space \n ",
+			"\n Leading space+LF+space, Trailing space+LF+space \n",
+		},
+		{
+			"\t\n\tLeading tab+LF+tab, Trailing tab+LF+tab\t\n\t",
+			"\n\tLeading tab+LF+tab, Trailing tab+LF+tab\t\n",
+		},
+
+		// Real data, description of tavern fireplace
+		{
+			"You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance.",
+			"You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance.",
 		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.want), func(t *testing.T) {
@@ -479,6 +497,22 @@ func TestBytesSideEfects(t *testing.T) {
 		t.Errorf("copy not returned\nhave: %+q\nwant: %+q",
 			data[:], sample,
 		)
+	}
+}
+
+func BenchmarkBytes(b *testing.B) {
+	for _, test := range []struct {
+		name string
+		data string
+	}{
+		{"Description", "You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance."},
+	} {
+		data := []byte(test.data)
+		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = Bytes(data)
+			}
+		})
 	}
 }
 
