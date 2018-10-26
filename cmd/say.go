@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: SAY <message> | " <message>
@@ -61,7 +62,7 @@ func (say) process(s *state) {
 	msg := strings.Join(s.input, " ")
 
 	s.msg.Actor.SendGood("You say: ", msg)
-	s.msg.Observer.SendInfo(who, " says: ", msg)
+	s.msg.Observer.SendInfo(text.TitleFirst(who), " says: ", msg)
 
 	// Notify observers in near by locations
 	s.msg.Observers.Filter(locations[1]...).SendInfo("You hear talking nearby.")
