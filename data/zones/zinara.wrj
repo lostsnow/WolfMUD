@@ -72,10 +72,11 @@ You are standing in a bakery. Low trestle tables show an array of fresh breads,
 biscuits and pastries. The amazing smells wafting around are sadly beyond
 description.
 %%
-    Ref: L7
-   Name: Street outside pawn shop
-Aliases: PAWNSHOP STREET
-  Exits: N→L5 E→L8 S→L9
+      Ref: L7
+     Name: Street outside pawn shop
+  Aliases: PAWNSHOP STREET
+    Exits: N→L5 E→L8 S→L9
+Inventory: M7
 
 You are on a well kept cobbled street that runs to the north and south. To the
 east you see a small pawn shop. Southward you see a large fountain in the middle
@@ -850,6 +851,23 @@ OnAction: $ACT picks up a glass and wipes it with a rag.
 
 This is you average barkeep, found in taverns and pubs all over the world.
 Always ready to listen to a drinking patron, dispensing advice when required.
+%%
+     Ref: M7
+    Name: a sweet flower girl
+   Reset: AFTER→1s
+ OnReset: A flower girl walks in.
+ Aliases: FLOWERGIRL GIRL
+  Action: AFTER→30s JITTER→30s
+OnAction: $ACT looks around for someone to sell flowers to.
+        : $ACT looks at you with pleading eyes.
+        : $ACT holds out some flowers for you to see.
+        : SAY Buy a flower? Very cheap.
+        : N
+        : S
+        : E
+        : W
+
+This is a sweet little girl selling flowers to make some money.
 %%
 //
 // OBJECTS
