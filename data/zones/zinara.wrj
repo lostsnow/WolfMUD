@@ -755,6 +755,10 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
 OnAction: $ACT hops around a bit.
         : $ACT twitches its little nose, Ahh...
         : $ACT makes a soft squeaking and chattering noise.
+        : N
+        : S
+        : E
+        : W
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
 doesn't seem to be late for anything!
@@ -768,6 +772,10 @@ doesn't seem to be late for anything!
 OnAction: $ACT croaks a bit.
         : $ACT leaps high into the air.
         : $ACT hops around a bit.
+        : N
+        : S
+        : E
+        : W
 
 It is a small, lime green frog. It's slimy and croaks. What more can you say?
 %%
