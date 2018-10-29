@@ -14,7 +14,7 @@ This is the city of Zinara.
      Name: Fireplace
   Aliases: TAVERN FIREPLACE
     Exits: E→L3 SE→L4 S→L2
-Inventory: L1N1
+Inventory: L1N1A L1N1B
 
 You are in the corner of the common room in the dragon's breath tavern. A fire
 burns merrily in an ornate fireplace, giving comfort to weary travellers. The
@@ -616,16 +616,29 @@ accommodation for the gate-warden on duty. The only exit is north.
 // Narratives
 //
 %%
-      Ref: L1N1
+      Ref: L1N1A
 Narrative:
      Name: an ornate fireplace
-    Alias: FIRE FIREPLACE
+    Alias: FIREPLACE
    Vetoes: GET→For some inexplicable reason you can't just rip out the
            fireplace and take it!
 
 This is a very ornate fireplace carved from marble. Either side a dragon curls
 downward until the head is below the fire looking upward, giving the impression
 that they are breathing fire.
+%%
+      Ref: L1N1B
+Narrative:
+     Name: the fire
+  Aliases: FIRE
+   Vetoes: GET→Ouch! Hot, hot, hot!
+   Action: AFTER→1m JITTER→30s
+ OnAction: $ACT gently pops and crackles.
+         : $ACT gently crackles.
+         : $ACT pops, sending little embers dancing up the chimney.
+         : $ACT flares for a moment as the logs shift and settle.
+
+Some logs have been placed into the fireplace and are burning away merrily.
 %%
       Ref: L2N1
 Narrative:
