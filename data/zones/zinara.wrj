@@ -47,7 +47,7 @@ out into the street.
      Name: Tavern bar
   Aliases: TAVERN BAR
     Exits: N→L3 NW→L1 W→L2
-Inventory: L4N1 L4N2
+Inventory: L4N1 L4N2 M6
 
 You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with
 many bottles in a dizzying array of sizes, shapes and colours. There are also
@@ -826,6 +826,30 @@ OnAction: $ACT squeaks.
         : NW
 
 This is a small, furry, grey mouse.
+%%
+     Ref: M6
+    Name: the barkeep
+   Reset: AFTER→1s
+ OnReset: The barkeep walks in.
+ Aliases: BARKEEP MAN
+  Action: AFTER→30s JITTER→30s
+OnAction: $ACT picks up a glass and wipes it with a rag.
+        : $ACT smears the top of the bar with a rag.
+        : $ACT starts to arrange a few of the curious bottles
+          behind the bar.
+        : $ACT drums his fingers on the bar.
+        : $ACT starts to whistle a little ditty.
+        : $ACT examines a filthy rag.
+        : $ACT examines a filthy rag. He finds a hole in it.
+        : SAY Nice weather for it...
+        : SAY Now let me see...
+        : SAY Can I get you something?
+        : SNEEZE
+        : EXAMINE BAR
+        : EXAMINE BOTTLES
+
+This is you average barkeep, found in taverns and pubs all over the world.
+Always ready to listen to a drinking patron, dispensing advice when required.
 %%
 //
 // OBJECTS
