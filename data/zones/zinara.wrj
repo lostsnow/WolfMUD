@@ -649,7 +649,7 @@ very bad day.
     Alias: CLOCK
 Narrative:
    Action: AFTER→15m
- OnAction: The clock chimes.
+ OnAction: $ACT chimes.
 
 This is an elegant grandfather clock. It seems to be quite old and has
 obviously seen better days. However it does seem to be working, or at least
@@ -752,9 +752,9 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
    Reset: AFTER→1m
  OnReset: A rabbit hops into view.
   Action: AFTER→15s JITTER→15s
-OnAction: The rabbit hops around a bit.
-        : You see the rabbit twitch its little nose, Ahh...
-        : The rabbit makes a soft squeaking and chattering noise.
+OnAction: $ACT hops around a bit.
+        : $ACT twitches its little nose, Ahh...
+        : $ACT makes a soft squeaking and chattering noise.
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
 doesn't seem to be late for anything!
@@ -765,9 +765,9 @@ doesn't seem to be late for anything!
    Reset: AFTER→1m
  OnReset: A frog hops into view.
   Action: AFTER→10s JITTER→20s
-OnAction: The frog croaks a bit.
-        : The little frog leaps high into the air.
-        : The frog hops around a bit.
+OnAction: $ACT croaks a bit.
+        : $ACT leaps high into the air.
+        : $ACT hops around a bit.
 
 It is a small, lime green frog. It's slimy and croaks. What more can you say?
 %%
@@ -777,10 +777,10 @@ It is a small, lime green frog. It's slimy and croaks. What more can you say?
    Reset: AFTER→1m
  OnReset: A mangy looking cat slinks in and curls up on a chair.
   Action: AFTER→1m JITTER→1m
-OnAction: The cat starts to claw at the furniture, scratching deep gouges into
+OnAction: $ACT starts to claw at the furniture, scratching deep gouges into
           the wood.
-        : The cat curls up and starts to purr like a buzz-saw.
-        : The cat starts to wash itself.
+        : $ACT curls up and starts to purr like a buzz-saw.
+        : $ACT starts to wash itself.
 
 The tavern cat is a ball of fur with one golden eye, the other eye replaced by
 a large scar. It senses you watching it and returns your gaze with a steady

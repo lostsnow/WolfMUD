@@ -118,7 +118,10 @@ func (a *Action) Action() {
 	a.Abort()
 
 	p := a.Parent()
-	a.Cancel = event.Queue(p, "$ACTION "+p.UID(), a.after, a.jitter)
+	oa := FindOnAction(p)
+	if oa.Found() {
+		a.Cancel = event.Queue(p, "$ACTION "+oa.ActionText(), a.after, a.jitter)
+	}
 }
 
 // Abort cancels any pending action events.

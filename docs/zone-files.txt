@@ -66,8 +66,8 @@ DESCRIPTION
                gains speed and then suddenly collapses in on itself and
                disappears.
        Action: AFTER→5m JITTER→2m30s
-     OnAction: The lattice quietly chimes.
-             : The lattice quietly hums.
+     OnAction: $ACT quietly chimes.
+             : $ACT quietly hums.
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -148,8 +148,8 @@ ZONE RECORDS
   fields together. The following are the different fields that are available:
 
   ACTION: <PAIR LIST>
-    ACTION is used to specify how often an item displays an action message.
-    The pairs that are valid for ACTION are:
+    ACTION is used to specify how often an item executes an action. The pairs
+    that are valid for ACTION are:
 
       AFTER→<period>
       JITTER→<period>
@@ -158,14 +158,14 @@ ZONE RECORDS
 
       ACTION: AFTER→5m JITTER→2m30s
 
-    AFTER and JITTER specify the period to wait between messages to be between
-    AFTER and AFTER+JITTER. In the example an action will occur every five to
-    seven and a half minutes.
+    AFTER and JITTER specify the period to wait between executing a action to
+    be between AFTER and AFTER+JITTER. In the example an action will occur
+    every five to seven and a half minutes.
 
     If AFTER and JITTER are not specified the minimum period will be 1 second.
 
-    The action messages to be displayed are specified via ONACTION. See
-    ONACTION for more details.
+    The actions to be executed are specified via ONACTION. See ONACTION for
+    more details.
 
   ALIAS: <KEYWORD LIST>
     A list of keywords used by players to interact with something. For
@@ -306,21 +306,16 @@ ZONE RECORDS
     they can have inventories and contain other objects.
 
   ONACTION: <string list>
-    ONACTION can be used to provide action messages that are emitted by an
-    item. For example:
+    ONACTION can be used to script commands for an item. For example:
 
-      OnAction: The lattice quietly chimes.
-              : The lattice quietly hums.
+      OnAction: $ACT quietly chimes.
+              : $ACT quietly hums.
 
-    The messages will be displayed with a frequency defined by ACTION. Every
-    time ONACTION fires one message to display will be picked at random from
-    the messages defined by ONACTION.
+    The actions will be executed with a frequency defined by ACTION. Every
+    time ONACTION fires one action will be picked at random from the actions
+    defined by ONACTION.
 
-    The message will be displayed if the item is in a location where it will
-    be seen. If the action occurs inside a container it will not be seen, and
-    no message displayed.
-
-    See also ACTION for how to schedule action messages for an item.
+    See also ACTION for how to schedule actions for an item.
 
   ONCLEANUP: <string>
     ONCLEANUP can be used to provide a custom message when an item is cleaned
