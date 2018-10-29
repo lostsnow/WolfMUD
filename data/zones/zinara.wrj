@@ -37,7 +37,7 @@ is the glow of a fire.
      Name: Tavern entrance
   Aliases: TAVERN ENTRANCE
     Exits: E→L5 S→L4 SW→L2 W→L1
-Inventory: L3N1
+Inventory: L3N1 M5
 
 You are in the entryway to the dragon's breath tavern. To the west you see an
 inviting fireplace and south an even more inviting bar. Eastward a door leads
@@ -806,6 +806,26 @@ OnAction: $ACT starts to claw at the furniture, scratching deep gouges into
 The tavern cat is a ball of fur with one golden eye, the other eye replaced by
 a large scar. It senses you watching it and returns your gaze with a steady
 one of its own.
+%%
+     Ref: M5
+    Name: a small mouse
+   Alias: MOUSE
+   Reset: AFTER→1m
+ OnReset: A small mouse scurries into view.
+  Action: AFTER→3s JITTER→3s
+OnAction: $ACT squeaks.
+        : $ACT washes its face with its paws.
+        : $ACT sniffs around.
+        : N
+        : NE
+        : E
+        : SE
+        : S
+        : SW
+        : W
+        : NW
+
+This is a small, furry, grey mouse.
 %%
 //
 // OBJECTS
