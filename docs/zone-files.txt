@@ -168,6 +168,7 @@ ZONE RECORDS
     more details.
 
   ALIAS: <KEYWORD LIST>
+  ALIASES: <KEYWORD LIST>
     A list of keywords used by players to interact with something. For
     example: LATTICE
 
@@ -235,6 +236,7 @@ ZONE RECORDS
     location. Adding a DOOR directly to a location or a moveable item may
     result in unexpected/odd behaviour.
 
+  EXIT: <PAIR LIST>
   EXITS: <PAIR LIST>
     An EXITS field defines something as a location, allowing for very loose
     definitions of what a location is. Each pair in the list should consist of
@@ -415,6 +417,7 @@ ZONE RECORDS
     appear in the world. It is only applicable for records that also define an
     EXITS field, otherwise it is ignored.
 
+  VETO: <KEYED STRING LIST>
   VETOES: <KEYED STRING LIST>
     The VETOES field defines commands that cannot be used on an object and
     reasons why. For example:
