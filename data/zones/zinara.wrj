@@ -334,10 +334,11 @@ large bushes. To the south is a small shed with its door facing you. A rock has
 been positioned by the shed, from the looks of it by someone who thought it was
 artistic. The gravel path you are on leads northward.
 %%
-    Ref: L37
-   Name: Garden shed
-Aliases: GARDENS SHED
-  Exits: N→L36
+      Ref: L37
+     Name: Garden shed
+  Aliases: GARDENS SHED
+    Exits: N→L36
+Inventory: L37N1 L37N2 M8
 
 You are in a small garden shed. The only exit appears to be through the door to
 the north.
@@ -756,6 +757,25 @@ Inventory:
 
 This rubbish is dirty and smelly. Why are you wasting your time with it?
 %%
+      Ref: L37N1
+Narrative:
+     Name: a cobweb
+    Alias: WEB WEBS COBWEB COBWEBS
+Inventory:
+
+The cobweb is vary large and its strands very thick and sticky.
+%%
+      Ref: L37N2
+Narrative:
+     Name: a bundle wrapped in silk threads
+    Alias: BUNDLE
+Inventory:
+     Veto: GET→Sticky threads hold the bundle firmly in place.
+
+Something has been carefully, and very thoroughly, wrapped up into a neat
+bundle. However, it's impossible to tell what is in the bundle through all the
+threads of silk.
+%%
 //
 // MOBILES
 //
@@ -868,6 +888,22 @@ OnAction: $ACT looks around for someone to sell flowers to.
         : W
 
 This is a sweet little girl selling flowers to make some money.
+%%
+     Ref: M8
+    Name: a giant spider
+   Reset: AFTER→1m
+ OnReset: A giant spider crawls in.
+ Aliases: SPIDER
+  Action: AFTER→15s JITTER→15s
+OnAction: $ACT starts to slowly spin another web.
+        : $ACT silently sits amongst the webs, watching.
+        : $ACT silently retreats into the shadows.
+        : $ACT reaches out a long leg and tests one of the webs.
+        : EXAMINE WEBS
+        : EXAMINE BUNDLE
+        : EXAMINE PLAYER
+
+This is a giant spider. It's black, hairy and looks very dangerous.
 %%
 //
 // OBJECTS
