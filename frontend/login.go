@@ -208,5 +208,14 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		t.Free()
 	}
 
+	// TODO: Drop legacy player file support at some point
+	// Make sure player has a 'PLAYER' alias
+	if a := attr.FindAlias(p); !a.HasAlias("PLAYER") {
+		aliases := a.Aliases()
+		aliases = append(aliases, "PLAYER")
+		p.Add(attr.NewAlias(aliases...))
+		p.Remove(a)
+	}
+
 	return p
 }
