@@ -135,10 +135,11 @@ You are in a small shop selling weapons. Against the walls are racks holding
 large swords and polearms. Smaller hand weapons are displayed on some trestle
 tables.
 %%
-    Ref: L14
-   Name: Crossroads
-Aliases: CROSSROADS
-  Exits: N→L45 E→L15 S→L5 W→L17
+      Ref: L14
+     Name: Crossroads
+  Aliases: CROSSROADS
+    Exits: N→L45 E→L15 S→L5 W→L17
+Inventory: M9
 
 You are at the crossing of two streets. One street runs east to west and the
 other north to south.
@@ -904,6 +905,22 @@ OnAction: $ACT starts to slowly spin another web.
         : EXAMINE PLAYER
 
 This is a giant spider. It's black, hairy and looks very dangerous.
+%%
+     Ref: M9
+    Name: a street vendor
+   Reset: AFTER→1m
+ OnReset: A street vendor walks in.
+ Aliases: VENDOR MAN
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT looks around for passing punters.
+        : $ACT arranges his dubious merchandise.
+        : $ACT saunters around a bit.
+        : SAY Burgers ina bun, get 'em while they're hot.
+        : SAY Sausages ina bun, get 'em while they're hot.
+        : SAY Meat ona stick, get 'em while they're hot.
+        : SAY Hot food! Hot food!
+
+This is a typical, shifty looking street vendor.
 %%
 //
 // OBJECTS
