@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: ( EXAMINE | EXAM ) item
@@ -64,6 +65,7 @@ func (examine) process(s *state) {
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")
+	who = text.TitleFirst(who)
 
 	s.msg.Observer.SendInfo(who, " studies ", name, ".")
 
