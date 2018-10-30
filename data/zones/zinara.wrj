@@ -621,7 +621,7 @@ accommodation for the gate-warden on duty. The only exit is north.
 Narrative:
      Name: an ornate fireplace
     Alias: FIREPLACE
-   Vetoes: GET→For some inexplicable reason you can't just rip out the
+     Veto: GET→For some inexplicable reason you can't just rip out the
            fireplace and take it!
 
 This is a very ornate fireplace carved from marble. Either side a dragon curls
@@ -632,7 +632,7 @@ that they are breathing fire.
 Narrative:
      Name: the fire
   Aliases: FIRE
-   Vetoes: GET→Ouch! Hot, hot, hot!
+     Veto: GET→Ouch! Hot, hot, hot!
    Action: AFTER→1m JITTER→30s
  OnAction: $ACT gently pops and crackles.
          : $ACT gently crackles.
@@ -709,7 +709,7 @@ cover of the weeds.
   Narrative:
        Name: a rock
       Alias: ROCK
-     Vetoes: GET→The rock seems quite immovable.
+       Veto: GET→The rock seems quite immovable.
 
 This is a dull grey rock about three feet high and a foot across at the base. As
 it rises it tapers to a rounded point. Near its base you notice there is a small
@@ -720,7 +720,7 @@ Narrative:
      Name: a small crack in the rock
     Alias: CRACK
 Inventory: O6
-   Vetoes: GET→The small crack in the rock is is not a portable crack...
+     Veto: GET→The small crack in the rock is is not a portable crack...
 
 This is a small crack near the base of the rock.
 %%
@@ -878,7 +878,7 @@ This is a sweet little girl selling flowers to make some money.
  Aliases: LATTICE
    Reset: AFTER→10m JITTER→10m
 Location: L1
-  Vetoes: JUNK→The lattice cannot be junked.
+    Veto: JUNK→The lattice cannot be junked.
 
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.
