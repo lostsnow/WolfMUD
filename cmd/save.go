@@ -27,8 +27,15 @@ type save cmd
 
 func (sa save) process(s *state) {
 
+	// Make sure actor is a player
+	p := attr.FindPlayer(s.actor)
+	if !p.Found() {
+		s.msg.Actor.SendBad("You are beyond saving.")
+		return
+	}
+
 	// Setup account header
-	acct := attr.FindPlayer(s.actor).(*attr.Player).Account()
+	acct := p.(*attr.Player).Account()
 	header := acct.Marshal()
 
 	// Save account header and player to Jar
