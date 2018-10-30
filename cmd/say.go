@@ -26,19 +26,6 @@ func (say) process(s *state) {
 		return
 	}
 
-	// Is anyone else here?
-	anybodyHere := false
-	for _, t := range s.where.Contents() {
-		if attr.FindPlayer(t).Found() && t != s.actor {
-			anybodyHere = true
-			break
-		}
-	}
-	if !anybodyHere {
-		s.msg.Actor.SendInfo("Talking to yourself again?")
-		return
-	}
-
 	// Get all location inventories within 1 move of current location
 	locations := attr.FindExits(s.where.Parent()).Within(1, s.where)
 
@@ -58,11 +45,24 @@ func (say) process(s *state) {
 		return
 	}
 
+	// Is anyone else here?
+	anybodyHere := false
+	for _, t := range s.where.Contents() {
+		if attr.FindPlayer(t).Found() && t != s.actor {
+			anybodyHere = true
+			break
+		}
+	}
+
 	who := attr.FindName(s.actor).Name("Someone")
 	msg := strings.Join(s.input, " ")
 
-	s.msg.Actor.SendGood("You say: ", msg)
-	s.msg.Observer.SendInfo(text.TitleFirst(who), " says: ", msg)
+	if !anybodyHere {
+		s.msg.Actor.SendInfo("Talking to yourself again?")
+	} else {
+		s.msg.Actor.SendGood("You say: ", msg)
+		s.msg.Observer.SendInfo(text.TitleFirst(who), " says: ", msg)
+	}
 
 	// Notify observers in near by locations
 	s.msg.Observers.Filter(locations[1]...).SendInfo("You hear talking nearby.")
