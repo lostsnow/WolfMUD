@@ -251,7 +251,7 @@ func (a *account) write() {
 	// Assemble player
 	a.player = attr.NewThing()
 	a.player.Add(attr.NewName(a.name))
-	a.player.Add(attr.NewAlias(a.name))
+	a.player.Add(attr.NewAlias(a.name, "PLAYER"))
 	a.player.Add(attr.NewGender(a.gender))
 	a.player.Add(attr.NewDescription("This is an adventurer, just like you!"))
 	a.player.Add(attr.NewInventory())
