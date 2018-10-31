@@ -8,33 +8,73 @@ package encode
 
 import (
 	"bytes"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 )
 
-// String returns the given string as a []byte.
+// String returns the given string as a []byte with leading and trailing white
+// space removed. This should only be used for fields, not the free text
+// section - which can contain meaningful leading or trailing blank lines. For
+// the free text section encode.Bytes is preferred.
 func String(s string) []byte {
-	return []byte(s)
+	return bytes.TrimSpace([]byte(s))
 }
 
 // Keyword returns the passed string as an uppercased []byte. This is helpful
 // for keeping IDs and references consistent and independent of how they appear
-// in e.g. data files.
+// in e.g. data files. Any white space will be removed, either leading,
+// trailing or within the keyword - a keyword with white space would actually
+// be two or more keywords.
 func Keyword(s string) []byte {
-	return bytes.ToUpper([]byte(s))
+
+	out := make([]rune, 0, len(s))
+	for _, r := range s {
+		if !unicode.IsSpace(r) {
+			out = append(out, unicode.ToUpper(r))
+		}
+	}
+
+	return []byte(string(out))
 }
 
-// KeywordList returns the []string data as a whitespace separated, uppercased
-// slice of bytes.
+// KeywordList returns the []string data as a white space separated, uppercased
+// slice of bytes. Multiple keywords will have consistent ordering. Duplicate
+// keywords will be omitted. Any white space will be removed, either leading,
+// trailing or within a keyword - a keyword with white space would actually be
+// two or more keywords.
 func KeywordList(s []string) []byte {
-	return bytes.ToUpper([]byte(strings.Join(s, " ")))
+
+	k := make([]string, len(s))
+	pos := 0
+
+	for x := range s {
+		k[pos] = string(Keyword(s[x]))
+		if k[pos] == "" {
+			continue
+		}
+		for _, y := range k[0:pos] {
+			if y == k[pos] {
+				pos--
+				break
+			}
+		}
+		pos++
+	}
+	sort.Strings(k[0:pos])
+
+	return []byte(strings.Join(k[0:pos], " "))
 }
 
-// PairList returns the passed map of string pairs as an uppercased []byte.
-// Each pair of strings is separated with the given delimiter. All of the
-// string pairs are then concatenated together separated by whitespace.
+// PairList returns the passed map of string name/value pairs as an uppercased
+// []byte. Each name/value pair is separated with the given delimiter. Any
+// white space will be removed, either leading, trailing or within a name or
+// value - a name or value with white space would actually be more than a
+// single pair of name/value. All of the string name/delimiter/value pairs are
+// then concatenated together separated by white space.
 //
 //	exits := map[string]string{
 //		"E":  "L3",
@@ -43,56 +83,50 @@ func KeywordList(s []string) []byte {
 //	}
 //	data := PairList(exits, '→')
 //
-// Results in data being a byte slice containing "E→L3 SE→L4 S→L2".
-func PairList(data map[string]string, delimiter rune) (pairs []byte) {
+// Results in data being a byte slice containing "E→L3 SE→L4 S→L2". Multiple
+// name/value pairs will have consistent ordering. It should be noted that
+// using a space for a delimiter will result in a keyword list, not a pair
+// list, which may cause problems when the field is decoded again. If no name
+// is given for a pair any value will be ignored.
+func PairList(data map[string]string, delimiter rune) []byte {
 	d := make([]byte, utf8.RuneLen(delimiter))
 	utf8.EncodeRune(d, delimiter)
+
+	pairs := make([]string, len(data))
+	pos := 0
 
 	for name, value := range data {
-		pairs = append(pairs, bytes.ToUpper([]byte(name))...)
-		pairs = append(pairs, d...)
-		pairs = append(pairs, bytes.ToUpper([]byte(value))...)
-		pairs = append(pairs, ' ')
+		kname := Keyword(name)
+		if len(kname) == 0 {
+			continue
+		}
+
+		// Shortcut if just a name and no value
+		kvalue := Keyword(value)
+		if len(kvalue) == 0 {
+			pairs[pos] = string(kname)
+			pos++
+			continue
+		}
+
+		kname = append(kname, d...)
+		kname = append(kname, kvalue...)
+		pairs[pos] = string(kname)
+		pos++
 	}
-	if len(data) > 0 {
-		pairs = pairs[0 : len(pairs)-1]
-	}
-	return
+	sort.Strings(pairs[0:pos])
+	return []byte(strings.Join(pairs[0:pos], " "))
 }
 
-// StringList returns a list of strings delimited by a colon separator.
-//
-// BUG(diddymus): The strings should be formatted with the separating colon
-// starting on a new line with the colon aligned with the colon separating the
-// keyword:
-//
-//  keyword: String one
-//         : String two
-//         : String three
-//
-// However this is not currently possible and so the strings are simply
-// concatenated together:
-//
-//  keyword: String one : String two : String three
-//
+// StringList returns a list of strings delimited by a colon separator. Each
+// string in the list will start with the delimiter on a new line.
 func StringList(data []string) []byte {
-	return []byte(strings.Join(data, " : "))
-}
-
-// KeyedString returns the name uppercased and concatenated to the value using
-// the delimiter, as a []byte. For example:
-//
-//  KeyedString("get", "You cannot get that!", '→')
-//
-// Results in a []byte containing "GET→You cannot get that!".
-func KeyedString(name, value string, delimiter rune) (data []byte) {
-	d := make([]byte, utf8.RuneLen(delimiter))
-	utf8.EncodeRune(d, delimiter)
-
-	data = append(data, Keyword(name)...)
-	data = append(data, d...)
-	data = append(data, value...)
-	return data
+	s := make([]string, len(data))
+	for x := range data {
+		s[x] = strings.TrimSpace(data[x])
+	}
+	sort.Strings(s)
+	return []byte(strings.Join(s, "\n: "))
 }
 
 // KeyedStringList returns the map of names and strings as a list of colon
@@ -104,64 +138,66 @@ func KeyedString(name, value string, delimiter rune) (data []byte) {
 //	}
 //	data := KeyedStringList(m, '→')
 //
-// Results in data being a byte slice containing "GET→You cannot get that! :
-// LOOK→Your eyes hurt to look at it!".
+// Results in data containing:
 //
-// BUG(diddymus): The strings should be formatted with the separating colon
-// starting on a new line with the colon aligned with the colon separating the
-// keyword:
-//
-//  keyword: GET→You cannot get that!
-//         : LOOK→Your eyes hurt to look at it!
-//
-// However this is not currently possible and so the strings are simply
-// concatenated together:
-//
-//  keyword: GET→You cannot get that! : LOOK→Your eyes hurt to look at it!
+//  GET→You cannot get that!\n: LOOK→Your eyes hurt to look at it!
 //
 func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
+	d := make([]byte, utf8.RuneLen(delimiter))
+	utf8.EncodeRune(d, delimiter)
+
+	s := make([]string, len(pairs))
+	b := []byte{}
+	svalue := []byte{}
+	pos := 0
 	for name, value := range pairs {
-		data = append(data, KeyedString(name, value, delimiter)...)
-		data = append(data, " : "...)
+		b = Keyword(name)
+		if len(b) == 0 {
+			continue
+		}
+		if svalue = String(value); len(svalue) > 0 {
+			b = append(b, d...)
+			b = append(b, svalue...)
+		}
+		s[pos] = string(b)
+		pos++
 	}
-
-	// Chop off final " : " appended to data
-	if l := len(data); l > 3 {
-		data = data[0 : l-3 : l-3]
-	}
-
-	return data
+	sort.Strings(s)
+	return []byte(strings.Join(s, "\n: "))
 }
 
 // Bytes returns a copy of the passed []byte. Important so we don't
-// accidentally pin a larger backing array in memory via the slice.
-func Bytes(dataIn []byte) []byte {
-	dataOut := make([]byte, len(dataIn), len(dataIn))
-	copy(dataOut, dataIn)
-	return dataOut
+// accidentally pin a larger backing array in memory via the slice. Any leading
+// or trailing white space will be trimmed EXCEPT new lines '\n', which the
+// trimming will end at. This is the preferred way to encode a free text
+// section as it allows for leading/trailing blank lines.
+func Bytes(data []byte) []byte {
+	out := make([]byte, len(data), len(data))
+	copy(out, data)
+	out = bytes.TrimFunc(out, func(r rune) bool {
+		if r == '\n' {
+			return false
+		}
+		return unicode.IsSpace(r)
+	})
+	return out
 }
 
 // Duration returns the given time.Duration as a []byte. The byte slice will
-// have the format "0h0m0.0s" although leading and trailing zero units will be
-// omitted.
+// have the format "0h0m0s" and is rounded (half up) to the nearest second.
+// Leading and trailing zero units will be omitted.
 func Duration(d time.Duration) []byte {
-	b := []byte(d.String())
-	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("m0s")) {
-		b = b[:l-2]
-	}
-	if l := len(b); l >= 3 && bytes.Equal(b[l-3:l], []byte("h0m")) {
-		b = b[:l-1]
-	}
-	if len(b) == 0 {
-		b = []byte("0s")
-	}
+	b := []byte(d.Round(time.Second).String())
+	b = bytes.Replace(b, []byte("m0s"), []byte("m"), 1)
+	b = bytes.Replace(b, []byte("h0m"), []byte("h"), 1)
 	return b
 }
 
-// Duration returns the given time.Duration as a []byte. The byte slice will be
-// formatted according to RFC1123. For example "Mon, 02 Jan 2006 15:04:05 MST".
+// DateTime returns the given time.Time as a []byte. The byte slice will be
+// formatted according to RFC1123Z and converted to the UTC timezone. For
+// example: Thu, 20 Sep 2018 20:24:33 +0000
 func DateTime(t time.Time) []byte {
-	return []byte(t.Format(time.RFC1123))
+	return []byte(t.UTC().Format(time.RFC1123Z))
 }
 
 // Boolean returns the given boolean as a []byte containing either "TRUE" or

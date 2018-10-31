@@ -14,7 +14,7 @@ This is the city of Zinara.
      Name: Fireplace
   Aliases: TAVERN FIREPLACE
     Exits: E→L3 SE→L4 S→L2
-Inventory: L1N1
+Inventory: L1N1A L1N1B
 
 You are in the corner of the common room in the dragon's breath tavern. A fire
 burns merrily in an ornate fireplace, giving comfort to weary travellers. The
@@ -37,7 +37,7 @@ is the glow of a fire.
      Name: Tavern entrance
   Aliases: TAVERN ENTRANCE
     Exits: E→L5 S→L4 SW→L2 W→L1
-Inventory: L3N1
+Inventory: L3N1 M5
 
 You are in the entryway to the dragon's breath tavern. To the west you see an
 inviting fireplace and south an even more inviting bar. Eastward a door leads
@@ -47,7 +47,7 @@ out into the street.
      Name: Tavern bar
   Aliases: TAVERN BAR
     Exits: N→L3 NW→L1 W→L2
-Inventory: L4N1 L4N2
+Inventory: L4N1 L4N2 M6
 
 You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with
 many bottles in a dizzying array of sizes, shapes and colours. There are also
@@ -72,10 +72,11 @@ You are standing in a bakery. Low trestle tables show an array of fresh breads,
 biscuits and pastries. The amazing smells wafting around are sadly beyond
 description.
 %%
-    Ref: L7
-   Name: Street outside pawn shop
-Aliases: PAWNSHOP STREET
-  Exits: N→L5 E→L8 S→L9
+      Ref: L7
+     Name: Street outside pawn shop
+  Aliases: PAWNSHOP STREET
+    Exits: N→L5 E→L8 S→L9
+Inventory: M7
 
 You are on a well kept cobbled street that runs to the north and south. To the
 east you see a small pawn shop. Southward you see a large fountain in the middle
@@ -134,10 +135,11 @@ You are in a small shop selling weapons. Against the walls are racks holding
 large swords and polearms. Smaller hand weapons are displayed on some trestle
 tables.
 %%
-    Ref: L14
-   Name: Crossroads
-Aliases: CROSSROADS
-  Exits: N→L45 E→L15 S→L5 W→L17
+      Ref: L14
+     Name: Crossroads
+  Aliases: CROSSROADS
+    Exits: N→L45 E→L15 S→L5 W→L17
+Inventory: M9
 
 You are at the crossing of two streets. One street runs east to west and the
 other north to south.
@@ -333,10 +335,11 @@ large bushes. To the south is a small shed with its door facing you. A rock has
 been positioned by the shed, from the looks of it by someone who thought it was
 artistic. The gravel path you are on leads northward.
 %%
-    Ref: L37
-   Name: Garden shed
-Aliases: GARDENS SHED
-  Exits: N→L36
+      Ref: L37
+     Name: Garden shed
+  Aliases: GARDENS SHED
+    Exits: N→L36
+Inventory: L37N1 L37N2 M8
 
 You are in a small garden shed. The only exit appears to be through the door to
 the north.
@@ -616,16 +619,29 @@ accommodation for the gate-warden on duty. The only exit is north.
 // Narratives
 //
 %%
-      Ref: L1N1
+      Ref: L1N1A
 Narrative:
      Name: an ornate fireplace
-    Alias: FIRE FIREPLACE
-   Vetoes: GET→For some inexplicable reason you can't just rip out the
+    Alias: FIREPLACE
+     Veto: GET→For some inexplicable reason you can't just rip out the
            fireplace and take it!
 
 This is a very ornate fireplace carved from marble. Either side a dragon curls
 downward until the head is below the fire looking upward, giving the impression
 that they are breathing fire.
+%%
+      Ref: L1N1B
+Narrative:
+     Name: the fire
+  Aliases: FIRE
+     Veto: GET→Ouch! Hot, hot, hot!
+   Action: AFTER→1m JITTER→30s
+ OnAction: $ACT gently pops and crackles.
+         : $ACT gently crackles.
+         : $ACT pops, sending little embers dancing up the chimney.
+         : $ACT flares for a moment as the logs shift and settle.
+
+Some logs have been placed into the fireplace and are burning away merrily.
 %%
       Ref: L2N1
 Narrative:
@@ -649,7 +665,7 @@ very bad day.
     Alias: CLOCK
 Narrative:
    Action: AFTER→15m
- OnAction: The clock chimes.
+ OnAction: $ACT chimes.
 
 This is an elegant grandfather clock. It seems to be quite old and has
 obviously seen better days. However it does seem to be working, or at least
@@ -695,7 +711,7 @@ cover of the weeds.
   Narrative:
        Name: a rock
       Alias: ROCK
-     Vetoes: GET→The rock seems quite immovable.
+       Veto: GET→The rock seems quite immovable.
 
 This is a dull grey rock about three feet high and a foot across at the base. As
 it rises it tapers to a rounded point. Near its base you notice there is a small
@@ -706,7 +722,7 @@ Narrative:
      Name: a small crack in the rock
     Alias: CRACK
 Inventory: O6
-   Vetoes: GET→The small crack in the rock is is not a portable crack...
+     Veto: GET→The small crack in the rock is is not a portable crack...
 
 This is a small crack near the base of the rock.
 %%
@@ -742,6 +758,25 @@ Inventory:
 
 This rubbish is dirty and smelly. Why are you wasting your time with it?
 %%
+      Ref: L37N1
+Narrative:
+     Name: a cobweb
+    Alias: WEB WEBS COBWEB COBWEBS
+Inventory:
+
+The cobweb is vary large and its strands very thick and sticky.
+%%
+      Ref: L37N2
+Narrative:
+     Name: a bundle wrapped in silk threads
+    Alias: BUNDLE
+Inventory:
+     Veto: GET→Sticky threads hold the bundle firmly in place.
+
+Something has been carefully, and very thoroughly, wrapped up into a neat
+bundle. However, it's impossible to tell what is in the bundle through all the
+threads of silk.
+%%
 //
 // MOBILES
 //
@@ -752,9 +787,13 @@ This rubbish is dirty and smelly. Why are you wasting your time with it?
    Reset: AFTER→1m
  OnReset: A rabbit hops into view.
   Action: AFTER→15s JITTER→15s
-OnAction: The rabbit hops around a bit.
-        : You see the rabbit twitch its little nose, Ahh...
-        : The rabbit makes a soft squeaking and chattering noise.
+OnAction: $ACT hops around a bit.
+        : $ACT twitches its little nose, Ahh...
+        : $ACT makes a soft squeaking and chattering noise.
+        : N
+        : S
+        : E
+        : W
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
 doesn't seem to be late for anything!
@@ -765,9 +804,13 @@ doesn't seem to be late for anything!
    Reset: AFTER→1m
  OnReset: A frog hops into view.
   Action: AFTER→10s JITTER→20s
-OnAction: The frog croaks a bit.
-        : The little frog leaps high into the air.
-        : The frog hops around a bit.
+OnAction: $ACT croaks a bit.
+        : $ACT leaps high into the air.
+        : $ACT hops around a bit.
+        : N
+        : S
+        : E
+        : W
 
 It is a small, lime green frog. It's slimy and croaks. What more can you say?
 %%
@@ -777,14 +820,108 @@ It is a small, lime green frog. It's slimy and croaks. What more can you say?
    Reset: AFTER→1m
  OnReset: A mangy looking cat slinks in and curls up on a chair.
   Action: AFTER→1m JITTER→1m
-OnAction: The cat starts to claw at the furniture, scratching deep gouges into
+OnAction: $ACT starts to claw at the furniture, scratching deep gouges into
           the wood.
-        : The cat curls up and starts to purr like a buzz-saw.
-        : The cat starts to wash itself.
+        : $ACT curls up and starts to purr like a buzz-saw.
+        : $ACT starts to wash itself.
 
 The tavern cat is a ball of fur with one golden eye, the other eye replaced by
 a large scar. It senses you watching it and returns your gaze with a steady
 one of its own.
+%%
+     Ref: M5
+    Name: a small mouse
+   Alias: MOUSE
+   Reset: AFTER→1m
+ OnReset: A small mouse scurries into view.
+  Action: AFTER→3s JITTER→3s
+OnAction: $ACT squeaks.
+        : $ACT washes its face with its paws.
+        : $ACT sniffs around.
+        : N
+        : NE
+        : E
+        : SE
+        : S
+        : SW
+        : W
+        : NW
+
+This is a small, furry, grey mouse.
+%%
+     Ref: M6
+    Name: the barkeep
+   Reset: AFTER→1s
+ OnReset: The barkeep walks in.
+ Aliases: BARKEEP MAN
+  Action: AFTER→30s JITTER→30s
+OnAction: $ACT picks up a glass and wipes it with a rag.
+        : $ACT smears the top of the bar with a rag.
+        : $ACT starts to arrange a few of the curious bottles
+          behind the bar.
+        : $ACT drums his fingers on the bar.
+        : $ACT starts to whistle a little ditty.
+        : $ACT examines a filthy rag.
+        : $ACT examines a filthy rag. He finds a hole in it.
+        : SAY Nice weather for it...
+        : SAY Now let me see...
+        : SAY Can I get you something?
+        : SNEEZE
+        : EXAMINE BAR
+        : EXAMINE BOTTLES
+        : EXAMINE PLAYER
+
+This is you average barkeep, found in taverns and pubs all over the world.
+Always ready to listen to a drinking patron, dispensing advice when required.
+%%
+     Ref: M7
+    Name: a sweet flower girl
+   Reset: AFTER→1s
+ OnReset: A flower girl walks in.
+ Aliases: FLOWERGIRL GIRL
+  Action: AFTER→30s JITTER→30s
+OnAction: $ACT looks around for someone to sell flowers to.
+        : $ACT looks at you with pleading eyes.
+        : $ACT holds out some flowers for you to see.
+        : SAY Buy a flower? Very cheap.
+        : N
+        : S
+        : E
+        : W
+
+This is a sweet little girl selling flowers to make some money.
+%%
+     Ref: M8
+    Name: a giant spider
+   Reset: AFTER→1m
+ OnReset: A giant spider crawls in.
+ Aliases: SPIDER
+  Action: AFTER→15s JITTER→15s
+OnAction: $ACT starts to slowly spin another web.
+        : $ACT silently sits amongst the webs, watching.
+        : $ACT silently retreats into the shadows.
+        : $ACT reaches out a long leg and tests one of the webs.
+        : EXAMINE WEBS
+        : EXAMINE BUNDLE
+        : EXAMINE PLAYER
+
+This is a giant spider. It's black, hairy and looks very dangerous.
+%%
+     Ref: M9
+    Name: a street vendor
+   Reset: AFTER→1m
+ OnReset: A street vendor walks in.
+ Aliases: VENDOR MAN
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT looks around for passing punters.
+        : $ACT arranges his dubious merchandise.
+        : $ACT saunters around a bit.
+        : SAY Burgers ina bun, get 'em while they're hot.
+        : SAY Sausages ina bun, get 'em while they're hot.
+        : SAY Meat ona stick, get 'em while they're hot.
+        : SAY Hot food! Hot food!
+
+This is a typical, shifty looking street vendor.
 %%
 //
 // OBJECTS
@@ -795,7 +932,7 @@ one of its own.
  Aliases: LATTICE
    Reset: AFTER→10m JITTER→10m
 Location: L1
-  Vetoes: JUNK→The lattice cannot be junked.
+    Veto: JUNK→The lattice cannot be junked.
 
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.

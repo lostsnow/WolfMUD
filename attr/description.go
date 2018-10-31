@@ -68,7 +68,7 @@ func (*Description) Unmarshal(data []byte) has.Attribute {
 
 // Marshal returns a tag and []byte that represents the receiver.
 func (d *Description) Marshal() (tag string, data []byte) {
-	return "description", encode.String(d.description)
+	return "description", encode.Bytes([]byte(d.description))
 }
 
 func (d *Description) Dump() []string {

@@ -6,6 +6,122 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.11 Released Tuesday 31st October, 2018
+==============================================================================
+
++++ BREAKING CHANGES +++
+
+  - SYNTAX OF ONACTION CHANGED
+    The OnAction field in zone files previously used a list of strings.  When
+    the Action fired one of the strings was picked at random and displayed. For
+    example, the frog was defined using the old syntax as:
+
+           Ref: M3
+          Name: a small frog
+         Alias: FROG
+         Reset: AFTER→1m
+       OnReset: A frog hops into view.
+        Action: AFTER→10s JITTER→20s
+      OnAction: The frog croaks a bit.
+              : The little frog leaps high into the air.
+              : The frog hops around a bit.
+
+    With this update OnAction expects a list of commands. The new $ACT command
+    can be used in place of the old strings list. However, the $ACT command
+    will add the actors name to the beginning of the supplied text.
+    Furthermore, if the actor's name starts with 'a ' it will be changed to
+    'the ' - as this tends to produce better messages. For example, "$ACT
+    croaks a bit." would display "The small frog croaks a bit". The definition
+    for the frog using the new syntax, with additional movement commands so the
+    frog will wander around, is:
+
+           Ref: M3
+          Name: a small frog
+         Alias: FROG
+         Reset: AFTER→1m
+       OnReset: A frog hops into view.
+        Action: AFTER→10s JITTER→20s
+      OnAction: $ACT croaks a bit.
+              : $ACT leaps high into the air.
+              : $ACT hops around a bit.
+              : N
+              : S
+              : E
+              : W
+
+    The supply zone files have been updated for the new OnAction syntax. User
+    supplied or modified zone files will need to be manually updated. Until
+    then the strings will be processed, but most likely result in trying to
+    execute invalid player or scripting commands.
+
+Added
+
+  - recordjar: new and improved encode/decode tests and benchmarks.
+  - New $ACT scripting command for performing actions via Action/OnAction.
+  - Barkeep added back into the tavern (in data/zones/zinara.wrj).
+  - Flower girl added back outside the pawn shop (in data/zones/zinara.wrj).
+  - Giant spider added back into the shed (in data/zones/zinara.wrj).
+  - Street vendor added back at crossroads (in data/zones/zinara.wrj).
+  - The frog and rabbit (in data/zones/zinara.wrj) now move around from
+    location to location.
+  - The fireplace in the tavern (in data/zones/zinara.wrj) now has a separate
+    fire narrative.
+  - Added a fast moving mouse to the tavern (in data/zones/zinara.wrj). This is
+    useful for triggering any locking bug or data races quickly in the changed
+    Action/OnAction processing.
+  - Make sure all players have a  PLAYER alias. Existing players will have the
+    alias added when next loaded.
+
+Changed
+
+  - recordjar: package documentation improved.
+  - recordjar: encoded StringList and KeyedStringList fields now starts each
+    item in the list on its own line.
+  - Logging now uses UTC instead of local time zone.
+  - recordjar: encode/decode DateTime uses UTC for result.
+  - The attr.Description Marshal method now uses encode.Bytes.
+  - recordjar: encode and decode now expect date/time values in RFC1123Z. Will
+    fallback to RFC1123 to support date/time values in the old format.
+  - recordjar: non-exported indexSeparator returns the separator starting index
+    and the length of the separator rune found. Previously  returned a bool.
+  - recordjar: encode/decode KayedString function dropped.
+  - The OnAction attribute now takes a list of commands instead of a list of
+    strings to display.
+
+Fixed
+
+  - recordjar: Write method rewritten to clean up code. Fixes issue with
+    trailing white space after a field name with no values. Field name are now
+    written with consistent ordering.
+  - recordjar: encode/decode String trims leading/trailing white space.
+  - recordjar: encode/decode Keyword removes ALL white space.
+  - recordjar: encode/decode KeywordList orders the list items consistently.
+    Any list entries with empty or duplicate field names are dropped.
+  - recordjar: encode.PairList removes ALL white space from field names and
+    values. List is sorted consistently.
+  - recordjar: encode.StringList trims leading/trailing white space from
+    values.  List is sorted consistently.
+  - recordjar: encode.KeyedStringList removes ALL white space from keys and
+    trims leading/trailing white space from values.  List is sorted
+    consistently.
+  - recordjar: encode/decode Duration rounds seconds (half up).
+  - recordjar: encode.KeyedString omit delimiter after field name if no value.
+  - recordjar: encode/decode Bytes trims leading/trailing white space up to the
+    first/last line feed found.
+  - recordjar: decode.Duration strips ALL white space.
+  - recordjar: encode/decode PairList will ignore values where no field name
+    given.
+  - recordjar: decode.DateTime trims leading/trailing white space.
+  - event: when event logging is turned on only log events actually cancelled.
+  - cmd: Uppercase first letter of speakers name for SAY command.
+  - cmd: Uppercase first letter of item examined for EXAMINE command.
+  - Nil pointer panic fixed in attr.Alias.SetParent method.
+  - Can now use 'Veto' or 'Vetoes' in zone files. Updated provided zone files
+    where only one veto defined.
+  - Don't stop processing when using the SAY command and there is nobody else
+    at the location. Otherwise players in nearby locations will not hear
+    someone talking to themself.
+
 v0.0.10 Released Friday 6th July, 2018
 ==============================================================================
 

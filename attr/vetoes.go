@@ -16,7 +16,7 @@ import (
 
 // Register marshaler for Vetoes attribute.
 func init() {
-	internal.AddMarshaler((*Vetoes)(nil), "vetoes")
+	internal.AddMarshaler((*Vetoes)(nil), "veto", "vetoes")
 }
 
 // TODO: Currently vetoes can only be applied to the Thing they are vetoing

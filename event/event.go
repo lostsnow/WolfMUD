@@ -89,11 +89,12 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 		}
 		select {
 		case <-cancel:
-			if logEvents {
-				log.Printf("Event cancelled for %s: %q Input: %q", thing, name, input)
-			}
 			if !t.Stop() {
 				<-t.C
+				return
+			}
+			if logEvents {
+				log.Printf("Event cancelled for %s: %q Input: %q", thing, name, input)
 			}
 		case <-t.C:
 			if logEvents {

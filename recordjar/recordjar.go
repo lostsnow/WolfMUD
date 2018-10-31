@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode"
 
@@ -28,8 +29,8 @@ type Record map[string][]byte
 var splitLine = regexp.MustCompile(text.Uncomment(`
 	^            # match start of string
 	(?:          # non-capture group for 'field:'
-		\s*        # don't capture whitespace before 'field'
-	  ([^\s:]+)  # capture 'field' - non-whitespace/non-colon
+	  \s*        # don't capture white space before 'field'
+	  ([^\s:]+)  # capture 'field' - non-white-space/non-colon
 	  :          # non-capture match of colon as field:value separator
 	)?           # match non-captured 'field:' zero or once, prefer once
 	\s*          # consume any whitepace - leading or after 'field:' if matched
@@ -37,16 +38,28 @@ var splitLine = regexp.MustCompile(text.Uncomment(`
 	$            # match at end of string
 `))
 
+const (
+	maxLineWidth = 78 // Maximum length of a line in a .wrj file
+)
+
 var (
-	comment   = []byte("//") // Comment marker
-	separator = []byte("%%") // Record separator marker
+	comment       = []byte("//") // Comment marker
+	rSeparator    = []byte("%%") // Record separator marker
+	fSeparator    = []byte(": ") // Field/data separator as []byte
+	fSeparatorLen = len(fSeparator)
+	CR            = []byte("\r")
+	LF            = []byte("\n")
+	Empty         = []byte{}
+	Space         = []byte(" ")
 )
 
 // Read takes as input an io.Reader - assuming the data to be in the WolfMUD
-// recordjar format - and the field name to use for the freetext block. The
+// recordjar format - and the field name to use for the free text section. The
 // input is parsed into a jar which is then returned.
 //
 // For details of the recordjar format see the separate package documentation.
+//
+// BUG(diddymus): There is no provision for preserving comments.
 func Read(in io.Reader, freetext string) (j Jar) {
 
 	var (
@@ -73,7 +86,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		b = bufio.NewReader(in)
 	}
 
-	// Make sure the field name to use for freetext is uppercased
+	// Make sure the field name to use for free text section is uppercased
 	freetext = strings.ToUpper(freetext)
 
 	// Setup an initially empty record for the Jar
@@ -96,14 +109,14 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		noData = len(data) == 0
 		noLine = noName && noData
 
-		// Ignore comments found outside of freetext block
+		// Ignore comments found outside of free text section
 		if noName && field != freetext && bytes.HasPrefix(data, comment) {
 			continue
 		}
 
 		// Handle record separator by recording current Record in Jar and setting
 		// up a new next record, reset lastField seen and noLastLine flag.
-		if noName && bytes.Equal(data, separator) {
+		if noName && bytes.Equal(data, rSeparator) {
 			if len(r) > 0 {
 				j = append(j, r)
 				r = Record{}
@@ -118,11 +131,12 @@ func Read(in io.Reader, freetext string) (j Jar) {
 			field = name
 		}
 
-		// Switch to freetext field if empty line and we are not already processing
-		// the freetext block. If there was no lastField processed we need to
-		// record the blank line so that it is included in the freetext block. This
-		// lets us have a record that is freetext only and can start with a blank
-		// line, which is not counted as a separator line.
+		// Switch to free text field if an empty line and we are not already
+		// processing the free text section. If there was no lastField processed we
+		// need to record the blank line so that it is included in the free text
+		// section. This lets us have a record that has only a free text section
+		// and can start with a blank line, which is not counted as a separator
+		// line.
 		if noLine && field != freetext {
 			if field == "" {
 				noLastLine = true
@@ -131,15 +145,17 @@ func Read(in io.Reader, freetext string) (j Jar) {
 			continue
 		}
 
-		// Handle freetext if already processing the freetext block, or we have no
-		// field - in which case assume we are starting the freetext block
+		// Handle data as free text if already processing the free text section, or
+		// we have no field - in which case assume we are starting a free text
+		// section
 		if field == freetext || field == "" {
 
 			// If last line was blank, current line is blank or current line starts
-			// with whitespace and we already have some text in the freetext block,
-			// then append a new line to terminate the last line and start a new one.
-			// If not terminating last line, but we have some data in the freetext
-			// already, then append a space before appending the current line.
+			// with white space and we already have some text in the free text
+			// section, then append a new line to terminate the last line and start a
+			// new one. If not terminating last line, but we have some data in the
+			// free text section already, then append a space before appending the
+			// current line.
 			if noLastLine || noLine || (len(r[freetext]) != 0 && bytes.IndexFunc(line, unicode.IsSpace) == 0) {
 				r[freetext] = append(r[freetext], '\n')
 			} else {
@@ -171,65 +187,120 @@ func Read(in io.Reader, freetext string) (j Jar) {
 	return
 }
 
-// Write writes out a Record Jar to the specified io.Writer. It also takes as
-// input the fieldname used for the free text block in the jar.
+// Write writes out a Record Jar to the specified io.Writer. The freetext
+// string is used to specify which field name in a record should be used for
+// the free text section. For example, if the freetext string is 'Description'
+// then any fields named description in a record will be written out in the
+// free text section.
 //
 // For details of the recordjar format see the separate package documentation.
+//
+// TODO(diddymus): Uppercase character after a hyphen in field names so that
+// we can have 'On-Action', 'On-Reset', 'On-Cleanup' automatically.
+//
+// BUG(diddymus): There is no provision for writing out comments.
+// BUG(diddymus): The empty field "" is invalid, currently dropped silently.
+// BUG(diddymus): Unicode used in field names not normalised so 'Nаme' with a
+// Cyrillic 'а' (U+0430) and 'Name' with a latin 'a' (U+0061) would be
+// different fields.
+// BUG: If a continuation line starts with ": " and we outdent it we don't
+// refold lines even though we have two extra character positions available.
 func (j Jar) Write(out io.Writer, freetext string) {
 
-	freetext = text.TitleFirst(strings.ToLower(freetext))
+	var buf bytes.Buffer // Temporary buffer for current record
 
-	var (
-		maxLen int
-		buf    bytes.Buffer
-		sepLen int = len(": ")
-	)
+	// A slice of spaces we can re-slice to get variable lengths of padding
+	padding := bytes.Repeat(Space, maxLineWidth-fSeparatorLen)
+
+	// Normalise passed in field name for free text section
+	freetext = text.TitleFirst(strings.ToLower(freetext))
 
 	for _, rec := range j {
 
-		// Find maximum field name length used in the current record.
-		// Also record a normalised version of the field names used.
-		maxLen = 0
-		norm := map[string]string{}
-		for field := range rec {
-			norm[field] = text.TitleFirst(strings.ToLower(field))
-			if norm[field] == freetext {
+		norm := make(map[string][]byte, len(rec)) // Copy of rec, normalised keys
+		keys := make([]string, 0, len(rec))       // List of sortable norm keys
+		maxFieldLen := 0                          // Longest normalised field name
+
+		// Copy fields from rec to norm but with normalised keys. As we go through
+		// the field names note the length of the longest normalised field name.
+		for field, data := range rec {
+
+			if field == "" { // Ignore invalid empty field name
 				continue
 			}
-			if len(field) > maxLen {
-				maxLen = len(field)
+
+			field = text.TitleFirst(strings.ToLower(field))
+			norm[field], keys = data, append(keys, field)
+
+			// Ignore field name for free text section as field name never written out
+			if field == freetext {
+				continue
+			}
+
+			if l := len(field); l > maxFieldLen {
+				maxFieldLen = l
 			}
 		}
 
-		for field, data := range rec {
-			if norm[field] == freetext {
+		// Write out fields for current record in the order given by the sorted keys
+		sort.Strings(keys)
+		for _, field := range keys {
+
+			// Ignore the free text section field as it has to be written last
+			if field == freetext {
 				continue
 			}
-			data = text.Fold(data, 80-maxLen-sepLen)
-			data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
-			for i, l := range bytes.Split(data, []byte("\n")) {
-				if i == 0 {
-					buf.Write(bytes.Repeat([]byte(" "), maxLen-len(field)))
-					buf.WriteString(norm[field])
-					buf.WriteString(": ")
+
+			// Fold the field data, which will now have network '\r\n' line endings.
+			// Strip the '\r' to get Unix line endings. Finally split the data into
+			// separate lines using `\n` as the delimiter.
+			data := text.Fold(norm[field], maxLineWidth-maxFieldLen-fSeparatorLen)
+			data = bytes.Replace(data, CR, Empty, -1)
+			lines := bytes.Split(data, LF)
+
+			// Write field name, separator, and first data line
+			buf.Write(padding[0 : maxFieldLen-len(field)])
+			buf.WriteString(field)
+			buf.WriteByte(':')
+			if len(lines[0]) != 0 {
+				buf.Write(Space)
+				buf.Write(lines[0])
+			}
+			buf.Write(LF)
+
+			// Write continuation data lines. If a continuation line starts with ": "
+			// then outdent it so that the colon lines up with the field name/data
+			// separator.
+			for _, l := range lines[1:] {
+				if len(l) >= fSeparatorLen && bytes.Equal(l[0:2], fSeparator) {
+					buf.Write(padding[0:maxFieldLen])
 				} else {
-					buf.Write(bytes.Repeat([]byte(" "), maxLen+sepLen))
+					buf.Write(padding[0 : maxFieldLen+fSeparatorLen])
 				}
 				buf.Write(l)
-				buf.WriteString("\n")
+				buf.Write(LF)
 			}
 		}
-		for f, n := range norm {
-			if n == freetext {
-				data := text.Fold(rec[f], 80)
-				data = bytes.Replace(data, []byte("\r"), []byte(""), -1)
-				buf.WriteString("\n")
-				buf.Write(data)
-				buf.WriteString("\n")
-				break
+
+		// Write out the free text section, if we have one.
+		if data, ok := norm[freetext]; ok {
+
+			// Write separator line if record has a fields section
+			if len(norm) > 1 {
+				buf.Write(LF)
 			}
+
+			data = text.Fold(data, maxLineWidth)
+			data = bytes.Replace(data, CR, Empty, -1)
+			buf.Write(data)
+			buf.Write(LF)
 		}
-		buf.WriteString("%%\n")
+
+		// If we have written any fields for the record, write a record separator.
+		if len(norm) > 0 {
+			buf.Write(rSeparator)
+			buf.Write(LF)
+		}
 		buf.WriteTo(out)
 	}
 }

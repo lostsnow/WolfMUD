@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: ( EXAMINE | EXAM ) item
@@ -54,17 +55,25 @@ func (examine) process(s *state) {
 		s.msg.Actor.Append(a.Description())
 	}
 
+	isPlayer := attr.FindPlayer(what).Found()
+
+	// If examining a player they become the participant
+	if isPlayer {
+		s.participant = what
+	}
+
 	// BUG(diddymus): If you examine another player you can see their inventory
-	// items. For now we just skip the inventory listing if we are examining a
-	// player.
-	if !attr.FindPlayer(what).Found() {
+	// items. For now we only describe the inventory if not examining a player.
+	if !isPlayer {
 		if l := attr.FindInventory(what).List(); l != "" {
 			s.msg.Actor.Append(l)
 		}
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")
+	who = text.TitleFirst(who)
 
+	s.msg.Participant.SendInfo(who, " studies you.")
 	s.msg.Observer.SendInfo(who, " studies ", name, ".")
 
 	s.ok = true

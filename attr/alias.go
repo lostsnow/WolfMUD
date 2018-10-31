@@ -86,8 +86,10 @@ func (a *Alias) SetParent(t has.Thing) {
 			delete(a.aliases, alias)
 		}
 	}
-	if uid := t.UID(); len(uid) != 0 {
-		a.aliases[t.UID()] = struct{}{}
+	if t != nil {
+		if uid := t.UID(); len(uid) != 0 {
+			a.aliases[t.UID()] = struct{}{}
+		}
 	}
 	a.Attribute.SetParent(t)
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: SAY <message> | " <message>
@@ -22,19 +23,6 @@ type say cmd
 func (say) process(s *state) {
 	if len(s.words) == 0 {
 		s.msg.Actor.SendInfo("What did you want to say?")
-		return
-	}
-
-	// Is anyone else here?
-	anybodyHere := false
-	for _, t := range s.where.Contents() {
-		if attr.FindPlayer(t).Found() && t != s.actor {
-			anybodyHere = true
-			break
-		}
-	}
-	if !anybodyHere {
-		s.msg.Actor.SendInfo("Talking to yourself again?")
 		return
 	}
 
@@ -57,11 +45,25 @@ func (say) process(s *state) {
 		return
 	}
 
+	// Is anyone else here? We can't call s.where.Players() as it will always
+	// return true if s.actor is a Player.
+	anybodyHere := false
+	for _, t := range s.where.Contents() {
+		if attr.FindPlayer(t).Found() && t != s.actor {
+			anybodyHere = true
+			break
+		}
+	}
+
 	who := attr.FindName(s.actor).Name("Someone")
 	msg := strings.Join(s.input, " ")
 
-	s.msg.Actor.SendGood("You say: ", msg)
-	s.msg.Observer.SendInfo(who, " says: ", msg)
+	if !anybodyHere {
+		s.msg.Actor.SendInfo("Talking to yourself again?")
+	} else {
+		s.msg.Actor.SendGood("You say: ", msg)
+		s.msg.Observer.SendInfo(text.TitleFirst(who), " says: ", msg)
+	}
 
 	// Notify observers in near by locations
 	s.msg.Observers.Filter(locations[1]...).SendInfo("You hear talking nearby.")
