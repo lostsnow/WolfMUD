@@ -164,7 +164,6 @@ func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
 	}
 	sort.Strings(s)
 	return []byte(strings.Join(s, "\n: "))
-	return data
 }
 
 // Bytes returns a copy of the passed []byte. Important so we don't
