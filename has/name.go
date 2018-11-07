@@ -15,4 +15,8 @@ type Name interface {
 	// Name returns the short name for a Thing. If the name cannot be returned
 	// the preset can be used as a default.
 	Name(preset string) string
+
+	// TheName returns the short name for a Thing, but with any leading "A ",
+	// "An " or "Some " changed to "The ".
+	TheName(preset string) string
 }

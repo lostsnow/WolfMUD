@@ -96,6 +96,55 @@ func (n *Name) Name(preset string) string {
 	}
 }
 
+// repl holds from/to replacement strings used by TheName.
+var repl = map[string]string{
+	"a":    "the",
+	"A":    "The",
+	"an":   "the",
+	"An":   "The",
+	"AN":   "THE",
+	"some": "the",
+	"Some": "The",
+	"SOME": "THE",
+}
+
+// TheName returns the name stored in the attribute, as per Name, but with the
+// leading "A ", "An " or "Some " changed to "The ". The case of the 't' in
+// 'the' is the same
+// as the case of word replaced. For example:
+//
+//	      A frog -> The frog
+//	      a frog -> the frog
+//	    An apple -> The apple
+//	    an apple -> the apple
+//	 Some apples -> The apples
+//	 some apples -> the apples
+//
+func (n *Name) TheName(preset string) string {
+
+	name := n.Name(preset)
+
+	if len(name) == 0 {
+		return name
+	}
+
+	// Bail out quickly if initial letter doesn't match possible choices
+	if name[0] != 'A' && name[0] != 'a' && name[0] != 'S' && name[0] != 's' {
+		return name
+	}
+
+	for from := range repl {
+		l := len(from)
+		if l >= len(name) || name[l] != ' ' {
+			continue
+		}
+		if to, ok := repl[name[0:l]]; ok {
+			return to + name[l:]
+		}
+	}
+	return name
+}
+
 // Copy returns a copy of the Name receiver.
 func (n *Name) Copy() has.Attribute {
 	if n == nil {
