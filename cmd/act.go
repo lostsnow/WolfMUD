@@ -26,15 +26,8 @@ func (act) process(s *state) {
 		return
 	}
 
-	who := attr.FindName(s.actor).Name("Something")
+	who := attr.FindName(s.actor).TheName("Something")
 	who = text.TitleFirst(who)
-
-	// Change 'a ' to 'the ' in names so messages read better
-	if len(who) > 1 {
-		if who[0:2] == "A " {
-			who = "The " + who[2:]
-		}
-	}
 
 	msg := strings.Join(s.input, " ")
 
