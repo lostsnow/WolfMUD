@@ -204,8 +204,8 @@ func FindDoor(t has.Thing) has.Door {
 }
 
 // Found returns false if the receiver is nil otherwise true.
-func (n *Door) Found() bool {
-	return n != nil
+func (d *Door) Found() bool {
+	return d != nil
 }
 
 // Unmarshal is used to turn the passed data into a new Door attribute.
