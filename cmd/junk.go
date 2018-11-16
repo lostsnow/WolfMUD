@@ -100,7 +100,9 @@ func (j junk) vetoed(actor has.Thing, t has.Thing) bool {
 		if attr.FindVetoes(t).Check(actor, "JUNK") != nil {
 			return true
 		}
-		return j.vetoed(actor, t)
+		if j.vetoed(actor, t) {
+			return true
+		}
 	}
 	return false
 }
