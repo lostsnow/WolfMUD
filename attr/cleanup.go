@@ -145,7 +145,7 @@ func (c *Cleanup) Cleanup() {
 	// If no parent's have a clean up scheduled, schedule our own.
 	if !c.Active() {
 		p := c.Parent()
-		c.Cancel = event.Queue(p, "$CLEANUP "+p.UID(), c.after, c.jitter)
+		c.Cancel = event.Queue(p, "$CLEANUP", c.after, c.jitter)
 	}
 }
 
