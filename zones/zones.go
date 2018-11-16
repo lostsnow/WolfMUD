@@ -414,6 +414,11 @@ func createVoid() zone {
 // checkDoorsHaveOtherSide creates the 'other side' of a door for Things with a
 // Door attribute. This needs to be done after all zones have been loaded so
 // that doors between zones work.
+//
+// BUG (diddymus): If we start loading zones in parallel this code may deadlock
+// if i and o are locked in the wrong order. What we should do is: lock i, get
+// o, unlock i, compare UID of i and o, then lock lowest UID first followed by
+// highest UID, process, unlock highest UID then unlock lowest UID.
 func checkDoorsHaveOtherSide() {
 	log.Printf("  Checking other side")
 	for _, z := range zones {
@@ -422,7 +427,13 @@ func checkDoorsHaveOtherSide() {
 			i.Lock()
 			for _, t := range append(i.Contents(), i.Narratives()...) {
 				if d := attr.FindDoor(t); d.Found() {
+					// Find where door leads to and lock other side before creating the
+					// 'other side' of the door.
+					e := attr.FindExits(i.Parent())
+					o := e.LeadsTo(d.Direction())
+					o.Lock()
 					d.OtherSide()
+					o.Unlock()
 				}
 			}
 			i.Unlock()
