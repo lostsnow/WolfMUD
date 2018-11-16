@@ -278,7 +278,7 @@ func (d *Door) Description() string {
 
 // Check will veto passing through a Door dynamically based on the command
 // (direction) given and the current state of the Door - open or closed.
-func (d *Door) Check(cmd ...string) has.Veto {
+func (d *Door) Check(actor has.Thing, cmd ...string) has.Veto {
 
 	// If door is open we won't veto
 	if d.open {

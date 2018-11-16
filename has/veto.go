@@ -13,10 +13,11 @@ package has
 type Vetoes interface {
 	Attribute
 
-	// Check compares the passed commands with any registered Veto commands.
-	// If a command for a Thing is vetoed the first matching Veto found is
-	// returned. If no matching Veto are found nil is returned.
-	Check(cmd ...string) Veto
+	// Check compares the passed commands, issued by the given actor, with any
+	// registered Veto commands. If a command for a Thing is vetoed the first
+	// matching Veto found is returned. If no matching Veto are found nil is
+	// returned.
+	Check(actor Thing, cmd ...string) Veto
 }
 
 // Veto provides a way for a specific command to be vetoed for a specific

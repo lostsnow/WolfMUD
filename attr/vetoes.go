@@ -106,9 +106,9 @@ func (v *Vetoes) Dump() (buff []string) {
 	return buff
 }
 
-// Check checks if any of the passed commands are vetoed. The first matching
-// Veto found is returned otherwise nil is returned.
-func (v *Vetoes) Check(cmd ...string) has.Veto {
+// Check checks if any of the passed commands, issued by the passed actor, are
+// vetoed. The first matching Veto found is returned otherwise nil is returned.
+func (v *Vetoes) Check(actor has.Thing, cmd ...string) has.Veto {
 	if v == nil {
 		return nil
 	}

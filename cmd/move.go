@@ -46,7 +46,7 @@ func (move) process(s *state) {
 	// check narratives for performance reasons.
 	canVeto := from.Narratives()
 	for _, t := range canVeto {
-		if veto := attr.FindVetoes(t).Check(s.cmd); veto != nil {
+		if veto := attr.FindVetoes(t).Check(s.actor, s.cmd); veto != nil {
 			s.msg.Actor.SendBad(veto.Message())
 			return
 		}

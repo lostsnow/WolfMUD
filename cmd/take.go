@@ -96,13 +96,13 @@ func (take) process(s *state) {
 	}
 
 	// Check for veto on item being taken
-	if veto := attr.FindVetoes(tWhat).Check("TAKE", "GET"); veto != nil {
+	if veto := attr.FindVetoes(tWhat).Check(s.actor, "TAKE", "GET"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}
 
 	// Check for veto on container
-	if veto := attr.FindVetoes(cWhat).Check("TAKE"); veto != nil {
+	if veto := attr.FindVetoes(cWhat).Check(s.actor, "TAKE"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}

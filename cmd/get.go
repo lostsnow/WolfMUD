@@ -51,13 +51,13 @@ func (get) process(s *state) {
 	name = attr.FindName(what).Name(name)
 
 	// Check the get is not vetoed by the item
-	if veto := attr.FindVetoes(what).Check("GET"); veto != nil {
+	if veto := attr.FindVetoes(what).Check(s.actor, "GET"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}
 
 	// Check the get is not vetoed by the parent of the item's inventory
-	if veto := attr.FindVetoes(s.where.Parent()).Check("GET"); veto != nil {
+	if veto := attr.FindVetoes(s.where.Parent()).Check(s.actor, "GET"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}

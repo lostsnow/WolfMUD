@@ -44,13 +44,13 @@ func (drop) process(s *state) {
 	}
 
 	// Check the drop is not vetoed by the item
-	if veto := attr.FindVetoes(what).Check("DROP"); veto != nil {
+	if veto := attr.FindVetoes(what).Check(s.actor, "DROP"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}
 
 	// Check the drop is not vetoed by the receiving inventory
-	if veto := attr.FindVetoes(s.where.Parent()).Check("DROP"); veto != nil {
+	if veto := attr.FindVetoes(s.where.Parent()).Check(s.actor, "DROP"); veto != nil {
 		s.msg.Actor.SendBad(veto.Message())
 		return
 	}
