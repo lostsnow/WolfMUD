@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: DROP item
@@ -67,7 +68,8 @@ func (drop) process(s *state) {
 	// Re-enable actions if available
 	attr.FindAction(what).Action()
 
-	who := attr.FindName(s.actor).Name("Someone")
+	who := attr.FindName(s.actor).TheName("Someone")
+	who = text.TitleFirst(who)
 
 	s.msg.Actor.SendGood("You drop ", name, ".")
 	s.msg.Observer.SendInfo(who, " drops ", name, ".")

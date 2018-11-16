@@ -55,7 +55,7 @@ func (say) process(s *state) {
 		}
 	}
 
-	who := attr.FindName(s.actor).Name("Someone")
+	who := attr.FindName(s.actor).TheName("Someone")
 	msg := strings.Join(s.input, " ")
 
 	if !anybodyHere {

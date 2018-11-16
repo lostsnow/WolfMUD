@@ -70,7 +70,7 @@ func (examine) process(s *state) {
 		}
 	}
 
-	who := attr.FindName(s.actor).Name("Someone")
+	who := attr.FindName(s.actor).TheName("Someone")
 	who = text.TitleFirst(who)
 
 	s.msg.Participant.SendInfo(who, " studies you.")
