@@ -457,14 +457,21 @@ func (i *Inventory) Free() {
 	if i == nil {
 		return
 	}
+
 	for x, t := range i.contents {
 		i.contents[x] = nil
 		t.Free()
 	}
+	i.contents = i.contents[:0]
+	i.split = 0
+	i.playerCount = 0
+
 	for x, t := range i.disabled {
 		i.disabled[x] = nil
 		t.Free()
 	}
+	i.contents = i.disabled[:0]
+
 	i.Attribute.Free()
 }
 
