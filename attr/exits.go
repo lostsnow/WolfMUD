@@ -241,7 +241,7 @@ func (e *Exits) AutoUnlink(direction byte) {
 
 // Pre built byte slices for making messages about exits available.
 var (
-	noExits  = []byte("You can see no immediate exits from here.")
+	noExits  = []byte("You can see no immediate exits from here")
 	onlyExit = []byte("The only exit you can see from here is ")
 	seeExits = []byte("You can see exits ")
 	and      = []byte(" and ")
