@@ -1,0 +1,167 @@
+// Copyright 2018 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included with
+// the source code.
+%%
+      Ref: Quiet
+     Zone: Quiet test zone
+   Author: Andrew 'Diddymus' Rolfe
+ Disabled: TRUE
+
+A simple, single room test zone with only a tester to play with items. Note
+that it is recommended to disable all other zones if this zone is enabled.
+%%
+      Ref: L1
+    Start:
+     Name: Fireplace
+  Aliases: TAVERN FIREPLACE
+    Exits:
+Inventory: M7
+
+You are in the corner of the common room in the dragon's breath tavern. A fire
+burns merrily in an ornate fireplace, giving comfort to weary travellers. The
+fire causes shadows to flicker and dance around the room, changing darkness to
+light and back again. To the south the common room continues and east the common
+room leads to the tavern entrance.
+%%
+//
+// MOBILES
+//
+%%
+      Ref: M7
+     Name: a tester
+Inventory:
+    Reset: AFTER→1s
+  OnReset: The tester walks in.
+  Aliases: TESTER
+   Action: AFTER→1s JITTER→1s
+ OnAction: SNEEZE
+         : EXAMINE CHEST
+         : EXAMINE BAG
+         : EXAMINE SACK
+         : EXAMINE BALL
+         : EXAMINE POUCH
+         : GET CHEST
+         : GET CHEST
+         : GET BAG
+         : GET BAG
+         : GET SACK
+         : GET SACK
+         : GET BALL
+         : GET BALL
+         : GET POUCH
+         : GET POUCH
+         : DROP CHEST
+         : DROP BAG
+         : DROP SACK
+         : DROP BALL
+         : DROP POUCH
+         : PUT BALL SACK
+         : PUT BALL BAG
+         : PUT BALL CHEST
+         : PUT BALL POUCH
+         : PUT CHEST SACK
+         : PUT CHEST BAG
+         : PUT CHEST POUCH
+         : PUT BAG SACK
+         : PUT BAG CHEST
+         : PUT BAG POUCH
+         : PUT SACK BAG
+         : PUT SACK CHEST
+         : PUT SACK POUCH
+         : PUT POUCH SACK
+         : PUT POUCH CHEST
+         : PUT POUCH BAG
+         : TAKE BALL SACK
+         : TAKE BALL BAG
+         : TAKE BALL CHEST
+         : TAKE BALL POUCH
+         : TAKE BAG SACK
+         : TAKE BAG CHEST
+         : TAKE BAG POUCH
+         : TAKE SACK BAG
+         : TAKE SACK CHEST
+         : TAKE SACK POUCH
+         : JUNK BALL
+         : JUNK BAG
+         : JUNK SACK
+         : JUNK CHEST
+         : JUNK POUCH
+         : JUNK TESTER
+
+This is a tester, ready to try and break anything and everything for you.
+%%
+//
+// OBJECTS
+//
+%%
+     Ref: O1
+    Name: a curious brass lattice
+ Aliases: LATTICE
+   Reset: AFTER→1s JITTER→1s
+Location: L1
+    Veto: JUNK→The lattice cannot be junked.
+
+This is a finely crafted, intricate lattice of fine brass wires forming a
+roughly ball shaped curiosity.
+%%
+      Ref: O2
+     Name: a small green ball
+  Aliases: BALL
+    Reset: AFTER→1s JITTER→1s
+  OnReset: There is a bright flash and a small green ball appears.
+  Cleanup: AFTER→1s JITTER→1s
+OnCleanup: There is a bright flash and the green ball disappears.
+ Location: L1
+
+This is a small, green, rubber ball.
+%%
+     Ref: O3
+    Name: a small red ball
+ Aliases: BALL
+   Reset: AFTER→1s JITTER→1s SPAWN
+ Cleanup: AFTER→1s
+Location: O4A
+
+This is a small, red, rubber ball.
+%%
+      Ref: O4
+     Name: an iron bound chest
+  Aliases: CHEST
+    Reset: AFTER→1s JITTER→1s
+  Cleanup: AFTER→1s JITTER→1s
+ Location: L1
+Inventory: O4A
+
+This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick metal
+bands bind it.
+%%
+      Ref: O4A
+     Name: a small leather pouch
+  Aliases: POUCH
+    Reset: AFTER→1s JITTER→1s
+  Cleanup: AFTER→1s JITTER→1s
+Inventory:
+
+This is a small pouch made of soft dark leather.
+%%
+      Ref: O9
+     Name: a small sack
+  Aliases: SACK
+    Reset: AFTER→1s JITTER→1s SPAWN
+  Cleanup: AFTER→1s JITTER→1s
+ Location: L1
+Inventory:
+
+This is a small sack, handy for carrying things in.
+%%
+      Ref: O10
+     Name: a small bag
+  Aliases: BAG
+    Reset: AFTER→1s JITTER→1s SPAWN
+  Cleanup: AFTER→1s JITTER→1s
+ Location: L1
+Inventory:
+
+This is a small bag, handy for carrying things in.
+%%
