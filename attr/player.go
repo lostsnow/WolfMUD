@@ -34,6 +34,7 @@ type Player struct {
 // Some interfaces we want to make sure we implement
 var (
 	_ has.Player = &Player{}
+	_ has.Vetoes = &Player{}
 )
 
 // NewPlayer returns a new Player attribute initialised with the specified
@@ -129,7 +130,7 @@ func (p *Player) Free() {
 }
 
 // Check will always veto a player being junked.
-func (p *Player) Check(cmd ...string) has.Veto {
+func (p *Player) Check(actor has.Thing, cmd ...string) has.Veto {
 	if cmd[0] == "JUNK" {
 		return NewVeto(cmd[0], "You can't junk "+FindName(p.Parent()).Name("Someone")+"!")
 	}
