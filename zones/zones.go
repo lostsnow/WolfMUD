@@ -140,6 +140,13 @@ func loadZone(path string) zone {
 			z.ref = decode.Keyword(ref)
 		}
 
+		if disabled, ok := jar[0]["DISABLED"]; ok {
+			if decode.Boolean(disabled) {
+				log.Printf("Disabled %s: %s (%s)", filename, z.name, z.ref)
+				return z
+			}
+		}
+
 		// Zone record finished with so dispose of it
 		jar = jar[1:]
 	}

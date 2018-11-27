@@ -29,6 +29,7 @@ DESCRIPTION
           Ref: ZINARA
          Zone: City of Zinara
        Author: Andrew 'Diddymus' Rolfe
+     Disabled: FALSE
 
     This is the city of Zinara.
     %%
@@ -128,6 +129,12 @@ ZONE HEADER RECORD
 
   AUTHOR: <STRING>
     The name of the author of the zone.
+
+  DISABLED: <BOOLEAN>
+    Setting this to true, or leaving it unset, will prevent the zone from
+    being loaded. Useful for zones under development or for switching between
+    zone files for special occasions. If the field is omitted it is the
+    equivalent of specifically specifying false. The default value is false.
 
   REF: <KEYWORD>
     REF is a reference to the zone. The reference should be unique for each
