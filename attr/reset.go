@@ -127,9 +127,13 @@ func (r *Reset) Reset() {
 		return
 	}
 
-	// Register for reset cancelling any outstanding resets
+	// Cancel any outstanding reset
 	r.Abort()
-	r.Cancel = event.Queue(r.Parent(), "$RESET", r.after, r.jitter)
+
+	// Schedule reset. For a $RESET the actor is where the reset will take place.
+	what := r.Parent()
+	actor := FindLocate(what).Where().Parent()
+	r.Cancel = event.Queue(actor, "$RESET "+what.UID(), r.after, r.jitter)
 }
 
 // Abort causes an outstanding reset event to be cancelled for the parent

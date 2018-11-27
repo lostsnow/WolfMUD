@@ -7,14 +7,14 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/message"
 )
 
-// Syntax: $RESET
+// Syntax: $RESET <unique-alias>
 //
-// NOTE: The item will be 'out of play' so that we cannot find it by searching
-// inventories for a passed alias. The only reference we have to it is the
-// actor. This means that we cannot pass a unique alias to $RESET. As a
-// consequence only a Thing can reset itself.
+// For the $RESET command the actor should be the Thing with the Inventory
+// where the disabled Thing with the unique ID to reset is located.
 func init() {
 	addHandler(reset{}, "$reset")
 }
@@ -23,27 +23,51 @@ type reset cmd
 
 func (reset) process(s *state) {
 
-	// Find Inventory where reset is going to take place and make sure we are
-	// locking it.
-	//
-	// TODO: Now we are using Inventory disabling is this check still required?
-	origin := attr.FindLocate(s.actor).Origin()
-	if !s.CanLock(origin) {
-		s.AddLock(origin)
+	// Actor may be stale due to event queuing, so do some sanity checking. If a
+	// Thing has no attributes at all it is likely to have been freed and we have
+	// a stale reference. This can occur with nested containers where the parent
+	// gets cleaned up or reset. If actor is stale just return.
+	if len(s.actor.Attrs()) == 0 {
 		return
 	}
 
-	or := attr.FindOnReset(s.actor)
+	// Find where reset will happen. We cannot use s.where as we want the actor's
+	// inventory, not where the actor is. If we can't find where, maybe we are in
+	// a container that has already been reset, all we can do is exit.
+	where := attr.FindInventory(s.actor)
+	if !where.Found() {
+		return
+	}
+
+	// Make sure we are locking where reset will happen
+	if !s.CanLock(where) {
+		s.AddLock(where)
+		return
+	}
+
+	// Find disabled Thing to be reset, if not found just return
+	var what has.Thing
+	for _, t := range where.Disabled() {
+		if t.UID() == s.words[0] {
+			what = t
+			break
+		}
+	}
+	if what == nil {
+		return
+	}
+
+	or := attr.FindOnReset(what)
 	msg := or.ResetText()
 
-	to, p := origin, origin.Parent()
+	to, p := where, where.Parent()
 	e := attr.FindExits(p)
 
 	// Reset will not be seen if it does not happen in a location and we have no
-	// message. The reset  will also not be seen if we specifically have an empty
-	// message. In both cases just silently add the Thing.
+	// message. The reset will also not be seen if we specifically have an empty
+	// message. In both cases just silently reset the Thing.
 	if (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
-		origin.Enable(s.actor)
+		where.Enable(what)
 		s.ok = true
 		return
 	}
@@ -67,7 +91,7 @@ func (reset) process(s *state) {
 	}
 
 	// Setup default message
-	name := attr.FindName(s.actor).Name("something")
+	name := attr.FindName(what).Name("something")
 	def := "You notice " + name + " that you didn't see before."
 
 	// Use default message if we don't have one
@@ -82,14 +106,16 @@ func (reset) process(s *state) {
 	}
 
 	// On the off chance that players may be in the container itself we send them
-	// just the default message.
-	if origin != to && origin.Players() && !origin.Crowded() {
-		s.msg.Observers[origin].SendInfo(def)
+	// just the default message. We need to manually allocate a buffer as we only
+	// get buffers for the outermost inventories automatically when locking.
+	if where != to && where.Players() && !where.Crowded() {
+		s.msg.Observers[where] = message.AcquireBuffer()
+		s.msg.Observers[where].SendInfo(def)
 	}
 
-	attr.FindReset(s.actor).Abort()
-	origin.Enable(s.actor)
-	attr.FindAction(s.actor).Action()
+	attr.FindReset(what).Abort()
+	where.Enable(what)
+	attr.FindAction(what).Action()
 
 	s.ok = true
 }

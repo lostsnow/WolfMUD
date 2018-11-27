@@ -139,13 +139,18 @@ func (c *Cleanup) Cleanup() {
 		return
 	}
 
-	// Cancel any outstanding clean ups
+	// Cancel any outstanding clean up
 	c.Abort()
 
-	// If no parent's have a clean up scheduled, schedule our own.
+	// If no parent Inventory have a clean up scheduled, schedule for reset. By
+	// checking the parents we can put items into containers that have not been
+	// moved yet and have the items cleaned up. If a container has been moved,
+	// the item will be cleaned up when the parent container is cleaned up. For a
+	// $CLEANUP the actor is where the clean up will take place.
 	if !c.Active() {
-		p := c.Parent()
-		c.Cancel = event.Queue(p, "$CLEANUP", c.after, c.jitter)
+		what := c.Parent()
+		actor := FindLocate(what).Where().Parent()
+		c.Cancel = event.Queue(actor, "$CLEANUP "+what.UID(), c.after, c.jitter)
 	}
 }
 

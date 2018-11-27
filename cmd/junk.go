@@ -141,7 +141,7 @@ func (j junk) dispose(t has.Thing) {
 	// force a reset. The reset will happen almost immediately and players will
 	// see any relevant reset messages.
 	if !r.Found() {
-		event.Queue(t, "$RESET", 0, 0)
+		event.Queue(o.Parent(), "$RESET "+t.UID(), 0, 0)
 		return
 	}
 
