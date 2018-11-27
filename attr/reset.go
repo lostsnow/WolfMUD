@@ -128,9 +128,7 @@ func (r *Reset) Reset() {
 	}
 
 	// Register for reset cancelling any outstanding resets
-	if r.Cancel != nil {
-		close(r.Cancel)
-	}
+	r.Abort()
 	r.Cancel = event.Queue(r.Parent(), "$RESET", r.after, r.jitter)
 }
 
