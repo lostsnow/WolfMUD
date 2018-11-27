@@ -299,7 +299,7 @@ func (s *state) CanLock(i has.Inventory) bool {
 // avoid deadlocks. By using this method the lock list can easily be iterated
 // via a range and in the correct sequence required.
 //
-// This method uses a version of an online straight insertion sort. For the
+// This method uses a version of an inline straight insertion sort. For the
 // vast majority of cases we are only dealing with 1 or 2 locks. Actions in the
 // same location like get, drop, examine, etc. only require 1 lock. Moving from
 // one location to another location requires 2 locks. Having more that 2 locks
