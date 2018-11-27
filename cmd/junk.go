@@ -112,6 +112,9 @@ func (j junk) vetoed(actor has.Thing, t has.Thing) bool {
 // a reset will be scheduled.
 func (j junk) dispose(t has.Thing) {
 
+	attr.FindAction(t).Abort()
+	attr.FindCleanup(t).Abort()
+
 	// Recurse into inventories and dispose of the content
 	for _, c := range attr.FindInventory(t).Contents() {
 		j.dispose(c)
@@ -121,9 +124,6 @@ func (j junk) dispose(t has.Thing) {
 	w := l.Where()
 	o := l.Origin()
 	r := attr.FindReset(t)
-
-	attr.FindAction(t).Abort()
-	attr.FindCleanup(t).Abort()
 
 	// If Thing is collectable remove it and free for garbage collection
 	if t.Collectable() {
