@@ -61,6 +61,18 @@ func FindVetoes(t has.Thing) has.Vetoes {
 	return (*Vetoes)(nil)
 }
 
+// FindAllVetoes searches the attributes of the specified Thing for attributes
+// that implement has.Vetoes returning all that match. If no matches are found
+// an empty slice will be returned.
+func FindAllVetoes(t has.Thing) (matches []has.Vetoes) {
+	for _, a := range t.Attrs() {
+		if a, ok := a.(has.Vetoes); ok {
+			matches = append(matches, a)
+		}
+	}
+	return
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (v *Vetoes) Found() bool {
 	return v != nil
