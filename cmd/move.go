@@ -42,16 +42,6 @@ func (move) process(s *state) {
 		return
 	}
 
-	// Check direction is not vetoed by any narratives here. Currently We only
-	// check narratives for performance reasons.
-	canVeto := from.Narratives()
-	for _, t := range canVeto {
-		if veto := attr.FindVetoes(t).Check(s.actor, s.cmd); veto != nil {
-			s.msg.Actor.SendBad(veto.Message())
-			return
-		}
-	}
-
 	wayToGo := exits.ToName(direction)
 
 	// Find out where our exit leads to
@@ -67,6 +57,17 @@ func (move) process(s *state) {
 	if !s.CanLock(to) {
 		s.AddLock(to)
 		return
+	}
+
+	// Check direction is not vetoed by any narratives here. The check can be
+	// expensive so we do it after relocking the destination so it is only
+	// performed once.
+	canVeto := from.Narratives()
+	for _, t := range canVeto {
+		if veto := attr.FindVetoes(t).Check(s.actor, s.cmd); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
 	}
 
 	// Move us from where we are to our new location
