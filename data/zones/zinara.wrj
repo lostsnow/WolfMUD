@@ -38,7 +38,7 @@ is the glow of a fire.
      Name: Tavern entrance
   Aliases: TAVERN ENTRANCE
     Exits: E→L5 S→L4 SW→L2 W→L1
-Inventory: L3N1 M5
+Inventory: L3N1
 
 You are in the entryway to the dragon's breath tavern. To the west you see an
 inviting fireplace and south an even more inviting bar. Eastward a door leads
@@ -358,7 +358,7 @@ south it leads into the street.
      Name: Dim alley
   Aliases: ALLEY
     Exits: N→L40 S→L38
-Inventory: L39N1
+Inventory: L39N1 M5
 
 You are in a dim alley full of rubbish. The alley continues north and south.
 %%
@@ -367,6 +367,7 @@ You are in a dim alley full of rubbish. The alley continues north and south.
   Aliases: ALLEY
     Exits: S→L39 W→L41
 Inventory: L40N1
+  Barrier: EXIT→W DENY→CREATURE
 
 You are in a dim alley full of rubbish. Here the alley bends to the south and to
 the west.
@@ -832,21 +833,17 @@ one of its own.
 %%
      Ref: M5
     Name: a small mouse
-   Alias: MOUSE
+   Alias: MOUSE CREATURE
    Reset: AFTER→1m
  OnReset: A small mouse scurries into view.
-  Action: AFTER→3s JITTER→3s
+  Action: AFTER→15s JITTER→15s
 OnAction: $ACT squeaks.
         : $ACT washes its face with its paws.
         : $ACT sniffs around.
         : N
-        : NE
         : E
-        : SE
         : S
-        : SW
         : W
-        : NW
 
 This is a small, furry, grey mouse.
 %%
