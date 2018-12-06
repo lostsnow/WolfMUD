@@ -65,10 +65,11 @@ To the east the smells of a bakery taunt you. To the west the entrance to a
 tavern. A sign outside the tavern proclaims it to be the "Dragon's Breath". The
 street continues to the north and south.
 %%
-    Ref: L6
-   Name: Bakery
-Aliases: BAKERY
-  Exits: W→L5
+      Ref: L6
+     Name: Bakery
+  Aliases: BAKERY
+    Exits: W→L5
+Inventory: M13
 
 You are standing in a bakery. Low trestle tables show an array of fresh breads,
 biscuits and pastries. The amazing smells wafting around are sadly beyond
@@ -84,10 +85,11 @@ You are on a well kept cobbled street that runs to the north and south. To the
 east you see a small pawn shop. Southward you see a large fountain in the middle
 of the street. From the north you detect the smells of a bakery.
 %%
-    Ref: L8
-   Name: Pawn shop
-Aliases: PAWNSHOP
-  Exits: W→L7
+      Ref: L8
+     Name: Pawn shop
+  Aliases: PAWNSHOP
+    Exits: W→L7
+Inventory: M16
 
 You are in small pawn shop. All around you every surface, flat or otherwise, is
 covered in junk covered in layers of dust. Now and again you hear soft tinkling
@@ -110,10 +112,11 @@ Aliases: ARMOURER STREET
 You are on a well kept cobbled street that runs east to west. To the east you
 see a large fountain in the street. To the south you see an armoury.
 %%
-    Ref: L11
-   Name: Armoury
-Aliases: ARMOURY
-  Exits: N→L10
+      Ref: L11
+     Name: Armoury
+  Aliases: ARMOURY
+    Exits: N→L10
+Inventory: M15
 
 You are in a small armoury. In the centre of the floor are several stands
 supporting complete suits of armour. Shelving along the walls display various
@@ -128,10 +131,11 @@ Aliases: WEAPONSHOP STREET
 You are on a well kept, cobbled, wide street that runs east to west. To the west
 you see a large fountain in the street. To the south is a shop selling weapons.
 %%
-    Ref: L13
-   Name: Weapon shop
-Aliases: WEAPON SHOP
-  Exits: N→L12
+      Ref: L13
+     Name: Weapon shop
+  Aliases: WEAPON SHOP
+    Exits: N→L12
+Inventory: M14
 
 You are in a small shop selling weapons. Against the walls are racks holding
 large swords and polearms. Smaller hand weapons are displayed on some trestle
@@ -153,10 +157,11 @@ Aliases: TRADINGPOST STREET
 
 You are on a street running east to west. To north is a large trading post.
 %%
-    Ref: L16
-   Name: Trading post
-Aliases: TRADINGPOST SHOP
-  Exits: S→L15
+      Ref: L16
+     Name: Trading post
+  Aliases: TRADINGPOST SHOP
+    Exits: S→L15
+Inventory: M17
 
 You are standing in a large trading post. The only exit is west into the street.
 %%
@@ -999,6 +1004,87 @@ OnAction: $ACT watches you suspiciously.
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
+%%
+     Ref: M13
+    Name: a baker
+   Reset: AFTER→1m
+ OnReset: A baker walks into view.
+ Aliases: BAKER WOMAN LADY NPC
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT starts to make some more pastries.
+        : $ACT puts a fresh batch of cooking out for sale.
+        : $ACT starts sweeping the floor.
+        : SAY Careful dear, some of those are still hot.
+        : SAY What can I tempt you with today?
+        : SAY It all smells so lovely!
+        : EXAMINE PLAYER
+
+This is a very jolly looking, if some what rotund lady. Maybe her cooking is
+so good it's irresistible.
+%%
+     Ref: M14
+    Name: the bladesmith
+   Reset: AFTER→1m
+ OnReset: The bladesmith walks into view.
+ Aliases: BAKER MAN NPC
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT watches you as you browse around the shop.
+        : $ACT tidies up a few odd items.
+        : $ACT works at honing the blade of a dagger.
+        : $ACT watches you idly while tossing a small blade up and down.
+        : SAY See anything you like?
+        : EXAMINE PLAYER
+
+The shopkeeper is a small balding man with glasses. Like all good shopkeepers
+he wears an apron.
+%%
+     Ref: M15
+    Name: the armourer
+   Reset: AFTER→1m
+ OnReset: An armourer walks into view.
+ Aliases: ARMOURER MAN NPC
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT watches you as you browse around the shop.
+        : $ACT starts to polish some plate mail while keeping an eye on you.
+        : $ACT starts to whistle and hum softly to himself.
+        : $ACT starts making some adjustments to some leather padding.
+        : SAY See anything you like?
+        : EXAMINE PLAYER
+
+The Armourer is of a rough looking sort.
+%%
+     Ref: M16
+    Name: a little old lady
+   Reset: AFTER→1m
+ OnReset: A little old lady walks into view.
+ Aliases: LADY NPC
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT watches you as you browse around her shop.
+        : $ACT starts to tidy away some newer items.
+        : $ACT starts sweeping the floor.
+        : $ACT idly dusts a few random items.
+        : $ACT tidies up some of the junk laying around.
+        : SAY Please don't touch dear.
+        : SAY If you break anything you still pay for it.
+        : SAY See anything you like?
+        : EXAMINE PLAYER
+
+This is a little old lady. The sort everyone wants as the grandmother.
+%%
+     Ref: M17
+    Name: Hewman the trader
+   Reset: AFTER→1m
+ OnReset: Hewman the trader walks into view.
+ Aliases: HEWMAN TRADER NPC
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT looks at you, then quickly looks away again.
+        : $ACT walks around the store a bit keeping an eye on things.
+        : $ACT cautiously watches you as you browse around the store.
+        : $ACT starts sweeping the floor.
+        : SAY See anything you like?
+        : EXAMINE PLAYER
+
+This is a very large, serious looking man.
 %%
 //
 // OBJECTS
