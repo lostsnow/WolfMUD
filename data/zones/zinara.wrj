@@ -505,7 +505,7 @@ west you see a small gate house, south the way leads into the city.
   Exits: N→L26 S→L59
 
 You are in a narrow alley that continues south. North you see a street beyond
-the ally's end.
+the alley's end.
 %%
     Ref: L59
    Name: Alley
@@ -513,7 +513,7 @@ the ally's end.
   Exits: N→L58 S→L60
 
 You are in a narrow alley that continues north. South you see a street beyond
-the ally's end.
+the alley's end.
 %%
     Ref: L60
    Name: Street
