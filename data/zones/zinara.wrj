@@ -851,7 +851,7 @@ This is a small, furry, grey mouse.
     Name: the barkeep
    Reset: AFTER→1s
  OnReset: The barkeep walks in.
- Aliases: BARKEEP MAN
+ Aliases: BARKEEP MAN NPC
   Action: AFTER→30s JITTER→30s
 OnAction: $ACT picks up a glass and wipes it with a rag.
         : $ACT smears the top of the bar with a rag.
@@ -876,7 +876,7 @@ Always ready to listen to a drinking patron, dispensing advice when required.
     Name: a sweet flower girl
    Reset: AFTER→1s
  OnReset: A flower girl walks in.
- Aliases: FLOWERGIRL GIRL
+ Aliases: FLOWERGIRL GIRL NPC
   Action: AFTER→30s JITTER→30s
 OnAction: $ACT looks around for someone to sell flowers to.
         : $ACT looks at you with pleading eyes.
@@ -909,7 +909,7 @@ This is a giant spider. It's black, hairy and looks very dangerous.
     Name: a street vendor
    Reset: AFTER→1m
  OnReset: A street vendor walks in.
- Aliases: VENDOR MAN
+ Aliases: VENDOR MAN NPC
   Action: AFTER→30s JITTER→15s
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
