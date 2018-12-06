@@ -141,7 +141,7 @@ tables.
      Name: Crossroads
   Aliases: CROSSROADS
     Exits: N→L45 E→L15 S→L5 W→L17
-Inventory: M9
+Inventory: M9 M11
 
 You are at the crossing of two streets. One street runs east to west and the
 other north to south.
@@ -194,10 +194,11 @@ You are standing on the west side of an incomplete bridge. By the looks of it
 the city wants to expand onto the far banks of the river. Down river to the
 south you see another bridge in a similar state of construction.
 %%
-    Ref: L21
-   Name: Street by south bridge
-Aliases: STREET
-  Exits: N→L44 E→L22 W→L12
+      Ref: L21
+     Name: Street by south bridge
+  Aliases: STREET
+    Exits: N→L44 E→L22 W→L12
+Inventory: M12
 
 You are at a junction in the street. To the east you see the south bridge over
 the city's river. North a path leads along the riverbank. West the street goes
@@ -237,10 +238,11 @@ Aliases: STREET
 You are on a street that runs to the east and to the west. To the north looms a
 dark alley.
 %%
-    Ref: L26
-   Name: Street outside city gardens
-Aliases: STREET
-  Exits: E→L25 W→L27 S→L58
+      Ref: L26
+     Name: Street outside city gardens
+  Aliases: STREET
+    Exits: E→L25 W→L27 S→L58
+Inventory: M12
 
 You are at the end of a street that leads west to the city gardens. To the south
 is a narrow alley. East the street leads back into the main city.
@@ -494,10 +496,12 @@ tower rising above the city.
 
 You are on a street that runs from the northern city gates south into the city.
 %%
-    Ref: L57
-   Name: North gate of Zinara
-  Alias: NORTHGATE
-  Exits: S→L56 W→L70
+      Ref: L57
+     Name: North gate of Zinara
+    Alias: NORTHGATE
+    Exits: S→L56 W→L70
+Inventory: M10
+  Barrier: EXIT→S DENY→GATEWARDEN
 
 You are standing before the huge northern gates of the city of Zinara. To the
 west you see a small gate house, south the way leads into the city.
@@ -531,6 +535,7 @@ alley.
     Alias: STREET
     Exits: N→L65 E→L60 W→L62
   Barrier: EXIT→N DENY→CREATURE
+Inventory: M12
 
 You are on a street outside the warrior's barracks. The entrance to the barracks
 is north while the street outside runs east and west.
@@ -549,10 +554,12 @@ You are on a street running east and west.
 
 You are on a street that runs from the western city gates east into the city.
 %%
-    Ref: L64
-   Name: West gate of Zinara
-  Alias: WESTGATE
-  Exits: E→L63 S→L72
+      Ref: L64
+     Name: West gate of Zinara
+    Alias: WESTGATE
+    Exits: E→L63 S→L72
+  Barrier: EXIT→E DENY→GATEWARDEN
+Inventory: M10
 
 You are standing before the huge western gates of the city of Zinara. To the
 south you see a small gate house, east the way leads into the city.
@@ -592,10 +599,19 @@ You are on a street that runs from the southern city gates north into the city.
      Name: South gate of Zinara
     Alias: SOUTHGATE
     Exits: N→L68 E→L71
+Inventory: L69B1 L69B2 M10
 ZoneLinks: S→ZINARASOUTH:L1
 
 You are standing before the huge southern gates of the city of Zinara. To the
 east you see a small gate house, north the way leads into the city.
+%%
+      Ref: L69B1
+Narrative:
+  Barrier: EXIT→S DENY→GATEWARDEN,GUARD
+%%
+      Ref: L69B2
+Narrative:
+  Barrier: EXIT→N DENY→GATEWARDEN
 %%
     Ref: L70
    Name: Gate house
@@ -924,6 +940,65 @@ OnAction: $ACT looks around for passing punters.
         : SAY Hot food! Hot food!
 
 This is a typical, shifty looking street vendor.
+%%
+     Ref: M10
+    Name: a gate warden
+   Reset: AFTER→1m
+ OnReset: A gate warden walks into view.
+ Aliases: GATEWARDEN WARDEN MAN NPC
+  Action: AFTER→15s JITTER→15s
+OnAction: $ACT watches you suspiciously.
+        : $ACT slowly paces backwards and forwards before the gates.
+        : $ACT tries to stifle a yawn.
+        : SAY Mind how you go and keep out of trouble.
+        : SAY I'm watching you.
+        : N
+        : S
+        : E
+        : W
+
+This is one of the gate wardens of the city. His duty is to keep out all
+undesirables from the city.
+%%
+     Ref: M11
+    Name: a city guard
+   Reset: AFTER→1m
+ OnReset: A city guard walks into view.
+ Aliases: CITYGUARD GUARD WOMAN NPC
+  Action: AFTER→15s JITTER→15s
+OnAction: $ACT watches you suspiciously.
+        : $ACT paces up and down a bit.
+        : $ACT cocks one ear, listening for trouble.
+        : SAY Mind how you go and keep out of trouble.
+        : SAY I'm watching you.
+        : N
+        : S
+        : E
+        : W
+        : EXAMINE PLAYER
+
+This is a tip top, smart city guard. Protector of the weak and justice to ill
+doers.
+%%
+     Ref: M12
+    Name: a city guard
+   Reset: AFTER→1m
+ OnReset: A city guard walks into view.
+ Aliases: CITYGUARD GUARD MAN NPC
+  Action: AFTER→15s JITTER→15s
+OnAction: $ACT watches you suspiciously.
+        : $ACT paces up and down a bit.
+        : $ACT cocks one ear, listening for trouble.
+        : SAY Mind how you go and keep out of trouble.
+        : SAY I'm watching you.
+        : N
+        : S
+        : E
+        : W
+        : EXAMINE PLAYER
+
+This is a tip top, smart city guard. Protector of the weak and justice to ill
+doers.
 %%
 //
 // OBJECTS
