@@ -785,7 +785,7 @@ threads of silk.
 %%
      Ref: M1
     Name: a rabbit
-   Alias: RABBIT
+   Alias: RABBIT CREATURE
    Reset: AFTER→1m
  OnReset: A rabbit hops into view.
   Action: AFTER→15s JITTER→15s
@@ -802,7 +802,7 @@ doesn't seem to be late for anything!
 %%
      Ref: M3
     Name: a small frog
-   Alias: FROG
+   Alias: FROG CREATURE
    Reset: AFTER→1m
  OnReset: A frog hops into view.
   Action: AFTER→10s JITTER→20s
@@ -818,7 +818,7 @@ It is a small, lime green frog. It's slimy and croaks. What more can you say?
 %%
      Ref: M4
     Name: the tavern cat
-   Alias: CAT
+   Alias: CAT CREATURE
    Reset: AFTER→1m
  OnReset: A mangy looking cat slinks in and curls up on a chair.
   Action: AFTER→1m JITTER→1m
@@ -893,7 +893,7 @@ This is a sweet little girl selling flowers to make some money.
     Name: a giant spider
    Reset: AFTER→1m
  OnReset: A giant spider crawls in.
- Aliases: SPIDER
+ Aliases: SPIDER CREATURE
   Action: AFTER→15s JITTER→15s
 OnAction: $ACT starts to slowly spin another web.
         : $ACT silently sits amongst the webs, watching.
