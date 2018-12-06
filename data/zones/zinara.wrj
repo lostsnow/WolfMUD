@@ -58,6 +58,7 @@ regular casks of beer, ale, mead, cider and wine behind the bar.
    Name: Street between tavern and bakers
 Aliases: TAVERN BAKERS STREET
   Exits: N→L14 E→L6 S→L7 W→L3
+  Barrier: EXIT→W DENY→CREATURE
 
 You are on a well kept cobbled street. Buildings loom up on either side of you.
 To the east the smells of a bakery taunt you. To the west the entrance to a
@@ -414,6 +415,7 @@ rises up above the city streets.
    Name: Street outside mage's tower
   Alias: STREET
   Exits: N→L55 E→L48 S→L45
+Barrier: EXIT→E DENY→CREATURE
 
 You are on a street that runs north and south. To the east there is an entrance
 to the mage's tower.
@@ -456,6 +458,7 @@ shabby magic shop.
    Name: Street outside temple
   Alias: STREET
   Exits: N→L51 S→L68 W→L53
+Barrier: EXIT→W DENY→CREATURE
 
 You are on a street that runs north and south. To the west is the entrance to a
 modest temple.
@@ -523,10 +526,11 @@ the alley's end.
 You are on a street that runs east and west. To the north you can see a narrow
 alley.
 %%
-    Ref: L61
-   Name: Street outside warrior's barracks
-  Alias: STREET
-  Exits: N→L65 E→L60 W→L62
+      Ref: L61
+     Name: Street outside warrior's barracks
+    Alias: STREET
+    Exits: N→L65 E→L60 W→L62
+  Barrier: EXIT→N DENY→CREATURE
 
 You are on a street outside the warrior's barracks. The entrance to the barracks
 is north while the street outside runs east and west.
