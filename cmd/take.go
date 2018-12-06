@@ -67,7 +67,7 @@ func (take) process(s *state) {
 	// Check container is actually a container with an inventory
 	cWhere := attr.FindInventory(cWhat)
 	if !cWhere.Found() {
-		s.msg.Actor.SendBad("You cannot take anything from ", cName)
+		s.msg.Actor.SendBad("You cannot take anything from ", cName, ".")
 		return
 	}
 
