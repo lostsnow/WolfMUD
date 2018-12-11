@@ -1,0 +1,113 @@
+
+NAME
+
+  WolfMUD zone maps
+
+DESCRIPTION
+
+  This document contains maps for each of the main, stock zones provided with
+  WolfMUD.
+
+CITY OF ZINARA
+
+  This map is for the city of Zinara as provided in the zinara.wrj zone file.
+  When referenced in zone-links it has the mnemonic Z.
+
+
+                                        L70-L57        MAP KEY
+                                             |           # = door
+                                            L56          ± = up & down
+                                             |           § = zone link
+                        L29     L41-L40     L55 L49      S = starting location
+                         |       ±   |       |   |
+                L34-L33-L30     L42 L39     L46-L48
+                     |   |           |       |
+                    L32-L31         L38 L18 L45 L16
+                     |   |           |   |   |   |
+                    L35 L28-L27-L26-L25-L17-L14-L15-L19-S20
+                     |           |           |       |
+                    L36     L66 L58 S01-L03#L05-L06 L43
+                     #       |   |   | X |   |       |
+                    L37     L65 L59 L02-L04 L07-L08 L44
+                             |   |           |       |
+                L64-L63-L62-L61-L60-L24-L10-L09-L12-L21-S22
+                 |                   |   |   |   |
+                L72                 L23 L11 L50 L13
+                                             |
+                                            L51-L67
+                                             |
+                                    L54-L53-L52
+                                             |
+                                            L68
+                                             |
+                                            L69-L71
+                                             §
+                                           SZ:L1
+
+
+SOUTH OF ZINARA
+
+  This map is for the zone south of Zinara as provided in the zinara_south.wrj
+  zone file. When referenced in zone-links it has the mnemonic SZ.
+
+
+                                       Z:L69           MAP KEY
+                                        §                ℓ = loop back to self
+                                       L01               § = zone link
+                                        |
+                                       L02
+                                        |
+                                       L03
+                                        |
+                                       L04
+                                        |
+                                   L09-L05-L07
+                                    |   |   |
+                               L13-L10-L06-L08
+                                |   |   |
+                                §  L11 L12
+                              ZC:L1     ℓ
+
+
+CAVES NEAR ZINARA
+
+  This map is for the caves near Zinara as provided in the zinara_caves.wrj
+  zone file. When referenced in zone-links it has the mnemonic ZC.
+
+
+                            SZ:L13                       MAP KEY
+                              §                     nsewud = one way exit in
+                             L01                             direction given
+                              |                          * = location appears
+                             L02                             multiple times
+                              |                          ± = up & down
+                     !26-L05-L03-L06                     ℓ = loops to self
+                              |   ±                      § = zone link
+                             L04 L07 *25     !12         ! = doesn't exist
+                              |   |d  n       |
+                              |   +-wL08-L09-*10-!11
+                              |       s±      |
+                              |      *25      |  *28
+                              |               sℓ  n
+                              |             ℓL24-*27e*24
+                              |               s   ℓ
+                              |              *10
+                              |
+                             L13-L14         *21
+                                  ±           n   ℓ
+                                 L15        ℓ*23-*28e*27
+                                  ±           nℓ  ℓ
+                                 L16-L17-L19-*21
+                                      |   |   |
+                                     L18-L20-L22
+                                          ±
+                                         L29
+
+
+COPYRIGHT
+
+  Copyright 2018 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+
