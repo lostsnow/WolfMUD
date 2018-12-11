@@ -239,6 +239,7 @@ to the east and west. The entrance to the money changer is to the South.
    Name: Street
 Aliases: STREET
   Exits: N→L38 E→L17 W→L26
+Barrier: EXIT→N DENY→CREATURE
 
 You are on a street that runs to the east and to the west. To the north looms a
 dark alley.
@@ -358,6 +359,7 @@ the north.
   Aliases: ALLEY
     Exits: N→L39 S→L25
 Inventory: L38N1
+  Barrier: EXIT→S DENY→CREATURE
 
 You are in a dim alley full of rubbish. The alley continues northward. To the
 south it leads into the street.
