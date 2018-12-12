@@ -42,7 +42,7 @@ func (get) process(s *state) {
 
 	// Check we have an inventory so we can carry things
 	to := attr.FindInventory(s.actor)
-	if to == nil {
+	if !to.Found() {
 		s.msg.Actor.SendBad("You can't carry anything!")
 		return
 	}
