@@ -339,6 +339,17 @@ func (i *Inventory) Narratives() []has.Thing {
 	return l
 }
 
+// Everything returns all of the narratives and contents of the Inventory. It
+// is a single call equivelent to: append(i.Narratives(), i.Contents()...)
+func (i *Inventory) Everything() []has.Thing {
+	if i == nil {
+		return []has.Thing{}
+	}
+	l := make([]has.Thing, len(i.contents))
+	copy(l, i.contents)
+	return l
+}
+
 func (i *Inventory) Disabled() []has.Thing {
 	if i == nil {
 		return []has.Thing{}
