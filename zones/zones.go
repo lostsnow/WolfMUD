@@ -432,7 +432,7 @@ func checkDoorsHaveOtherSide() {
 		for _, l := range z.locations {
 			i := attr.FindInventory(l)
 			i.Lock()
-			for _, t := range append(i.Contents(), i.Narratives()...) {
+			for _, t := range i.Everything() {
 				if d := attr.FindDoor(t); d.Found() {
 					// Find where door leads to and lock other side before creating the
 					// 'other side' of the door.
@@ -469,7 +469,7 @@ func isParent(p, t has.Thing) bool {
 	// Check t and t's children are not p or one of p's ancestors
 	if !parent(p, t) {
 		if i := attr.FindInventory(t); i.Found() {
-			for _, t := range append(i.Contents(), i.Narratives()...) {
+			for _, t := range i.Everything() {
 				if parent(p, t) {
 					return true
 				}
