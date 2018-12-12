@@ -263,14 +263,8 @@ func (t *Thing) SetOrigins() {
 		return
 	}
 
-	// Set the origin for items in our Inventory including disabled items
-	for _, t := range append(i.Contents(), i.Narratives()...) {
-		if l := FindLocate(t); l.Found() {
-			l.SetOrigin(i)
-		}
-		t.SetOrigins()
-	}
-	for _, t := range i.Disabled() {
+	// Set the origin for everything in our Inventory
+	for _, t := range i.Everything() {
 		if l := FindLocate(t); l.Found() {
 			l.SetOrigin(i)
 		}
