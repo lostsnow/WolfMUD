@@ -62,8 +62,7 @@ func (move) process(s *state) {
 	// Check direction is not vetoed by any Thing here. The check can be
 	// expensive so we do it after relocking the destination so it is only
 	// performed once.
-	canVeto := append(from.Narratives(), from.Contents()...)
-	canVeto = append(canVeto, from.Parent())
+	canVeto := append(from.Everything(), from.Parent())
 	for _, t := range canVeto {
 		for _, vetoes := range attr.FindAllVetoes(t) {
 			if veto := vetoes.Check(s.actor, s.cmd); veto != nil {
