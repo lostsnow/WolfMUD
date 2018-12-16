@@ -272,6 +272,33 @@ func (t *Thing) SetOrigins() {
 	}
 }
 
+// ClearOrigins sets the origin for the Thing to nil and recursivly sets the
+// origins to nil for the content of a Thing's Inventory if it has one.
+func (t *Thing) ClearOrigins() {
+	if t == nil {
+		return
+	}
+
+	// Clear our origin
+	if l := FindLocate(t); l.Found() {
+		l.SetOrigin(nil)
+	}
+
+	// Find our Inventory
+	i := FindInventory(t)
+	if !i.Found() {
+		return
+	}
+
+	// Clear the origin for items in our Inventory
+	for _, t := range i.Everything() {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(nil)
+		}
+		t.ClearOrigins()
+	}
+}
+
 // Collectable returns true if a Thing can be kept by a player, otherwise
 // returns false. This is a helper routine so that the definition of what is
 // considered collectable can be easily changed.

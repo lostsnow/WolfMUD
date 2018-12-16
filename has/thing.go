@@ -40,6 +40,10 @@ type Thing interface {
 	// one.
 	SetOrigins()
 
+	// ClearOrigins sets the origin for the Thing to nil and recursivly sets the
+	// origins to nil for the content of a Thing's Inventory if it has one.
+	ClearOrigins()
+
 	// Collectable returns true if a Thing can be kept by a player, otherwise
 	// returns false.
 	Collectable() bool
