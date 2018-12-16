@@ -280,7 +280,6 @@ func (i *Inventory) Disable(t has.Thing) {
 			i.contents[len(i.contents)-1] = nil
 			i.contents = i.contents[:len(i.contents)-1]
 			i.disabled = append(i.disabled, t)
-			FindLocate(t).SetWhere(i)
 
 			// If Thing removed was a Narrative adjust Narrative/Thing split
 			if FindNarrative(t).Found() {
