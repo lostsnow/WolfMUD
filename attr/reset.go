@@ -158,11 +158,12 @@ func (r *Reset) Spawn() has.Thing {
 		return nil
 	}
 
-	// Make a copy of original Thing, update origins of the copy to point to any
-	// copied Inventories
+	// Make a copy of original Thing, clear the origins of it and it's content so
+	// that it will all be disposed of when cleaned up - it is only the original
+	// that respawns.
 	p := r.Parent()
 	c := p.Copy()
-	c.SetOrigins()
+	c.ClearOrigins()
 
 	// Disable original Thing and register a reset for it
 	o := FindLocate(p).Origin()
@@ -174,10 +175,8 @@ func (r *Reset) Spawn() has.Thing {
 	c.Remove(R)
 	R.Free()
 
-	// Set origin of copy to nil so it will be disposed of when cleaned up as it
-	// is the original that respawns. Then add copy back into the world.
+	// Add copy back into the world
 	l := FindLocate(c)
-	l.SetOrigin(nil)
 	l.Where().Add(c)
 	l.Where().Enable(c)
 
