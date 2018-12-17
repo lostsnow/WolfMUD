@@ -78,11 +78,14 @@ func (*Locate) Marshal() (string, []byte) {
 
 func (l *Locate) Dump() (buf []string) {
 	origin := "Nowhere"
+	where := "Nowhere"
 	l.rwmutex.RLock()
-	if l.origin != nil {
-		origin = FindName(l.origin.Parent()).Name("Nowhere")
+	if l.origin != nil && l.origin.Found() {
+		origin = FindName(l.origin.Parent()).Name("no name!")
 	}
-	where := FindName(l.where.Parent()).Name("Nowhere")
+	if l.where != nil && l.where.Found() {
+		where = FindName(l.where.Parent()).Name("no name!")
+	}
 	buf = append(buf, DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where))
 	l.rwmutex.RUnlock()
 	return
