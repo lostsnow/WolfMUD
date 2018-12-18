@@ -506,7 +506,11 @@ func linkupZones() {
 				}
 
 				// Check direction is valid
+				fInv := attr.FindInventory(loc)
+				fInv.Lock()
 				from := attr.FindExits(loc)
+				fInv.Unlock()
+
 				ndir, err := from.NormalizeDirection(dir)
 				if err != nil {
 					log.Printf("Cannot zonelink from zone: %s ref: %s, invalid direction: %s", fzref, flref, dir)
@@ -526,8 +530,12 @@ func linkupZones() {
 						continue
 					}
 
+					fInv.Lock()
 					to := attr.FindInventory(zones[tzref].locations[tlref])
+					to.Lock()
 					from.Link(ndir, to)
+					to.Unlock()
+					fInv.Unlock()
 				}
 			}
 		}
