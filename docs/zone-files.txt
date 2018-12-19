@@ -521,6 +521,17 @@ ZONE RECORDS
     If added to the definition of 'a magical stone' this would prevent it from
     being taken or examined, giving the specified reasons for each.
 
+    There are two additional pseudo commands that can be vetoed by containers:
+    PUTIN and TAKEOUT. If PUTIN is vetoed on a container then items cannot be
+    put in to it. If TAKEOUT is vetoed on a container then no items can be
+    removed from it. Individual items can still veto PUT/TAKE on a per item
+    basis.
+
+    Use of PUTIN and TAKEOUT allow for 'one-way' containers. An example of
+    PUTIN might be a vending machine you can only take things from. An example
+    of TAKEOUT might be a rubbish bin you can only put things into but not
+    remove.
+
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored
     by different people, which are then linked together using ZONELINKS. Using

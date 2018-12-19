@@ -88,16 +88,20 @@ func (take) process(s *state) {
 		return
 	}
 
-	// Check for veto on item being taken
-	if veto := attr.FindVetoes(tWhat).Check(s.actor, "TAKE", "GET"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check take is not vetoed by item
+	for _, vetoes := range attr.FindAllVetoes(tWhat) {
+		if veto := vetoes.Check(s.actor, "TAKE"); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
 	}
 
-	// Check for veto on container
-	if veto := attr.FindVetoes(cWhat).Check(s.actor, "TAKE"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check taking things out of container not vetoed by container
+	for _, vetoes := range attr.FindAllVetoes(cWhat) {
+		if veto := vetoes.Check(s.actor, "TAKEOUT"); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
 	}
 
 	// If item is a narrative we can't take it. We do this check after the veto

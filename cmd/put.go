@@ -78,16 +78,20 @@ func (put) process(s *state) {
 		return
 	}
 
-	// Check for veto on item being put into container
-	if veto := attr.FindVetoes(tWhat).Check(s.actor, "DROP", "PUT"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check put is not vetoed by item
+	for _, vetoes := range attr.FindAllVetoes(tWhat) {
+		if veto := vetoes.Check(s.actor, "PUT"); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
 	}
 
-	// Check for veto on container
-	if veto := attr.FindVetoes(cWhat).Check(s.actor, "PUT"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check putting things into the container not vetoed by container
+	for _, vetoes := range attr.FindAllVetoes(cWhat) {
+		if veto := vetoes.Check(s.actor, "PUTIN"); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
 	}
 
 	// Remove item from where it is and put it in the container
