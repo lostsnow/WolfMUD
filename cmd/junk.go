@@ -62,9 +62,11 @@ func (j junk) process(s *state) {
 	}
 
 	// Check junking is not vetoed by the item
-	if veto := attr.FindVetoes(what).Check(s.actor, "JUNK"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	for _, vetoes := range attr.FindAllVetoes(what) {
+		if veto := vetoes.Check(s.actor, s.cmd); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
 	}
 
 	// Check if item is an Inventory. If it is check recusivly if its content can
@@ -97,8 +99,10 @@ func (j junk) lockOrigins(s *state, t has.Thing) {
 // JUNK command returns true otherwise returns false.
 func (j junk) vetoed(actor has.Thing, t has.Thing) bool {
 	for _, t := range attr.FindInventory(t).Contents() {
-		if attr.FindVetoes(t).Check(actor, "JUNK") != nil {
-			return true
+		for _, veto := range attr.FindAllVetoes(t) {
+			if veto.Check(actor, "JUNK") != nil {
+				return true
+			}
 		}
 		if j.vetoed(actor, t) {
 			return true
