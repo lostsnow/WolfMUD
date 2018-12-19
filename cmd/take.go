@@ -127,6 +127,5 @@ func (take) process(s *state) {
 
 	s.msg.Actor.SendGood("You take ", tName, " from ", cName, ".")
 	s.msg.Observer.SendInfo("You see ", who, " take something from ", cName, ".")
-
 	s.ok = true
 }

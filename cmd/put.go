@@ -104,7 +104,6 @@ func (put) process(s *state) {
 	}
 
 	s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
-
 	s.msg.Observer.SendInfo("You see ", who, " put something into ", cName, ".")
 	s.ok = true
 }
