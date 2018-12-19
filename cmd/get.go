@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Syntax: GET item
@@ -50,16 +51,15 @@ func (get) process(s *state) {
 	// Get item's proper name
 	name = attr.FindName(what).Name(name)
 
-	// Check the get is not vetoed by the item
-	if veto := attr.FindVetoes(what).Check(s.actor, "GET"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
-	}
-
-	// Check the get is not vetoed by the parent of the item's inventory
-	if veto := attr.FindVetoes(s.where.Parent()).Check(s.actor, "GET"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check get is not vetoed by item, item's current inventory or receiving
+	// inventory
+	for _, t := range []has.Thing{what, s.where.Parent(), s.actor} {
+		for _, vetoes := range attr.FindAllVetoes(t) {
+			if veto := vetoes.Check(s.actor, s.cmd); veto != nil {
+				s.msg.Actor.SendBad(veto.Message())
+				return
+			}
+		}
 	}
 
 	// If item is a narrative we can't get it. We do this check after the veto
