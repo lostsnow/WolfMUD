@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -43,16 +44,15 @@ func (drop) process(s *state) {
 		return
 	}
 
-	// Check the drop is not vetoed by the item
-	if veto := attr.FindVetoes(what).Check(s.actor, "DROP"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
-	}
-
-	// Check the drop is not vetoed by the receiving inventory
-	if veto := attr.FindVetoes(s.where.Parent()).Check(s.actor, "DROP"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check drop is not vetoed by item, item's current inventory or receiving
+	// inventory
+	for _, t := range []has.Thing{what, s.actor, s.where.Parent()} {
+		for _, vetoes := range attr.FindAllVetoes(t) {
+			if veto := vetoes.Check(s.actor, s.cmd); veto != nil {
+				s.msg.Actor.SendBad(veto.Message())
+				return
+			}
+		}
 	}
 
 	// Get item's proper name
