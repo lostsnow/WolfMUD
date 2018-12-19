@@ -49,18 +49,6 @@ func NewVetoes(veto ...has.Veto) *Vetoes {
 	return vetoes
 }
 
-// FindVetoes searches the attributes of the specified Thing for attributes
-// that implement has.Vetoes returning the first match it finds or a *Vetoes
-// typed nil otherwise.
-func FindVetoes(t has.Thing) has.Vetoes {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Vetoes); ok {
-			return a
-		}
-	}
-	return (*Vetoes)(nil)
-}
-
 // FindAllVetoes searches the attributes of the specified Thing for attributes
 // that implement has.Vetoes returning all that match. If no matches are found
 // an empty slice will be returned.
