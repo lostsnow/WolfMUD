@@ -48,12 +48,6 @@ func (put) process(s *state) {
 	// Search ourselves for container to put something into
 	cWhat := tWhere.Search(cName)
 
-	// If container not found and we are not somewhere we're not going to find it
-	if cWhat == nil && s.where == nil {
-		s.msg.Actor.SendBad("There is no '", cName, "' to put ", tName, " into.")
-		return
-	}
-
 	// If container not found search the inventory where we are
 	if cWhat == nil {
 		cWhat = s.where.Search(cName)

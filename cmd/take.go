@@ -43,13 +43,6 @@ func (take) process(s *state) {
 	// Search inventory for the container
 	cWhat := tWhere.Search(cName)
 
-	// If we have not foun the container and we are nowhere we are not going to
-	// find the container so bail early
-	if cWhat == nil && s.where == nil {
-		s.msg.Actor.SendBad("You see no '", cName, "' to take anything from.")
-		return
-	}
-
 	// If container not found yet search where we are
 	if cWhat == nil {
 		cWhat = s.where.Search(cName)
