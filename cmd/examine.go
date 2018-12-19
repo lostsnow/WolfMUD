@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -40,10 +41,14 @@ func (examine) process(s *state) {
 		return
 	}
 
-	// Check examine is not vetoed by item
-	if veto := attr.FindVetoes(what).Check(s.actor, "EXAMINE", "EXAM"); veto != nil {
-		s.msg.Actor.SendBad(veto.Message())
-		return
+	// Check examine is not vetoed by item or location
+	for _, t := range []has.Thing{what, s.where.Parent()} {
+		for _, vetoes := range attr.FindAllVetoes(t) {
+			if veto := vetoes.Check(s.actor, "EXAMINE", "EXAM"); veto != nil {
+				s.msg.Actor.SendBad(veto.Message())
+				return
+			}
+		}
 	}
 
 	// Get item's proper name
