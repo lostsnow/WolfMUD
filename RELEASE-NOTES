@@ -11,77 +11,77 @@ v0.0.12 Released Sunday 23rd December, 2018
 
 Added
 
-	- Name attributed gained TheName method for producing better messages.
-	- Additional sanity checking added to $CLEANUP command.
-	- Zones can be disabled and preventing from loading by using the new DISABLED
-		field in the zone header.
-	- New quiet.wrj zone added for testing, disabled by default.
-	- Barrier attribute allowing creation of conditional barriers preventing
-		mobiles from moving in a given direction based on a mobile's aliases.
-	- Barriers added to stop mobiles with CREATURE alias from entering certain
-		areas in zinara.wrj zone.
-	- City guards and gate wardens added to zinara.wrj zone.
-	- Shopkeepers (non-functional) added to zinara.wrj zone.
-	- Maps added in docs/zone-maps.txt for main, stock zones.
-	- attr.Inventory.Everything method added, equivelent to separate Content and
-		Narratives calls but more efficient.
-	- New ClearOrigins method added to attr.Thing type.
-	- Added checks for PUTIN/TAKEOUT pseudo commands for PUT/TAKE command veto
-		checking. This allows for one-way containers to be created where you can
-		only put things into or take things from a container.
+  - Name attributed gained TheName method for producing better messages.
+  - Additional sanity checking added to $CLEANUP command.
+  - Zones can be disabled and preventing from loading by using the new DISABLED
+    field in the zone header.
+  - New quiet.wrj zone added for testing, disabled by default.
+  - Barrier attribute allowing creation of conditional barriers preventing
+    mobiles from moving in a given direction based on a mobile's aliases.
+  - Barriers added to stop mobiles with CREATURE alias from entering certain
+    areas in zinara.wrj zone.
+  - City guards and gate wardens added to zinara.wrj zone.
+  - Shopkeepers (non-functional) added to zinara.wrj zone.
+  - Maps added in docs/zone-maps.txt for main, stock zones.
+  - attr.Inventory.Everything method added, equivelent to separate Content and
+    Narratives calls but more efficient.
+  - New ClearOrigins method added to attr.Thing type.
+  - Added checks for PUTIN/TAKEOUT pseudo commands for PUT/TAKE command veto
+    checking. This allows for one-way containers to be created where you can
+    only put things into or take things from a container.
 
 Changed
 
-	- $ACT, DROP, EXAMINE and SAY commands updated to use Name.TheName method.
-	- Actor now passed to has.Vetoes.Check method to allow access to additional
-		information when processing vetoes.
-	- $CLEANUP now finds item based on passed actor instead of alias lookup.
-	- In JUNK command cancel any pending Action or Cleanup events earlier.
-	- Cleanup outstanding reset check in attr.Reset.Reset method.
-	- Actor and item UID now passed to $CLEANUP and $RESET commands.
-	- The attr.FindVetoes function has been replaced by attr.FindAllVetoes as all
-		sources of vetoes should be considered - not just the first one found.
-	- Minor performance gain by checking vetoes only once in MOVE command.
-	- MOVE command now checks the location itself and all location items for
-		vetoes. Previously it only checked the current location's narratives.
-	- The frog, rabbit, spider and cat now have the CREATURE group alias.
-	- The barkeep, vendor and flower girl now have the NPC group alias.
-	- Fast moving mouse (added for debugging) now penned into dim alley and event
-		rate slowed down.
-	- attr.Thing.SetOrigins updated to use attr.Inventory.Everything method.
-	- zones.checkDoorsHaveOtherSide and zones.isParent updated to use
-		attr.Inventory.Everything method.
-	- MOVE command updated to use attr.Inventory.Everything method.
-	- In attr.Inventory.Disable drop redundant FindLocate and SetWhere calls.
-	- Updated attr.Locate.Dump to differentiate between Where/Origin not being
-		set and no Name being available - now displays 'Nowhere'/'no name!'
-	- DROP improved veto checking, additionally checks item's current inventory.
-	- GET improved veto checking, additionally checks receiving inventory.
-	- EXAMINE improved veto checking, additionally checks current location.
-	- JUNK improved veto checking.
-	- Redundant checks in DROP command removed.
-	- PUT/TAKE improved veto checking, additionally checks for PUTIN/TAKEOUT
-		pseudo commands. PUT/TAKE no longer check for GET/DROP vetoes.
+  - $ACT, DROP, EXAMINE and SAY commands updated to use Name.TheName method.
+  - Actor now passed to has.Vetoes.Check method to allow access to additional
+    information when processing vetoes.
+  - $CLEANUP now finds item based on passed actor instead of alias lookup.
+  - In JUNK command cancel any pending Action or Cleanup events earlier.
+  - Cleanup outstanding reset check in attr.Reset.Reset method.
+  - Actor and item UID now passed to $CLEANUP and $RESET commands.
+  - The attr.FindVetoes function has been replaced by attr.FindAllVetoes as all
+    sources of vetoes should be considered - not just the first one found.
+  - Minor performance gain by checking vetoes only once in MOVE command.
+  - MOVE command now checks the location itself and all location items for
+    vetoes. Previously it only checked the current location's narratives.
+  - The frog, rabbit, spider and cat now have the CREATURE group alias.
+  - The barkeep, vendor and flower girl now have the NPC group alias.
+  - Fast moving mouse (added for debugging) now penned into dim alley and event
+    rate slowed down.
+  - attr.Thing.SetOrigins updated to use attr.Inventory.Everything method.
+  - zones.checkDoorsHaveOtherSide and zones.isParent updated to use
+    attr.Inventory.Everything method.
+  - MOVE command updated to use attr.Inventory.Everything method.
+  - In attr.Inventory.Disable drop redundant FindLocate and SetWhere calls.
+  - Updated attr.Locate.Dump to differentiate between Where/Origin not being
+    set and no Name being available - now displays 'Nowhere'/'no name!'
+  - DROP improved veto checking, additionally checks item's current inventory.
+  - GET improved veto checking, additionally checks receiving inventory.
+  - EXAMINE improved veto checking, additionally checks current location.
+  - JUNK improved veto checking.
+  - Redundant checks in DROP command removed.
+  - PUT/TAKE improved veto checking, additionally checks for PUTIN/TAKEOUT
+    pseudo commands. PUT/TAKE no longer check for GET/DROP vetoes.
 
 Fixed
 
-	- Data race in zone loader zone.checkDoorsHaveOtherSide function fixed
-	- Fixed JUNK command terminating veto checks too early resulting in some
-		non-junkable items being junkable under certain conditions.
-	- Extra period removed from 'You can see no immediate exits from here'
-		message returned by attr.Exits.List method.
-	- Added additional bookkeeping to *Inventory.Free method to reset slice
-		elements and split and playerCount values.
-	- Fixed Player.Check so that players cannot be junked.
-	- Fixed reset message not seen if player in a container.
-	- Typo ally's/alley's in zinara.wrj zone file.
-	- Fixed missing period on TAKE command error message.
-	- Fixed panic when mobile uses GET/TAKE via $ACTION without the mobile having
-		an inventory defined.
-	- attr.Thing.Collectable method should check for nil and typed nil in check.
-	- Fix nil panics in $CLEAR, $RESET and JUNK commands by clearing and not
-		setting origins in attr.Reset.Spawn method.
-	- Data race fixed in zones.linkupZones function.
+  - Data race in zone loader zone.checkDoorsHaveOtherSide function fixed
+  - Fixed JUNK command terminating veto checks too early resulting in some
+    non-junkable items being junkable under certain conditions.
+  - Extra period removed from 'You can see no immediate exits from here'
+    message returned by attr.Exits.List method.
+  - Added additional bookkeeping to *Inventory.Free method to reset slice
+    elements and split and playerCount values.
+  - Fixed Player.Check so that players cannot be junked.
+  - Fixed reset message not seen if player in a container.
+  - Typo ally's/alley's in zinara.wrj zone file.
+  - Fixed missing period on TAKE command error message.
+  - Fixed panic when mobile uses GET/TAKE via $ACTION without the mobile having
+    an inventory defined.
+  - attr.Thing.Collectable method should check for nil and typed nil in check.
+  - Fix nil panics in $CLEAR, $RESET and JUNK commands by clearing and not
+    setting origins in attr.Reset.Spawn method.
+  - Data race fixed in zones.linkupZones function.
 
 v0.0.11 Released Tuesday 31st October, 2018
 ==============================================================================
