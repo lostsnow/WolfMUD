@@ -6,6 +6,7 @@
 package cmd
 
 import (
+	"strconv"
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
@@ -107,10 +108,11 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 	// words matched at least one known Thing or not.
 	unknownSet := [][]string{}
 	thingMatched := false
-
 	for len(words) > 0 && (limit == -1 || len(matches) < limit) {
 		maxMatch := 0
 		found := []has.Thing{}
+		maxInstance := 0
+		anInstance := 0
 
 		for _, i := range inv {
 			for _, t := range i {
@@ -135,6 +137,27 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 					}
 
 					if (x == 0 && !a.HasAlias(word)) || (x > 0 && !a.HasAlias("+"+word)) {
+						if x != 0 {
+							// If qualifier not found can it be used as a count?
+							if n, err := strconv.Atoi(word); err == nil {
+								maxInstance = n
+								numMatch++
+							}
+
+							// If qualifier not found and not a count can it be used for a
+							// specific instance such as 1st, 2nd, 3rd...
+							if split := strings.LastIndexAny(word, "0123456789"); split != -1 {
+								split++
+								if n, err := strconv.Atoi(word[:split]); err == nil {
+									post := word[split:]
+									if post == "ST" || post == "ND" || post == "RD" || post == "TH" {
+										anInstance = n
+										numMatch++
+									}
+								}
+							}
+
+						}
 						break
 					}
 
@@ -168,7 +191,13 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 		// Append any new good matches ignoring anything already in the list of
 		// matches.
 	uniqueLoop:
-		for _, f := range found {
+		for x, f := range found {
+			if maxInstance > 0 && x < (len(found)-maxInstance) {
+				continue
+			}
+			if anInstance > 0 && x != (len(found)-anInstance) {
+				continue
+			}
 			for _, m := range matches {
 				if f == m {
 					break uniqueLoop
