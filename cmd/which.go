@@ -200,7 +200,7 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 			}
 			for _, m := range matches {
 				if f == m {
-					break uniqueLoop
+					continue uniqueLoop
 				}
 			}
 			matches = append([]has.Thing{f}, matches...)
