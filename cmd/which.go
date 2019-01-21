@@ -151,7 +151,7 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 
 							// If qualifier not found and not a count can it be used for a
 							// specific instance such as 1st, 2nd, 3rd...
-							if split := strings.LastIndexAny(word, "0123456789"); split != -1 {
+							if split := lastLeadingDigit(word); split != -1 {
 								split++
 								if n, err := strconv.Atoi(word[:split]); err == nil {
 									post := word[split:]
@@ -224,4 +224,15 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 	words = wordList[:len(words)]
 
 	return
+}
+
+// lastLeadingDigit returns the position of the last leading digit or -1 if
+// there are no leading digits.
+func lastLeadingDigit(s string) int {
+	for x, c := range s {
+		if c < '0' || c > '9' {
+			return x - 1
+		}
+	}
+	return len(s) - 1
 }
