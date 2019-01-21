@@ -111,7 +111,7 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 	for len(words) > 0 && (limit == -1 || len(matches) < limit) {
 		maxMatch := 0
 		found := []has.Thing{}
-		maxInstance := 0
+		maxInstance := 1
 		anInstance := 0
 
 		for _, i := range inv {
@@ -138,6 +138,11 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 
 					if (x == 0 && !a.HasAlias(word)) || (x > 0 && !a.HasAlias("+"+word)) {
 						if x != 0 {
+							if word == "ALL" {
+								maxInstance = 0
+								numMatch++
+							}
+
 							// If qualifier not found can it be used as a count?
 							if n, err := strconv.Atoi(word); err == nil {
 								maxInstance = n
@@ -151,6 +156,7 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 								if n, err := strconv.Atoi(word[:split]); err == nil {
 									post := word[split:]
 									if post == "ST" || post == "ND" || post == "RD" || post == "TH" {
+										maxInstance = 0
 										anInstance = n
 										numMatch++
 									}
