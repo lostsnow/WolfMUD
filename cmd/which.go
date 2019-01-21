@@ -169,7 +169,7 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 						found = found[:0]
 					}
 					maxMatch = numMatch
-					found = append(found, t)
+					found = append([]has.Thing{t}, found...)
 				}
 			}
 		}
