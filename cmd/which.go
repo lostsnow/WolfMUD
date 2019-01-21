@@ -111,8 +111,7 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 	for len(words) > 0 && (limit == -1 || len(matches) < limit) {
 		maxMatch := 0
 		found := []has.Thing{}
-		maxInstance := 1
-		anInstance := 0
+		minLimit, maxLimit := 0, 1
 
 		for _, i := range inv {
 			for _, t := range i {
@@ -138,27 +137,37 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 
 					if (x == 0 && !a.HasAlias(word)) || (x > 0 && !a.HasAlias("+"+word)) {
 						if x != 0 {
+
+							// Special qualifier for all matches?
 							if word == "ALL" {
-								maxInstance = 0
+								maxLimit = 0
 								numMatch++
 							}
-
-							// If qualifier not found can it be used as a count?
-							if n, err := strconv.Atoi(word); err == nil {
-								maxInstance = n
-								numMatch++
-							}
-
-							// If qualifier not found and not a count can it be used for a
-							// specific instance such as 1st, 2nd, 3rd...
+							// Could word be a special numeric qualifier?
 							if split := lastLeadingDigit(word); split != -1 {
 								split++
 								if n, err := strconv.Atoi(word[:split]); err == nil {
 									post := word[split:]
-									if post == "ST" || post == "ND" || post == "RD" || post == "TH" {
-										maxInstance = 0
-										anInstance = n
+									// Just a number is a limit from 0-n items
+									if post == "" {
+										maxLimit = n
 										numMatch++
+									}
+									// Number with postfix is a specific instance such as 1st, 2nd
+									if post == "ST" || post == "ND" || post == "RD" || post == "TH" {
+										minLimit, maxLimit = n, n
+										numMatch++
+									}
+									// Number followed by a hyphen and a number (n-N) is a range
+									if strings.HasPrefix(post, "-") {
+										if N, err := strconv.Atoi(post[1:]); err == nil {
+											if N > n {
+												minLimit, maxLimit = n, N
+											} else {
+												minLimit, maxLimit = N, n
+											}
+											numMatch++
+										}
 									}
 								}
 							}
@@ -198,10 +207,9 @@ func SearchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []ha
 		// matches.
 	uniqueLoop:
 		for x, f := range found {
-			if maxInstance > 0 && x < (len(found)-maxInstance) {
-				continue
-			}
-			if anInstance > 0 && x != (len(found)-anInstance) {
+			min := len(found) - minLimit
+			max := len(found) - maxLimit
+			if maxLimit > 0 && (x > min || x < max) {
 				continue
 			}
 			for _, m := range matches {
