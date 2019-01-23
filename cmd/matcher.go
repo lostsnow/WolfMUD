@@ -103,10 +103,8 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []has
 		words[len(wordList)-1-x] = word
 	}
 
-	// unknownSet is the list of unknown matches, consecutive unknown matches are
-	// grouped together. lastMatchGood is a flag tracking whether the last run of
-	// words matched at least one known Thing or not.
-	unknownSet := [][]string{}
+	// lastMatchGood is a flag tracking whether the last run of words matched at
+	// least one known Thing or not.
 	lastMatchGood := false
 
 	for len(words) > 0 && (limit == -1 || len(matches) < limit) {
@@ -159,10 +157,11 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []has
 		// If matching fails append word to current unknown word group, starting a
 		// new group if previous match was good.
 		if maxWordsMatched == 0 {
-			if lastMatchGood == true || len(unknownSet) == 0 {
-				unknownSet = append([][]string{[]string{}}, unknownSet...)
+			if lastMatchGood == true || len(unknowns) == 0 {
+				unknowns = append([]string{words[0]}, unknowns...)
+			} else {
+				unknowns[0] = unknowns[0] + " " + words[0]
 			}
-			unknownSet[0] = append([]string{words[0]}, unknownSet[0]...)
 			lastMatchGood = false
 			words = words[1:]
 			continue
@@ -188,11 +187,6 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []has
 		}
 		words = words[maxWordsMatched:]
 
-	}
-
-	// Condense groups of unknown words into simple list
-	for _, unknown := range unknownSet {
-		unknowns = append(unknowns, strings.Join(unknown, " "))
 	}
 
 	// Put remaining words into the correct order
