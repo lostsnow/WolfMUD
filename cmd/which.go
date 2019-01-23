@@ -24,25 +24,32 @@ func (w which) process(s *state) {
 	}
 
 	// Find items either being carried or at location
-	matches, unknowns, _ := MatchAll(
+	for _, match := range MatchAll(
 		s.words,
 		attr.FindInventory(s.actor).Contents(),
 		s.where.Everything(),
-	)
+	) {
+		switch {
+		case match.Unknown != "":
+			s.msg.Actor.SendBad("You see no '", match.Unknown, "' here.")
+			continue
 
-	s.msg.Actor.SendGood("You look around.")
-	for _, m := range matches {
-		if attr.FindLocate(m).Where() == s.where {
-			s.msg.Actor.Append("\nYou see ", attr.FindName(m).Name("something"), " here.")
-		} else {
-			s.msg.Actor.Append("\nYou are carrying ", attr.FindName(m).Name("something"), ".")
-		}
-	}
+		case match.NotEnough != "":
+			s.msg.Actor.SendBad("You don't see that many '", match.NotEnough, "' here.")
+			continue
 
-	if len(unknowns) > 0 {
-		for _, unknown := range unknowns {
-			s.msg.Actor.SendBad("You see no '", unknown, "' here.")
+		default:
+			if attr.FindLocate(match).Where() == s.where {
+				s.msg.Actor.SendGood(
+					"You see ", attr.FindName(match).Name("something"), " here.",
+				)
+			} else {
+				s.msg.Actor.SendGood(
+					"You are carrying ", attr.FindName(match).Name("something"), ".",
+				)
+			}
 		}
+
 	}
 
 	s.ok = true
