@@ -117,7 +117,10 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Res
 		words[len(wordList)-1-x] = word
 	}
 
-	for len(words) > 0 && (limit == -1 || len(matches) < limit) {
+	count := 0
+
+	for len(words) > 0 && (limit == -1 || count < limit) {
+		count++
 
 		// Loop through Inventory items for those matching alias
 		results := []has.Thing{}
