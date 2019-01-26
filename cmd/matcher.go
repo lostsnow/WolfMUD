@@ -229,6 +229,9 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Res
 		}
 	}
 
+	// Put remaining words into the correct order
+	words = wordList[:len(words)]
+
 	return
 }
 
