@@ -32,11 +32,9 @@ func (w which) process(s *state) {
 		switch {
 		case match.Unknown != "":
 			s.msg.Actor.SendBad("You see no '", match.Unknown, "' here.")
-			continue
 
 		case match.NotEnough != "":
 			s.msg.Actor.SendBad("You don't see that many '", match.NotEnough, "' here.")
-			continue
 
 		default:
 			if attr.FindLocate(match).Where() == s.where {
@@ -48,8 +46,8 @@ func (w which) process(s *state) {
 					"You are carrying ", attr.FindName(match).Name("something"), ".",
 				)
 			}
-		}
 
+		}
 	}
 
 	s.ok = true
