@@ -290,9 +290,9 @@ func specialQualifier(word string) (minLimit, maxLimit int) {
 	// Get postfix for a specific instance or range
 	post := word[split:]
 
-	// Just a number is a limit from 0-n items
+	// Just a number is a limit from 0 for n items
 	if post == "" {
-		minLimit, maxLimit = 0, n+1
+		minLimit, maxLimit = 0, n
 		return
 	}
 
