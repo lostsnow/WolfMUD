@@ -36,21 +36,26 @@ func (g *game) gameInit() {
 	message.ReleaseBuffer(g.buf)
 	g.buf = nil
 
+	// Get a random starting location
 	start := (*attr.Start)(nil).Pick()
+
+	// Lock starting location and player in LockID order to avoid deadlocks
 	i1 := start
 	i2 := attr.FindInventory(g.player)
-
-	// Make sure we lock in LockID order to avoid deadlocks
 	if i1.LockID() > i2.LockID() {
 		i1, i2 = i2, i1
 	}
-
 	i1.Lock()
 	i2.Lock()
+
 	attr.FindPlayer(g.player).SetPromptStyle(has.StyleBrief)
 	start.Add(g.player)
 	start.Enable(g.player)
 	stats.Add(g.player)
+
+	// Release locks before calling cmd.Script which will also try and lock the
+	// starting location and would cause a deadlock. It's a shame we can't reuse
+	// the lock we have already acquired somehow...
 	i2.Unlock()
 	i1.Unlock()
 
