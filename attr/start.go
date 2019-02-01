@@ -86,3 +86,15 @@ func (s *Start) Copy() has.Attribute {
 	}
 	return NewStart()
 }
+
+// Free deregisters the Start attribute when it is freed.
+func (s *Start) Free() {
+	for x, r := range registry {
+		if s == r {
+			copy(registry[x:], registry[x+1:])
+			registry[len(registry)-1] = nil
+			registry = registry[:len(registry)-1]
+			break
+		}
+	}
+}
