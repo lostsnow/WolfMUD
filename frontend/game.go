@@ -23,7 +23,7 @@ type game struct {
 // game can be used for processing communication to the actual game.
 func NewGame(f *frontend) (g *game) {
 	g = &game{frontend: f}
-	g.gameInit()
+	g.init()
 	return
 }
 
@@ -31,7 +31,7 @@ func NewGame(f *frontend) (g *game) {
 // backend has it's own output handling we remove the frontend.buf buffer to
 // prevent duplicate output. The buffer is restored by gameProcess when the
 // player quits the game world.
-func (g *game) gameInit() {
+func (g *game) init() {
 
 	message.ReleaseBuffer(g.buf)
 	g.buf = nil
@@ -60,13 +60,13 @@ func (g *game) gameInit() {
 	i1.Unlock()
 
 	cmd.Script(g.player, "$POOF")
-	g.nextFunc = g.gameProcess
+	g.nextFunc = g.process
 }
 
 // gameProcess hands input to the game backend for processing while the player
 // is in the game. When the player quits the game the frontend.buf buffer is
 // restored - see gameInit.
-func (g *game) gameProcess() {
+func (g *game) process() {
 	c := cmd.Parse(g.player, string(g.input))
 	if c == "QUIT" {
 		g.buf = message.AcquireBuffer()
