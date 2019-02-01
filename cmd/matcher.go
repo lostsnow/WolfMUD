@@ -195,7 +195,7 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Res
 					minLimit = 0
 				}
 
-				if maxLimit == 0 || maxLimit > len(results) {
+				if maxLimit == -1 || maxLimit > len(results) {
 					maxLimit = len(results)
 				}
 			}
@@ -268,7 +268,7 @@ func specialQualifier(word string) (minLimit, maxLimit int) {
 
 	// Special qualifier for all matches?
 	if word == "ALL" {
-		minLimit, maxLimit = 0, 0
+		minLimit, maxLimit = 0, -1
 		return
 	}
 
