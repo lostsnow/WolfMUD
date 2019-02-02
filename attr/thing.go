@@ -346,3 +346,19 @@ func (t *Thing) NotUnique() {
 func (t *Thing) String() string {
 	return fmt.Sprintf("%p %[1]T %s", t, t.UID())
 }
+
+// Things is a type of slice *Thing. It allows methods to be defined directly
+// on the slice. This allows the methods to range over the slice instead of
+// ranging over the slice in multiple places calling the method.
+type Things []*Thing
+
+// Free invokes Thing.Free on each of the *Thing elements in the receiver.
+// After the call all elements of the receiver will be removed resulting in an
+// empty slice.
+func (t *Things) Free() {
+	for x := range *t {
+		(*t)[x].Free()
+		(*t)[x] = nil
+	}
+	*t = (*t)[:0]
+}
