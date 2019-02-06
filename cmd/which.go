@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: WHICH item...
@@ -23,6 +24,8 @@ func (w which) process(s *state) {
 		return
 	}
 
+	somethingFound := false
+
 	// Find items either being carried or at location
 	for _, match := range MatchAll(
 		s.words,
@@ -37,6 +40,7 @@ func (w which) process(s *state) {
 			s.msg.Actor.SendBad("You don't see that many '", match.NotEnough, "' here.")
 
 		default:
+			somethingFound = true
 			if attr.FindLocate(match).Where() == s.where {
 				s.msg.Actor.SendGood(
 					"You see ", attr.FindName(match).Name("something"), " here.",
@@ -48,6 +52,15 @@ func (w which) process(s *state) {
 			}
 
 		}
+	}
+
+	// Notify any observers we are looking around
+	who := attr.FindName(s.actor).TheName("Someone")
+	who = text.TitleFirst(who)
+	if somethingFound {
+		s.msg.Observer.SendInfo(who, " looks around taking note of various things.")
+	} else {
+		s.msg.Observer.SendInfo(who, " looks around for something.")
 	}
 
 	s.ok = true
