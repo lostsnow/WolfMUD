@@ -214,7 +214,7 @@ func (b *Buffer) Deliver(w ...io.Writer) {
 
 	// If Buffer does not start with an escape sequence insert a reset to
 	// default colors
-	if len(b.buf) > 0 && b.buf[0] != '\033' {
+	if len(b.buf) > 0 && b.buf[0] != '\x1b' {
 		b.buf = append(b.buf, text.Reset...)
 		copy(b.buf[resetLen:], b.buf[0:len(b.buf)-resetLen])
 		copy(b.buf[0:resetLen], text.Reset)
