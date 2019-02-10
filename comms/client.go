@@ -7,13 +7,13 @@ package comms
 
 import (
 	"bufio"
-	"bytes"
 	"io"
 	"net"
 	"runtime/debug"
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/frontend"
@@ -128,7 +128,7 @@ func (c *client) process() {
 				continue
 			}
 
-			fixDEL(&in)
+			clean(&in)
 			if err = c.frontend.Parse(in); err != nil {
 				c.SetError(err)
 			}
@@ -137,59 +137,147 @@ func (c *client) process() {
 	}
 }
 
-// fixDEL is used to delete characters when the input contains literal DEL
-// characters (ASCII 0x7f or "\b"). This is the case when using a client that
-// does not support line editing, for example a plain Windows TELNET client.
+// clean is used to clean up and validate incoming data from clients. The data
+// to be cleaned should be passed in a *[]byteslice which will be modified by
+// the function call to contain only cleaned data.
+//
+// For all C0 and C1 control codes, other than BS (backspace, ASCII 0x08,
+// '\b'), we drop the byte. This includes any line feeds or carriage returns.
+//
+//
+//               C0 Block         C1 Block
+//           ---------------  ---------------
+//    ASCII    0x00 - 0x1F      0x80 - 0x9F
+//    UTF-8    0x00 - 0x1F    0xC280 - 0xC29F
+//  Unicode  U+0000 - U+001F  U+0080 - U+009F
+//
+//
+// BS has special handling, with the control code DEL (delete, ASCII 0x7F)
+// being treated the same as BS. If an invalid UTF-8 encoding is found the
+// offending bytes will be dropped.
+//
+// SPECIAL HANDLING FOR BS/DEL
+//
+// Input from a client may contain literal BS or DEL control codes when using a
+// client that does not support line editing, for example a plain Windows
+// TELNET client.
 //
 // For example if you type "ABD" then delete the "D" and enter "C" the data
 // sent to the server would be "ABD\bC" if there is no line editing support.
 // With line editing "ABC" would be sent to the server.
 //
-// Calling fixDEL on the data will interpret the DEL characters so that, for
-// example, "ABD\bC" becomes "ABC".
-//
-// fixDEL can work on ASCII or UTF-8 and handles Unicode diacritics in addition
-// to precomposed characters. For example 'à' or 'a\u0300'.
-//
-// It should be noted that this function modifies the slice passed to it.
-func fixDEL(in *[]byte) {
+// Calling clean on the data will interpret the BS and DEL control codes so
+// that, for example, "ABD\bC" becomes "ABC".
+func clean(in *[]byte) {
 
-	i := 0
-	for j, v := range *in {
-		(*in)[j] = '\x00'
-		if v != '\b' {
-			(*in)[i] = v
-			i++
+	const (
+		BS    = 0x08     // Backspace
+		LoASC = 0x20     // Start of printable ASCII range
+		HiASC = 0x7E     // End of printable ASCII range
+		DEL   = 0x7F     // Delete
+		LoC1  = '\u0080' // Start of C1 control codes
+		HiC1  = '\u009F' // End of C1 control codes
+	)
+
+	data := *in                    // Dereference input slice
+	w := 0                         // Data writing position
+	B := [utf8.UTFMax]byte{}       // Rune as bytes temp buffer
+	Z := make([]byte, utf8.UTFMax) // Zeroes for clearing data
+
+	for r, ld := 0, len(data); r < ld; { // r = Data read position
+
+		/*
+			FAST PATH - for handling simple ASCII bytes
+		*/
+
+		// Simple single byte printable ASCII
+		if data[r] >= LoASC && data[r] <= HiASC {
+			data[r], data[w] = 0x00, data[r]
+			w++
+			r++
 			continue
 		}
 
-		// Remove previous rune which may be Unicode, maybe combining diacritic
-		for l, combi := 0, true; combi == true; {
-			switch {
-			case i > 0 && (*in)[i-1]&128 == 0:
-				l, combi = 1, false
-			case i > 1 && (*in)[i-2]&192 == 192:
-				l = 2
-			case i > 2 && (*in)[i-3]&192 == 192:
-				l = 3
-			case i > 3 && (*in)[i-4]&192 == 192:
-				l = 4
-			default:
-				l, combi = 0, false
+		// Simple delete of single byte printable ASCII
+		if data[r] == BS || data[r] == DEL {
+			// If nothing to delete just drop BS/DEL
+			if w == 0 {
+				data[r] = 0x00
+				r++
+				continue
 			}
-			if l == 1 {
-				(*in)[i-1] = '\x00'
+			// If deleting single byte ASCII remove it and drop BS/DEL
+			if data[w-1] >= LoASC && data[w-1] <= HiASC {
+				w--
+				data[r], data[w] = 0x00, 0x00
+				r++
+				continue
 			}
-			if l > 1 {
-				combi = unicode.In(bytes.Runes((*in)[i-l : i])[0], unicode.Mn, unicode.Me)
-				copy((*in)[i-l:i], []byte("\x00\x00\x00\x00"))
-			}
-			i = i - l
 		}
+
+		// Drop C0 control codes, except BS and DEL
+		if data[r] < LoASC && data[r] != BS && data[r] != DEL {
+			data[r] = 0x00
+			r++
+			continue
+		}
+
+		/*
+		 SLOW PATH - have to deal with multibyte UTF-8
+		*/
+
+		// Get current rune and length, save it's UTF-8 bytes, drop from input
+		R, L := utf8.DecodeRune(data[r:])
+		copy(B[:L], data[r:r+L])
+		copy(data[r:r+L], Z[:L])
+		r += L
+
+		switch {
+		case R == utf8.RuneError:
+			// Drop invalid rune
+		case R == BS || R == DEL:
+			// Handle delete, repeate until non-combining rune found
+			for comb := true; comb; {
+				// Decode last rune written in data[:w] taking advantage of the fact we
+				// know it's valid already and we just want the length and rune
+				switch {
+				case data[w-1]&0x80 == 0x00:
+					L = 1
+					R = rune(data[w-1])
+				case data[w-2]&0xC0 == 0xC0:
+					L = 2
+					R = rune(data[w-2]&0x1F)<<6 |
+						rune(data[w-1]&0x3F)
+				case data[w-3]&0xC0 == 0xC0:
+					L = 3
+					R = rune(data[w-3]&0x0F)<<12 |
+						rune(data[w-2]&0x3F)<<6 |
+						rune(data[w-1]&0x3F)
+				case data[w-4]&0xC0 == 0xC0:
+					L = 4
+					R = rune(data[w-4]&0x07)<<18 |
+						rune(data[w-3]&0x3F)<<12 |
+						rune(data[w-2]&0x3F)<<6 |
+						rune(data[w-1]&0x3F)
+				}
+				// Combining rune?
+				if !unicode.Is(unicode.Me, R) && !unicode.Is(unicode.Mn, R) {
+					comb = false
+				}
+				w -= L
+				copy(data[w:w+L], Z)
+			}
+		case R >= LoC1 && R <= HiC1:
+			// Drop C1 control codes
+		default:
+			// Write saved rune
+			copy(data[w:], B[:L])
+			w += L
+		}
+
 	}
 
-	*in = (*in)[:i]
-
+	*in = (*in)[:w]
 	return
 }
 
