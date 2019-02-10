@@ -6,6 +6,49 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.13 Released Sunday 10th February, 2019
+==============================================================================
+
+Security
+
+  - An issue was found that allowed players to send arbitrary data to other
+    players via the SAY command. The arbitrary data could contain ANSI escape
+    codes and/or other control codes, the effectiveness of which are dependant
+    on the capabilities of the player's client. A malicious user could, for
+    example: send fake messages, send mock shell screens, ring the terminal
+    bell, set the terminal window title. At no time can the malicious player
+    obtain any information from other players, all data is still only sent to
+    the server. Players receiving potentially malicious data will always see
+    the game prompt after the data is sent to them indicating they are still
+    logged into the game.
+
+Added
+
+  - New item search and matching code that allows ranges of items, specific
+    items and item qualifiers to be used by commands when requiring an item to
+    be specified. For example: get all ball, get 2nd ball, get green ball, get
+    all green ball, get 2nd green ball.
+  - New WHICH command that uses the new item search and matching. Mainly
+    intended for players to try out the new search and matching so as to
+    provide feedback.
+  - New helpers for testing commands provided in cmd/pkg_test.go
+  - Tests for WHICH command using new command testing helpers.
+
+Fixed
+
+  - Added missing Start.Free method.
+  - Removed stutter from frontend.game methods.
+  - Corrected tabbing in v0.0.12 release note entry.
+
+Known Bugs
+
+  - New search and matching item limits and item instances undocumented.
+  - Alias qualifiers, aliases with a leading '+' character, have not been
+    documented yet.
+  - Commands will recognise a qualifier as a valid alias. For example with
+    aliases '+GREEN' and 'BALL' commands will see the qualifier '+GREEN' as a
+    valid alias. So 'GET +GREEN' would work for the item when it shouldn't.
+
 v0.0.12 Released Sunday 23rd December, 2018
 ==============================================================================
 
