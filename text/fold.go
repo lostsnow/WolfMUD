@@ -29,7 +29,7 @@ const (
 var (
 	lf   = []byte("\n")   // End of line used internally
 	crlf = []byte("\r\n") // End of line for network data
-	esc  = '\033'         // Escape control code, same as 0x1b or ^[
+	esc  = '\x1b'         // Escape control code - 0x1b 003 or Ctrl+'['
 )
 
 // Fold takes a []byte and attempts to reformat it so lines have a maximum
@@ -106,7 +106,7 @@ func Fold(in []byte, width int) (out []byte) {
 			word.WriteRune(r)
 			control++
 
-			// control > 2 prevents checking the CSI "\033[" or ESC + [
+			// control > 2 prevents checking the CSI ("\x1b[" or ESC + '[')
 			if control > 2 && ('@' <= r && r <= '~') {
 				control = -1
 			}

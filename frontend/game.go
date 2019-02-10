@@ -23,7 +23,7 @@ type game struct {
 // game can be used for processing communication to the actual game.
 func NewGame(f *frontend) (g *game) {
 	g = &game{frontend: f}
-	g.gameInit()
+	g.init()
 	return
 }
 
@@ -31,37 +31,42 @@ func NewGame(f *frontend) (g *game) {
 // backend has it's own output handling we remove the frontend.buf buffer to
 // prevent duplicate output. The buffer is restored by gameProcess when the
 // player quits the game world.
-func (g *game) gameInit() {
+func (g *game) init() {
 
 	message.ReleaseBuffer(g.buf)
 	g.buf = nil
 
+	// Get a random starting location
 	start := (*attr.Start)(nil).Pick()
+
+	// Lock starting location and player in LockID order to avoid deadlocks
 	i1 := start
 	i2 := attr.FindInventory(g.player)
-
-	// Make sure we lock in LockID order to avoid deadlocks
 	if i1.LockID() > i2.LockID() {
 		i1, i2 = i2, i1
 	}
-
 	i1.Lock()
 	i2.Lock()
+
 	attr.FindPlayer(g.player).SetPromptStyle(has.StyleBrief)
 	start.Add(g.player)
 	start.Enable(g.player)
 	stats.Add(g.player)
+
+	// Release locks before calling cmd.Script which will also try and lock the
+	// starting location and would cause a deadlock. It's a shame we can't reuse
+	// the lock we have already acquired somehow...
 	i2.Unlock()
 	i1.Unlock()
 
 	cmd.Script(g.player, "$POOF")
-	g.nextFunc = g.gameProcess
+	g.nextFunc = g.process
 }
 
 // gameProcess hands input to the game backend for processing while the player
 // is in the game. When the player quits the game the frontend.buf buffer is
 // restored - see gameInit.
-func (g *game) gameProcess() {
+func (g *game) process() {
 	c := cmd.Parse(g.player, string(g.input))
 	if c == "QUIT" {
 		g.buf = message.AcquireBuffer()

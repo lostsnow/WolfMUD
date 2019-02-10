@@ -125,18 +125,18 @@ var testCases = []struct {
 	{"Unicode \u0061\u0300", 9, "Unicode \u0061\u0300"},
 
 	// Control sequences should be zero width
-	{"\033[31mWolfMUD\033[0m", 7, "\033[31mWolfMUD\033[0m"},
-	{"\n\033[31mWolfMUD\033[0m\n", 7, "\r\n\033[31mWolfMUD\033[0m\r\n"},
-	{"\033[31mWolfMUD WolfMUD\033[0m", 20, "\033[31mWolfMUD WolfMUD\033[0m"},
-	{"\n\033[31mWolfMUD WolfMUD\033[0m\n", 20, "\r\n\033[31mWolfMUD WolfMUD\033[0m\r\n"},
-	{"\n\033[31mWolfMUD WolfMUD\033[0m\n", 20, "\r\n\033[31mWolfMUD WolfMUD\033[0m\r\n"},
-	{"\033[31mWolfMUD \033[32mWolfMUD\033[0m", 7, "\033[31mWolfMUD\r\n\033[32mWolfMUD\033[0m"},
-	{"\033[31mWolfMUD\033[32mWolfMUD\033[0m", 7, "\033[31mWolfMUD\033[32mWolfMUD\033[0m"},
-	{"\033[31mWolfMUD\n\033[32mWolfMUD\033[0m", 7, "\033[31mWolfMUD\r\n\033[32mWolfMUD\033[0m"},
-	{"\033[31mWolfMUD\n \033[32mWolfMUD\033[0m", 7, "\033[31mWolfMUD\r\n \033[32mWolfMUD\033[0m"},
-	{"\033[31mWolfMUD\n\033[32m WolfMUD\033[0m", 7, "\033[31mWolfMUD\r\n\033[32m WolfMUD\033[0m"},
-	{"\033[31mWolfMUD\n  \033[32mWolfMUD\033[0m", 7, "\033[31mWolfMUD\r\n  \033[32mWolfMUD\033[0m"},
-	{"\033[31mWolfMUD\n\033[32m  WolfMUD\033[0m", 7, "\033[31mWolfMUD\r\n\033[32m  WolfMUD\033[0m"},
+	{"\x1b[31mWolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\x1b[0m"},
+	{"\n\x1b[31mWolfMUD\x1b[0m\n", 7, "\r\n\x1b[31mWolfMUD\x1b[0m\r\n"},
+	{"\x1b[31mWolfMUD WolfMUD\x1b[0m", 20, "\x1b[31mWolfMUD WolfMUD\x1b[0m"},
+	{"\n\x1b[31mWolfMUD WolfMUD\x1b[0m\n", 20, "\r\n\x1b[31mWolfMUD WolfMUD\x1b[0m\r\n"},
+	{"\n\x1b[31mWolfMUD WolfMUD\x1b[0m\n", 20, "\r\n\x1b[31mWolfMUD WolfMUD\x1b[0m\r\n"},
+	{"\x1b[31mWolfMUD \x1b[32mWolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\r\n\x1b[32mWolfMUD\x1b[0m"},
+	{"\x1b[31mWolfMUD\x1b[32mWolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\x1b[32mWolfMUD\x1b[0m"},
+	{"\x1b[31mWolfMUD\n\x1b[32mWolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\r\n\x1b[32mWolfMUD\x1b[0m"},
+	{"\x1b[31mWolfMUD\n \x1b[32mWolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\r\n \x1b[32mWolfMUD\x1b[0m"},
+	{"\x1b[31mWolfMUD\n\x1b[32m WolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\r\n\x1b[32m WolfMUD\x1b[0m"},
+	{"\x1b[31mWolfMUD\n  \x1b[32mWolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\r\n  \x1b[32mWolfMUD\x1b[0m"},
+	{"\x1b[31mWolfMUD\n\x1b[32m  WolfMUD\x1b[0m", 7, "\x1b[31mWolfMUD\r\n\x1b[32m  WolfMUD\x1b[0m"},
 }
 
 func TestFold(t *testing.T) {

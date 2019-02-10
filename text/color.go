@@ -14,25 +14,27 @@ import (
 // to calling Colorize with embedded colour place holders due to the slower
 // performance of Colorize.
 const (
-	Reset     = "\033[0m"
-	Bold      = "\033[1m"
-	Normal    = "\033[22m"
-	Black     = "\033[30m"
-	Red       = "\033[31m"
-	Green     = "\033[32m"
-	Yellow    = "\033[33m"
-	Blue      = "\033[34m"
-	Magenta   = "\033[35m"
-	Cyan      = "\033[36m"
-	White     = "\033[37m"
-	BGBlack   = "\033[40m"
-	BGRed     = "\033[41m"
-	BGGreen   = "\033[42m"
-	BGYellow  = "\033[43m"
-	BGBlue    = "\033[44m"
-	BGMagenta = "\033[45m"
-	BGCyan    = "\033[46m"
-	BGWhite   = "\033[47m"
+	ESC       = "\x1b"
+	CSI       = ESC + "[" // Control Sequence Introducer
+	Reset     = CSI + "0m"
+	Bold      = CSI + "1m"
+	Normal    = CSI + "22m"
+	Black     = CSI + "30m"
+	Red       = CSI + "31m"
+	Green     = CSI + "32m"
+	Yellow    = CSI + "33m"
+	Blue      = CSI + "34m"
+	Magenta   = CSI + "35m"
+	Cyan      = CSI + "36m"
+	White     = CSI + "37m"
+	BGBlack   = CSI + "40m"
+	BGRed     = CSI + "41m"
+	BGGreen   = CSI + "42m"
+	BGYellow  = CSI + "43m"
+	BGBlue    = CSI + "44m"
+	BGMagenta = CSI + "45m"
+	BGCyan    = CSI + "46m"
+	BGWhite   = CSI + "47m"
 
 	// Setup brown as an alias for yellow
 	Brown   = Yellow
@@ -80,7 +82,7 @@ var colorTable = map[string]string{
 //	Colorize([]byte("[RED]Hello [GREEN]World![DEFAULT]"))
 //
 // Would return a []byte with [RED] and [GREEN] replaced with the ANSI escape
-// sequences \033[31m and \033[32m respectively causing Hello to be displayed
+// sequences \x1b[31m and \x1b[32m respectively causing Hello to be displayed
 // in red and World! to be displayed in green.
 //
 // The returned slice is always a copy even it the original contains no colors.

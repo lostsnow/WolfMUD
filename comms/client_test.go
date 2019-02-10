@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var fixDELData = []struct {
+var cleanData = []struct {
 	data string
 	want string
 }{
@@ -28,7 +28,7 @@ var fixDELData = []struct {
 	{"\bThe quick brown fox jumps over the lazy dog.", "The quick brown fox jumps over the lazy dog."},
 	{"The quick brown fox j\bjumps over the lazy dog.", "The quick brown fox jumps over the lazy dog."},
 	{"The quick brown fox jumps over the lazy dog..\b", "The quick brown fox jumps over the lazy dog."},
-	{"Hello world!\n", "Hello world!\n"},
+	{"Hello world!\n", "Hello world!"},
 	{"That\b\bis is the\b\b\ba test!\b,\b.", "This is a test."},
 	{"\b\b\b\btest", "test"},
 	{"\b\b\btesting\b\b\b", "test"},
@@ -50,13 +50,24 @@ var fixDELData = []struct {
 	{"aæ\u2211\bbc", "aæbc"},
 	{"aæ\U0001f78e\bbc", "aæbc"},
 	{"aæ\u0061\u0300\bbc", "aæbc"},
+
+	{"a\nb\nc", "abc"},       // Embeded line feeds
+	{"a\x00b\x00c", "abc"},   // Null bytes
+	{"a\x98b", "ab"},         // Embeded ASCII SOS - Start of string
+	{"a\xc2\x98b", "ab"},     // Embeded UTF-8 SOS - Start of string
+	{"a\u0098b", "ab"},       // Embeded Unicode SOS - Start of string
+	{"abc\xc2", "abc"},       // Invalid trailing 0xC2 dropped
+	{"abc\x7fd", "abd"},      // DEL not BS
+	{"ææææ\b\b\b\b", ""},     //
+	{"\x85", ""},             // ASCII C1 control code - NEL, Next line
+	{"\x8F\x8F\x8F\x8F", ""}, // Invalid UTF-8 sequence (no non-leading 10xxxxxx)
 }
 
 func TestFixDEL(t *testing.T) {
-	for i, test := range fixDELData {
+	for i, test := range cleanData {
 		t.Run(fmt.Sprintf("Test %d", i), func(t *testing.T) {
 			have := []byte(test.data)
-			fixDEL(&have)
+			clean(&have)
 			if !bytes.Equal(have, []byte(test.want)) {
 				t.Errorf("Have: %q Want %q", have, test.want)
 			}
@@ -72,11 +83,11 @@ func TestFixDEL(t *testing.T) {
 
 func BenchmarkFixDEL(b *testing.B) {
 	var have []byte
-	for i, test := range fixDELData {
+	for i, test := range cleanData {
 		b.Run(fmt.Sprintf("Bench %d", i), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				have = []byte(test.data)
-				fixDEL(&have)
+				clean(&have)
 			}
 		})
 	}
