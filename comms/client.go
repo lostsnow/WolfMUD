@@ -319,20 +319,24 @@ func (c *client) close() {
 	// Say goodbye to client and reset default colors
 	c.Write([]byte(text.Info + "\nBye bye...\n\n" + text.Reset))
 
-	// io.EOF does not give address info so handle specially, otherwise just
-	// report the error
-	if c.Error() == io.EOF {
-		c.log("connection dropped by remote client")
-	} else {
-		if config.Server.LogClient {
-			c.log("connection error: %s", c.Error())
-		} else {
-			// If not logging client IP addresses make sure we don't leak them in any
-			// error messages from the standard library
-			e := c.Error().Error()
-			e = strings.Replace(e, c.RemoteAddr().String(), "???", -1)
-			c.log("connection error: %s", e)
-		}
+	// Was the frontend closed?
+	_, feClosed := c.Error().(frontend.ClosedError)
+
+	switch {
+	case c.Error() == io.EOF:
+		// io.EOF does not give address info so handle specially
+		c.log("connection error: connection dropped by remote client")
+	case feClosed:
+		// Not an error so report without "Connection error:" prefix
+		c.log("%s", c.Error())
+	case !config.Server.LogClient:
+		// If not logging client IP addresses make sure we don't leak them in any
+		// error messages from the standard library
+		e := c.Error().Error()
+		e = strings.Replace(e, c.RemoteAddr().String(), "???", -1)
+		c.log("connection error: %s", e)
+	default:
+		c.log("connection error: %s", c.Error())
 	}
 
 	// Make sure connection closed down and deallocated
