@@ -56,22 +56,20 @@ func init() {
 	accounts.inuse = make(map[string]struct{})
 }
 
-// closedError represents the fact that Close has been called on a frontend
+// ClosedError represents the fact that Close has been called on a frontend
 // instance releasing it's resources and that the instance should be discarded.
-// As interaction with the error is via the standard error and comms.temporary
-// interfaces it does not need to be exported.
-type closedError struct{}
+type ClosedError struct{}
 
 // Error implements the error interface for errors and returns descriptive text
-// for the closedError error.
-func (closedError) Error() string {
+// for the ClosedError error.
+func (ClosedError) Error() string {
 	return "frontend closed"
 }
 
-// Temporary always returns true for a frontend.closedError. A closedError is
+// Temporary always returns true for a frontend.ClosedError. A ClosedError is
 // considered temporary as recovery can be performed by creating a new frontend
 // instance.
-func (closedError) Temporary() bool {
+func (ClosedError) Temporary() bool {
 	return true
 }
 
@@ -112,7 +110,7 @@ func (f *frontend) Close() {
 	if f.err != nil {
 		return
 	}
-	f.err = closedError{}
+	f.err = ClosedError{}
 
 	// If player is still in the game force them to quit
 	if stats.Find(f.player) {
@@ -143,7 +141,7 @@ func (f *frontend) Close() {
 // stripped of leading and trailing whitespace before being stored in the
 // frontend state. Any response from processing the input is written to the
 // io.Writer passed to the initial New function that created the frontend. If
-// the frontend is closed during processing a frontend.closedError will be
+// the frontend is closed during processing a frontend.ClosedError will be
 // returned else nil.
 func (f *frontend) Parse(input []byte) error {
 
