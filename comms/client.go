@@ -23,9 +23,10 @@ import (
 
 // TODO: These need to be configuration options once we have them
 const (
-	termColumns = 80
-	termLines   = 24
-	inputBuffer = 512
+	termColumns  = 80
+	termLines    = 24
+	inputBuffer  = 512
+	writeTimeout = time.Second * 10
 )
 
 // This interface lets us assert network or our own errors
@@ -370,7 +371,7 @@ func (c *client) Write(d []byte) (n int, err error) {
 		t = text.Fold(d, termColumns)
 	}
 
-	c.SetWriteDeadline(time.Now().Add(config.Server.IdleTimeout))
+	c.SetWriteDeadline(time.Now().Add(writeTimeout))
 
 	if n, err = c.TCPConn.Write(t); err != nil {
 		c.SetError(err)
