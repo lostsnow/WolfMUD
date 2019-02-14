@@ -117,6 +117,11 @@ func (f *frontend) Close() {
 		cmd.Parse(f.player, "QUIT")
 	}
 
+	// Make sure any remaining messages are sent
+	if f.buf != nil {
+		f.buf.Deliver(f)
+	}
+
 	// Remove account from inuse list
 	accounts.Lock()
 	delete(accounts.inuse, f.account)
