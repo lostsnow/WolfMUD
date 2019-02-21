@@ -9,7 +9,7 @@ DESCRIPTION
   code downloads.
 
   As a prerequisit to compiling WolfMUD you should have downloaded and
-  installed Go from http://golang.org
+  installed Go from https://golang.org
 
 COMPILING (LINUX)
 
