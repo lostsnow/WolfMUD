@@ -237,7 +237,7 @@ func clean(in *[]byte) {
 		case R == utf8.RuneError:
 			// Drop invalid rune
 		case R == BS || R == DEL:
-			// Handle delete, repeate until non-combining rune found
+			// Handle delete, repeat until non-combining rune found
 			for comb := true; comb; {
 				// Decode last rune written in data[:w] taking advantage of the fact we
 				// know it's valid already and we just want the length and rune
