@@ -2,6 +2,7 @@
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
+
 package comms
 
 import (
@@ -63,7 +64,7 @@ var cleanData = []struct {
 	{"\x8F\x8F\x8F\x8F", ""}, // Invalid UTF-8 sequence (no non-leading 10xxxxxx)
 }
 
-func TestFixDEL(t *testing.T) {
+func TestClean(t *testing.T) {
 	for i, test := range cleanData {
 		t.Run(fmt.Sprintf("Test %d", i), func(t *testing.T) {
 			have := []byte(test.data)
@@ -81,7 +82,7 @@ func TestFixDEL(t *testing.T) {
 
 }
 
-func BenchmarkFixDEL(b *testing.B) {
+func BenchmarkClean(b *testing.B) {
 	var have []byte
 	for i, test := range cleanData {
 		b.Run(fmt.Sprintf("Bench %d", i), func(b *testing.B) {
