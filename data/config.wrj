@@ -13,6 +13,12 @@
   Server.MaxPlayers:  1024
   Server.LogClient:   false
 //
+// Per IP connection quotas
+//
+  Quota.Window:  0
+  Quota.Timeout: 0
+  Quota.Stats:   0
+//
 // Stats configuration
 //
   Stats.Rate: 10s

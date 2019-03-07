@@ -47,6 +47,17 @@ var Server = struct {
 	SetPermissions: false,
 }
 
+// Per IP connection quota default configuration
+var Quota = struct {
+	Window  time.Duration // Period quota records connections for
+	Timeout time.Duration // Period after which quota are reset
+	Stats   time.Duration // Minimum reporting period for quota stats
+}{
+	Window:  0,
+	Timeout: 0,
+	Stats:   0,
+}
+
 // Stats default configuration
 var Stats = struct {
 	Rate time.Duration // Stats collection and display rate
@@ -142,6 +153,14 @@ func init() {
 		case "SERVER.GREETING":
 			Server.Greeting = text.Colorize(decode.Bytes(data))
 
+		// Per IP connection quotas
+		case "QUOTA.WINDOW":
+			Quota.Window = decode.Duration(data)
+		case "QUOTA.TIMEOUT":
+			Quota.Timeout = decode.Duration(data)
+		case "QUOTA.STATS":
+			Quota.Stats = decode.Duration(data)
+
 		// Stats settings
 		case "STATS.RATE":
 			Stats.Rate = decode.Duration(data)
@@ -188,6 +207,29 @@ func init() {
 	log.Printf("Set permissions on player account files: %t", Server.SetPermissions)
 	if err != nil {
 		log.Printf("Error checking permissions, %s", err)
+	}
+
+	switch {
+	case Quota.Window == 0:
+		log.Printf("IP connection quotas are disabled.")
+	case Quota.Timeout != 0:
+		log.Printf(
+			"Per IP connection quota is 4 in %s, reset after %s.",
+			Quota.Window, Quota.Timeout,
+		)
+	case Quota.Timeout == 0:
+		log.Printf(
+			"Per IP connection quota is 4 in %s, reset after no connections for %s.",
+			Quota.Window, Quota.Window,
+		)
+	}
+
+	switch {
+	case Quota.Window == 0:
+	case Quota.Stats == 0:
+		log.Printf("Quota statistics logging disabled.")
+	default:
+		log.Printf("Minimum quota statistics logging period is %s.", Quota.Stats)
 	}
 
 	if !Debug.LongLog {
