@@ -126,8 +126,9 @@ func Read(in io.Reader, freetext string) (j Jar) {
 			continue
 		}
 
-		// If we get a new name store it as the current field being processed
-		if !noName {
+		// If we get a new name and not inside a free text section then store new
+		// name as the current field being processed
+		if !noName && field != freetext {
 			field = name
 		}
 

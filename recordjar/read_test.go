@@ -169,11 +169,29 @@ func TestRead_strings(t *testing.T) {
 			},
 		},
 
-		// Free text section with comment
+		// Free text section with leading comment (ignored)
 		{"// A comment\nThe quick brown fox jumps over the lazy dog.\n%%\n",
 			Jar{
 				Record{
 					"FREETEXT": []byte("The quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section containing comment
+		{"The quick brown fox jumps\n// over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps // over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section containing indented comment
+		{"The quick brown fox jumps\n  // over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps\n  // over the lazy dog."),
 				},
 			},
 		},
@@ -193,6 +211,26 @@ func TestRead_strings(t *testing.T) {
 			Jar{
 				Record{
 					"FREETEXT": []byte("\nThe quick brown fox jumps over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section containing a field, which should be part of the free
+		// text section and not seen as a field.
+		{"The quick brown fox jumps\nF1: over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps F1: over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section containing an indented  field, which should be part
+		// of the free text section and not seen as a field.
+		{"The quick brown fox jumps\n  F1: over the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps\n  F1: over the lazy dog."),
 				},
 			},
 		},
