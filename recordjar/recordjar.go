@@ -68,11 +68,12 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		err error
 
 		// Variables for processing current line
-		line   []byte   // current line from Reader
-		tokens [][]byte // temp vars for name:data pair parsed from line
-		name   string   // current name from line
-		data   []byte   // current data from line
-		field  string   // current field being processed (may differ from name)
+		line    []byte   // current line from Reader
+		tokens  [][]byte // temp vars for name:data pair parsed from line
+		name    string   // current name from line
+		data    []byte   // current data from line
+		field   string   // current field being processed (may differ from name)
+		startWS bool     // did current line start with whitespace before trimming
 
 		// Some flags to improve code readability
 		noName     = false // true if line has no name
@@ -102,6 +103,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 		// Read and parse current line
 		line = bytes.TrimRightFunc(line, unicode.IsSpace)
+		startWS = bytes.IndexFunc(line, unicode.IsSpace) == 0
 		tokens = splitLine.FindSubmatch(line)
 		name, data = string(bytes.ToUpper(tokens[1])), tokens[2]
 
@@ -151,16 +153,20 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// section
 		if field == freetext || field == "" {
 
-			// If last line was blank, current line is blank or current line starts
-			// with white space and we already have some text in the free text
-			// section, then append a new line to terminate the last line and start a
-			// new one. If not terminating last line, but we have some data in the
-			// free text section already, then append a space before appending the
-			// current line.
-			if noLastLine || noLine || (len(r[freetext]) != 0 && bytes.IndexFunc(line, unicode.IsSpace) == 0) {
+			// If we already have some free text we need to append either a line feed
+			// or a space as the 'joiner' before appending the next line. We need to
+			// append a line feed if:
+			//
+			//  - the last line was empty
+			//  - the current line is empty
+			//  - we have some free text and the current line starts with white space
+			//
+			// Otherwise we append a space to the existing free text.
+			_, haveFT := r[freetext]
+			if noLastLine || noLine || (haveFT && startWS) {
 				r[freetext] = append(r[freetext], '\n')
 			} else {
-				if _, ok = r[freetext]; ok {
+				if haveFT {
 					r[freetext] = append(r[freetext], ' ')
 				}
 			}
