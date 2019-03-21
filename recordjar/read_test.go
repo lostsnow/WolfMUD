@@ -273,7 +273,7 @@ func TestRead_strings(t *testing.T) {
 			},
 		}},
 	} {
-		t.Run(fmt.Sprintf("#%d_%q", x, test.data), func(t *testing.T) {
+		t.Run(fmt.Sprintf("#%d_%.20q", x, test.data), func(t *testing.T) {
 			have := Read(bytes.NewBufferString(test.data), "freetext")
 			compare(t, have, test.want)
 		})
