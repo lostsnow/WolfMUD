@@ -16,7 +16,9 @@
 //  - Line endings can be CRLF or LF
 //  - Comments are lines starting with "//" characters
 //  - The free text section is separated from the field section by a blank line
-//  - The "%%" record separator may have leading or trailing white space
+//  - The "%%" record separator may have leading or trailing white space EXCEPT
+//    when it follows a free text section - in which case there should be no
+//    leading white space.
 //
 //
 // Record jar example

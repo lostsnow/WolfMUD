@@ -117,15 +117,19 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		}
 
 		// Handle record separator by recording current Record in Jar and setting
-		// up a new next record, reset lastField seen and noLastLine flag.
+		// up a new next record, reset lastField seen and noLastLine flag. If a
+		// record separator appears after a free text section there must be no
+		// leading white-space before it.
 		if noName && bytes.Equal(data, rSeparator) {
-			if len(r) > 0 {
-				j = append(j, r)
-				r = Record{}
+			if field != freetext || (field == freetext && !startWS) {
+				if len(r) > 0 {
+					j = append(j, r)
+					r = Record{}
+				}
+				field = ""
+				noLastLine = false
+				continue
 			}
-			field = ""
-			noLastLine = false
-			continue
 		}
 
 		// If we get a new name and not inside a free text section then store new

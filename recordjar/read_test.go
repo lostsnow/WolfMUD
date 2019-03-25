@@ -196,6 +196,23 @@ func TestRead_strings(t *testing.T) {
 			},
 		},
 
+		// Free text section containing indented separator
+		{"The quick brown fox jumps\n  %%\nover the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps\n  %% over the lazy dog."),
+				},
+			},
+		},
+
+		// Free text section containing non-indented separator
+		{"The quick brown fox jumps\n%%\nover the lazy dog.\n%%\n",
+			Jar{
+				Record{"FREETEXT": []byte("The quick brown fox jumps")},
+				Record{"FREETEXT": []byte("over the lazy dog.")},
+			},
+		},
+
 		// Free text section with leading blank line - should not be mistaken for a
 		// separator line and should appear as part of free text section
 		{"\nThe quick brown fox jumps over the lazy dog.\n%%\n",
