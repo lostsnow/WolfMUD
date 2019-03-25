@@ -275,7 +275,7 @@ func TestStringList(t *testing.T) {
 		{"a:", []string{"a"}},
 		{":a", []string{"a"}},
 		{"a:b", []string{"a", "b"}},
-		{"b:a", []string{"a", "b"}},
+		{"b:a", []string{"b", "a"}},
 		{"a:b:", []string{"a", "b"}},
 		{":a:b", []string{"a", "b"}},
 		{":a:b:", []string{"a", "b"}},
@@ -291,8 +291,8 @@ func TestStringList(t *testing.T) {
 				" : The frog hops around a bit.\n",
 			[]string{
 				"The frog croaks a bit.",
-				"The frog hops around a bit.",
 				"The little frog leaps high into the air.",
+				"The frog hops around a bit.",
 			},
 		},
 	} {

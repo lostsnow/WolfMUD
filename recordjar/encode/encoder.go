@@ -119,13 +119,13 @@ func PairList(data map[string]string, delimiter rune) []byte {
 }
 
 // StringList returns a list of strings delimited by a colon separator. Each
-// string in the list will start with the delimiter on a new line.
+// string in the list will start with the delimiter on a new line. The original
+// order of the list will be preserved.
 func StringList(data []string) []byte {
 	s := make([]string, len(data))
 	for x := range data {
 		s[x] = strings.TrimSpace(data[x])
 	}
-	sort.Strings(s)
 	return []byte(strings.Join(s, "\n: "))
 }
 

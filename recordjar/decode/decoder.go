@@ -113,7 +113,7 @@ func PairList(data []byte) (pairs map[string]string) {
 
 // StringList returns the []byte data as a []string by splitting the data on a
 // colon separator. Any leading or trailing white space will be removed from
-// the returned strings.
+// the returned strings. The original order of the list will be preserved.
 func StringList(data []byte) (s []string) {
 	var w []byte
 
@@ -122,7 +122,6 @@ func StringList(data []byte) (s []string) {
 			s = append(s, string(w))
 		}
 	}
-	sort.Strings(s)
 	return
 }
 
