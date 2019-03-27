@@ -47,7 +47,7 @@ func Keyword(data []byte) string {
 
 // KeywordList returns the []byte data as an uppercased slice of strings. The
 // data is split on whitespace, extra whitespace is stripped and the individual
-// 'words' are returned in the string slice. Duplicate keywrods will be
+// 'words' are returned in the string slice. Duplicate keywords will be
 // removed.
 func KeywordList(data []byte) []string {
 
