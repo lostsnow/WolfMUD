@@ -69,17 +69,16 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 		// Variables for processing current line
 		line    []byte   // current line from Reader
+		startWS bool     // current line starts with whitespace before trimming?
 		tokens  [][]byte // temp vars for name:data pair parsed from line
 		name    string   // current name from line
 		data    []byte   // current data from line
 		field   string   // current field being processed (may differ from name)
-		startWS bool     // did current line start with whitespace before trimming
 
 		// Some flags to improve code readability
-		noName     = false // true if line has no name
-		noData     = false // true if line has no data
-		noLine     = false // true if line has no name and no data
-		noLastLine = false // true if last line had no name and no data
+		noName = false // true if line has no name
+		noData = false // true if line has no data
+		noLine = false // true if line has no name and no data
 	)
 
 	// If not using a buffered Reader, make it buffered
@@ -117,9 +116,9 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		}
 
 		// Handle record separator by recording current Record in Jar and setting
-		// up a new next record, reset lastField seen and noLastLine flag. If a
-		// record separator appears after a free text section there must be no
-		// leading white-space before it.
+		// up a new next record, reset current field being processed. If a record
+		// separator appears after a free text section there must be no leading
+		// white-space before it otherwise it will be taken for free text.
 		if noName && bytes.Equal(data, rSeparator) {
 			if field != freetext || (field == freetext && !startWS) {
 				if len(r) > 0 {
@@ -127,7 +126,6 @@ func Read(in io.Reader, freetext string) (j Jar) {
 					r = Record{}
 				}
 				field = ""
-				noLastLine = false
 				continue
 			}
 		}
@@ -139,14 +137,14 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		}
 
 		// Switch to free text field if an empty line and we are not already
-		// processing the free text section. If there was no lastField processed we
-		// need to record the blank line so that it is included in the free text
-		// section. This lets us have a record that has only a free text section
-		// and can start with a blank line, which is not counted as a separator
-		// line.
+		// processing the free text section. If there was no current field being
+		// processed we need to record the blank line so that it is included in the
+		// free text section. This lets us have a record that has only a free text
+		// section and can start with a blank line, which is not counted as a
+		// separator line.
 		if noLine && field != freetext {
 			if field == "" {
-				noLastLine = true
+				r[freetext] = []byte{}
 			}
 			field = freetext
 			continue
@@ -156,28 +154,10 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// we have no field - in which case assume we are starting a free text
 		// section
 		if field == freetext || field == "" {
-
-			// If we already have some free text we need to append either a line feed
-			// or a space as the 'joiner' before appending the next line. We need to
-			// append a line feed if:
-			//
-			//  - the last line was empty
-			//  - the current line is empty
-			//  - we have some free text and the current line starts with white space
-			//
-			// Otherwise we append a space to the existing free text.
-			_, haveFT := r[freetext]
-			if noLastLine || noLine || (haveFT && startWS) {
+			if _, ok := r[freetext]; ok {
 				r[freetext] = append(r[freetext], '\n')
-			} else {
-				if haveFT {
-					r[freetext] = append(r[freetext], ' ')
-				}
 			}
-
 			r[freetext] = append(r[freetext], line...)
-
-			noLastLine = noLine
 			field = freetext
 			continue
 		}

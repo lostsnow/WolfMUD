@@ -73,6 +73,14 @@ func TestRead_strings(t *testing.T) {
 		{"\t// Comment\n%%", Jar{}},
 		{"\t//Comment\n%%", Jar{}},
 
+		// Single blank lines
+		{"\n", Jar{Record{"FREETEXT": []byte("")}}},
+		{"  \n", Jar{Record{"FREETEXT": []byte("")}}},
+		{"\t\n", Jar{Record{"FREETEXT": []byte("")}}},
+		{"\r\n", Jar{Record{"FREETEXT": []byte("")}}},
+		{"  \r\n", Jar{Record{"FREETEXT": []byte("")}}},
+		{"\t\r\n", Jar{Record{"FREETEXT": []byte("")}}},
+
 		// Single field
 		{"F1: d1", Jar{Record{"F1": []byte("d1")}}},
 		{"F1:d1", Jar{Record{"F1": []byte("d1")}}},
@@ -150,21 +158,20 @@ func TestRead_strings(t *testing.T) {
 			},
 		},
 
-		// Free text section over multiple lines - line endings not preserved
+		// Free text section over multiple lines
 		{"The quick brown\nfox jumps over\nthe lazy dog.\n%%\n",
 			Jar{
 				Record{
-					"FREETEXT": []byte("The quick brown fox jumps over the lazy dog."),
+					"FREETEXT": []byte("The quick brown\nfox jumps over\nthe lazy dog."),
 				},
 			},
 		},
 
-		// Free text section over multiple indented lines - line endings preserved on
-		// indented lines.
-		{"The quick brown\n  fox jumps over the lazy dog.\n%%\n",
+		// Free text section over multiple indented lines
+		{"  The quick brown\n  fox jumps over the lazy dog.\n%%\n",
 			Jar{
 				Record{
-					"FREETEXT": []byte("The quick brown\n  fox jumps over the lazy dog."),
+					"FREETEXT": []byte("  The quick brown\n  fox jumps over the lazy dog."),
 				},
 			},
 		},
@@ -182,7 +189,7 @@ func TestRead_strings(t *testing.T) {
 		{"The quick brown fox jumps\n// over the lazy dog.\n%%\n",
 			Jar{
 				Record{
-					"FREETEXT": []byte("The quick brown fox jumps // over the lazy dog."),
+					"FREETEXT": []byte("The quick brown fox jumps\n// over the lazy dog."),
 				},
 			},
 		},
@@ -196,11 +203,20 @@ func TestRead_strings(t *testing.T) {
 			},
 		},
 
+		// Free text section containing blank line
+		{"The quick brown fox jumps\n\nover the lazy dog.\n%%\n",
+			Jar{
+				Record{
+					"FREETEXT": []byte("The quick brown fox jumps\n\nover the lazy dog."),
+				},
+			},
+		},
+
 		// Free text section containing indented separator
 		{"The quick brown fox jumps\n  %%\nover the lazy dog.\n%%\n",
 			Jar{
 				Record{
-					"FREETEXT": []byte("The quick brown fox jumps\n  %% over the lazy dog."),
+					"FREETEXT": []byte("The quick brown fox jumps\n  %%\nover the lazy dog."),
 				},
 			},
 		},
@@ -237,7 +253,7 @@ func TestRead_strings(t *testing.T) {
 		{"The quick brown fox jumps\nF1: over the lazy dog.\n%%\n",
 			Jar{
 				Record{
-					"FREETEXT": []byte("The quick brown fox jumps F1: over the lazy dog."),
+					"FREETEXT": []byte("The quick brown fox jumps\nF1: over the lazy dog."),
 				},
 			},
 		},
@@ -291,7 +307,7 @@ func TestRead_strings(t *testing.T) {
 		}},
 	} {
 		t.Run(fmt.Sprintf("#%d_%.20q", x, test.data), func(t *testing.T) {
-			have := Read(bytes.NewBufferString(test.data), "freetext")
+			have := Read(bytes.NewBufferString(test.data), "freetext", false)
 			compare(t, have, test.want)
 		})
 	}
@@ -309,7 +325,7 @@ func TestRead_files(t *testing.T) {
 		"ALIASES":   []byte("TAVERN FIREPLACE"),
 		"EXITS":     []byte("E→L3 SE→L4 S→L2"),
 		"INVENTORY": []byte("L1N1"),
-		"FREETEXT":  []byte("You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance."),
+		"FREETEXT":  []byte("You are in the corner of the common room in the dragon's breath tavern. A fire\nburns merrily in an ornate fireplace, giving comfort to weary travellers. The\nfire causes shadows to flicker and dance around the room, changing darkness to\nlight and back again. To the south the common room continues and east the common\nroom leads to the tavern entrance."),
 	}
 
 	for _, test := range []struct {
@@ -339,7 +355,7 @@ func TestRead_files(t *testing.T) {
 				t.Fatalf("%s", err)
 			}
 
-			have := Read(f, "freetext")
+			have := Read(f, "freetext", false)
 			compare(t, have, test.want)
 
 			f.Close()
@@ -354,7 +370,7 @@ func TestRead_freetext(t *testing.T) {
 		filename string
 		want     string
 	}{
-		{"ft-plain.wrj", "The quick brown fox jumps over the lazy dog."},
+		{"ft-plain.wrj", "The quick\nbrown fox\njumps over\nthe lazy\ndog."},
 		{"ft-embed-blank.wrj", "The quick brown fox\n\njumps over the lazy dog."},
 		{"ft-indent-space.wrj", "The quick\n  brown fox\n    jumps over the\n      lazy dog."},
 		{"ft-indent-comment.wrj", "The quick\n  brown fox\n    jumps over the\n      lazy dog."},
@@ -368,7 +384,7 @@ func TestRead_freetext(t *testing.T) {
 				t.Fatalf("%s", err)
 			}
 
-			have := Read(f, "freetext")
+			have := Read(f, "freetext", false)
 			want := Jar{Record{"FREETEXT": []byte(test.want)}}
 			compare(t, have, want)
 
@@ -387,7 +403,7 @@ func BenchmarkRead(b *testing.B) {
 
 	b.Run(fmt.Sprintf("Read"), func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = Read(r, "description")
+			_ = Read(r, "description", false)
 		}
 	})
 }
