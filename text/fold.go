@@ -50,7 +50,7 @@ var (
 //
 // For combining characters Fold will assume combining marks are zero width.
 // For example 'a' plus a combining grave accent U+0061 U+0300 will be counted
-// as a single character. However it is better to use and actual latin small
+// as a single character. However it is better to use an actual latin small
 // letter a with grave 'à' U+00E0. Either should work as expected.
 //
 // It is expected that the end of line markers for incoming data are Unix line
