@@ -151,7 +151,7 @@ func init() {
 		case "SERVER.LOGCLIENT":
 			Server.LogClient = decode.Boolean(data)
 		case "SERVER.GREETING":
-			Server.Greeting = text.Colorize(decode.Bytes(data))
+			Server.Greeting = text.Colorize(text.Unfold(decode.Bytes(data)))
 
 		// Per IP connection quotas
 		case "QUOTA.WINDOW":
