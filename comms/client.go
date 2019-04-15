@@ -192,7 +192,7 @@ func clean(in *[]byte) {
 		*/
 
 		// Simple single byte printable ASCII
-		if data[r] >= LoASC && data[r] <= HiASC {
+		if LoASC <= data[r] && data[r] <= HiASC {
 			data[r], data[w] = 0x00, data[r]
 			w++
 			r++
@@ -208,7 +208,7 @@ func clean(in *[]byte) {
 				continue
 			}
 			// If deleting single byte ASCII remove it and drop BS/DEL
-			if data[w-1] >= LoASC && data[w-1] <= HiASC {
+			if LoASC <= data[w-1] && data[w-1] <= HiASC {
 				w--
 				data[r], data[w] = 0x00, 0x00
 				r++
@@ -268,7 +268,7 @@ func clean(in *[]byte) {
 				w -= L
 				copy(data[w:w+L], Z)
 			}
-		case R >= LoC1 && R <= HiC1:
+		case LoC1 <= R && R <= HiC1:
 			// Drop C1 control codes
 		default:
 			// Write saved rune

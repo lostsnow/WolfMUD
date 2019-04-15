@@ -93,7 +93,7 @@ digit:
 	if x > len(in)-1 {
 		return in
 	}
-	if in[x] >= '0' && in[x] <= '9' {
+	if '0' <= in[x] && in[x] <= '9' {
 		x++
 		goto digit
 	}

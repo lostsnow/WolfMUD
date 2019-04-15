@@ -188,7 +188,7 @@ func Duration(data []byte) (t time.Duration) {
 	// Lower case passed duration and remove all white space
 	d := make([]rune, 0, len(data))
 	for _, r := range string(data) {
-		if r >= '0' && r <= '9' || r >= 'a' && r <= 'z' {
+		if '0' <= r && r <= '9' || 'a' <= r && r <= 'z' {
 			d = append(d, r)
 		} else {
 			if !unicode.IsSpace(r) {

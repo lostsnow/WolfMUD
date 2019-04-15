@@ -326,7 +326,7 @@ func specialQualifier(word string) (minLimit, maxLimit int) {
 // there are no leading digits.
 func lastLeadingDigit(s string) int {
 	for x, c := range s {
-		if c < '0' || c > '9' {
+		if c < '0' || '9' < c {
 			return x - 1
 		}
 	}
