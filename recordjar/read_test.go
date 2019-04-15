@@ -307,7 +307,7 @@ func TestRead_strings(t *testing.T) {
 		}},
 	} {
 		t.Run(fmt.Sprintf("#%d_%.20q", x, test.data), func(t *testing.T) {
-			have := Read(bytes.NewBufferString(test.data), "freetext", false)
+			have := Read(bytes.NewBufferString(test.data), "freetext")
 			compare(t, have, test.want)
 		})
 	}
@@ -355,7 +355,7 @@ func TestRead_files(t *testing.T) {
 				t.Fatalf("%s", err)
 			}
 
-			have := Read(f, "freetext", false)
+			have := Read(f, "freetext")
 			compare(t, have, test.want)
 
 			f.Close()
@@ -384,7 +384,7 @@ func TestRead_freetext(t *testing.T) {
 				t.Fatalf("%s", err)
 			}
 
-			have := Read(f, "freetext", false)
+			have := Read(f, "freetext")
 			want := Jar{Record{"FREETEXT": []byte(test.want)}}
 			compare(t, have, want)
 
@@ -403,7 +403,7 @@ func BenchmarkRead(b *testing.B) {
 
 	b.Run(fmt.Sprintf("Read"), func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = Read(r, "description", false)
+			_ = Read(r, "description")
 		}
 	})
 }
