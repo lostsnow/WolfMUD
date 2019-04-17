@@ -22,7 +22,7 @@ func init() {
 
 // BUG(diddymus): Aliases are expected be single words only, otherwise they
 // probably won't work correctly and cause all sorts of weird problems and
-// behaviour. See also TODO about prefixes.
+// behaviour.
 
 // Alias implements an attribute for referring to a Thing. An alias is a single
 // word used to refer to things. Things may have more than one alias. For
@@ -48,14 +48,28 @@ func init() {
 // respawning and cleaning up the wrong runestone. Using the unique alias of
 // the dropped runestone avoids this situation.
 //
-// TODO: Need to implement alias prefixes. This would allow us to distinguish
-// between two similar items with the same alias. For example if there are two
-// coins, one copper and one silver, we could use either "GET COPPER COIN"
-// or "GET SILVER COIN". If there is only one coin then "GET COIN" would be
-// sufficient. See also BUG about aliases being single words.
+// As well as an alias a Thing may have one or more qualifiers. A qualifier can
+// be used to specify a Thing more specifically. For example:
+//
+//  GET RED BALL
+//  GET GREEN BALL
+//
+// Here the qualifiers are 'RED' and 'GREEN'. Qualifiers are defined by
+// prefixing an alias with a plus '+' symbol. For example:
+//
+//  Aliases: +RED BALL
+//  Aliases: +GREEN BALL
+//
+// BUG(diddymus): It is not yet possible to associate a qualifier with a
+// specific alias. For example:
+//
+//  Aliases: +SHORT SWORD SHORTSWORD
+//
+// Here the qualifier 'SHORT' would apply to 'SWORD' and 'SHORTSWORD'.
 type Alias struct {
 	Attribute
-	aliases map[string]struct{}
+	aliases    map[string]struct{}
+	qualifiers map[string]struct{}
 }
 
 // Some interfaces we want to make sure we implement. If we don't we'll throw
@@ -65,14 +79,27 @@ var (
 )
 
 // NewAlias returns a new Alias attribute initialised with the specified
-// aliases. The specified aliases are automatically uppercased when stored.
-// A unique alias using the parent Thing.UID will be added automatically.
+// aliases and qualifiers. Qualifiers are specified by prefixing an alias with
+// a plus '+' symbol. The specified aliases and qualifiers are automatically
+// uppercased when stored. A unique alias using the parent Thing.UID will be
+// added automatically.
 func NewAlias(aliases ...string) *Alias {
 	a := make(map[string]struct{}, len(aliases))
+	q := make(map[string]struct{}, len(aliases))
 	for _, alias := range aliases {
-		a[strings.ToUpper(alias)] = struct{}{}
+		// Ignore empty aliases and qualifiers
+		if len(alias) == 0 || len(alias) == 1 && alias == "+" {
+			continue
+		}
+		// Store uppercased alias/qualifier. For qualifiers drop leading '+' before
+		// storing.
+		if alias[0] != '+' {
+			a[strings.ToUpper(alias)] = struct{}{}
+		} else {
+			q[strings.ToUpper(alias[1:])] = struct{}{}
+		}
 	}
-	return &Alias{Attribute{}, a}
+	return &Alias{Attribute{}, a, q}
 }
 
 // SetParent overrides the default Attribute.SetParent in order to set a
@@ -123,6 +150,9 @@ func (a *Alias) Marshal() (tag string, data []byte) {
 	// unique aliases will keep being added to the list.
 	uid := a.Parent().UID()
 	aliases := []string{}
+	for qualifier := range a.qualifiers {
+		aliases = append(aliases, "+"+qualifier)
+	}
 	for alias := range a.aliases {
 		if alias == uid {
 			continue
@@ -141,15 +171,33 @@ func (a *Alias) Marshal() (tag string, data []byte) {
 }
 
 func (a *Alias) Dump() []string {
-	buff := []byte{}
-	for a := range a.aliases {
-		buff = append(buff, ", "...)
-		buff = strconv.AppendQuote(buff, a)
+	return []string{
+		DumpFmt(
+			"%p %[1]T %d aliases: %s, %d qualifiers: %s",
+			a,
+			len(a.aliases),
+			dumpFmtList(a.Aliases()),
+			len(a.qualifiers),
+			dumpFmtList(a.Qualifiers()),
+		),
 	}
-	if len(buff) > 0 {
-		buff = buff[2:]
+}
+
+// dumpFmtList returns a formatted list of strings. The format wraps the list
+// elements in quotes and returns the list comma separated. For example:
+// the slice []string{"A", "B"} becomes the string `"A", "B"`
+func dumpFmtList(list []string) string {
+	if len(list) == 0 {
+		return ""
 	}
-	return []string{DumpFmt("%p %[1]T %d aliases: %s", a, len(a.aliases), buff)}
+	b := []byte{}
+	for _, l := range list {
+		b = append(b, ',')
+		b = append(b, ' ')
+		b = strconv.AppendQuote(b, l)
+	}
+	b = b[2:]
+	return string(b)
 }
 
 // HasAlias checks the passed string for a matching alias. Returns true if a
@@ -157,6 +205,15 @@ func (a *Alias) Dump() []string {
 func (a *Alias) HasAlias(alias string) (found bool) {
 	if a != nil {
 		_, found = a.aliases[alias]
+	}
+	return
+}
+
+// HasQualifier checks the passed string for a matching qualifier. Returns true
+// if a match is found otherwise false.
+func (a *Alias) HasQualifier(qualifier string) (found bool) {
+	if a != nil {
+		_, found = a.qualifiers[qualifier]
 	}
 	return
 }
@@ -172,10 +229,25 @@ func (a *Alias) Aliases() (aliases []string) {
 	return
 }
 
+// Qualifiers returns a []string of all the qualifiers for an Alias attribute.
+// If there are no qualifiers an empty slice will be returned.
+func (a *Alias) Qualifiers() (qualifiers []string) {
+	if a != nil {
+		for qualifier := range a.qualifiers {
+			qualifiers = append(qualifiers, qualifier)
+		}
+	}
+	return
+}
+
 // Copy returns a copy of the Alias receiver.
 func (a *Alias) Copy() has.Attribute {
 	if a == nil {
 		return (*Alias)(nil)
 	}
-	return NewAlias(a.Aliases()...)
+	aliases := a.Aliases()
+	for q := range a.qualifiers {
+		aliases = append(aliases, "+"+q)
+	}
+	return NewAlias(aliases...)
 }

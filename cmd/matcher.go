@@ -162,7 +162,7 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Res
 			// Loop through matched set looking for matching qualifiers
 			subResults := []has.Thing{}
 			for _, t := range results {
-				if attr.FindAlias(t).HasAlias("+" + words[0]) {
+				if attr.FindAlias(t).HasQualifier(words[0]) {
 					subResults = append(subResults, t)
 				}
 			}

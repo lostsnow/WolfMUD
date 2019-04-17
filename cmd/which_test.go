@@ -163,8 +163,7 @@ func TestWhich(t *testing.T) {
 		{"apple token chalk", apple + token + chalk, noting},
 
 		// Should not find a qualifier as an alias
-		// BUG (diddymus): test disabled until aliases updated to handle qualifiers
-		// {"+test", "You see no '+TEST' here.", notFound},
+		{"+test", text.Bad + "You see no '+TEST' here.\n", notFound},
 	} {
 		t.Run(fmt.Sprintf("%s", test.cmd), func(t *testing.T) {
 			cmd.Parse(actor, "which "+test.cmd)
