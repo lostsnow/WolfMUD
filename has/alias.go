@@ -19,6 +19,10 @@ type Alias interface {
 	// otherwise false.
 	HasQualifier(qualifier string) (found bool)
 
+	// HasQualifierForAlias returns true if the qualifier passed is a valid
+	// qualifier bound to the specified alias, otherwise false.
+	HasQualifierForAlias(alias, qualifier string) (found bool)
+
 	// Aliases returns all of the aliases as a []string or am empty slice if
 	// there are no aliases.
 	Aliases() []string

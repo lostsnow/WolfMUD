@@ -51,21 +51,35 @@ func init() {
 // As well as an alias a Thing may have one or more qualifiers. A qualifier can
 // be used to specify a Thing more specifically. For example:
 //
-//  GET RED BALL
-//  GET GREEN BALL
+//  GET LONG SWORD
+//  GET SHORT SWORD
 //
-// Here the qualifiers are 'RED' and 'GREEN'. Qualifiers are defined by
+// Here the qualifiers are 'LONG' and 'SHORT'. Qualifiers are defined by
 // prefixing an alias with a plus '+' symbol. For example:
 //
-//  Aliases: +RED BALL
-//  Aliases: +GREEN BALL
+//  Aliases: +LONG SWORD
+//  Aliases: +SHORT SWORD
 //
-// BUG(diddymus): It is not yet possible to associate a qualifier with a
-// specific alias. For example:
+// A qualifier can be bound to a specific alias by following the qualifier with
+// a colon ':' and the alias to bind it to. For example:
 //
-//  Aliases: +SHORT SWORD SHORTSWORD
+//  Aliases: +WOODEN +SHORT:SWORD SHORTSWORD
 //
-// Here the qualifier 'SHORT' would apply to 'SWORD' and 'SHORTSWORD'.
+// This binds the qualifier 'SHORT' to the alias 'SWORD'. The following would
+// then be valid:
+//
+//  GET WOODEN SWORD
+//  GET WOODEN SHORT SWORD
+//  GET SHORT WOODEN SWORD
+//  GET WOODEN SHORTSWORD
+//  GET SWORD
+//  GET SHORTSWORD
+//
+// The following would not be validi as 'SHORT' is only bound to 'SWORD' and
+// not 'SHORTSWORD':
+//
+//  GET SHORT SHORTSWORD
+//
 type Alias struct {
 	Attribute
 	aliases    map[string]struct{}
@@ -97,6 +111,9 @@ func NewAlias(aliases ...string) *Alias {
 			a[strings.ToUpper(alias)] = struct{}{}
 		} else {
 			q[strings.ToUpper(alias[1:])] = struct{}{}
+			if s := strings.SplitAfter(alias, ":"); len(s) == 2 {
+				a[strings.ToUpper(s[1])] = struct{}{}
+			}
 		}
 	}
 	return &Alias{Attribute{}, a, q}
@@ -214,6 +231,16 @@ func (a *Alias) HasAlias(alias string) (found bool) {
 func (a *Alias) HasQualifier(qualifier string) (found bool) {
 	if a != nil {
 		_, found = a.qualifiers[qualifier]
+	}
+	return
+}
+
+// HasQualifierForAlias checks the passed string for a matching qualifier for a
+// specific alias. Returns true if a match is found otherwise false.
+// An alias can be bound to a qualifier using the syntax "+qualifier:alias".
+func (a *Alias) HasQualifierForAlias(alias, qualifier string) (found bool) {
+	if a != nil {
+		_, found = a.qualifiers[qualifier+":"+alias]
 	}
 	return
 }

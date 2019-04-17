@@ -44,6 +44,16 @@ func whichSetupWorld() (world attr.Things) {
 				attr.NewDescription("This is a large, red rubber ball."),
 			),
 			attr.NewThing(
+				attr.NewName("a shortsword"),
+				attr.NewAlias("+WOODEN", "+SHORT:SWORD", "SHORTSWORD"),
+				attr.NewDescription("This is a wooden shortsword."),
+			),
+			attr.NewThing(
+				attr.NewName("a longsword"),
+				attr.NewAlias("+WOODEN", "+LONG:SWORD", "LONGSWORD"),
+				attr.NewDescription("This is a wooden longsword."),
+			),
+			attr.NewThing(
 				attr.NewName("an apple"),
 				attr.NewAlias("APPLE"),
 				attr.NewDescription("This is an apple."),
@@ -80,6 +90,8 @@ func TestWhich(t *testing.T) {
 		largeGreen = text.Good + "You see a large green ball here.\n"
 		smallRed   = text.Good + "You see a small red ball here.\n"
 		largeRed   = text.Good + "You see a large red ball here.\n"
+		shortsword = text.Good + "You see a shortsword here.\n"
+		longsword  = text.Good + "You see a longsword here.\n"
 		apple      = text.Good + "You see an apple here.\n"
 		chalk      = text.Good + "You see a piece of chalk here.\n"
 		token      = text.Good + "You are carrying a token.\n"
@@ -145,6 +157,7 @@ func TestWhich(t *testing.T) {
 		{"3rd ball", smallRed, noting},
 		{"4th ball", largeRed, noting},
 		{"5th ball", noBalls, notFound},
+
 		{"frog", text.Bad + "You see no 'FROG' here.\n", notFound},
 		{"blue frog", text.Bad + "You see no 'BLUE FROG' here.\n", notFound},
 		{"green frog", text.Bad + "You see no 'GREEN FROG' here.\n", notFound},
@@ -164,6 +177,37 @@ func TestWhich(t *testing.T) {
 
 		// Should not find a qualifier as an alias
 		{"+test", text.Bad + "You see no '+TEST' here.\n", notFound},
+
+		// Tests for qualifier bound to aliases
+		{"all shortsword", shortsword, noting},
+		{"all longsword", longsword, noting},
+		{"all short sword", shortsword, noting},
+		{"all long sword", longsword, noting},
+		{"all sword", shortsword + longsword, noting},
+		{"all wooden sword", shortsword + longsword, noting},
+		{"all wooden shortsword", shortsword, noting},
+		{"all wooden longsword", longsword, noting},
+		{"all wooden short sword", shortsword, noting},
+		{"all wooden long sword", longsword, noting},
+		{"all short wooden sword", shortsword, noting},
+		{"all long wooden sword", longsword, noting},
+		{"short", text.Bad + "You see no 'SHORT' here.\n", notFound},
+		{"long", text.Bad + "You see no 'LONG' here.\n", notFound},
+		{"wooden", text.Bad + "You see no 'WOODEN' here.\n", notFound},
+		{"wooden short", text.Bad + "You see no 'WOODEN SHORT' here.\n", notFound},
+		{"wooden long", text.Bad + "You see no 'WOODEN LONG' here.\n", notFound},
+		{
+			"short shortsword",
+			text.Bad + "You see no 'SHORT' here.\n" + shortsword, noting,
+		},
+		{
+			"long longsword",
+			text.Bad + "You see no 'LONG' here.\n" + longsword, noting,
+		},
+		{
+			"short:sword",
+			text.Bad + "You see no 'SHORT:SWORD' here.\n", notFound,
+		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.cmd), func(t *testing.T) {
 			cmd.Parse(actor, "which "+test.cmd)
