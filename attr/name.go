@@ -110,8 +110,7 @@ var repl = map[string]string{
 
 // TheName returns the name stored in the attribute, as per Name, but with the
 // leading "A ", "An " or "Some " changed to "The ". The case of the 't' in
-// 'the' is the same
-// as the case of word replaced. For example:
+// 'the' is the same as the case of word replaced. For example:
 //
 //	      A frog -> The frog
 //	      a frog -> the frog
