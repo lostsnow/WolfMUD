@@ -79,6 +79,7 @@ func (look) process(s *state) {
 
 	// Notify any observers we are looking around
 	who := attr.FindName(s.actor).Name("Someone")
+	who = text.TitleFirst(who)
 	s.msg.Observer.SendInfo(who, " starts looking around.")
 
 	s.ok = true
