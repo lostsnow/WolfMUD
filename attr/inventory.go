@@ -1,4 +1,4 @@
-// Copyright 2015 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2019 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
@@ -6,6 +6,8 @@
 package attr
 
 import (
+	"log"
+
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
@@ -19,26 +21,13 @@ func init() {
 
 // Inventory implements an attribute for container inventories. The most common
 // container usage is for locations and rooms as well as actual containers like
-// bags, boxes and inventories for mobiles. WolfMUD does not actually define a
-// specific type for locations. Locations are simply Things that have an Exits
-// attribute.
+// bags, boxes and inventories for players and mobiles. WolfMUD does not
+// actually define a specific type for locations. Locations are simply Things
+// that have an Exits attribute.
 //
 // Any Thing added to an Inventory will automatically be assigned a Locate
 // attribute. A locate attribute is simply a back reference to the Inventory a
 // Thing is in. This enables a Thing to work out where it is.
-//
-// NOTE: The contents slice is split into two parts. Things with a Narrative
-// attribute are added to the beginning of the slice. All other Things are
-// appended to the end of the slice. Which items are narrative and which are
-// not is automatically tracked by split:
-//
-//	narratives := contents[:split]
-//	other := contents[split:]
-//
-//	countNarratives := split
-//	countOther := len(contents) - split
-//
-// For a complete description of narratives see the Narrative attribute type.
 //
 // A Thing in an Inventory may be disabled and taken out of play or enabled and
 // put back into play. A disabled Thing is inaccessible to players but is still
@@ -50,17 +39,108 @@ func init() {
 // When the reset event triggers the Thing would be enabled and brought back
 // into play.
 //
-// TODO: A slice for contents is fine for convenience and simplicity but maybe
-// a linked list would be better? This would possibly save reslicing in Remove.
-//
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
 	Attribute
-	contents    []has.Thing
-	split       int
-	disabled    []has.Thing
+	contents    *list
+	disabled    *list
 	playerCount int
 	internal.BRL
+}
+
+// list implements a simple double linked list optimised for Inventories
+// holding has.Thing items. The head and tail are both sentinal nodes. A list
+// can be walked using:
+//
+//    for n := list.head.next; n.item != nil; n = n.next {
+//      // forwards
+//    }
+//
+//    for n := list.tail.prev; n.item != nil; n = n.prev {
+//      // reverse
+//    }
+//
+// New items are always added at the head of the list.
+type list struct {
+	head *node
+	tail *node
+}
+
+// newList sets up a new, empty list with sentinal head and tail nodes. The
+// head sentinal node should always have prev = nil, the tail sentinal next =
+// nil.
+func newList() *list {
+	l := &list{&node{}, &node{}}
+	l.head.next = l.tail
+	l.tail.prev = l.head
+	return l
+}
+
+// free releases the head and tail from a list. The list should be empty before
+// being freed. Calling free helps the garbage collector as otherwise the head
+// is linked to the tail and the tail linked to the head, in an empty list,
+// creating a cyclic reference between the head and tail sentinal nodes.
+func (l *list) free() {
+	// unlink head and tail
+	l.head.next = nil
+	l.tail.prev = nil
+	// clear head and tail
+	l.head = nil
+	l.tail = nil
+}
+
+// node represents an item in a list.
+type node struct {
+	prev *node
+	next *node
+	item has.Thing
+}
+
+// add appends an item to the head of the receiver list.
+func (l *list) add(t has.Thing) {
+	l.head.next.prev = &node{l.head, l.head.next, t}
+	l.head.next = l.head.next.prev
+}
+
+// remove walks a list and removes the specified thing if found.
+func (l *list) remove(t has.Thing) bool {
+	for n := l.head.next; n.next != nil; n = n.next {
+		if n.item != t {
+			continue
+		}
+		n.next.prev, n.prev.next = n.prev, n.next
+		n.prev, n.next, n.item = nil, nil, nil
+		return true
+	}
+	return false
+}
+
+// move unlinks the node containing the passed Thing from the receiver list and
+// links it into the destination to list. This is a remove+add that reuses the
+// list node avoiding throwing away the old node and creating a new one. If the
+// remove fails false will be returned otherwise true.
+func (l *list) move(t has.Thing, to *list) bool {
+	for n := l.head.next; n.next != nil; n = n.next {
+		if n.item != t {
+			continue
+		}
+		n.next.prev, n.prev.next = n.prev, n.next
+		n.prev, n.next = to.head, to.head.next
+
+		to.head.next.prev = n
+		to.head.next = n
+		return true
+	}
+	return false
+}
+
+// list dumps a list for debugging
+func (l *list) list(label string) {
+	log.Printf("list for %s", label)
+	for n := l.head; n.next != nil; n = n.next {
+		log.Printf("list %12p, %12p, %12p, %s", n, n.prev, n.next, n.item)
+	}
+	log.Printf("list %12p, %12p, %12p, %s", l.tail, l.tail.prev, l.tail.next, l.tail.item)
 }
 
 // Some interfaces we want to make sure we implement. If we don't we'll throw
@@ -75,8 +155,8 @@ var (
 func NewInventory(t ...has.Thing) *Inventory {
 	i := &Inventory{
 		Attribute: Attribute{},
-		contents:  make([]has.Thing, 0, len(t)),
-		disabled:  []has.Thing{},
+		contents:  newList(),
+		disabled:  newList(),
 		BRL:       internal.NewBRL(),
 	}
 
@@ -113,24 +193,30 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (i *Inventory) Marshal() (tag string, data []byte) {
 	var refs []string
-	for _, t := range i.contents {
-		refs = append(refs, t.UID())
+	for n := i.contents.head.next; n.next != nil; n = n.next {
+		refs = append(refs, n.item.UID())
 	}
 	return "inventory", encode.KeywordList(refs)
 }
 
 func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, split: %d, disabled: %d):", i, i.LockID(), len(i.contents)+len(i.disabled), i.playerCount, i.split, len(i.disabled)))
-	for _, i := range i.contents {
-		for _, i := range i.Dump() {
-			buff = append(buff, DumpFmt("%s", i))
+	buff = append(buff, "")
+	ccount, dcount := 0, 0
+	for n := i.contents.head.next; n.next != nil; n = n.next {
+		ccount++
+		for _, l := range n.item.Dump() {
+			buff = append(buff, DumpFmt("%s", l))
 		}
 	}
-	for _, i := range i.disabled {
-		for _, i := range i.Dump() {
-			buff = append(buff, DumpFmt("%s", i))
+	for n := i.disabled.head.next; n.next != nil; n = n.next {
+		dcount++
+		for _, l := range n.item.Dump() {
+			buff = append(buff, DumpFmt("%s", l))
 		}
 	}
+
+	buff[0] = DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, disabled: %d):", i, i.LockID(), ccount+dcount, i.playerCount, dcount)
+
 	return buff
 }
 
@@ -154,44 +240,8 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 		return
 	}
 
-	found := -1
-
-	for j, c := range i.contents {
-		if c == t {
-			copy(i.contents[j:], i.contents[j+1:])
-			i.contents[len(i.contents)-1] = nil
-			i.contents = i.contents[:len(i.contents)-1]
-
-			// If we are using less than half of the slice's capacity and the
-			// difference is more than config.Inventory.Compact 'shrink' the slice by
-			// allocating a new slice of the exact size needed. The value of
-			// config.Inventory.Compact stops us shrinking small buffers all the time
-			// where the gain is minimal.
-			if l, c := len(i.contents), cap(i.contents); (c - l - l) >= config.Inventory.Compact {
-				i.contents = append(make([]has.Thing, 0, l), i.contents...)
-			}
-
-			found = j
-			break
-		}
-	}
-
-	// If Thing to move not found just abort the move
-	if found == -1 {
+	if !i.contents.move(t, to.contents) {
 		return
-	}
-
-	// If Thing added was a Narrative move it to the front of the slice and
-	// adjust the Narrative/Thing split. Otherwsie just append Thing to the end
-	// of the slice.
-	if found < i.split {
-		to.contents = append(to.contents, nil)
-		copy(to.contents[1:], to.contents[0:])
-		to.contents[0] = t
-		i.split--
-		to.split++
-	} else {
-		to.contents = append(to.contents, t)
 	}
 
 	// TODO: Need to check for players or mobiles
@@ -212,9 +262,7 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 // attribute one will be added. The Thing may be enabled and put in play by
 // calling Enable.
 func (i *Inventory) Add(t has.Thing) {
-	i.disabled = append(i.disabled, t)
-
-	// If Locate attribute found update it, otherwise add a new one
+	i.disabled.add(t)
 	if l := FindLocate(t); l.Found() {
 		l.SetWhere(i)
 		return
@@ -228,70 +276,22 @@ func (i *Inventory) Add(t has.Thing) {
 // once a Thing is removed Thing.Free should be called to release the Thing for
 // garbage collection.
 func (i *Inventory) Remove(t has.Thing) {
-	for j, a := range i.disabled {
-		if a == t {
-			copy(i.disabled[j:], i.disabled[j+1:])
-			i.disabled[len(i.disabled)-1] = nil
-			i.disabled = i.disabled[:len(i.disabled)-1]
-
-			if len(i.disabled) == 0 && cap(i.disabled) != 0 {
-				i.disabled = []has.Thing{}
-			}
-
-			return
-		}
-	}
+	i.disabled.remove(t)
 }
 
 // Enabled marks a Thing in an Inventory as being in play.
 func (i *Inventory) Enable(t has.Thing) {
-	for j, a := range i.disabled {
-		if a == t {
-			copy(i.disabled[j:], i.disabled[j+1:])
-			i.disabled[len(i.disabled)-1] = nil
-			i.disabled = i.disabled[:len(i.disabled)-1]
-
-			// If Thing added was a Narrative move it to the front of the slice and
-			// adjust the Narrative/Thing split. If Thing added not a Narrative just
-			// append it to the end of the slice
-			if FindNarrative(t).Found() {
-				i.contents = append(i.contents, nil)
-				copy(i.contents[1:], i.contents[0:])
-				i.contents[0] = t
-				i.split++
-			} else {
-				i.contents = append(i.contents, t)
-			}
-
-			if FindPlayer(t).Found() {
-				i.playerCount++
-			}
-
-			return
-		}
+	i.disabled.move(t, i.contents)
+	if FindPlayer(t).Found() {
+		i.playerCount++
 	}
 }
 
 // Disable marks a Thing in an Inventory as being out of play.
 func (i *Inventory) Disable(t has.Thing) {
-	for j, c := range i.contents {
-		if c == t {
-			copy(i.contents[j:], i.contents[j+1:])
-			i.contents[len(i.contents)-1] = nil
-			i.contents = i.contents[:len(i.contents)-1]
-			i.disabled = append(i.disabled, t)
-
-			// If Thing removed was a Narrative adjust Narrative/Thing split
-			if FindNarrative(t).Found() {
-				i.split--
-			}
-
-			if FindPlayer(t).Found() {
-				i.playerCount--
-			}
-
-			return
-		}
+	i.contents.move(t, i.disabled)
+	if FindPlayer(t).Found() {
+		i.playerCount--
 	}
 }
 
@@ -302,9 +302,9 @@ func (i *Inventory) Search(alias string) has.Thing {
 		return nil
 	}
 
-	for _, c := range i.contents {
-		if FindAlias(c).HasAlias(alias) {
-			return c
+	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
+		if FindAlias(n.item).HasAlias(alias) {
+			return n.item
 		}
 	}
 	return nil
@@ -316,11 +316,15 @@ func (i *Inventory) Search(alias string) has.Thing {
 // changes to the actual slice are not possible - use the Add and Remove
 // methods instead.
 func (i *Inventory) Contents() []has.Thing {
+	l := []has.Thing{}
 	if i == nil {
-		return []has.Thing{}
+		return l
 	}
-	l := make([]has.Thing, len(i.contents)-i.split)
-	copy(l, i.contents[i.split:])
+	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
+		if !FindNarrative(n.item).Found() {
+			l = append(l, n.item)
+		}
+	}
 	return l
 }
 
@@ -330,32 +334,39 @@ func (i *Inventory) Contents() []has.Thing {
 // changes to the actual slice are not possible - use the Add and Remove
 // methods instead.
 func (i *Inventory) Narratives() []has.Thing {
+	l := []has.Thing{}
 	if i == nil {
 		return []has.Thing{}
 	}
-	l := make([]has.Thing, i.split)
-	copy(l, i.contents[:i.split])
+	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
+		if FindNarrative(n.item).Found() {
+			l = append(l, n.item)
+		}
+	}
 	return l
 }
 
 // Everything returns all of the narratives and contents of the Inventory. It
 // is a single call equivelent to: append(i.Narratives(), i.Contents()...)
 func (i *Inventory) Everything() []has.Thing {
+	l := []has.Thing{}
 	if i == nil {
-		return []has.Thing{}
+		return l
 	}
-	l := make([]has.Thing, len(i.contents))
-	copy(l, i.contents)
+	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
+	}
 	return l
 }
 
 func (i *Inventory) Disabled() []has.Thing {
+	l := []has.Thing{}
 	if i == nil {
-		return []has.Thing{}
+		return l
 	}
-
-	l := make([]has.Thing, len(i.disabled))
-	copy(l, i.disabled[:])
+	for n := i.disabled.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
+	}
 	return l
 }
 
@@ -385,8 +396,9 @@ func (i *Inventory) List() string {
 	}
 
 	buff := make([]byte, 0, 1024)
+	contents := i.Contents()
 
-	switch len(i.contents) - i.split {
+	switch len(contents) {
 	case 0:
 		if FindNarrative(i.Parent()).Found() {
 			return ""
@@ -400,7 +412,7 @@ func (i *Inventory) List() string {
 
 	mark := len(buff)
 
-	for _, c := range i.contents[i.split:] {
+	for _, c := range contents {
 		if len(buff) > mark {
 			buff = append(buff, "\n  "...)
 		}
@@ -408,7 +420,7 @@ func (i *Inventory) List() string {
 	}
 
 	// End single item sentence with a fullstop.
-	if len(i.contents)-i.split == 1 {
+	if len(contents) == 1 {
 		buff = append(buff, "."...)
 	}
 
@@ -434,7 +446,7 @@ func (i *Inventory) Players() bool {
 // Empty returns true if there are no non-Narrative items else false.
 func (i *Inventory) Empty() bool {
 	if i != nil {
-		return len(i.contents)-i.split == 0
+		return len(i.Contents()) == 0
 	}
 	return true
 }
@@ -450,13 +462,13 @@ func (i *Inventory) Copy() has.Attribute {
 		return (*Inventory)(nil)
 	}
 	ni := NewInventory()
-	for _, a := range i.contents {
-		c := a.Copy()
+	for n := i.contents.head.next; n.next != nil; n = n.next {
+		c := n.item.Copy()
 		ni.Add(c)
 		ni.Enable(c)
 	}
-	for _, a := range i.disabled {
-		ni.Add(a.Copy())
+	for n := i.disabled.head.next; n.next != nil; n = n.next {
+		ni.Add(n.item.Copy())
 	}
 	return ni
 }
@@ -468,20 +480,19 @@ func (i *Inventory) Free() {
 		return
 	}
 
-	for x, t := range i.contents {
-		i.contents[x] = nil
-		t.Free()
+	for i.contents.head.next.next != nil {
+		i.contents.head.next.item.Free()
+		i.contents.remove(i.contents.head.next.item)
 	}
-	i.contents = i.contents[:0]
-	i.split = 0
+	i.contents.free()
+
+	for i.disabled.head.next.next != nil {
+		i.disabled.head.next.item.Free()
+		i.disabled.remove(i.disabled.head.next.item)
+	}
+	i.disabled.free()
+
 	i.playerCount = 0
-
-	for x, t := range i.disabled {
-		i.disabled[x] = nil
-		t.Free()
-	}
-	i.contents = i.disabled[:0]
-
 	i.Attribute.Free()
 }
 
