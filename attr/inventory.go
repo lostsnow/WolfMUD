@@ -428,9 +428,8 @@ func (i *Inventory) List() string {
 	}
 
 	buff := make([]byte, 0, 1024)
-	contents := i.Contents()
 
-	switch len(contents) {
+	switch i.players.len + i.contents.len {
 	case 0:
 		if FindNarrative(i.Parent()).Found() {
 			return ""
@@ -444,15 +443,17 @@ func (i *Inventory) List() string {
 
 	mark := len(buff)
 
-	for _, c := range contents {
-		if len(buff) > mark {
-			buff = append(buff, "\n  "...)
+	for _, list := range []*list{i.players, i.contents} {
+		for n := list.tail.prev; n.prev != nil; n = n.prev {
+			if len(buff) > mark {
+				buff = append(buff, "\n  "...)
+			}
+			buff = append(buff, FindName(n.item).Name("Something")...)
 		}
-		buff = append(buff, FindName(c).Name("Something")...)
 	}
 
 	// End single item sentence with a fullstop.
-	if len(contents) == 1 {
+	if i.players.len+i.contents.len == 1 {
 		buff = append(buff, "."...)
 	}
 
