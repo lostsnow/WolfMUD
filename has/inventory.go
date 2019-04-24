@@ -17,6 +17,9 @@ type Inventory interface {
 	Attribute
 	sync.Locker
 
+	// Players returns a []Thing representing the players of the Inventory.
+	Players() []Thing
+
 	// Contents returns a []Thing representing the contents of the Inventory.
 	Contents() []Thing
 

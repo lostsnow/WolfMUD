@@ -353,6 +353,20 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
+// Players returns a 'copy' of the Inventory player contents. That is a copy of
+// the slice containing has.Thing interface headers. Therefore the Inventory
+// players may be indirectly manipulated through the copy but changes to the
+// actual slice are not possible - use the Add and Remove methods instead.
+func (i *Inventory) Players() (l []has.Thing) {
+	if i == nil {
+		return
+	}
+	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
+	}
+	return
+}
+
 // Contents returns a 'copy' of the Inventory non-narrative contents. That is a
 // copy of the slice containing has.Thing interface headers. Therefore the
 // Inventory contents may be indirectly manipulated through the copy but
