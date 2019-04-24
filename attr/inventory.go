@@ -355,9 +355,6 @@ func (i *Inventory) Contents() (l []has.Thing) {
 	if i == nil {
 		return
 	}
-	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
-		l = append(l, n.item)
-	}
 	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
