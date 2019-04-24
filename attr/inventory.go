@@ -202,35 +202,21 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (i *Inventory) Marshal() (tag string, data []byte) {
 	var refs []string
-	for n := i.contents.head.next; n.next != nil; n = n.next {
-		refs = append(refs, n.item.UID())
-	}
-	for n := i.narratives.head.next; n.next != nil; n = n.next {
-		refs = append(refs, n.item.UID())
+	for _, list := range []*list{i.contents, i.narratives} {
+		for n := list.head.next; n.next != nil; n = n.next {
+			refs = append(refs, n.item.UID())
+		}
 	}
 	return "inventory", encode.KeywordList(refs)
 }
 
 func (i *Inventory) Dump() (buff []string) {
 	buff = append(buff, "")
-	for n := i.players.head.next; n.next != nil; n = n.next {
-		for _, l := range n.item.Dump() {
-			buff = append(buff, DumpFmt("%s", l))
-		}
-	}
-	for n := i.contents.head.next; n.next != nil; n = n.next {
-		for _, l := range n.item.Dump() {
-			buff = append(buff, DumpFmt("%s", l))
-		}
-	}
-	for n := i.narratives.head.next; n.next != nil; n = n.next {
-		for _, l := range n.item.Dump() {
-			buff = append(buff, DumpFmt("%s", l))
-		}
-	}
-	for n := i.disabled.head.next; n.next != nil; n = n.next {
-		for _, l := range n.item.Dump() {
-			buff = append(buff, DumpFmt("%s", l))
+	for _, list := range []*list{i.players, i.contents, i.narratives, i.disabled} {
+		for n := list.head.next; n.next != nil; n = n.next {
+			for _, l := range n.item.Dump() {
+				buff = append(buff, DumpFmt("%s", l))
+			}
 		}
 	}
 
@@ -335,19 +321,11 @@ func (i *Inventory) Search(alias string) has.Thing {
 		return nil
 	}
 
-	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
-		if FindAlias(n.item).HasAlias(alias) {
-			return n.item
-		}
-	}
-	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
-		if FindAlias(n.item).HasAlias(alias) {
-			return n.item
-		}
-	}
-	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
-		if FindAlias(n.item).HasAlias(alias) {
-			return n.item
+	for _, list := range []*list{i.players, i.contents, i.narratives} {
+		for n := list.tail.prev; n.prev != nil; n = n.prev {
+			if FindAlias(n.item).HasAlias(alias) {
+				return n.item
+			}
 		}
 	}
 	return nil
@@ -372,10 +350,9 @@ func (i *Inventory) Players() (l []has.Thing) {
 // Inventory contents may be indirectly manipulated through the copy but
 // changes to the actual slice are not possible - use the Add and Remove
 // methods instead.
-func (i *Inventory) Contents() []has.Thing {
-	l := []has.Thing{}
+func (i *Inventory) Contents() (l []has.Thing) {
 	if i == nil {
-		return l
+		return
 	}
 	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
@@ -383,7 +360,7 @@ func (i *Inventory) Contents() []has.Thing {
 	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
-	return l
+	return
 }
 
 // Narratives returns a 'copy' of the Inventory narrative contents. That is a
@@ -391,45 +368,38 @@ func (i *Inventory) Contents() []has.Thing {
 // Inventory narratives may be indirectly manipulated through the copy but
 // changes to the actual slice are not possible - use the Add and Remove
 // methods instead.
-func (i *Inventory) Narratives() []has.Thing {
-	l := []has.Thing{}
+func (i *Inventory) Narratives() (l []has.Thing) {
 	if i == nil {
-		return []has.Thing{}
+		return
 	}
 	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
-	return l
+	return
 }
 
 // Everything returns all of the narratives and contents of the Inventory. It
 // is a single call equivelent to: append(i.Narratives(), i.Contents()...)
-func (i *Inventory) Everything() []has.Thing {
-	l := []has.Thing{}
+func (i *Inventory) Everything() (l []has.Thing) {
 	if i == nil {
-		return l
+		return
 	}
-	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
-		l = append(l, n.item)
+	for _, list := range []*list{i.players, i.contents, i.narratives} {
+		for n := list.tail.prev; n.prev != nil; n = n.prev {
+			l = append(l, n.item)
+		}
 	}
-	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
-		l = append(l, n.item)
-	}
-	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
-		l = append(l, n.item)
-	}
-	return l
+	return
 }
 
-func (i *Inventory) Disabled() []has.Thing {
-	l := []has.Thing{}
+func (i *Inventory) Disabled() (l []has.Thing) {
 	if i == nil {
-		return l
+		return
 	}
 	for n := i.disabled.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
-	return l
+	return
 }
 
 // List returns a string describing the non-narrative contents of an Inventory.
@@ -524,15 +494,12 @@ func (i *Inventory) Copy() has.Attribute {
 		return (*Inventory)(nil)
 	}
 	ni := NewInventory()
-	for n := i.contents.head.next; n.next != nil; n = n.next {
-		c := n.item.Copy()
-		ni.Add(c)
-		ni.Enable(c)
-	}
-	for n := i.narratives.head.next; n.next != nil; n = n.next {
-		c := n.item.Copy()
-		ni.Add(c)
-		ni.Enable(c)
+	for _, list := range []*list{i.contents, i.narratives} {
+		for n := list.head.next; n.next != nil; n = n.next {
+			c := n.item.Copy()
+			ni.Add(c)
+			ni.Enable(c)
+		}
 	}
 	for n := i.disabled.head.next; n.next != nil; n = n.next {
 		ni.Add(n.item.Copy())
@@ -547,23 +514,13 @@ func (i *Inventory) Free() {
 		return
 	}
 
-	for i.contents.head.next.next != nil {
-		i.contents.head.next.item.Free()
-		i.contents.remove(i.contents.head.next.item)
+	for _, list := range []*list{i.contents, i.narratives, i.disabled} {
+		for list.head.next.next != nil {
+			list.head.next.item.Free()
+			list.remove(list.head.next.item)
+		}
+		list.free()
 	}
-	i.contents.free()
-
-	for i.narratives.head.next.next != nil {
-		i.narratives.head.next.item.Free()
-		i.narratives.remove(i.narratives.head.next.item)
-	}
-	i.narratives.free()
-
-	for i.disabled.head.next.next != nil {
-		i.disabled.head.next.item.Free()
-		i.disabled.remove(i.disabled.head.next.item)
-	}
-	i.disabled.free()
 
 	i.Attribute.Free()
 }
