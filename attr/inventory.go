@@ -42,9 +42,10 @@ func init() {
 // BUG(diddymus): Inventory capacity is not implemented yet.
 type Inventory struct {
 	Attribute
-	contents    *list
-	disabled    *list
-	playerCount int
+	players    *list
+	contents   *list
+	narratives *list
+	disabled   *list
 	internal.BRL
 }
 
@@ -64,13 +65,14 @@ type Inventory struct {
 type list struct {
 	head *node
 	tail *node
+	len  int
 }
 
 // newList sets up a new, empty list with sentinal head and tail nodes. The
 // head sentinal node should always have prev = nil, the tail sentinal next =
 // nil.
 func newList() *list {
-	l := &list{&node{}, &node{}}
+	l := &list{head: &node{}, tail: &node{}}
 	l.head.next = l.tail
 	l.tail.prev = l.head
 	return l
@@ -100,6 +102,7 @@ type node struct {
 func (l *list) add(t has.Thing) {
 	l.head.next.prev = &node{l.head, l.head.next, t}
 	l.head.next = l.head.next.prev
+	l.len++
 }
 
 // remove walks a list and removes the specified thing if found.
@@ -110,6 +113,7 @@ func (l *list) remove(t has.Thing) bool {
 		}
 		n.next.prev, n.prev.next = n.prev, n.next
 		n.prev, n.next, n.item = nil, nil, nil
+		l.len--
 		return true
 	}
 	return false
@@ -125,10 +129,13 @@ func (l *list) move(t has.Thing, to *list) bool {
 			continue
 		}
 		n.next.prev, n.prev.next = n.prev, n.next
-		n.prev, n.next = to.head, to.head.next
+		l.len--
 
+		n.prev, n.next = to.head, to.head.next
 		to.head.next.prev = n
 		to.head.next = n
+		to.len++
+
 		return true
 	}
 	return false
@@ -154,10 +161,12 @@ var (
 // and in play - although the Thing itself may not be enabled and in play.
 func NewInventory(t ...has.Thing) *Inventory {
 	i := &Inventory{
-		Attribute: Attribute{},
-		contents:  newList(),
-		disabled:  newList(),
-		BRL:       internal.NewBRL(),
+		Attribute:  Attribute{},
+		players:    newList(),
+		contents:   newList(),
+		narratives: newList(),
+		disabled:   newList(),
+		BRL:        internal.NewBRL(),
 	}
 
 	for _, t := range t {
@@ -196,26 +205,44 @@ func (i *Inventory) Marshal() (tag string, data []byte) {
 	for n := i.contents.head.next; n.next != nil; n = n.next {
 		refs = append(refs, n.item.UID())
 	}
+	for n := i.narratives.head.next; n.next != nil; n = n.next {
+		refs = append(refs, n.item.UID())
+	}
 	return "inventory", encode.KeywordList(refs)
 }
 
 func (i *Inventory) Dump() (buff []string) {
 	buff = append(buff, "")
-	ccount, dcount := 0, 0
+	for n := i.players.head.next; n.next != nil; n = n.next {
+		for _, l := range n.item.Dump() {
+			buff = append(buff, DumpFmt("%s", l))
+		}
+	}
 	for n := i.contents.head.next; n.next != nil; n = n.next {
-		ccount++
+		for _, l := range n.item.Dump() {
+			buff = append(buff, DumpFmt("%s", l))
+		}
+	}
+	for n := i.narratives.head.next; n.next != nil; n = n.next {
 		for _, l := range n.item.Dump() {
 			buff = append(buff, DumpFmt("%s", l))
 		}
 	}
 	for n := i.disabled.head.next; n.next != nil; n = n.next {
-		dcount++
 		for _, l := range n.item.Dump() {
 			buff = append(buff, DumpFmt("%s", l))
 		}
 	}
 
-	buff[0] = DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, disabled: %d):", i, i.LockID(), ccount+dcount, i.playerCount, dcount)
+	buff[0] = DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, contents: %d, narratives: %d, disabled: %d):",
+		i,
+		i.LockID(),
+		i.players.len+i.contents.len+i.narratives.len,
+		i.players.len,
+		i.contents.len,
+		i.narratives.len,
+		i.disabled.len,
+	)
 
 	return buff
 }
@@ -240,14 +267,12 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 		return
 	}
 
-	if !i.contents.move(t, to.contents) {
+	switch {
+	case i.players.move(t, to.players):
+	case i.contents.move(t, to.contents):
+	case i.narratives.move(t, to.narratives):
+	default:
 		return
-	}
-
-	// TODO: Need to check for players or mobiles
-	if FindPlayer(t).Found() {
-		i.playerCount--
-		to.playerCount++
 	}
 
 	// Update Where attribute on Thing with 'to' Inventory
@@ -281,17 +306,25 @@ func (i *Inventory) Remove(t has.Thing) {
 
 // Enabled marks a Thing in an Inventory as being in play.
 func (i *Inventory) Enable(t has.Thing) {
-	i.disabled.move(t, i.contents)
-	if FindPlayer(t).Found() {
-		i.playerCount++
+	switch {
+	case FindPlayer(t).Found():
+		i.disabled.move(t, i.players)
+	case FindNarrative(t).Found():
+		i.disabled.move(t, i.narratives)
+	default:
+		i.disabled.move(t, i.contents)
 	}
 }
 
 // Disable marks a Thing in an Inventory as being out of play.
 func (i *Inventory) Disable(t has.Thing) {
-	i.contents.move(t, i.disabled)
-	if FindPlayer(t).Found() {
-		i.playerCount--
+	switch {
+	case i.players.len != 0 && FindPlayer(t).Found():
+		i.players.move(t, i.disabled)
+	case i.narratives.len != 0 && FindNarrative(t).Found():
+		i.narratives.move(t, i.disabled)
+	default:
+		i.contents.move(t, i.disabled)
 	}
 }
 
@@ -302,7 +335,17 @@ func (i *Inventory) Search(alias string) has.Thing {
 		return nil
 	}
 
+	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
+		if FindAlias(n.item).HasAlias(alias) {
+			return n.item
+		}
+	}
 	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
+		if FindAlias(n.item).HasAlias(alias) {
+			return n.item
+		}
+	}
+	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
 		if FindAlias(n.item).HasAlias(alias) {
 			return n.item
 		}
@@ -320,10 +363,11 @@ func (i *Inventory) Contents() []has.Thing {
 	if i == nil {
 		return l
 	}
+	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
+	}
 	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
-		if !FindNarrative(n.item).Found() {
-			l = append(l, n.item)
-		}
+		l = append(l, n.item)
 	}
 	return l
 }
@@ -338,10 +382,8 @@ func (i *Inventory) Narratives() []has.Thing {
 	if i == nil {
 		return []has.Thing{}
 	}
-	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
-		if FindNarrative(n.item).Found() {
-			l = append(l, n.item)
-		}
+	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
 	}
 	return l
 }
@@ -353,7 +395,13 @@ func (i *Inventory) Everything() []has.Thing {
 	if i == nil {
 		return l
 	}
+	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
+	}
 	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
+		l = append(l, n.item)
+	}
+	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
 	return l
@@ -433,20 +481,20 @@ func (i *Inventory) List() string {
 // config.Inventory.CrowdSize players in it.
 func (i *Inventory) Crowded() (crowded bool) {
 	if i != nil {
-		crowded = i.playerCount > config.Inventory.CrowdSize
+		crowded = i.players.len > config.Inventory.CrowdSize
 	}
 	return
 }
 
 // Players returns true if there are any players in the Inventory else false.
 func (i *Inventory) Players() bool {
-	return i.playerCount > 0
+	return i.players.len > 0
 }
 
 // Empty returns true if there are no non-Narrative items else false.
 func (i *Inventory) Empty() bool {
 	if i != nil {
-		return len(i.Contents()) == 0
+		return i.players.len+i.contents.len == 0
 	}
 	return true
 }
@@ -463,6 +511,11 @@ func (i *Inventory) Copy() has.Attribute {
 	}
 	ni := NewInventory()
 	for n := i.contents.head.next; n.next != nil; n = n.next {
+		c := n.item.Copy()
+		ni.Add(c)
+		ni.Enable(c)
+	}
+	for n := i.narratives.head.next; n.next != nil; n = n.next {
 		c := n.item.Copy()
 		ni.Add(c)
 		ni.Enable(c)
@@ -486,13 +539,18 @@ func (i *Inventory) Free() {
 	}
 	i.contents.free()
 
+	for i.narratives.head.next.next != nil {
+		i.narratives.head.next.item.Free()
+		i.narratives.remove(i.narratives.head.next.item)
+	}
+	i.narratives.free()
+
 	for i.disabled.head.next.next != nil {
 		i.disabled.head.next.item.Free()
 		i.disabled.remove(i.disabled.head.next.item)
 	}
 	i.disabled.free()
 
-	i.playerCount = 0
 	i.Attribute.Free()
 }
 
