@@ -48,8 +48,8 @@ func (say) process(s *state) {
 	// Is anyone else here? We can't call s.where.Occupied() as it will always
 	// return true if s.actor is a Player.
 	anybodyHere := false
-	for _, t := range s.where.Contents() {
-		if attr.FindPlayer(t).Found() && t != s.actor {
+	for _, t := range s.where.Players() {
+		if t != s.actor {
 			anybodyHere = true
 			break
 		}
