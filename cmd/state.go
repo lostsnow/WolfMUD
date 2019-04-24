@@ -260,11 +260,9 @@ func (s *state) messenger() {
 			continue
 		}
 		players := []io.Writer{}
-		for _, c := range where.Contents() {
-			if c != s.actor && c != s.participant {
-				if p = attr.FindPlayer(c); p.Found() {
-					players = append(players, p)
-				}
+		for _, p := range where.Players() {
+			if p != s.actor && p != s.participant {
+				players = append(players, attr.FindPlayer(p))
 			}
 		}
 		buffer.Deliver(players...)
