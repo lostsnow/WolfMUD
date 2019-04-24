@@ -331,10 +331,11 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
-// Players returns a 'copy' of the Inventory player contents. That is a copy of
-// the slice containing has.Thing interface headers. Therefore the Inventory
-// players may be indirectly manipulated through the copy but changes to the
-// actual slice are not possible - use the Add and Remove methods instead.
+// Players returns a list of Players in an Inventory. The players may be
+// indirectly manipulated through the slice. Players should be added to, or
+// removed from the Inventory using the Add and Remove methods.
+//
+// See also the Contents, Narratives and Everything methods.
 func (i *Inventory) Players() (l []has.Thing) {
 	if i == nil {
 		return
@@ -345,11 +346,11 @@ func (i *Inventory) Players() (l []has.Thing) {
 	return
 }
 
-// Contents returns a 'copy' of the Inventory non-narrative contents. That is a
-// copy of the slice containing has.Thing interface headers. Therefore the
-// Inventory contents may be indirectly manipulated through the copy but
-// changes to the actual slice are not possible - use the Add and Remove
-// methods instead.
+// Contents returns a list of items in an Inventory. The items may be
+// indirectly manipulated through the slice. Items should be added to, or
+// removed from the Inventory using the Add and Remove methods.
+//
+// See also the Players, Narratives and Everything methods.
 func (i *Inventory) Contents() (l []has.Thing) {
 	if i == nil {
 		return
@@ -363,11 +364,11 @@ func (i *Inventory) Contents() (l []has.Thing) {
 	return
 }
 
-// Narratives returns a 'copy' of the Inventory narrative contents. That is a
-// copy of the slice containing has.Thing interface headers. Therefore the
-// Inventory narratives may be indirectly manipulated through the copy but
-// changes to the actual slice are not possible - use the Add and Remove
-// methods instead.
+// Narratives returns a list of narrative items in an Inventory. The items may
+// be indirectly manipulated through the slice. Items should be added to, or
+// removed from the Inventory using the Add and Remove methods.
+//
+// See also the Players, Contents and Everything methods.
 func (i *Inventory) Narratives() (l []has.Thing) {
 	if i == nil {
 		return
@@ -378,8 +379,12 @@ func (i *Inventory) Narratives() (l []has.Thing) {
 	return
 }
 
-// Everything returns all of the narratives and contents of the Inventory. It
-// is a single call equivelent to: append(i.Narratives(), i.Contents()...)
+// Everything returns a list of all Players, Content and Narratives in an
+// Inventory. The items may be indirectly manipulated through the slice. Items
+// should be added to, or removed from the Inventory using the Add and Remove
+// methods.
+//
+// See also the Players, Contents and Narratives methods.
 func (i *Inventory) Everything() (l []has.Thing) {
 	if i == nil {
 		return
