@@ -46,11 +46,25 @@ var (
 
 // statistics from the last collection
 type stats struct {
+	m           *runtime.MemStats
 	Inuse       uint64
 	HeapObjects uint64
 	Goroutines  int
 	MaxPlayers  int
 	ThingCount  uint64
+	Allocs      uint64
+
+	u uint64 // current inuse memory
+	g int    // current number of goroutines
+	p int    // current number of players
+	t uint64 // current number of Thing
+	a uint64 // current number allocations
+
+	Δu int64 // change in inuse memory
+	Δo int   // change in inuse object
+	Δg int   // change in number of goroutines
+	Δt int64 // change in number of Thing
+	Δa int64 // change in number of allocations
 }
 
 // Start begins collection and reporting of statistics. The interval between
@@ -63,7 +77,7 @@ func Start() {
 		return
 	}
 
-	s := &stats{}
+	s := &stats{m: &runtime.MemStats{}}
 	s.collect() // 1st time initialisation
 
 	go func() {
@@ -83,42 +97,44 @@ func (s *stats) collect() {
 		debug.FreeOSMemory()
 	}
 
-	m := new(runtime.MemStats)
-	runtime.ReadMemStats(m)
+	runtime.ReadMemStats(s.m)
 
-	u := m.HeapInuse + m.StackInuse + m.MSpanInuse + m.MCacheInuse
-	g := runtime.NumGoroutine()
-	p := Len()
+	s.u = s.m.HeapInuse + s.m.StackInuse + s.m.MSpanInuse + s.m.MCacheInuse
+	s.g = runtime.NumGoroutine()
+	s.p = Len()
+	s.a = s.m.Mallocs
 
-	t := <-attr.ThingCount
-	attr.ThingCount <- t
+	s.t = <-attr.ThingCount
+	attr.ThingCount <- s.t
 
 	// Calculate difference in resources since last run
-	Δu := int64(u - s.Inuse)
-	Δo := int(m.HeapObjects - s.HeapObjects)
-	Δg := g - s.Goroutines
-	Δt := int64(t - s.ThingCount)
+	s.Δu = int64(s.u - s.Inuse)
+	s.Δo = int(s.m.HeapObjects - s.HeapObjects)
+	s.Δg = s.g - s.Goroutines
+	s.Δt = int64(s.t - s.ThingCount)
+	s.Δa = int64(s.a - s.Allocs)
 
 	// Calculate max players
 	maxPlayers := s.MaxPlayers
-	if s.MaxPlayers < p {
-		maxPlayers = p
+	if s.MaxPlayers < s.p {
+		maxPlayers = s.p
 	}
 
 	// Calculate scaled numeric and prefix parts of Inuse and Inuse change
-	un, up := uscale(u)
-	Δun, Δup := scale(Δu)
+	un, up := uscale(s.u)
+	Δun, Δup := scale(s.Δu)
 
-	log.Printf("U[%4d%-2s %+5d%-2s] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] P %d/%d",
-		un, up, Δun, Δup, m.HeapObjects, Δo, t, Δt, g, Δg, p, maxPlayers,
+	log.Printf("U[%4d%-2s %+5d%-2s] A[%+9d] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] P %d/%d",
+		un, up, Δun, Δup, s.Δa, s.m.HeapObjects, s.Δo, s.t, s.Δt, s.g, s.Δg, s.p, maxPlayers,
 	)
 
 	// Save current stats
-	s.Inuse = u
-	s.HeapObjects = m.HeapObjects
-	s.Goroutines = g
+	s.Inuse = s.u
+	s.HeapObjects = s.m.HeapObjects
+	s.Goroutines = s.g
 	s.MaxPlayers = maxPlayers
-	s.ThingCount = t
+	s.ThingCount = s.t
+	s.Allocs = s.a
 }
 
 // uscale converts an unsigned number of bytes to a scaled unit of bytes with a
