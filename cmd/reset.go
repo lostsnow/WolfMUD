@@ -101,14 +101,14 @@ func (reset) process(s *state) {
 
 	// Message will be seen if there are players at the reset location and the
 	// location is not crowded.
-	if to.Players() && !to.Crowded() {
+	if to.Occupied() && !to.Crowded() {
 		s.msg.Observers[to].SendInfo(msg)
 	}
 
 	// On the off chance that players may be in the container itself we send them
 	// just the default message. We need to manually allocate a buffer as we only
 	// get buffers for the outermost inventories automatically when locking.
-	if where != to && where.Players() && !where.Crowded() {
+	if where != to && where.Occupied() && !where.Crowded() {
 		s.msg.Observers[where] = message.AcquireBuffer()
 		s.msg.Observers[where].SendInfo(def)
 	}

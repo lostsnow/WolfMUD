@@ -486,8 +486,8 @@ func (i *Inventory) Crowded() (crowded bool) {
 	return
 }
 
-// Players returns true if there are any players in the Inventory else false.
-func (i *Inventory) Players() bool {
+// Occupied returns true if there is at least one player in the Inventory.
+func (i *Inventory) Occupied() bool {
 	return i.players.len > 0
 }
 
