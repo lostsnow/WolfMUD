@@ -69,10 +69,8 @@ var Stats = struct {
 
 // Inventory default configuration
 var Inventory = struct {
-	Compact   int // only compact if cap - len*2 > compact
 	CrowdSize int // If inventory has more player than this it's a crowd
 }{
-	Compact:   4,
 	CrowdSize: 10,
 }
 
@@ -168,8 +166,6 @@ func init() {
 			Stats.GC = decode.Boolean(data)
 
 		// Inventory settings
-		case "INVENTORY.COMPACT":
-			Inventory.Compact = decode.Integer(data)
 		case "INVENTORY.CROWDSIZE":
 			Inventory.CrowdSize = decode.Integer(data)
 
