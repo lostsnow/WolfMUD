@@ -340,6 +340,7 @@ func (i *Inventory) Players() (l []has.Thing) {
 	if i == nil {
 		return
 	}
+	l = make([]has.Thing, 0, i.players.len)
 	for n := i.players.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
@@ -355,6 +356,7 @@ func (i *Inventory) Contents() (l []has.Thing) {
 	if i == nil {
 		return
 	}
+	l = make([]has.Thing, 0, i.contents.len)
 	for n := i.contents.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
@@ -370,6 +372,7 @@ func (i *Inventory) Narratives() (l []has.Thing) {
 	if i == nil {
 		return
 	}
+	l = make([]has.Thing, 0, i.narratives.len)
 	for n := i.narratives.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
@@ -386,6 +389,7 @@ func (i *Inventory) Everything() (l []has.Thing) {
 	if i == nil {
 		return
 	}
+	l = make([]has.Thing, 0, i.players.len+i.contents.len+i.narratives.len)
 	for _, list := range []*list{i.players, i.contents, i.narratives} {
 		for n := list.tail.prev; n.prev != nil; n = n.prev {
 			l = append(l, n.item)
@@ -398,6 +402,7 @@ func (i *Inventory) Disabled() (l []has.Thing) {
 	if i == nil {
 		return
 	}
+	l = make([]has.Thing, 0, i.disabled.len)
 	for n := i.disabled.tail.prev; n.prev != nil; n = n.prev {
 		l = append(l, n.item)
 	}
