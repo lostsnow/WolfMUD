@@ -168,17 +168,8 @@ FIELDS & VALUES
     garbage collection.
 
   Inventory.Compact:
-    This value causes inventories to be compacted when the difference between
-    their potential capacity and actual usage is over a certain threshold.
-    The threshold is calculated as:
-
-      capacity - 2*length >= Inventory.Compact
-
-    For the default value of 8 the excess capacity will be reclaimed when it
-    is larger than twice the actual length plus 8. The default prevents
-    small inventories from being constantly being reallocated. If there are
-    constantly large numbers of players in many locations increasing this
-    value will reduce reallocations at the expense of increased memory usage.
+    Old setting, now unused and can be safely removed from the configuration
+    file.
 
   Inventory.CrowdSize:
     This value determines how many players are considered to be a crowd. If
