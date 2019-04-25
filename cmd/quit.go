@@ -62,10 +62,11 @@ func (q quit) process(s *state) {
 // messages, we need to generate our own. This is deliberate so that all
 // non-collectable items will be forced to reset when a player quits.
 func (q quit) dispose(s *state, t has.Thing) {
+	var j junk
 	for _, t := range attr.FindInventory(t).Contents() {
 		if !t.Collectable() {
 			s.msg.Actor.SendInfo("You junk ", attr.FindName(t).Name("something"), ".")
-			junk{}.dispose(t)
+			j.dispose(t)
 			continue
 		}
 		q.dispose(s, t)
