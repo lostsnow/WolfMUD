@@ -68,7 +68,7 @@ nextMatch:
 			// If item is a narrative we can't get it. We do this check after the
 			// veto checks as the vetos could give us a better message/reson for not
 			// being able to get the item.
-			if attr.FindNarrative(what).Found() {
+			if attr.FindNarrative(what).Found() || attr.FindPlayer(what).Found() {
 				s.msg.Actor.SendBad("For some reason you cannot get ", name, ".")
 				continue nextMatch
 			}
