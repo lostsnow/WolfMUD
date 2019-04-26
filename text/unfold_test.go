@@ -17,7 +17,16 @@ func TestUnfold(t *testing.T) {
 		want string
 	}{
 		{"", ""},
+		{" ", ""},
+		{"  ", ""},
 		{"\n", "\n"},
+		{"\n\n", "\n\n"},
+		{"  \n", "\n"},
+		{"  \n  \n", "\n\n"},
+		{"a ", "a"},
+		{"a  ", "a"},
+		{"a \n", "a\n"},
+		{"a  \n", "a\n"},
 		{"  \n  \n   abc", "\n\n   abc"},
 		{"Sentance one. Sentance two.", "Sentance one. Sentance two."},
 		{"Sentance one.\nSentance two.", "Sentance one. Sentance two."},
@@ -32,7 +41,14 @@ func TestUnfold(t *testing.T) {
 		},
 		{"a\n\x1b[0;0m a", "a\n\x1b[0;0m a"},
 		{"a\n\x1b[31m\x1b[32m a", "a\n\x1b[31m\x1b[32m a"},
-		{"A report on MUDs from December, 1990. Written by Dr Richard Bartle of MUD1\nfame. An interesting read into the past.", "A report on MUDs from December, 1990. Written by Dr Richard Bartle of MUD1 fame. An interesting read into the past."},
+		{
+			"A report on MUDs from December, 1990. Written by Dr Richard Bartle of MUD1\nfame. An interesting read into the past.",
+			"A report on MUDs from December, 1990. Written by Dr Richard Bartle of MUD1 fame. An interesting read into the past.",
+		},
+		{
+			"\nWolfMUD Copyright 1984-2018 Andrew 'Diddymus' Rolfe\n\n  World\n  Of\n  Living\n  Fantasy\n\nWelcome to WolfMUD!\n\n",
+			"\nWolfMUD Copyright 1984-2018 Andrew 'Diddymus' Rolfe\n\n  World\n  Of\n  Living\n  Fantasy\n\nWelcome to WolfMUD!\n\n",
+		},
 	} {
 		t.Run(fmt.Sprintf("%40q", tc.data), func(t *testing.T) {
 			have := Unfold([]byte(tc.data))

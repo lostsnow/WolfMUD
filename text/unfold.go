@@ -31,21 +31,27 @@ import (
 // indenting whitespace, the escape sequences will be treated as zero width
 // and ignored preserving the indent.
 func Unfold(in []byte) []byte {
-	data := bytes.Runes(in)
-	out := make([]rune, len(in), len(in))
-	pos := 0
+
+	// Appending a final line feed to input data and starting with an initial
+	// line feed in the output simplifies the code. Both are removed from the
+	// final output.
+	data := bytes.Runes(append(in, '\n'))
+	out := make([]rune, len(data)+1, len(data)+1)
+	out[0] = '\n'
+
+	pos := 1
 	for x, r := range data {
 		if r == '\n' {
-			for ; pos > 0 && spaceNotLF(out[pos-1]); pos-- { // Trim WS not LF
+			for ; spaceNotLF(out[pos-1]); pos-- { // Trim WS not LF
 			}
-			if pos > 0 && out[pos-1] != '\n' && !spacePrefix(data[x+1:]) {
+			if out[pos-1] != '\n' && !spacePrefix(data[x+1:]) {
 				r = ' '
 			}
 		}
 		out[pos] = r
 		pos++
 	}
-	return []byte(string(out[:pos]))
+	return []byte(string(out[1 : pos-1]))
 }
 
 // spaceNotLF tests if the passed rune is Unicode whitespace but not a line
