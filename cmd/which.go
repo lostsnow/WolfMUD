@@ -20,7 +20,7 @@ type which cmd
 func (w which) process(s *state) {
 
 	if len(s.words) == 0 {
-		s.msg.Actor.SendGood("You look around for nothing in particular.")
+		s.msg.Actor.SendInfo("You look around for nothing in particular.")
 		return
 	}
 

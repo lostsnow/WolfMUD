@@ -109,7 +109,7 @@ func TestWhich(t *testing.T) {
 		actor    string
 		observer string
 	}{
-		{"", text.Good + "You look around for nothing in particular.\n", nothing},
+		{"", text.Info + "You look around for nothing in particular.\n", nothing},
 		{"ball", smallGreen, noting},
 		{"all ball", smallGreen + largeGreen + smallRed + largeRed, noting},
 		{"green ball", smallGreen, noting},
