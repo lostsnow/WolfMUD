@@ -20,9 +20,14 @@ func whichSetupWorld() (world attr.Things) {
 		attr.NewStart(),
 		attr.NewName("Test room A"),
 		attr.NewDescription(
-			"This is a room for testing. A large 'A' is painted on the wall.",
+			"This is a room for testing. A large letter 'A' is painted on the wall.",
 		),
 		attr.NewInventory(
+			attr.NewThing(
+				attr.NewName("a large, painted letter 'A'"),
+				attr.NewAlias("+PAINTED", "+LARGE", "LETTER"),
+				attr.NewDescription("This is a large, painted, capital letter 'A'."),
+			),
 			attr.NewThing(
 				attr.NewName("a small green ball"),
 				attr.NewAlias("+SMALL", "+GREEN", "BALL"),
@@ -95,6 +100,7 @@ func TestWhich(t *testing.T) {
 		apple      = text.Good + "You see an apple here.\n"
 		chalk      = text.Good + "You see a piece of chalk here.\n"
 		token      = text.Good + "You are carrying a token.\n"
+		paintedA   = text.Good + "You see a large, painted letter 'A' here.\n"
 
 		// For observer
 		nothing = ""
@@ -158,6 +164,7 @@ func TestWhich(t *testing.T) {
 		{"4th ball", largeRed, noting},
 		{"5th ball", noBalls, notFound},
 
+		{"all small", text.Bad + "You see no 'ALL SMALL' here.\n", notFound},
 		{"frog", text.Bad + "You see no 'FROG' here.\n", notFound},
 		{"blue frog", text.Bad + "You see no 'BLUE FROG' here.\n", notFound},
 		{"green frog", text.Bad + "You see no 'GREEN FROG' here.\n", notFound},
@@ -208,6 +215,12 @@ func TestWhich(t *testing.T) {
 			"short:sword",
 			text.Bad + "You see no 'SHORT:SWORD' here.\n", notFound,
 		},
+
+		// Test narratives
+		{"letter", paintedA, noting},
+		{"painted letter", paintedA, noting},
+		{"all letter", paintedA, noting},
+		{"all painted letter", paintedA, noting},
 	} {
 		t.Run(fmt.Sprintf("%s", test.cmd), func(t *testing.T) {
 			cmd.Parse(actor, "which "+test.cmd)
