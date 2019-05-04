@@ -12,8 +12,13 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 )
 
+// TimeSource is a function that returns the current time as a time.Time. This
+// is typically time.Now but may be replaced with a fake time for testing.
+type TimeSource func() time.Time
+
 // quota is used to implement per IP connection quotas.
 type quota struct {
+	Now      TimeSource      // Time source for current time
 	cache    map[string]Ring // tracking map keyed by IP
 	window   int64           // cache expiry period if not over quota
 	timeout  int64           // cache expiry if over quota
@@ -23,15 +28,17 @@ type quota struct {
 }
 
 // NewQuota returns a new, initialised connection quota. Connection quota can
-// either be per listening server port or per server.
-func NewQuota() *quota {
+// either be per listening server port or per server. The TimeSource is a
+// function returning the current time as a time.Time, typically time.Now.
+func NewQuota(ts TimeSource) *quota {
 	return &quota{
+		Now:      ts,
 		cache:    make(map[string]Ring),
 		window:   config.Quota.Window.Nanoseconds(),
 		timeout:  config.Quota.Timeout.Nanoseconds(),
 		stats:    config.Quota.Stats.Nanoseconds(),
-		sweepDue: config.Quota.Window.Nanoseconds() + time.Now().UnixNano(),
-		statsDue: config.Quota.Stats.Nanoseconds() + time.Now().UnixNano(),
+		sweepDue: config.Quota.Window.Nanoseconds() + ts().UnixNano(),
+		statsDue: config.Quota.Stats.Nanoseconds() + ts().UnixNano(),
 	}
 }
 
@@ -111,7 +118,7 @@ func (q *quota) Quota(ip string) (overQuota bool) {
 		return
 	}
 
-	now := time.Now().UnixNano()
+	now := q.Now().UnixNano()
 	c := q.cache[ip]
 
 	// Clear any expired quota for current IP address
@@ -155,7 +162,7 @@ func (q *quota) Quota(ip string) (overQuota bool) {
 // has passed. Setting Quote.Stats to 0 will disable statistics reporting.
 func (q *quota) CacheSweep() {
 	entries, stale, banned := len(q.cache), 0, 0
-	now := time.Now().UnixNano()
+	now := q.Now().UnixNano()
 	for x, c := range q.cache {
 		f := c.First()
 		if now > f {
@@ -193,6 +200,6 @@ func (q *quota) Query(ip string) (count int, overQuota, expired bool) {
 	}
 	count = c.Len()
 	overQuota = c.Full() && (c.First() == c.Last())
-	expired = (count > 0) && (time.Now().UnixNano() > c.First())
+	expired = (count > 0) && (q.Now().UnixNano() > c.First())
 	return
 }

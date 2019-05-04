@@ -8,6 +8,7 @@ package comms
 import (
 	"log"
 	"net"
+	"time"
 
 	"code.wolfmud.org/WolfMUD.git/text"
 )
@@ -39,7 +40,7 @@ func Listen(host, port string) {
 	log.Printf("Accepting connections on: %s", addr)
 
 	seq := uint64(0)
-	q := NewQuota()
+	q := NewQuota(time.Now)
 
 	for {
 		conn, err := listener.AcceptTCP()
