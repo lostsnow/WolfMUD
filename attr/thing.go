@@ -55,9 +55,7 @@ func NewThing(a ...has.Attribute) *Thing {
 
 	t.Add(a...)
 
-	c := <-ThingCount
-	c++
-	ThingCount <- c
+	ThingCount <- <-ThingCount + 1
 
 	if config.Debug.Things {
 		runtime.SetFinalizer(t, func(t has.Thing) {
@@ -91,9 +89,7 @@ func (t *Thing) Free() {
 	t.attrs = nil
 
 	if t.uid != "" {
-		c := <-ThingCount
-		c--
-		ThingCount <- c
+		ThingCount <- <-ThingCount - 1
 	}
 
 	t.rwmutex.Unlock()
@@ -339,9 +335,7 @@ func (t *Thing) NotUnique() {
 		return
 	}
 
-	c := <-ThingCount
-	c--
-	ThingCount <- c
+	ThingCount <- <-ThingCount - 1
 	t.uid = ""
 }
 
