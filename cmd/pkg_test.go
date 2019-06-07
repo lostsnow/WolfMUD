@@ -22,8 +22,8 @@ import (
 )
 
 // testPlayer represents a player for testing with a bytes.Buffer to simulate
-// the network I/O stream. If Messages, MessagesFull or Reset is not called
-// then data will accumulate in the bytes.Buffer.
+// the network I/O stream. If Messages or Reset is not called then data will
+// accumulate in the bytes.Buffer.
 type testPlayer struct {
 	has.Thing
 	*bytes.Buffer
@@ -68,8 +68,7 @@ func NewTestPlayer(name string, inv ...has.Thing) *testPlayer {
 }
 
 // Messages returns any unread messages from the testPlayer and resets the
-// output buffer. The messages will have any ANSI escape sequences stripped via
-// text.Monoize making it easier to write tests that compare message text.
+// output buffer.
 func (p *testPlayer) Messages() string {
 	where := attr.FindLocate(p).Where()
 	where.Lock()
