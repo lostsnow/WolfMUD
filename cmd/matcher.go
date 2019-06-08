@@ -134,7 +134,7 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Res
 
 		// If no matched aliases add to unknown, consume word, try next word
 		if len(results) == 0 {
-			if len(matches) == 0 || matches[0].Thing != nil {
+			if len(matches) == 0 || matches[0].Thing != nil || matches[0].NotEnough != "" {
 				matches = append([]Result{Result{nil, words[0], ""}}, matches...)
 			} else {
 				matches[0].Unknown = words[0] + " " + matches[0].Unknown
