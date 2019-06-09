@@ -66,8 +66,8 @@ type Result struct {
 // with a qualifier of 'GREEN' will be returned. In this case: a small green
 // ball, a large green ball.
 //
-// With a word list of '2 BALL' the first 2 items matching the alias of 'BALL'
-// will be returned. In this case: a small green ball, a small red ball.
+// With a word list of '2 BALL' upto the first 2 items matching the alias of
+// 'BALL' will be returned. In this case: a small green ball, a small red ball.
 //
 // With a word list of '2ND RED BALL' only the second item matching the alias
 // of 'BALL' with a qualifier of 'RED' will be returned. In this case: a large
