@@ -223,7 +223,7 @@ func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Res
 	uniqueLoop:
 		for x := len(results) - 1; x >= 0; x-- {
 			for _, m := range matches {
-				if m == results[x] {
+				if m.Thing == results[x] {
 					continue uniqueLoop
 				}
 			}
