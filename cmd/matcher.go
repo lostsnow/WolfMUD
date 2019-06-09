@@ -51,14 +51,14 @@ type Result struct {
 //
 // With a word list of 'RED BALL GREEN BALL' a limit of 2 (or -1) would consume
 // all of the words and return two Thing matched: a small green ball, a small
-// red ball. Note that the limit of 2 if the number of word groups, in this
+// red ball. Note that the limit of 2 is the number of word groups, in this
 // case 'RED BALL' and 'GREEN BALL' not the number of items to return.
 //
 // Within a matching group of words the first qualifier may be special. The
 // special qualifiers are:
 //
 //  ALL - include all items matching the current group
-//  n - include up to n items matching the current group
+//  n   - include up to n items matching the current group
 //  nth - include only the nth item (postfix may be ST, ND, RD or TH)
 //  n-N - include only matching items n to N for the current group
 //
