@@ -10,41 +10,45 @@ import (
 	"testing"
 )
 
-func TestLastLeadingDigit(t *testing.T) {
+func TestLeadingDigits(t *testing.T) {
 	for _, test := range []struct {
-		word string
-		want int
+		word    string
+		wantInt int
+		wantLen int
 	}{
 		// Valid
-		{"0", 0},
-		{"1", 0},
-		{"2", 0},
-		{"3", 0},
-		{"4", 0},
-		{"5", 0},
-		{"6", 0},
-		{"7", 0},
-		{"8", 0},
-		{"9", 0},
-		{"10", 1},
-		{"100", 2},
+		{"0", 0, 1},
+		{"1", 1, 1},
+		{"2", 2, 1},
+		{"3", 3, 1},
+		{"4", 4, 1},
+		{"5", 5, 1},
+		{"6", 6, 1},
+		{"7", 7, 1},
+		{"8", 8, 1},
+		{"9", 9, 1},
+		{"10", 10, 2},
+		{"100", 100, 3},
 
 		// Invalid
-		{"-1", -1},
-		{"a", -1},
-		{"/", -1}, // ASCII '0' - 1
-		{":", -1}, // ASCII '9' + 1
+		{"-1", 0, 0},
+		{"a", 0, 0},
+		{"/", 0, 0}, // ASCII '0' - 1
+		{":", 0, 0}, // ASCII '9' + 1
+		{"SHORT", 0, 0},
 	} {
 		t.Run(test.word, func(t *testing.T) {
-			have := lastLeadingDigit(test.word)
-			if have != test.want {
-				t.Errorf("have: %d, want: %d", have, test.want)
+			haveInt, haveLen := leadingDigits(test.word)
+			if haveInt != test.wantInt || haveLen != test.wantLen {
+				t.Errorf("have: %d (length %d), want: %d (length %d)",
+					haveInt, test.wantInt, haveLen, test.wantInt,
+				)
 			}
 		})
 	}
 }
 
-func BenchmarkLastLeadingDigit(b *testing.B) {
+func BenchmarkLeadingDigits(b *testing.B) {
 
 	for _, test := range []string{
 		"1",
@@ -55,7 +59,7 @@ func BenchmarkLastLeadingDigit(b *testing.B) {
 	} {
 		b.Run(test, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_ = lastLeadingDigit(test)
+				_, _ = leadingDigits(test)
 			}
 		})
 	}
@@ -91,7 +95,10 @@ func TestSpecialQualifier(t *testing.T) {
 		{"st", -1, -1},
 		{"ast", -1, -1},
 		{"1xx", -1, -1},
+		{"-", -1, -1},
 		{"a-b", -1, -1},
+		{"1-a", -1, -1},
+		{"1-1a", -1, -1},
 		{"1.0", -1, -1},
 		{"1.0-", -1, -1},
 		{"1.0-2.0", -1, -1},

@@ -6,7 +6,6 @@
 package cmd
 
 import (
-	"strconv"
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
@@ -261,76 +260,70 @@ func MatchAll(wordList []string, inv ...[]has.Thing) (matches []Result) {
 // specialQualifier will return the new minimum and maximum limits. If the word
 // is not a special qualifier then the returned limits will both be -1.
 // Note that the minimum limit will be zero based and hence 1 less than might
-// be expected. However the limits can be used directly for slicing, as in
-// slice[minLimit:maxLimit].
+// be expected. If the maxLimit is -1 it should be treated as 'unbounded'.
+//
+// If the maxLimit is not -1 then the limits can be used directly for slicing,
+// as in slice[minLimit:maxLimit].
 func specialQualifier(word string) (minLimit, maxLimit int) {
-
-	// Set default for no matches
-	minLimit, maxLimit = -1, -1
 
 	// Special qualifier for all matches?
 	if word == "ALL" {
-		minLimit, maxLimit = 0, -1
-		return
+		return 0, -1
 	}
 
 	// If qualifier has no leading digits just return, not special
-	split := lastLeadingDigit(word)
-	if split == -1 {
-		return
+	n, l := leadingDigits(word)
+	if l == 0 {
+		return -1, -1
 	}
 
-	// Move to start of postfix after initial int
-	split++
-
-	// If digits cannot be parsed as an int just return, not special
-	n, err := strconv.Atoi(word[:split])
-	if err != nil {
-		return
+	// A plain int is a limit from 0 for n items
+	if l == len(word) {
+		return 0, n
 	}
 
-	// Get postfix for a specific instance or range
-	post := word[split:]
+	// Drop initial number now it's been processed
+	word = word[l:]
 
-	// Just a number is a limit from 0 for n items
-	if post == "" {
-		minLimit, maxLimit = 0, n
-		return
-	}
-
-	// Number with postfix is a specific instance such as 1st, 2nd
-	if post == "ST" || post == "ND" || post == "RD" || post == "TH" {
-		minLimit, maxLimit = n-1, n
-		return
-	}
-
-	// Number followed by a hyphen and a number (n-N) is a range
-	if strings.HasPrefix(post, "-") {
-		N, err := strconv.Atoi(post[1:])
-
-		// Return if digits after hyphen cannot be parsed as an int
-		if err != nil {
-			return
+	// If not a leading hyphen for a range is it a postfix? Postfix is a specific
+	// instance such as 1st, 2nd, etc. If not a hyphen or a postfix it's not
+	// special.
+	if word[0] != '-' {
+		if word == "ST" || word == "ND" || word == "RD" || word == "TH" {
+			return n - 1, n
 		}
-
-		if N > n {
-			minLimit, maxLimit = n-1, N
-		} else {
-			minLimit, maxLimit = N-1, n
-		}
-		return
+		return -1, -1
 	}
 
-	return
+	// We have a hyphen for a range (n-N) so not special if an int does not
+	// follow it.
+	N, l := leadingDigits(word[1:])
+	if l == 0 || l < len(word)-1 {
+		return -1, -1
+	}
+
+	// Was a reverse range given? If so swap returned results
+	if N < n {
+		return N - 1, n
+	}
+
+	return n - 1, N
 }
 
-// lastLeadingDigit returns the position of the last leading digit or -1 if
-// there are no leading digits.
-func lastLeadingDigit(s string) int {
-	for x, c := range s {
-		if c < '0' || '9' < c {
-			return x - 1
+// leadingDigits returns an integer representing the digits at the beginning of
+// a string and a count of the digits used. If the passed string has no leading
+// digits then an integer of 0 will be returned with a count of 0.
+//
+// Example: leadingDigits("123xyz") would return and int of 123 and count 3
+//
+func leadingDigits(s string) (n, count int) {
+	for _, b := range []byte(s) {
+		if b < '0' || '9' < b {
+			return
 		}
+		n *= 10
+		n += int(b - '0')
+		count++
 	}
-	return len(s) - 1
+	return
 }
