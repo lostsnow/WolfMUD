@@ -15,12 +15,13 @@ import (
 )
 
 type test struct {
-	words   string
-	results []cmd.Result
+	words     string
+	results   []cmd.Result
+	remaining string
 }
 
 func match(words string) *test {
-	return &test{words, []cmd.Result{}}
+	return &test{words, []cmd.Result{}, ""}
 }
 
 func (t *test) found(things ...has.Thing) *test {
@@ -41,6 +42,11 @@ func (t *test) notEnough(notEnoughs ...string) *test {
 	for _, ne := range notEnoughs {
 		t.results = append(t.results, cmd.Result{nil, "", strings.ToUpper(ne)})
 	}
+	return t
+}
+
+func (t *test) remains(words string) *test {
+	t.remaining = strings.ToUpper(words)
 	return t
 }
 
@@ -254,6 +260,85 @@ func BenchmarkMatchAll(b *testing.B) {
 			words := strings.Fields(strings.ToUpper(test))
 			for i := 0; i < b.N; i++ {
 				_ = cmd.MatchAll(words, items)
+			}
+		})
+	}
+}
+
+func TestMatch(t *testing.T) {
+
+	smallGreen := item("a small green ball", "+SMALL", "+GREEN", "BALL")
+	largeGreen := item("a large green ball", "+LARGE", "+GREEN", "BALL")
+	token := item("a token", "+TEST", "TOKEN")
+
+	items := []has.Thing{smallGreen, largeGreen, token}
+
+	for _, test := range []*test{
+		match(""),
+		match("ball").found(smallGreen),
+		match("frog").unknown("frog"),
+		match("green frog").unknown("frog").remains("green"),
+		match("ball token").found(token).remains("ball"),
+		match("small ball token").found(token).remains("small ball"),
+		match("green ball token").found(token).remains("green ball"),
+		match("small green ball token").found(token).remains("small green ball"),
+		match("token ball").found(smallGreen).remains("token"),
+		match("token frog").unknown("frog").remains("token"),
+		match("token small ball").found(smallGreen).remains("token"),
+		match("token green ball").found(smallGreen).remains("token"),
+		match("token small green ball").found(smallGreen).remains("token"),
+		match("token green frog ball").found(smallGreen).remains("token green frog"),
+		match("token all ball").found(smallGreen, largeGreen).remains("token"),
+	} {
+		t.Run(test.words, func(t *testing.T) {
+			words := strings.Fields(strings.ToUpper(test.words))
+			matches, words := cmd.Match(words, items)
+			haveList := list(matches)
+			haveWords := strings.Join(words, " ")
+			wantList := list(test.results)
+			if haveList != wantList || haveWords != test.remaining {
+				t.Errorf("\nhave: %s (%s)\nwant: %s (%s)",
+					haveList, haveWords, wantList, test.remaining,
+				)
+			}
+		})
+	}
+}
+
+func BenchmarkMatch(b *testing.B) {
+
+	items := []has.Thing{
+		item("a small green ball", "+SMALL", "+GREEN", "BALL"),
+		item("a large green ball", "+LARGE", "+GREEN", "BALL"),
+		item("a small red ball", "+SMALL", "+RED", "BALL"),
+		item("a large red ball", "+LARGE", "+RED", "BALL"),
+		item("a wooden shortsword", "+WOODEN", "+SHORT:SWORD", "SHORTSWORD"),
+		item("a wooden longsword", "+WOODEN", "+LONG:SWORD", "LONGSWORD"),
+		item("an apple", "APPLE"),
+		item("some chalk", "CHALK"),
+		item("a token", "+TEST", "TOKEN"),
+	}
+
+	for _, test := range []string{
+		"",
+		"apple",
+		"ball",
+		"token",
+		"all ball",
+		"all green ball",
+		"all red ball",
+		"all small ball",
+		"all large ball",
+		"apple ball chalk",
+		"apple all ball chalk",
+		"frog",
+		"apple frog",
+		"apple frog chalk",
+	} {
+		b.Run(test, func(b *testing.B) {
+			words := strings.Fields(strings.ToUpper(test))
+			for i := 0; i < b.N; i++ {
+				_, _ = cmd.Match(words, items)
 			}
 		})
 	}
