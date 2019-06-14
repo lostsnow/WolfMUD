@@ -6,13 +6,11 @@
 package cmd
 
 import (
-	"strings"
-
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/has"
 )
 
-// Result is the result of a match. If the match is successful then Thing will
+// Result is the result of a Match. If the match is successful then Thing will
 // be the matched Thing and Unknown and NotEnough will both be empty strings.
 // If the match fails Thing will be nil. If the match fails due to unknown
 // words then Unknown will be set to the unknown words. If the match fails
@@ -24,229 +22,266 @@ type Result struct {
 	NotEnough string
 }
 
-// MatchLimit tries to find Things in the given Inventory by matching aliases
-// and qualifiers in the given word list. The limit is the number of groups of
-// words to match. A group of words consisting of an alias plus zero or more
-// qualifiers. A limit of -1 will consume all words in the list.
-//
-// Assume the following items, aliases and qualifiers in square brackets and
-// qualifiers have a leading '+' symbol:
-//
-//  a small green ball  [+SMALL +GREEN BALL]
-//  a small red ball    [+SMALL +RED BALL]
-//  a large green ball  [+LARGE +GREEN BALL]
-//  a large red ball    [+LARGE +RED BALL]
-//
-// All matching processes the word list from right to left. This is because a
-// group of words identifying one or more items always ends with an alias and
-// can be preceded by one or more qualifiers. By default only the first item
-// matching a word group will be returned.
-//
-// With a word list of 'RED BALL GREEN BALL' a limit of 1 would consume two
-// words 'GREEN BALL' and return one Thing matched: a small green ball. In this
-// case the alias 'BALL' would match, followed by the qualifier 'GREEN'. As
-// 'BALL' preceding 'GREEN' is not a qualifier matching fails and we have
-// 'GREEN BALL' as the first matching group of words.
-//
-// With a word list of 'RED BALL GREEN BALL' a limit of 2 (or -1) would consume
-// all of the words and return two Thing matched: a small green ball, a small
-// red ball. Note that the limit of 2 is the number of word groups, in this
-// case 'RED BALL' and 'GREEN BALL' not the number of items to return.
-//
-// Within a matching group of words the first qualifier may be special. The
-// special qualifiers are:
-//
-//  ALL - include all items matching the current group
-//  n   - include up to n items matching the current group
-//  nth - include only the nth item (postfix may be ST, ND, RD or TH)
-//  n-N - include only matching items n to N for the current group
-//
-// With a word list of 'ALL GREEN BALL' all items matching the alias of 'BALL'
-// with a qualifier of 'GREEN' will be returned. In this case: a small green
-// ball, a large green ball.
-//
-// With a word list of '2 BALL' upto the first 2 items matching the alias of
-// 'BALL' will be returned. In this case: a small green ball, a small red ball.
-//
-// With a word list of '2ND RED BALL' only the second item matching the alias
-// of 'BALL' with a qualifier of 'RED' will be returned. In this case: a large
-// red ball.
-//
-// With a word list of '2-3 BALL' items 2 through to 3 matching the alias of
-// 'BALL' would be returned. In this case: a small red ball, a large green
-// ball.
-//
-// Duplicate matching items will be removed from the results. With a word list
-// of 'ALL GREEN BALL 2-3 BALL' then 'ALL GREEN BALL' would match: a small green
-// ball, a large green ball and '2-3 BALL' would match: a small red ball, a
-// large green ball. The results returned would be: a small green ball, a small
-// red ball, a large green ball.
-//
-// When matching an alias and zero or more qualifiers the first non-match will
-// end the group. Given the word list 'RED BALL GREEN BALL', after identifying
-// the alias 'BALL' and qualifier 'GREEN' the word 'BALL' fails to match as a
-// qualifier. Therefore the first matching word group is 'GREEN BALL'. Matching
-// then starts again to look for an alias for 'BALL' with a qualifier of 'RED'.
-//
-// If a word fails to match as an alias, or fails to match as a qualifier after
-// an alias match, it is added to the returned unknowns list. Consecutive
-// unknown words are grouped together. Given the word list 'GREEN BALL BLUE
-// FROG RED BALL', after identifying 'RED BALL' the word 'FROG' is not matched
-// and added to the unknowns. Then 'BLUE' is also unmatched and the unknowns
-// become 'BLUE FROG' because the unknowns are consecutive. Given the word list
-// 'TREE GREEN BALL FROG RED BALL', then 'FROG' and 'TREE' would be unmatched.
-// As they are not consecutive - 'GREEN BALL' would match between 'TREE' and
-// 'FROG' two unknowns would be returned 'TREE' and 'FROG'.
-//
-// There may be some instances where different matches need to be carried out
-// against different Inventory. For example the PUT command. The PUT command
-// takes the form: PUT <item ...> <container>. The container may be carried or
-// at the current location, while items to put in it should be carried. In this
-// instance the container can be checked by calling Match, the items can then
-// be found by calling MatchAll with the word list returned by the initial
-// Match to complete the matching. In this way different Inventory can be
-// passed to Match and MatchAll.
-func MatchLimit(wordList []string, limit int, inv ...[]has.Thing) (matches []Result, words []string) {
+// matcher is used to hold the current matcher state.
+type matcher struct {
+	words   []string
+	alias   string
+	things  []has.Thing
+	aliases []has.Alias
+}
 
-	// Get a working list of the words in reverse order. We start at the end and
-	// work backwards through the words because we know the last word has to be
-	// an alias and not a qualifier.
-	words = make([]string, len(wordList))
-	for x, word := range wordList {
-		words[len(wordList)-1-x] = word
+// Match takes a list of alias and qualifier words, and lists of Things and
+// returns a subset of the Things that match the aliases and qualifiers as a
+// list of Results. See the Result type for details. Match will also return any
+// unprocessed words. The word list may contain special limit qualifiers such
+// as ALL, 3, 2nd or 2-4. See the specialQualifier function for details.
+//
+// For example, given the words: {"ALL", "SMALL", "BALL", "ALL", "GREEN", "BALL"}
+//
+// Match processes the words in reverse order. In this case starting with the
+// last word 'BALL'.
+//
+// Match will try to identify Things in the list with an alias of 'BALL'.
+//
+// If there are no matches a Result of 'unknown' will be returned.
+//
+// If there are matches then the word 'BALL' will be consumed. The matches will
+// then be reduced to those Things with a qualifier of 'GREEN' - which is now
+// the last word in the list.
+//
+// If the matches cannot be reduced the original matches will be used. If the
+// matches are reduced the qualifier 'GREEN' will be consumed.
+//
+// The matches will then be reduced by limits. The default limit is the first
+// match. This may be changed by using a special qualifier such as ALL, 3, 2nd,
+// etc. In this example we have 'ALL' so all of the current matches will be
+// returned. If there are not enough remaining matches to satisfy the limits
+// requested a result of 'not enough' will be returned. If a special qualifier
+// is found it will be consumed and removed from the word list.
+//
+// Assuming we have at least one Thing that matches our example the words
+// 'BALL', 'GREEN' and 'ALL' will have been consumed. The remaing, unprocessed
+// words in the word list will be returned.
+//
+// The reaming words can then be used to a subsequent call to Match for further
+// matching. See also MatchAll.
+func Match(words []string, things ...[]has.Thing) ([]Result, []string) {
+
+	if len(words) == 0 {
+		return []Result{}, []string{}
 	}
 
-	count := 0
+	m := newMatcher(words, things...)
+	m.subsetAlias()
 
-	for len(words) > 0 && (limit == -1 || count < limit) {
-		count++
-
-		// Loop through Inventory items for those matching alias
-		results := []has.Thing{}
-		for _, i := range inv {
-			for _, t := range i {
-				if attr.FindAlias(t).HasAlias(words[0]) {
-					results = append(results, t)
-				}
-			}
-		}
-
-		// If no matched aliases add to unknown, consume word, try next word
-		if len(results) == 0 {
-			if len(matches) == 0 || matches[0].Thing != nil || matches[0].NotEnough != "" {
-				matches = append([]Result{Result{nil, words[0], ""}}, matches...)
-			} else {
-				matches[0].Unknown = words[0] + " " + matches[0].Unknown
-			}
-			words = words[1:]
-			continue
-		}
-
-		// Record word just seen, consume it and flag alias just matched
-		wordsSeen := []string{words[0]}
-		words = words[1:]
-
-		// Match qualifiers against alias matches until no results left or we run
-		// out of words for qualifiers
-	qualifierLoop:
-		for len(results) > 0 && len(words) > 0 {
-
-			// If current word already seen stop looking for more qualifiers
-			for _, seen := range wordsSeen {
-				if seen == words[0] {
-					break qualifierLoop
-				}
-			}
-
-			// Loop through matched set looking for matching qualifiers
-			subResults := []has.Thing{}
-			for _, t := range results {
-				if a := attr.FindAlias(t); a.Found() {
-					if a.HasQualifierForAlias(wordsSeen[0], words[0]) || a.HasQualifier(words[0]) {
-						subResults = append(subResults, t)
-					}
-				}
-			}
-
-			// If no sub-matches left stop checking and don't consume word
-			if len(subResults) == 0 {
-				break
-			}
-
-			// We have matches so record word just seen, consume it and use
-			// sub-results as new results
-			wordsSeen = append(wordsSeen, words[0])
-			words = words[1:]
-			results = subResults
-		}
-
-		// Set default limits to be first item in results only
-		minLimit, maxLimit := 0, 1
-
-		// Check if last word not matched is special. If it is set limits for
-		// results.
-		if len(words) > 0 {
-			min, max := specialQualifier(words[0])
-			if !(min == -1 && max == -1) {
-
-				words = words[1:] // Consume special qualifier
-				minLimit, maxLimit = min, max
-
-				if minLimit < 0 {
-					minLimit = 0
-				}
-
-				if maxLimit == -1 || maxLimit > len(results) {
-					maxLimit = len(results)
-				}
-			}
-		}
-
-		// If minimum limit beyond result range there is no way to have any matches
-		if minLimit > len(results) {
-			matches = append([]Result{Result{nil, "", strings.Join(wordsSeen, " ")}}, matches...)
-			continue
-		}
-
-		// Subset final results by limits
-		results = results[minLimit:maxLimit]
-
-		if len(results) == 0 {
-			matches = append([]Result{Result{nil, "", strings.Join(wordsSeen, " ")}}, matches...)
-			continue
-		}
-
-		// Add new results only, in reverse order, to current matches. Order is
-		// reversed because we are walking backwards through the words, but for
-		// sub-matches they should be added in order.
-	uniqueLoop:
-		for x := len(results) - 1; x >= 0; x-- {
-			for _, m := range matches {
-				if m.Thing == results[x] {
-					continue uniqueLoop
-				}
-			}
-			matches = append([]Result{Result{results[x], "", ""}}, matches...)
-		}
+	// If no aliases match then return an 'unknown' Result
+	if len(m.things) == 0 {
+		return []Result{{nil, m.alias, ""}}, m.words
 	}
 
-	// Put remaining words into the correct order
-	words = wordList[:len(words)]
+	m.subsetQualifiers()
+	m.subsetLimits()
 
+	// If no items left in subset then return a 'not enough' Result
+	if len(m.things) == 0 {
+		return []Result{{nil, "", m.alias}}, m.words
+	}
+
+	return m.subsetAsResults(), m.words
+}
+
+// MatchAll repeatedly calls Match until all of the words are consumed. The
+// returned Results will only contain unique Things.
+func MatchAll(words []string, things ...[]has.Thing) (matches []Result) {
+
+	if len(words) == 0 {
+		return
+	}
+
+	var results []Result
+	var r, m Result
+
+	// Pre-flatten things so it's not done for every newMatcher in Match.
+	// However, we do want newMatcher to make a copy still.
+	for _, t := range things[1:] {
+		things[0] = append(things[0], t...)
+	}
+
+	matches, words = Match(words, things[0])
+
+	for len(words) > 0 {
+		results, words = Match(words, things[0])
+		r = results[0]
+		m = matches[0]
+
+		switch {
+
+		// If 1st result Thing not nil merge all results with matches
+		case r.Thing != nil:
+			matches = mergeUniqueResults(matches, results)
+
+		// If 1st result 'unknown' prepend to existing 'unknown'
+		case r.Unknown != "" && m.Unknown != "":
+			matches[0].Unknown = r.Unknown + " " + m.Unknown
+
+		// Default is to prepend new error to current matches
+		default:
+			matches = append(matches, Result{})
+			copy(matches[1:], matches[0:])
+			matches[0] = r
+
+		}
+	}
 	return
 }
 
-// Match is shorthand for MatchLimit with a limit of 1.
-func Match(wordList []string, inv ...[]has.Thing) (matches []Result, words []string) {
-	matches, words = MatchLimit(wordList, 1, inv...)
+// newMatcher initialises a new matcher.
+func newMatcher(words []string, things ...[]has.Thing) *matcher {
+
+	s := 0
+	for _, t := range things {
+		s += len(t)
+	}
+
+	m := &matcher{words, "", make([]has.Thing, s), make([]has.Alias, s)}
+
+	s = 0
+	for _, t := range things {
+		copy(m.things[s:], t)
+		s += len(t)
+	}
+
+	return m
+}
+
+// nextWord returns the current word from the marcher word list.
+func (m *matcher) nextWord() string {
+	return m.words[len(m.words)-1]
+}
+
+// deleteWord removes the current word from the marcher word list.
+func (m *matcher) deleteWord() {
+	m.words = m.words[:len(m.words)-1]
+}
+
+// mergeUniqueResults takes a set of matches and a set of results, merges new,
+// unique results into the matches and returns the new list.
+func mergeUniqueResults(matches, results []Result) []Result {
+
+	unique := results[:0]
+
+uniqueLoop:
+	for _, r := range results {
+		for _, m := range matches {
+			if m.Thing == r.Thing {
+				continue uniqueLoop
+			}
+		}
+		unique = append(unique, r)
+	}
+	return append(unique, matches...)
+}
+
+// subsetAlias takes a list of Things and returns a list of all of the Things
+// matching the specified alias.
+func (m *matcher) subsetAlias() {
+
+	m.alias = m.nextWord()
+	m.deleteWord()
+
+	subset := m.things[:0]
+	aliases := m.aliases[:0]
+	for _, t := range m.things {
+		if a := attr.FindAlias(t); a.HasAlias(m.alias) {
+			subset = append(subset, t)
+			aliases = append(aliases, a)
+		}
+	}
+
+	m.things = m.things[:len(subset)]
+	m.aliases = m.aliases[:len(aliases)]
+}
+
+// subsetQualifiers takes a list of Things and returns all of the Things
+// matching the greatest number of matched qualifiers (taken from words). The
+// alias passed is used to determine bound qualifiers. Qualifiers used will be
+// removed from the list of words passed with the unmatched words returned.
+func (m *matcher) subsetQualifiers() {
+
+	if len(m.words) == 0 {
+		return
+	}
+
+	qualifier := m.nextWord()
+	subset := m.things[:0]
+	aliases := m.aliases[:0]
+
+	for x, a := range m.aliases {
+		if a.HasQualifierForAlias(m.alias, qualifier) || a.HasQualifier(qualifier) {
+			subset = append(subset, m.things[x])
+			aliases = append(aliases, a)
+		}
+	}
+
+	if len(subset) == 0 {
+		return
+	}
+
+	m.deleteWord()
+	m.things = m.things[:len(subset)]
+	m.aliases = m.aliases[:len(aliases)]
+	m.subsetQualifiers()
+}
+
+// subsetLimits takes a list of Things and returns a subset of the list within
+// limits. If the last word can be interpreted as limits by specialQualifier
+// then those limits will be used and the word consumed, if not a default limit
+// of the first thing [0:1] will be used.
+func (m *matcher) subsetLimits() {
+
+	// Shortcut: if no limit qualifier posible just return first result
+	if len(m.words) == 0 {
+		m.things = m.things[:1]
+		return
+	}
+
+	// Try to interpret special limit qualifier
+	minLimit, maxLimit := specialQualifier(m.nextWord())
+
+	// If special qualifier not found use default limit of [0:1]. Otherwise
+	// consume word and make sure limits within bounds of things slice.
+	if minLimit == -1 && maxLimit == -1 {
+		minLimit, maxLimit = 0, 1
+	} else {
+		m.deleteWord()
+
+		if minLimit < 0 {
+			minLimit = 0
+		}
+
+		if maxLimit == -1 || maxLimit > len(m.things) {
+			maxLimit = len(m.things)
+		}
+	}
+
+	// If minimum limit is greater than the number of things there is no way to
+	// have any matches.
+	if minLimit > len(m.things) {
+		minLimit, maxLimit = 0, 0
+	}
+
+	m.things = m.things[minLimit:maxLimit]
 	return
 }
 
-// MatchAll is shorthand for MatchLimit with a limit of -1. It always consumes
-// all words and returns no unused words.
-func MatchAll(wordList []string, inv ...[]has.Thing) (matches []Result) {
-	matches, _ = MatchLimit(wordList, -1, inv...)
-	return
+// subsetAsResults takes a list of Things and returns them as a list of
+// Results.
+func (m *matcher) subsetAsResults() []Result {
+	results := make([]Result, len(m.things))
+	for x := range m.things {
+		results[x].Thing = m.things[x]
+	}
+	return results
 }
 
 // specialQualifier takes a word and tries to process it as a special
@@ -312,10 +347,8 @@ func specialQualifier(word string) (minLimit, maxLimit int) {
 
 // leadingDigits returns an integer representing the digits at the beginning of
 // a string and a count of the digits used. If the passed string has no leading
-// digits then an integer of 0 will be returned with a count of 0.
-//
-// Example: leadingDigits("123xyz") would return and int of 123 and count 3
-//
+// digits then an integer of 0 will be returned with a count of 0. For example
+// leadingDigits("123xyz") would return an int of 123 and count 3.
 func leadingDigits(s string) (n, count int) {
 	for _, b := range []byte(s) {
 		if b < '0' || '9' < b {

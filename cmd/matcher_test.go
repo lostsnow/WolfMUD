@@ -213,6 +213,10 @@ func TestMatchAll(t *testing.T) {
 			found(chalk).notEnough("apple").unknown("frog"),
 		match("chalk frog 2nd apple").
 			found(chalk).unknown("frog").notEnough("apple"),
+
+		// Consecutive 'unknown' should be merged but 'not enough' should not.
+		match("frog dog").unknown("frog dog"),
+		match("2nd chalk 2nd apple").notEnough("chalk", "apple"),
 	} {
 		t.Run(test.words, func(t *testing.T) {
 			words := strings.Fields(strings.ToUpper(test.words))
