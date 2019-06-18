@@ -255,6 +255,7 @@ func BenchmarkMatchAll(b *testing.B) {
 		"frog",
 		"apple frog",
 		"apple frog chalk",
+		"a b c d e f g h i j k l m n o p q r s t u v w x z y",
 	} {
 		b.Run(test, func(b *testing.B) {
 			words := strings.Fields(strings.ToUpper(test))
@@ -334,6 +335,7 @@ func BenchmarkMatch(b *testing.B) {
 		"frog",
 		"apple frog",
 		"apple frog chalk",
+		"a b c d e f g h i j k l m n o p q r s t u v w x z y",
 	} {
 		b.Run(test, func(b *testing.B) {
 			words := strings.Fields(strings.ToUpper(test))
