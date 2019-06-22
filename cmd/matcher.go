@@ -292,6 +292,8 @@ func (m *matcher) subsetAsResults() []Result {
 //   nP - specific instance 1st, 2nd, rd, 4th, etc
 //   n-N - a range of items from n to N
 //
+// The values n and N are restricted to a maximum value of 9,999,999.
+//
 // specialQualifier will return the new minimum and maximum limits. If the word
 // is not a special qualifier then the returned limits will both be -1.
 // Note that the minimum limit will be zero based and hence 1 less than might
@@ -356,6 +358,9 @@ func leadingDigits(s string) (n, count int) {
 		}
 		n *= 10
 		n += int(b - '0')
+		if n > 9999999 {
+			n = 9999999
+		}
 		count++
 	}
 	return

@@ -30,6 +30,15 @@ func TestLeadingDigits(t *testing.T) {
 		{"10", 10, 2},
 		{"100", 100, 3},
 
+		// Check result limited to 9999999 correctly
+		{"9999998", 9999998, 7},
+		{"9999999", 9999999, 7},
+		{"10000000", 9999999, 8},
+
+		// Too big for int64, should be limted to 9,999,999 but still report 19
+		// digits consumed for number
+		{"9223372036854775808", 9999999, 19},
+
 		// Invalid
 		{"-1", 0, 0},
 		{"a", 0, 0},
