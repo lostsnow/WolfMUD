@@ -50,7 +50,7 @@ func TestLeadingDigits(t *testing.T) {
 			haveInt, haveLen := leadingDigits(test.word)
 			if haveInt != test.wantInt || haveLen != test.wantLen {
 				t.Errorf("have: %d (length %d), want: %d (length %d)",
-					haveInt, test.wantInt, haveLen, test.wantInt,
+					haveInt, haveLen, test.wantInt, test.wantLen,
 				)
 			}
 		})
