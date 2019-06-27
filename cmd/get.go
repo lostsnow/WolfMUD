@@ -31,7 +31,7 @@ func (get) process(s *state) {
 		return
 	}
 
-	who := attr.FindName(s.actor).Name("Someone")
+	who := attr.FindName(s.actor).TheName("Someone")
 
 	// Find matching items at location
 nextMatch:
