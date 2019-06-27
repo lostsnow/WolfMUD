@@ -50,14 +50,14 @@ func TestWhich(t *testing.T) {
 	world := whichSetupWorld()
 	defer world.Free()
 
-	actor := cmd.NewTestPlayer("an actor",
+	actor := cmd.NewTestPlayer("an actor", "ACTOR",
 		attr.NewThing(
 			attr.NewName("a token"),
 			attr.NewAlias("+TEST", "TOKEN"),
 			attr.NewDescription("This is a test token."),
 		),
 	)
-	observer := cmd.NewTestPlayer("an observer")
+	observer := cmd.NewTestPlayer("an observer", "OBSERVER")
 
 	const (
 		// For actor
@@ -118,8 +118,8 @@ func BenchmarkWhich(b *testing.B) {
 	world := whichSetupWorld()
 	defer world.Free()
 
-	actor := cmd.NewTestPlayer("an actor")
-	observer := cmd.NewTestPlayer("an observer")
+	actor := cmd.NewTestPlayer("an actor", "ACTOR")
+	observer := cmd.NewTestPlayer("an observer", "OBSERVER")
 
 	for _, test := range []string{
 		"",         // Nothing
