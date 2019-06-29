@@ -8,6 +8,7 @@ package cmd
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: GET item...
@@ -63,12 +64,26 @@ nextMatch:
 				}
 			}
 
-			name := attr.FindName(what).Name("something")
+			nameAttr := attr.FindName(what)
+
+			// If item is a player we don't allow them to be picked up. This solves a
+			// number of logistical problems - like the player quitting while held or
+			// being put into a carried container.
+			//
+			// BUG(diddymus): It should be possible to put a GET Veto on a player.
+			// However due to the way GET applies Vetoes we can't yet.
+			if attr.FindPlayer(what).Found() {
+				name := text.TitleFirst(nameAttr.TheName("someone"))
+				s.msg.Actor.SendBad(name, " does not want to be picked up!")
+				continue nextMatch
+			}
+
+			name := nameAttr.Name("something")
 
 			// If item is a narrative we can't get it. We do this check after the
 			// veto checks as the vetos could give us a better message/reson for not
 			// being able to get the item.
-			if attr.FindNarrative(what).Found() || attr.FindPlayer(what).Found() {
+			if attr.FindNarrative(what).Found() {
 				s.msg.Actor.SendBad("For some reason you cannot get ", name, ".")
 				continue nextMatch
 			}
