@@ -202,6 +202,13 @@ func (c *Cleanup) Abort() {
 	}
 }
 
+// Pending returns true if there is a Clean up event pending, else false. Use
+// with caution as this could introduce a race between checking the state and
+// acting on it as the event could fire between the two actions.
+func (c *Cleanup) Pending() bool {
+	return c.Cancel != nil
+}
+
 // Free makes sure references are nil'ed and channels closed when the Cleanup
 // attribute is freed.
 func (c *Cleanup) Free() {

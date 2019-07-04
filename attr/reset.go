@@ -149,6 +149,13 @@ func (r *Reset) Abort() {
 	}
 }
 
+// Pending returns true if there is a Reset event pending, else false. Use
+// with caution as this could introduce a race between checking the state and
+// acting on it as the event could fire between the two actions.
+func (r *Reset) Pending() bool {
+	return r.Cancel != nil
+}
+
 // Spawn returns a non-spawnable copy of a Thing and schedules the original
 // Thing to reset if Reset.spawn is true. Otherwise it returns nil.
 func (r *Reset) Spawn() has.Thing {
