@@ -348,12 +348,10 @@ func TestGet_events(t *testing.T) {
 		attr.NewOnAction([]string{"The ball moves..."}),
 	)
 
-	inv := attr.NewInventory(ball)
-
 	locA := attr.NewThing(
 		attr.NewStart(),
 		attr.NewName("Test room A"),
-		inv,
+		attr.NewInventory(ball),
 	)
 
 	// Set origins so events work and start Action event - usually done by the
