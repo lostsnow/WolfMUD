@@ -186,7 +186,12 @@ func TestGet_messages(t *testing.T) {
 // Make sure we handle the actor not having an Inventory to put things in.
 func TestGet_noInventory(t *testing.T) {
 
-	world := getSetupWorld()
+	locA := attr.NewThing(
+		attr.NewStart(),
+		attr.NewName("Test room A"),
+		attr.NewInventory(),
+	)
+
 	actor := cmd.NewTestPlayer("an actor", "ACTOR")
 
 	// Remove and free player's inventory
@@ -205,7 +210,7 @@ func TestGet_noInventory(t *testing.T) {
 		)
 	}
 
-	world.Free()
+	locA.Free()
 }
 
 // TestGet_inventory check to make sure picking up an item moves it into the
