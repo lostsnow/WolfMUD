@@ -51,6 +51,14 @@ func getSetupWorld() (world attr.Things) {
 				attr.NewAlias("+LARGE", "+GREEN", "BALL"),
 				attr.NewDescription("This is a large, green rubber ball."),
 			),
+			attr.NewThing(
+				attr.NewName("some water"),
+				attr.NewAlias("WATER"),
+				attr.NewDescription("This is a small pool of water."),
+				attr.NewVetoes(
+					attr.NewVeto("GET", "The water runs through your fingers."),
+				),
+			),
 		),
 	)
 
@@ -130,6 +138,9 @@ func TestGet_messages(t *testing.T) {
 
 		// Try to get a narrative with an overriding veto message
 		{"wall", text.Bad + "If you take the wall the ceiling will crush you!\n", ""},
+
+		// Try to get a non-narrative with an overriding veto message
+		{"water", text.Bad + "The water runs through your fingers.\n", ""},
 
 		// Try to get self
 		{"actor", text.Info + "Trying to pick youreself up by your bootlaces?\n", ""},
