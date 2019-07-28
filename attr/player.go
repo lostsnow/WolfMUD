@@ -129,10 +129,18 @@ func (p *Player) Free() {
 	}
 }
 
-// Check will always veto a player being junked.
-func (p *Player) Check(actor has.Thing, cmd ...string) has.Veto {
-	if cmd[0] == "JUNK" {
-		return NewVeto(cmd[0], "You can't junk "+FindName(p.Parent()).Name("Someone")+"!")
+// Check will always veto a player being junked and trying to use player as a
+// container.
+func (p *Player) Check(actor has.Thing, cmds ...string) has.Veto {
+	for _, cmd := range cmds {
+		switch cmd {
+		case "JUNK":
+			who := FindName(p.Parent()).TheName("Someone")
+			return NewVeto(cmd, "You can't junk "+who+"!")
+		case "PUTIN":
+			who := FindName(p.Parent()).TheName("Someone")
+			return NewVeto(cmd, "You can't put anything into "+who+"!")
+		}
 	}
 	return nil
 }
