@@ -189,7 +189,13 @@ func TestGet_noInventory(t *testing.T) {
 	locA := attr.NewThing(
 		attr.NewStart(),
 		attr.NewName("Test room A"),
-		attr.NewInventory(),
+		attr.NewInventory(
+			attr.NewThing(
+				attr.NewName("a small green ball"),
+				attr.NewAlias("+SMALL", "+GREEN", "BALL"),
+				attr.NewDescription("This is a small, green rubber ball."),
+			),
+		),
 	)
 
 	actor := cmd.NewTestPlayer("an actor", "ACTOR")
