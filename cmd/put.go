@@ -64,7 +64,7 @@ func (put) process(s *state) {
 
 	// Unless our name is Klein we can't put something inside itself! ;)
 	if tWhat == cWhat {
-		s.msg.Actor.SendInfo("It might be interesting putting ", tName, " inside itself, but probably paradoxical as well.")
+		s.msg.Actor.SendInfo("It might be interesting to put ", tName, " inside itself, but probably paradoxical as well.")
 		s.msg.Observer.SendInfo(text.TitleFirst(who), " seems to be trying to turn ", tName, " into a paradox.")
 		return
 	}
