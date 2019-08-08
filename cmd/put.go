@@ -1,4 +1,4 @@
-// Copyright 2015 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2019 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
@@ -10,7 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
-// Syntax: PUT item container
+// Syntax: PUT item... container
 func init() {
 	addHandler(put{}, "PUT")
 }
@@ -24,67 +24,54 @@ func (put) process(s *state) {
 		return
 	}
 
-	tName := s.words[0]
+	// Look for container to put things into
+	aInv := attr.FindInventory(s.actor)
+	matches, words := Match(s.words, aInv.Contents(), s.where.Everything())
 
-	// Search ourselves for item to put into container
-	tWhere := attr.FindInventory(s.actor)
-	tWhat := tWhere.Search(tName)
-
-	if tWhat == nil {
-		s.msg.Actor.SendBad("You have no '", tName, "' to put into anything.")
-		return
-	}
-
-	// Get item's proper name
-	tName = attr.FindName(tWhat).Name(tName)
-
-	// Check a container was specified
-	if len(s.words) < 2 {
-		s.msg.Actor.SendBad("What did you want to put ", tName, " into?")
-		return
-	}
-
-	cName := s.words[1]
-
-	// Search ourselves for container to put something into
-	cWhat := tWhere.Search(cName)
-
-	// If container not found search the inventory where we are
-	if cWhat == nil {
-		cWhat = s.where.Search(cName)
-	}
-
-	// Was container found?
-	if cWhat == nil {
-		s.msg.Actor.SendBad("You see no '", cName, "' to put ", tName, " into.")
-		return
-	}
-
-	who := attr.FindName(s.actor).TheName("Someone")
-
-	// Unless our name is Klein we can't put something inside itself! ;)
-	if tWhat == cWhat {
-		s.msg.Actor.SendInfo("It might be interesting to put ", tName, " inside itself, but probably paradoxical as well.")
-		s.msg.Observer.SendInfo(text.TitleFirst(who), " seems to be trying to turn ", tName, " into a paradox.")
-		return
-	}
-
-	// Get container's proper name
-	cName = attr.FindName(cWhat).Name(cName)
-
-	// Check container is actually a container with an inventory
-	cWhere := attr.FindInventory(cWhat)
-	if !cWhere.Found() {
-		s.msg.Actor.SendBad("You cannot put ", tName, " into ", cName, ".")
-		return
-	}
-
-	// Check put is not vetoed by item
-	for _, vetoes := range attr.FindAllVetoes(tWhat) {
-		if veto := vetoes.Check(s.actor, "PUT"); veto != nil {
-			s.msg.Actor.SendBad(veto.Message())
-			return
+	// If multiple containers found which one do we want?
+	if len(matches) > 1 {
+		s.msg.Actor.SendBad("Which container did you mean?")
+		for _, match := range matches {
+			s.msg.Actor.Send("  ", attr.FindName(match).Name("something"))
 		}
+		return
+	}
+
+	// Was a single container actually found?
+	switch match := matches[0]; {
+	case match.Unknown != "":
+		if len(words) == 0 {
+			s.msg.Actor.SendBad("You have no '", match.Unknown, "' to put into anything.")
+		} else {
+			s.msg.Actor.SendBad("You see no '", match.Unknown, "' to put things into.")
+		}
+		return
+
+	case match.NotEnough != "":
+		if len(words) == 0 {
+			s.msg.Actor.SendBad("You don't have that many '", match.NotEnough, "' to put into anything.")
+		} else {
+			s.msg.Actor.SendBad("You don't see that many '", match.NotEnough, "' to put things into.")
+		}
+		return
+	}
+
+	cWhat := matches[0].Thing
+	cName := attr.FindName(cWhat).Name("something")
+	cInv := attr.FindInventory(cWhat)
+	cCarried := cInv.Carried()
+
+	// If nothing else specified assume this is an item and we have no container
+	if len(words) == 0 {
+		s.msg.Actor.SendBad("What did you want to put ", cName, " into?")
+		return
+	}
+
+	// Is the container actually a container and something we can put things into?
+	if !cInv.Found() {
+		name := text.TitleFirst(cName)
+		s.msg.Actor.SendBad(name, " isn't something you can put things in.")
+		return
 	}
 
 	// Check putting things into the container not vetoed by container
@@ -95,16 +82,58 @@ func (put) process(s *state) {
 		}
 	}
 
-	// Remove item from where it is and put it in the container
-	tWhere.Move(tWhat, cWhere)
+	who := attr.FindName(s.actor).TheName("someone")
+	notifyObserver := false
 
-	// If a Thing is not put in a carried container the Thing is now just laying
-	// around so check if it should register for clean up
-	if !cWhere.Carried() {
-		attr.FindCleanup(tWhat).Cleanup()
+	// Find items to put into container
+	for _, match := range MatchAll(words, aInv.Contents()) {
+
+		switch {
+		case match.Unknown != "":
+			s.msg.Actor.SendBad("You have no '", match.Unknown, "' to put into anything.")
+			return
+
+		case match.NotEnough != "":
+			s.msg.Actor.SendBad("You don't have that many '", match.NotEnough, "' to put into ", cName, ".")
+			return
+
+		default:
+			tWhat := match.Thing
+			tName := attr.FindName(tWhat).Name("something")
+
+			// Unless our name is Klein we can't put something inside itself! ;)
+			if tWhat == cWhat {
+				who := text.TitleFirst(who)
+				s.msg.Actor.SendInfo("It might be interesting to put ", tName, " inside itself, but probably paradoxical as well.")
+				s.msg.Observer.SendInfo(who, " seems to be trying to turn ", tName, " into a paradox.")
+				continue
+			}
+
+			// Check put is not vetoed by item
+			for _, vetoes := range attr.FindAllVetoes(tWhat) {
+				if veto := vetoes.Check(s.actor, "PUT"); veto != nil {
+					s.msg.Actor.SendBad(veto.Message())
+					return
+				}
+			}
+
+			// Remove item from actor and put it in the container
+			aInv.Move(tWhat, cInv)
+
+			// If item is not put into a carried container the item is now just
+			// laying around so check if it should register for clean up
+			if !cCarried {
+				attr.FindCleanup(tWhat).Cleanup()
+			}
+
+			s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
+			notifyObserver = true
+		}
 	}
 
-	s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
-	s.msg.Observer.SendInfo("You see ", who, " put something into ", cName, ".")
+	if notifyObserver {
+		s.msg.Observer.SendInfo("You see ", who, " put something into ", cName, ".")
+	}
+
 	s.ok = true
 }

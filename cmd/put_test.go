@@ -49,7 +49,7 @@ func TestPut_messages(t *testing.T) {
 			text.Bad + "You have no 'FROG' to put into anything.\n", "",
 		}, {
 			"ball frog", // Valid held item, invalid container
-			text.Bad + "You see no 'FROG' to put a small green ball into.\n", "",
+			text.Bad + "You see no 'FROG' to put things into.\n", "",
 		}, {
 			"box box", // Try putting held container inside itself
 			text.Info + "It might be interesting to put a box inside itself, " +
@@ -60,7 +60,7 @@ func TestPut_messages(t *testing.T) {
 			text.Bad + "You have no 'HOLE' to put into anything.\n", "",
 		}, {
 			"box ball", // Held item into a held non-container
-			text.Bad + "You cannot put a box into a small green ball.\n", "",
+			text.Bad + "A small green ball isn't something you can put things in.\n", "",
 		}, {
 			"ball bag", // Held item into vetoing held container
 			text.Bad + "You can't get the bag open.\n", "",
