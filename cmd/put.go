@@ -27,65 +27,43 @@ func (p put) process(s *state) {
 
 	cWhat, words := p.findContainer(s)
 
+	// If no container we can't continue
 	if cWhat == nil {
 		return
 	}
 
+	aInv := attr.FindInventory(s.actor)
 	cInv := attr.FindInventory(cWhat)
 	cName := attr.FindName(cWhat).Name("something")
-	cCarried := cInv.Carried()
 
-	who := attr.FindName(s.actor).TheName("someone")
-	aInv := attr.FindInventory(s.actor)
 	notifyObserver := false
 
-	// Find items to put into container
+	// Match items to put into container
 	for _, match := range MatchAll(words, aInv.Contents()) {
 
-		switch {
-		case match.Unknown != "":
-			s.msg.Actor.SendBad("You have no '", match.Unknown, "' to put into ", cName, ".")
+		tWhat := p.findItem(s, cWhat, match)
+
+		// If item not matched move onto next item
+		if tWhat == nil {
 			continue
-
-		case match.NotEnough != "":
-			s.msg.Actor.SendBad("You don't have that many '", match.NotEnough, "' to put into ", cName, ".")
-			continue
-
-		default:
-			tWhat := match.Thing
-			tName := attr.FindName(tWhat).Name("something")
-
-			// Unless our name is Klein we can't put something inside itself! ;)
-			if tWhat == cWhat {
-				who := text.TitleFirst(who)
-				s.msg.Actor.SendInfo("It might be interesting to put ", tName, " inside itself, but probably paradoxical as well.")
-				s.msg.Observer.SendInfo(who, " seems to be trying to turn ", tName, " into a paradox.")
-				continue
-			}
-
-			// Check put is not vetoed by item
-			for _, vetoes := range attr.FindAllVetoes(tWhat) {
-				if veto := vetoes.Check(s.actor, "PUT"); veto != nil {
-					s.msg.Actor.SendBad(veto.Message())
-					return
-				}
-			}
-
-			// Remove item from actor and put it in the container
-			aInv.Move(tWhat, cInv)
-
-			// If item is not put into a carried container the item is now just
-			// laying around so check if it should register for clean up
-			if !cCarried {
-				attr.FindCleanup(tWhat).Cleanup()
-			}
-
-			s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
-			notifyObserver = true
 		}
+
+		// Remove item from actor and put it in the container
+		aInv.Move(tWhat, cInv)
+
+		// If item is not put into a carried container the item is now just
+		// laying around so check if it should register for clean up
+		if !cInv.Carried() {
+			attr.FindCleanup(tWhat).Cleanup()
+		}
+
+		tName := attr.FindName(tWhat).Name("something")
+		s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
+		notifyObserver = true
 	}
 
 	if notifyObserver {
+		who := attr.FindName(s.actor).TheName("someone")
 		s.msg.Observer.SendInfo("You see ", who, " put something into ", cName, ".")
 	}
 
@@ -177,4 +155,56 @@ func (p put) findContainer(s *state) (container has.Thing, words []string) {
 	}
 
 	return what.Thing, words
+}
+
+// findItem checks the match passed to it to see if it contains an item that
+// can be placed into the specified container. Returns the item from the match
+// if it is valid else nil. On failure appropriate message are sent to the
+// actor and observers.
+func (p put) findItem(s *state, container has.Thing, match Result) has.Thing {
+
+	if match.Unknown != "" {
+		name := attr.FindName(container).Name("something")
+		s.msg.Actor.SendBad(
+			"You have no '", match.Unknown, "' to put into ", name, ".",
+		)
+		return nil
+	}
+
+	if match.NotEnough != "" {
+		name := attr.FindName(container).Name("something")
+		s.msg.Actor.SendBad(
+			"You don't have that many '", match.NotEnough, "' to put into ", name, ".",
+		)
+		return nil
+	}
+
+	what := match.Thing
+
+	// Unless our name is Klein we can't put something inside itself! ;)
+	if what == container {
+		who := text.TitleFirst(attr.FindName(s.actor).TheName("someone"))
+		name := attr.FindName(what).Name("something")
+
+		s.msg.Actor.SendInfo(
+			"It might be interesting to put ", name,
+			" inside itself, but probably paradoxical as well.",
+		)
+
+		s.msg.Observer.SendInfo(
+			who, " seems to be trying to turn ", name, " into a paradox.",
+		)
+
+		return nil
+	}
+
+	// Check put is not vetoed by item
+	for _, vetoes := range attr.FindAllVetoes(what) {
+		if veto := vetoes.Check(s.actor, "PUT"); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return nil
+		}
+	}
+
+	return what
 }
