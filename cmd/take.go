@@ -64,6 +64,14 @@ func (take) process(s *state) {
 		return
 	}
 
+	// Check taking things out of container not vetoed by container
+	for _, vetoes := range attr.FindAllVetoes(cWhat) {
+		if veto := vetoes.Check(s.actor, "TAKEOUT"); veto != nil {
+			s.msg.Actor.SendBad(veto.Message())
+			return
+		}
+	}
+
 	// Get actor's name
 	who := attr.FindName(s.actor).Name("Someone")
 
@@ -91,14 +99,6 @@ func (take) process(s *state) {
 	// Check take is not vetoed by item
 	for _, vetoes := range attr.FindAllVetoes(tWhat) {
 		if veto := vetoes.Check(s.actor, "TAKE"); veto != nil {
-			s.msg.Actor.SendBad(veto.Message())
-			return
-		}
-	}
-
-	// Check taking things out of container not vetoed by container
-	for _, vetoes := range attr.FindAllVetoes(cWhat) {
-		if veto := vetoes.Check(s.actor, "TAKEOUT"); veto != nil {
 			s.msg.Actor.SendBad(veto.Message())
 			return
 		}
