@@ -55,12 +55,13 @@ func (take) process(s *state) {
 	}
 
 	// Get container's proper name
+	cTheName := attr.FindName(cWhat).TheName(cName)
 	cName = attr.FindName(cWhat).Name(cName)
 
 	// Check container is actually a container with an inventory
 	cWhere := attr.FindInventory(cWhat)
 	if !cWhere.Found() {
-		s.msg.Actor.SendBad("You cannot take anything from ", cName, ".")
+		s.msg.Actor.SendBad("You cannot take anything from ", cTheName, ".")
 		return
 	}
 
@@ -73,18 +74,18 @@ func (take) process(s *state) {
 	}
 
 	// Get actor's name
-	who := attr.FindName(s.actor).Name("Someone")
+	who := attr.FindName(s.actor).TheName("Someone")
 
 	// Is item to be taken in the container?
 	tWhat := cWhere.Search(tName)
 	if tWhat == nil {
-		s.msg.Actor.SendBad(text.TitleFirst(cName), " does not seem to contain ", tName, ".")
+		s.msg.Actor.SendBad(text.TitleFirst(cTheName), " does not seem to contain '", tName, "'.")
 		s.msg.Observer.SendInfo("You see ", who, " rummage around in ", cName, ".")
 		return
 	}
 
 	// Get item's proper name
-	tName = attr.FindName(tWhat).Name(tName)
+	tName = attr.FindName(tWhat).TheName(tName)
 
 	// Check that the thing doing the taking can carry the item. We do this late
 	// in the process so that we have the proper names of the container and the
@@ -92,7 +93,7 @@ func (take) process(s *state) {
 	//
 	// NOTE: We could just drop the item on the floor if it can't be carried.
 	if !tWhere.Found() {
-		s.msg.Actor.SendBad("You have nowhere to put ", tName, " if you remove it from ", cName, ".")
+		s.msg.Actor.SendBad("You have nowhere to put ", tName, " if you remove it from ", cTheName, ".")
 		return
 	}
 
@@ -108,7 +109,7 @@ func (take) process(s *state) {
 	// checks as the vetos could give us a better message/reson for not being
 	// able to take the item.
 	if attr.FindNarrative(tWhat).Found() {
-		s.msg.Actor.SendBad("For some reason you cannot take ", tName, " from ", cName, ".")
+		s.msg.Actor.SendBad("For some reason you cannot take ", tName, " from ", cTheName, ".")
 		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
 		return
 	}
@@ -125,7 +126,7 @@ func (take) process(s *state) {
 	// Move the item from container to our inventory
 	cWhere.Move(tWhat, tWhere)
 
-	s.msg.Actor.SendGood("You take ", tName, " from ", cName, ".")
-	s.msg.Observer.SendInfo("You see ", who, " take something from ", cName, ".")
+	s.msg.Actor.SendGood("You take ", tName, " out of ", cTheName, ".")
+	s.msg.Observer.SendInfo("You see ", who, " take something out of ", cName, ".")
 	s.ok = true
 }
