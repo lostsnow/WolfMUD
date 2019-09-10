@@ -312,7 +312,7 @@ func TestGet_spawnable(t *testing.T) {
 	if copy == nil {
 		t.Errorf("no ball found in player inventory.")
 	}
-	if copy.UID() == uid {
+	if copy != nil && copy.UID() == uid {
 		t.Errorf("original ball in player inventory - should be a copy.")
 	}
 
