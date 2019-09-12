@@ -75,7 +75,7 @@ func (p put) process(s *state) {
 // cannot be found then container will be set to nil. Unprocessed words are
 // returned for further matching. On failure appropriate message are sent to
 // the actor and observers.
-func (p put) findContainer(s *state) (container has.Thing, words []string) {
+func (put) findContainer(s *state) (container has.Thing, words []string) {
 
 	matches, words := Match(
 		s.words,
@@ -161,7 +161,7 @@ func (p put) findContainer(s *state) (container has.Thing, words []string) {
 // can be placed into the specified container. Returns the item from the match
 // if it is valid else nil. On failure appropriate message are sent to the
 // actor and observers.
-func (p put) findItem(s *state, container has.Thing, match Result) has.Thing {
+func (put) findItem(s *state, container has.Thing, match Result) has.Thing {
 
 	if match.Unknown != "" {
 		name := attr.FindName(container).Name("something")
