@@ -49,7 +49,7 @@ func TestTake_messages(t *testing.T) {
 			text.Bad + "What did you want to take 'FROG' out of?\n", "",
 		}, {
 			"box", // Item only that is a container
-			text.Bad + "What did you want to take 'BOX' out of?\n", "",
+			text.Bad + "Did you want to take something from the box?\n", "",
 		}, {
 			"ball bag", // Item from vetoing held container
 			text.Bad + "You can't get the bag open.\n", "",
