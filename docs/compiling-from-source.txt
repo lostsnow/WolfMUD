@@ -31,7 +31,7 @@ RUNNING (LINUX)
   specify the location of the data files:
 
     cd ~/WolfMUD/bin
-    ./server ../src/code.wolfmud.org/WolfMUD.git/data
+    WOLFMUD_DIR=../src/code.wolfmud.org/WolfMUD.git/data ./server
 
 COMPILING (WINDOWS)
 
@@ -61,7 +61,8 @@ RUNNING (WINDOWS)
   specify the location of the data files:
 
     cd C:\WolfMUD\bin
-    .\server.exe ..\src\code.wolfmud.org\WolfMUD.git\data
+    set WOLFMUD_DIR=..\src\code.wolfmud.org\WolfMUD.git\data
+    .\server.exe
 
 SEE ALSO
 
@@ -69,7 +70,7 @@ SEE ALSO
 
 COPYRIGHT
 
-  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2019 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.
