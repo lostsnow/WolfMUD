@@ -31,25 +31,25 @@ func TestPut_messages(t *testing.T) {
 			text.Info + "You go to put something into something else...\n", "",
 		}, {
 			"ball box", // Held item into held container
-			text.Good + "You put a small green ball into a box.\n",
+			text.Good + "You put the small green ball into the box.\n",
 			ORI + "You see the actor put something into a box.\n",
 		}, {
 			"ball box", // Held item into held container - duplicate, check world reset
-			text.Good + "You put a small green ball into a box.\n",
+			text.Good + "You put the small green ball into the box.\n",
 			ORI + "You see the actor put something into a box.\n",
 		}, {
 			"ball hole", // Held item into container at location
-			text.Good + "You put a small green ball into a hole.\n",
+			text.Good + "You put the small green ball into the hole.\n",
 			ORI + "You see the actor put something into a hole.\n",
 		}, {
 			"ball bag box", // 2x held item into held container
-			text.Good + "You put a small green ball into a box.\n" +
-				text.Good + "You put a bag into a box.\n",
+			text.Good + "You put the small green ball into the box.\n" +
+				text.Good + "You put the bag into the box.\n",
 			ORI + "You see the actor put something into a box.\n",
 		}, {
 			"ball bag hole", // 2x held item into container at location
-			text.Good + "You put a small green ball into a hole.\n" +
-				text.Good + "You put a bag into a hole.\n",
+			text.Good + "You put the small green ball into the hole.\n" +
+				text.Good + "You put the bag into the hole.\n",
 			ORI + "You see the actor put something into a hole.\n",
 		}, {
 			"ball", // Held item, no container
@@ -65,9 +65,9 @@ func TestPut_messages(t *testing.T) {
 			text.Bad + "You don't have that many 'BOX' to put into anything.\n", "",
 		}, {
 			"ball frog bag box", // valid held item + invalid item into held container
-			text.Good + "You put a small green ball into a box.\n" +
-				text.Bad + "You have no 'FROG' to put into a box.\n" +
-				text.Good + "You put a bag into a box.\n",
+			text.Good + "You put the small green ball into the box.\n" +
+				text.Bad + "You have no 'FROG' to put into the box.\n" +
+				text.Good + "You put the bag into the box.\n",
 			ORI + "You see the actor put something into a box.\n",
 		}, {
 			"ball frog", // Valid held item, invalid container
@@ -79,7 +79,7 @@ func TestPut_messages(t *testing.T) {
 			ORI + "The actor seems to be trying to turn a box into a paradox.\n",
 		}, {
 			"hole hole", // Try putting container at location inside itself
-			text.Bad + "You have no 'HOLE' to put into a hole.\n", "",
+			text.Bad + "You have no 'HOLE' to put into the hole.\n", "",
 		}, {
 			"box ball", // Held item into a held non-container
 			text.Bad + "A small green ball isn't something you can put things in.\n", "",
@@ -91,16 +91,16 @@ func TestPut_messages(t *testing.T) {
 			text.Bad + "You can't put anything into the observer!\n", "",
 		}, {
 			"hole box", // Held item into container at location
-			text.Bad + "You have no 'HOLE' to put into a box.\n", "",
+			text.Bad + "You have no 'HOLE' to put into the box.\n", "",
 		}, {
 			"sticky box", // Vetoing held item into held container
 			text.Bad + "You can't let go of something sticky.\n", "",
 		}, {
 			"rock box", // Non-held item into held container
-			text.Bad + "You have no 'ROCK' to put into a box.\n", "",
+			text.Bad + "You have no 'ROCK' to put into the box.\n", "",
 		}, {
 			"2nd ball box", // Not enough held items into held container
-			text.Bad + "You don't have that many 'BALL' to put into a box.\n", "",
+			text.Bad + "You don't have that many 'BALL' to put into the box.\n", "",
 		}, {
 			"ball 2nd box", // Held item but not enough containers
 			text.Bad + "You don't see that many 'BOX' to put things into.\n", "",
@@ -214,7 +214,7 @@ func TestPut_noInventory(t *testing.T) {
 	c := "put ball hole"
 	cmd.Parse(actor, c)
 	have := actor.Messages()
-	want := text.Bad + "You have no 'BALL' to put into a hole.\n"
+	want := text.Bad + "You have no 'BALL' to put into the hole.\n"
 	if have != want {
 		t.Errorf("Actor for %+q:\nhave: %+q\nwant: %+q", c, have, want)
 	}

@@ -34,7 +34,7 @@ func (p put) process(s *state) {
 
 	aInv := attr.FindInventory(s.actor)
 	cInv := attr.FindInventory(cWhat)
-	cName := attr.FindName(cWhat).Name("something")
+	cName := attr.FindName(cWhat).TheName("something")
 
 	notifyObserver := false
 
@@ -48,7 +48,7 @@ func (p put) process(s *state) {
 			continue
 		}
 
-		// Remove item from actor and put it in the container
+		// Move the item from the actor's inventory to the container
 		aInv.Move(tWhat, cInv)
 
 		// If item is not put into a carried container the item is now just
@@ -57,13 +57,14 @@ func (p put) process(s *state) {
 			attr.FindCleanup(tWhat).Cleanup()
 		}
 
-		tName := attr.FindName(tWhat).Name("something")
+		tName := attr.FindName(tWhat).TheName("something")
 		s.msg.Actor.SendGood("You put ", tName, " into ", cName, ".")
 		notifyObserver = true
 	}
 
 	if notifyObserver {
 		who := attr.FindName(s.actor).TheName("someone")
+		cName := attr.FindName(cWhat).Name("something")
 		s.msg.Observer.SendInfo("You see ", who, " put something into ", cName, ".")
 	}
 
@@ -164,7 +165,7 @@ func (put) findContainer(s *state) (container has.Thing, words []string) {
 func (put) findItem(s *state, container has.Thing, match Result) has.Thing {
 
 	if match.Unknown != "" {
-		name := attr.FindName(container).Name("something")
+		name := attr.FindName(container).TheName("something")
 		s.msg.Actor.SendBad(
 			"You have no '", match.Unknown, "' to put into ", name, ".",
 		)
@@ -172,7 +173,7 @@ func (put) findItem(s *state, container has.Thing, match Result) has.Thing {
 	}
 
 	if match.NotEnough != "" {
-		name := attr.FindName(container).Name("something")
+		name := attr.FindName(container).TheName("something")
 		s.msg.Actor.SendBad(
 			"You don't have that many '", match.NotEnough, "' to put into ", name, ".",
 		)
