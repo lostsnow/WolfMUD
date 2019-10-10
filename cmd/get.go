@@ -78,13 +78,13 @@ nextMatch:
 				continue nextMatch
 			}
 
-			name := nameAttr.Name("something")
+			theName := nameAttr.TheName("something")
 
 			// If item is a narrative we can't get it. We do this check after the
 			// veto checks as the vetos could give us a better message/reson for not
 			// being able to get the item.
 			if attr.FindNarrative(what).Found() {
-				s.msg.Actor.SendBad("For some reason you cannot get ", name, ".")
+				s.msg.Actor.SendBad("For some reason you cannot get ", theName, ".")
 				continue nextMatch
 			}
 
@@ -100,7 +100,9 @@ nextMatch:
 			// Move the item from current location to actor's inventory
 			s.where.Move(what, to)
 
-			s.msg.Actor.SendGood("You get ", name, ".")
+			s.msg.Actor.SendGood("You get ", theName, ".")
+
+			name := nameAttr.Name("something")
 			s.msg.Observer.SendInfo("You see ", who, " get ", name, ".")
 		}
 	}

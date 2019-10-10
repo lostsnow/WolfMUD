@@ -80,22 +80,22 @@ func TestGet_messages(t *testing.T) {
 		// Try to get a single item
 		{
 			"ball",
-			text.Good + "You get a small green ball.\n",
+			text.Good + "You get the small green ball.\n",
 			text.Reset + "\n" + text.Info + "You see the actor get a small green ball.\n",
 		},
 
 		// Duplicate normal get - if world not cleaned after each test it will fail
 		{
 			"ball",
-			text.Good + "You get a small green ball.\n",
+			text.Good + "You get the small green ball.\n",
 			text.Reset + "\n" + text.Info + "You see the actor get a small green ball.\n",
 		},
 
 		// Try to get multiple items
 		{
 			"small ball large ball",
-			text.Good + "You get a small green ball.\n" +
-				text.Good + "You get a large green ball.\n",
+			text.Good + "You get the small green ball.\n" +
+				text.Good + "You get the large green ball.\n",
 			text.Reset + "\n" +
 				text.Info + "You see the actor get a small green ball.\n" +
 				text.Info + "You see the actor get a large green ball.\n",
@@ -104,9 +104,9 @@ func TestGet_messages(t *testing.T) {
 		// Try to get multiple items with one being invalid - checks colour change
 		{
 			"small ball frog large ball",
-			text.Good + "You get a small green ball.\n" +
+			text.Good + "You get the small green ball.\n" +
 				text.Bad + "You see no 'FROG' to get.\n" +
-				text.Good + "You get a large green ball.\n",
+				text.Good + "You get the large green ball.\n",
 			text.Reset + "\n" +
 				text.Info + "You see the actor get a small green ball.\n" +
 				text.Info + "You see the actor get a large green ball.\n",
@@ -115,9 +115,9 @@ func TestGet_messages(t *testing.T) {
 		// Try to get multiple items with one being a narrative - checks colour change
 		{
 			"small ball wall large ball",
-			text.Good + "You get a small green ball.\n" +
+			text.Good + "You get the small green ball.\n" +
 				text.Bad + "If you take the wall the ceiling will crush you!\n" +
-				text.Good + "You get a large green ball.\n",
+				text.Good + "You get the large green ball.\n",
 			text.Reset + "\n" +
 				text.Info + "You see the actor get a small green ball.\n" +
 				text.Info + "You see the actor get a large green ball.\n",
@@ -132,7 +132,7 @@ func TestGet_messages(t *testing.T) {
 		// Try to get a narrative
 		{
 			"letter",
-			text.Bad + "For some reason you cannot get a large, painted letter 'A'.\n",
+			text.Bad + "For some reason you cannot get the large, painted letter 'A'.\n",
 			"",
 		},
 
