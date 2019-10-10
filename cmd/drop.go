@@ -62,7 +62,7 @@ nextMatch:
 				}
 			}
 
-			name := attr.FindName(what).Name("something")
+			theName := attr.FindName(what).TheName("something")
 
 			// Move the item from actor's inventory to current location
 			from.Move(what, s.where)
@@ -74,7 +74,9 @@ nextMatch:
 			// Re-enable actions if available
 			attr.FindAction(what).Action()
 
-			s.msg.Actor.SendGood("You drop ", name, ".")
+			s.msg.Actor.SendGood("You drop ", theName, ".")
+
+			name := attr.FindName(what).Name("something")
 			s.msg.Observer.SendInfo(who, " drops ", name, ".")
 		}
 	}

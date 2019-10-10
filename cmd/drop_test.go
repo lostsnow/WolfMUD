@@ -30,22 +30,22 @@ func TestDrop_messages(t *testing.T) {
 		// Try to drop a single item
 		{
 			"ball",
-			text.Good + "You drop a small green ball.\n",
+			text.Good + "You drop the small green ball.\n",
 			text.Reset + "\n" + text.Info + "The actor drops a small green ball.\n",
 		},
 
 		// Duplicate normal drop - if world not cleaned after each test it will fail
 		{
 			"ball",
-			text.Good + "You drop a small green ball.\n",
+			text.Good + "You drop the small green ball.\n",
 			text.Reset + "\n" + text.Info + "The actor drops a small green ball.\n",
 		},
 
 		// Try to drop multiple items
 		{
 			"small ball large ball",
-			text.Good + "You drop a small green ball.\n" +
-				text.Good + "You drop a large green ball.\n",
+			text.Good + "You drop the small green ball.\n" +
+				text.Good + "You drop the large green ball.\n",
 			text.Reset + "\n" +
 				text.Info + "The actor drops a small green ball.\n" +
 				text.Info + "The actor drops a large green ball.\n",
@@ -54,9 +54,9 @@ func TestDrop_messages(t *testing.T) {
 		// Try to drop multiple items with one being invalid - checks colour change
 		{
 			"small ball frog large ball",
-			text.Good + "You drop a small green ball.\n" +
+			text.Good + "You drop the small green ball.\n" +
 				text.Bad + "You have no 'FROG' to drop.\n" +
-				text.Good + "You drop a large green ball.\n",
+				text.Good + "You drop the large green ball.\n",
 			text.Reset + "\n" +
 				text.Info + "The actor drops a small green ball.\n" +
 				text.Info + "The actor drops a large green ball.\n",
