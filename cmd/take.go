@@ -16,7 +16,11 @@ func init() {
 	addHandler(take{}, "TAKE")
 }
 
-type take cmd
+type take struct {
+	cmd
+	rummage bool // Has rummage message been seen already?
+	trouble bool // Has trouble message been seen already?
+}
 
 func (t take) process(s *state) {
 
@@ -164,7 +168,7 @@ func (take) findContainer(s *state) (container has.Thing, words []string) {
 // can be placed into the specified container. Returns the item from the match
 // if it is valid else nil. On failure appropriate messages are sent to the
 // actor and observers.
-func (take) findItem(s *state, container has.Thing, match Result) has.Thing {
+func (t *take) findItem(s *state, container has.Thing, match Result) has.Thing {
 
 	if match.Unknown != "" {
 		cName := text.TitleFirst(attr.FindName(container).TheName("something"))
@@ -172,9 +176,13 @@ func (take) findItem(s *state, container has.Thing, match Result) has.Thing {
 			cName, " does not seem to contain '", match.Unknown, "'.",
 		)
 
-		who := attr.FindName(s.actor).TheName("someone")
-		cName = attr.FindName(container).Name("something")
-		s.msg.Observer.SendInfo("You see ", who, " rummage around in ", cName, ".")
+		if !t.rummage {
+			who := attr.FindName(s.actor).TheName("someone")
+			cName = attr.FindName(container).Name("something")
+			s.msg.Observer.SendInfo("You see ", who, " rummage around in ", cName, ".")
+			t.rummage = true
+		}
+
 		return nil
 	}
 
@@ -211,12 +219,16 @@ func (take) findItem(s *state, container has.Thing, match Result) has.Thing {
 	// checks as the vetos could give us a better message/reson for not being
 	// able to take the item.
 	if attr.FindNarrative(what).Found() {
-		who := attr.FindName(s.actor).TheName("someone")
 		cName := attr.FindName(container).Name("something")
 		cTheName := attr.FindName(container).TheName("something")
 		tName := attr.FindName(what).TheName("something")
 		s.msg.Actor.SendBad("For some reason you cannot take ", tName, " from ", cTheName, ".")
-		s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
+
+		if !t.trouble {
+			who := attr.FindName(s.actor).TheName("someone")
+			s.msg.Observer.SendInfo("You see ", who, " having trouble removing something from ", cName, ".")
+			t.trouble = true
+		}
 		return nil
 	}
 
