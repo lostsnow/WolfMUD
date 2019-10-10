@@ -38,6 +38,16 @@ func TestTake_messages(t *testing.T) {
 			text.Good + "You take the small green ball out of the box.\n",
 			ORI + "You see the actor take something out of a box.\n",
 		}, {
+			"ball bag box", // 2x item from held container
+			text.Good + "You take the small green ball out of the box.\n" +
+				text.Good + "You take the bag out of the box.\n",
+			ORI + "You see the actor take something out of a box.\n",
+		}, {
+			"rock pebble hole", // 2x item from container at location
+			text.Good + "You take the rock out of the hole.\n" +
+				text.Good + "You take the pebble out of the hole.\n",
+			ORI + "You see the actor take something out of a hole.\n",
+		}, {
 			"rock hole", // Item from container at location
 			text.Good + "You take the rock out of the hole.\n",
 			ORI + "You see the actor take something out of a hole.\n",
@@ -50,6 +60,23 @@ func TestTake_messages(t *testing.T) {
 		}, {
 			"box", // Item only that is a container
 			text.Bad + "Did you want to take something from the box?\n", "",
+		}, {
+			"2nd token", // Not enough of held item only
+			text.Bad + "What did you want to take 'TOKEN' out of?\n", "",
+		}, {
+			"ball frog bag box", // valid item + invalid item from held container
+			text.Good + "You take the small green ball out of the box.\n" +
+				text.Bad + "The box does not seem to contain 'FROG'.\n" +
+				text.Good + "You take the bag out of the box.\n",
+			ORI + "You see the actor rummage around in a box.\n" +
+				text.Info + "You see the actor take something out of a box.\n",
+		}, {
+			"frog ball newt box", // 2x invalid item, make sure only 1 rummage message
+			text.Bad + "The box does not seem to contain 'FROG'.\n" +
+				text.Good + "You take the small green ball out of the box.\n" +
+				text.Bad + "The box does not seem to contain 'NEWT'.\n",
+			ORI + "You see the actor rummage around in a box.\n" +
+				text.Info + "You see the actor take something out of a box.\n",
 		}, {
 			"ball bag", // Item from vetoing held container
 			text.Bad + "You can't get the bag open.\n", "",
@@ -73,6 +100,23 @@ func TestTake_messages(t *testing.T) {
 			"carving box", // Narrative item from container
 			text.Bad + "For some reason you cannot take the carving from the box.\n",
 			ORI + "You see the actor having trouble removing something from a box.\n",
+		}, {
+			"carving scratch box", // 2x narrative item from container, 1 trouble msg
+			text.Bad + "For some reason you cannot take the carving from the box.\n" +
+				text.Bad + "For some reason you cannot take the scratch from the box.\n",
+			ORI + "You see the actor having trouble removing something from a box.\n",
+		}, {
+			"2nd ball box", // Not enough items from held container
+			text.Bad + "There are not that many 'BALL' to take from the box.\n", "",
+		}, {
+			"ball 2nd box", // Not enough held containers
+			text.Bad + "You don't see that many 'BOX' to take things out of.\n", "",
+		}, {
+			"ball all container", // Multiple containers
+			text.Bad + "You can only take things from one container at a time.\n", "",
+		}, {
+			"2 container", // 2x items only that are containers
+			text.Bad + "You go to take things out of... something?\n", "",
 		},
 	} {
 
@@ -94,6 +138,11 @@ func TestTake_messages(t *testing.T) {
 								attr.NewName("a rock"),
 								attr.NewAlias("ROCK"),
 								attr.NewDescription("This is a small rock."),
+							),
+							attr.NewThing(
+								attr.NewName("a pebble"),
+								attr.NewAlias("PEBBLE"),
+								attr.NewDescription("This is a small, smooth pebble."),
 							),
 						),
 						attr.NewNarrative(),
@@ -126,6 +175,18 @@ func TestTake_messages(t *testing.T) {
 						attr.NewAlias("CARVING"),
 						attr.NewDescription("This is a small, intricate carving."),
 						attr.NewNarrative(),
+					),
+					attr.NewThing(
+						attr.NewName("a scratch"),
+						attr.NewAlias("SCRATCH"),
+						attr.NewDescription("This is a cratch on the box."),
+						attr.NewNarrative(),
+					),
+					attr.NewThing(
+						attr.NewName("a bag"),
+						attr.NewAlias("BAG"),
+						attr.NewDescription("This is a small bag."),
+						attr.NewInventory(),
 					),
 				),
 			),
