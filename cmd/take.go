@@ -134,10 +134,6 @@ func (take) findContainer(s *state) (container has.Thing, words []string) {
 	inv := attr.FindInventory(what)
 
 	switch {
-	// If we have "TAKE item" and match is not actually a container
-	case noItems && !inv.Found():
-		s.msg.Actor.SendBad("What did you want to take ", name, " from?")
-
 	// If we have "TAKE item" and match actually is a container
 	case noItems && inv.Found():
 		s.msg.Actor.SendBad("Did you want to take something from ", name, "?")
