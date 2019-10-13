@@ -36,7 +36,7 @@ func (open) process(s *state) {
 	}
 
 	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	name = attr.FindName(what).TheName(name)
 
 	// Is item a door that can be opened?
 	door := attr.FindDoor(what)
@@ -68,9 +68,11 @@ func (open) process(s *state) {
 		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " opens.")
 		s.msg.Observers[from].SendInfo(text.TitleFirst(name), " opens.")
 	} else {
-		who := attr.FindName(s.actor).Name("Someone")
 		s.msg.Actor.SendGood("You open ", name, ".")
-		s.msg.Observers[from].SendInfo(who, " opens ", name, ".")
+
+		who := attr.FindName(s.actor).TheName("Someone")
+		name = attr.FindName(what).Name(name)
+		s.msg.Observers[from].SendInfo(text.TitleFirst(who), " opens ", name, ".")
 		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " opens.")
 	}
 
