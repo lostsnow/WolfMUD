@@ -6,6 +6,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
@@ -25,21 +27,37 @@ func (examine) process(s *state) {
 		return
 	}
 
-	name := s.words[0]
+	// Find matching item at location or held by actor
+	matches, words := Match(
+		s.words,
+		s.where.Everything(),
+		attr.FindInventory(s.actor).Contents(),
+	)
+	match := matches[0]
+	mark := s.msg.Actor.Len()
 
-	// If we can, search where we are
-	what := s.where.Search(name)
+	switch {
+	case len(words) != 0: // Not exact match?
+		name := strings.Join(s.words, " ")
+		s.msg.Actor.SendBad("You see no '", name, "' to examine.")
 
-	// If item still not found try our own inventory
-	if what == nil {
-		what = attr.FindInventory(s.actor).Search(name)
+	case len(matches) != 1: // More than one match?
+		s.msg.Actor.SendBad("You can only examine one thing at a time.")
+
+	case match.Unknown != "":
+		s.msg.Actor.SendBad("You see no '", match.Unknown, "' examine.")
+
+	case match.NotEnough != "":
+		s.msg.Actor.SendBad("There are not that many '", match.NotEnough, "' to examine.")
+
 	}
 
-	// Was item to examine eventually found?
-	if what == nil {
-		s.msg.Actor.SendBad("You see no '", name, "' to examine.")
+	// If we sent an error to the actor return now
+	if mark != s.msg.Actor.Len() {
 		return
 	}
+
+	what := match.Thing
 
 	// Check examine is not vetoed by item or location
 	for _, t := range []has.Thing{what, s.where.Parent()} {
@@ -51,8 +69,7 @@ func (examine) process(s *state) {
 		}
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	name := attr.FindName(what).TheName("something") // Get item's proper name
 
 	s.msg.Actor.Send("You examine ", name, ".")
 
@@ -79,6 +96,8 @@ func (examine) process(s *state) {
 	who = text.TitleFirst(who)
 
 	s.msg.Participant.SendInfo(who, " studies you.")
+
+	name = attr.FindName(what).Name("something")
 	s.msg.Observer.SendInfo(who, " studies ", name, ".")
 
 	s.ok = true
