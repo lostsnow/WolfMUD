@@ -6,6 +6,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
@@ -24,23 +26,38 @@ func (read) process(s *state) {
 		return
 	}
 
-	name := s.words[0]
+	// Find matching item at location or held by actor
+	matches, words := Match(
+		s.words,
+		s.where.Everything(),
+		attr.FindInventory(s.actor).Contents(),
+	)
+	match := matches[0]
+	mark := s.msg.Actor.Len()
 
-	// Try searching inventory where we are
-	what := s.where.Search(name)
+	switch {
+	case len(words) != 0: // Not exact match?
+		name := strings.Join(s.words, " ")
+		s.msg.Actor.SendBad("You see no '", name, "' to read.")
 
-	// If item still not found try our own inventory
-	if what == nil {
-		what = attr.FindInventory(s.actor).Search(name)
+	case len(matches) != 1: // More than one match?
+		s.msg.Actor.SendBad("You can only read one thing at a time.")
+
+	case match.Unknown != "":
+		s.msg.Actor.SendBad("You see no '", match.Unknown, "' to read.")
+
+	case match.NotEnough != "":
+		s.msg.Actor.SendBad("There are not that many '", match.NotEnough, "' to read.")
+
 	}
 
-	// Was item to read found?
-	if what == nil {
-		s.msg.Actor.SendBad("You see no '", name, "' to read.")
+	// If we sent an error to the actor return now
+	if mark != s.msg.Actor.Len() {
 		return
 	}
 
-	name = attr.FindName(what).TheName(name) // Get item's proper name
+	what := match.Thing
+	name := attr.FindName(what).TheName("something") // Get item's proper name
 
 	// Find if item has writing
 	writing := attr.FindWriting(what).Writing()
@@ -54,7 +71,7 @@ func (read) process(s *state) {
 	s.msg.Actor.SendGood("You read ", name, ".", text.Reset, "\n", writing)
 
 	who := attr.FindName(s.actor).TheName("Someone")
-	name = attr.FindName(what).Name(name)
+	name = attr.FindName(what).Name("something")
 	s.msg.Observer.SendInfo("You see ", who, " read ", name, ".")
 
 	s.ok = true
