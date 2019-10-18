@@ -42,7 +42,7 @@ func TestOpen_messages(t *testing.T) {
 			ORI + "A door opens.\n",
 		}, {
 			"token", // Open a non-door held item
-			text.Bad + "You see no 'TOKEN' to open.\n", "", "",
+			text.Bad + "You see no 'TOKEN' here to open.\n", "", "",
 		}, {
 			"rock", // Open a non-door item at location
 			text.Bad + "You cannot open the rock.\n", "", "",
