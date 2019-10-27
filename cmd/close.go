@@ -31,12 +31,11 @@ func (close) process(s *state) {
 
 	// Was item to get found?
 	if what == nil {
-		s.msg.Actor.SendBad("You see no '", name, "' to close.")
+		s.msg.Actor.SendBad("You see no '", name, "' here to close.")
 		return
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	name = attr.FindName(what).TheName(name) // Get item's proper name
 
 	// Is item a door that can be closed?
 	door := attr.FindDoor(what)
@@ -68,9 +67,11 @@ func (close) process(s *state) {
 		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " closes.")
 		s.msg.Observers[from].SendInfo(text.TitleFirst(name), " closes.")
 	} else {
-		who := attr.FindName(s.actor).Name("Someone")
 		s.msg.Actor.SendGood("You close ", name, ".")
-		s.msg.Observers[from].SendInfo(who, " closes ", name, ".")
+
+		who := attr.FindName(s.actor).TheName("Someone")
+		name = attr.FindName(what).Name(name)
+		s.msg.Observers[from].SendInfo(text.TitleFirst(who), " closes ", name, ".")
 		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " closes.")
 	}
 
