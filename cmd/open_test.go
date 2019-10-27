@@ -226,3 +226,37 @@ func TestOpen_messages(t *testing.T) {
 		world.Free()
 	}
 }
+
+// TestOpen_door checks to make sure opening a door actually opens it.
+func TestOpen_door(t *testing.T) {
+
+	door := attr.NewDoor(attr.East, false, time.Second, 0)
+
+	locA := attr.NewThing(
+		attr.NewStart(),
+		attr.NewName("Test room A"),
+		attr.NewInventory(
+			attr.NewThing(
+				attr.NewName("a door"),
+				attr.NewAlias("DOOR"),
+				attr.NewDescription("This is a wooden door."),
+				attr.NewNarrative(),
+				door,
+			),
+		),
+	)
+
+	actor := cmd.NewTestPlayer("an actor", "ACTOR")
+
+	// Try to open the door
+	cmd.Parse(actor, "open door")
+
+	// Door should now be opened
+	if !door.Opened() {
+		t.Errorf("%s, %s: was not opened.",
+			door.Parent(), attr.FindName(door.Parent()).Name("?"),
+		)
+	}
+
+	locA.Free()
+}
