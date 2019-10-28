@@ -51,10 +51,9 @@ func (examine) process(s *state) {
 		}
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	name = attr.FindName(what).TheName(name) // Get item's proper name
 
-	s.msg.Actor.Send("You examine ", name, ".")
+	s.msg.Actor.SendGood("You examine ", name, ".", text.Reset, "\n")
 
 	for _, a := range attr.FindAllDescription(what) {
 		s.msg.Actor.Append(a.Description())
@@ -77,9 +76,15 @@ func (examine) process(s *state) {
 
 	who := attr.FindName(s.actor).TheName("Someone")
 	who = text.TitleFirst(who)
+	name = attr.FindName(what).Name(name)
 
 	s.msg.Participant.SendInfo(who, " studies you.")
-	s.msg.Observer.SendInfo(who, " studies ", name, ".")
+
+	if !attr.FindLocate(what).Where().Carried() {
+		s.msg.Observer.SendInfo(who, " studies ", name, ".")
+	} else {
+		s.msg.Observer.SendInfo(who, " studies ", name, " they are carrying.")
+	}
 
 	s.ok = true
 }
