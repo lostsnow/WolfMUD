@@ -44,8 +44,7 @@ func (j junk) process(s *state) {
 		return
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	name = attr.FindName(what).TheName(name) // Get item's proper name
 
 	// Is item a narrative?
 	if attr.FindNarrative(what).Found() {
@@ -76,11 +75,12 @@ func (j junk) process(s *state) {
 		return
 	}
 
+	s.msg.Actor.SendGood("You junk ", name, ".")
+	name = attr.FindName(what).Name("something")
+
 	j.dispose(what)
 
-	who := attr.FindName(s.actor).Name("Someone")
-
-	s.msg.Actor.SendGood("You junk ", name, ".")
+	who := attr.FindName(s.actor).TheName("someone")
 	s.msg.Observer.SendInfo("You see ", who, " junk ", name, ".")
 	s.ok = true
 }
