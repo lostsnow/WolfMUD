@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: READ item
@@ -39,8 +40,7 @@ func (read) process(s *state) {
 		return
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name("something")
+	name = attr.FindName(what).TheName(name) // Get item's proper name
 
 	// Find if item has writing
 	writing := attr.FindWriting(what).Writing()
@@ -51,9 +51,10 @@ func (read) process(s *state) {
 		return
 	}
 
-	s.msg.Actor.Send("You read ", name, ". ", writing)
+	s.msg.Actor.SendGood("You read ", name, ".", text.Reset, "\n", writing)
 
-	who := attr.FindName(s.actor).Name("Someone")
+	who := attr.FindName(s.actor).TheName("Someone")
+	name = attr.FindName(what).Name(name)
 	s.msg.Observer.SendInfo("You see ", who, " read ", name, ".")
 
 	s.ok = true
