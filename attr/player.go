@@ -135,8 +135,8 @@ func (p *Player) Check(actor has.Thing, cmds ...string) has.Veto {
 	for _, cmd := range cmds {
 		switch cmd {
 		case "JUNK":
-			who := FindName(p.Parent()).TheName("Someone")
-			return NewVeto(cmd, "You can't junk "+who+"!")
+			who := text.TitleFirst(FindName(p.Parent()).TheName("Someone"))
+			return NewVeto(cmd, who+" does not want to be junked!")
 		case "PUTIN":
 			who := FindName(p.Parent()).TheName("Someone")
 			return NewVeto(cmd, "You can't put anything into "+who+"!")
