@@ -1071,7 +1071,7 @@ OnAction: $ACT watches you as you browse around her shop.
         : SAY See anything you like?
         : EXAMINE PLAYER
 
-This is a little old lady. The sort everyone wants as the grandmother.
+This is a little old lady. The sort everyone wants as their grandmother.
 %%
      Ref: M17
     Name: Hewman the trader
