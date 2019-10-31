@@ -6,8 +6,6 @@
 package cmd
 
 import (
-	"strings"
-
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
@@ -25,36 +23,20 @@ func (close) process(s *state) {
 		return
 	}
 
-	name := strings.Join(s.words, " ")
+	name := s.words[0]
+	from := s.where
 
-	// Find matching door at location
-	matches, words := Match(s.words, s.where.Everything())
-	match := matches[0]
-	mark := s.msg.Actor.Len()
+	// Search for item to close in the inventory where we are
+	what := s.where.Search(name)
 
-	switch {
-	case match.Unknown != "":
-		s.msg.Actor.SendBad("You see no '", match.Unknown, "' here to close.")
-
-	case match.NotEnough != "":
-		s.msg.Actor.SendBad("There are not that many '", match.NotEnough, "' here to close.")
-
-	case len(words) != 0: // Not exact match?
-		s.msg.Actor.SendBad("You see no '", name, "' here to close.")
-
-	case len(matches) != 1: // More than one match?
-		s.msg.Actor.SendBad("You can only close one thing at a time.")
-
-	}
-
-	// If we sent an error to the actor return now
-	if mark != s.msg.Actor.Len() {
+	// Was item to get found?
+	if what == nil {
+		s.msg.Actor.SendBad("You see no '", name, "' to close.")
 		return
 	}
 
-	from := s.where
-	what := match.Thing
-	name = attr.FindName(what).Name(name) // Get item's proper name
+	// Get item's proper name
+	name = attr.FindName(what).Name(name)
 
 	// Is item a door that can be closed?
 	door := attr.FindDoor(what)
