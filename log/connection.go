@@ -19,7 +19,7 @@ type Conn func(fmt string, v ...interface{})
 // library. The output will be written to the standard logger.
 func NewConn(seq uint64) Conn {
 	s := fmt.Sprintf("[%d] ", seq)
-	return func(fmt string, args ...interface{}) {
-		log.Printf(s+fmt, args...)
+	return func(f string, args ...interface{}) {
+		log.Output(2, s+fmt.Sprintf(f, args...))
 	}
 }

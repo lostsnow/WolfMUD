@@ -1,4 +1,4 @@
-// Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2019 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this file is governed by the license in the LICENSE file included
 // with the source code.
@@ -13,6 +13,12 @@
   Server.MaxPlayers:  1024
   Server.LogClient:   false
 //
+// Per IP connection quotas
+//
+  Quota.Window:  0
+  Quota.Timeout: 0
+  Quota.Stats:   0
+//
 // Stats configuration
 //
   Stats.Rate: 10s
@@ -20,7 +26,6 @@
 //
 // Inventory configuration
 //
-  Inventory.Compact:     8
   Inventory.CrowdSize:  10
 //
 // Login configuration

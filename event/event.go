@@ -27,6 +27,11 @@ var Script func(t has.Thing, input string) string
 // Cancel channel should be closed to cancel the pending event that was queued.
 type Cancel chan<- struct{}
 
+// cache is a small pool of reusable timers. As most events fire and then are
+// requeued the pool can be quite small and only hold the timers long enough to
+// handle the event.
+var cache = make(chan *time.Timer, 10)
+
 // Queue schedules a scripted event to happen after the given delay period.
 // Events can use any normal player commands and in addition have access to
 // scripting only commands starting with the '$' symbol. The event can be
@@ -83,7 +88,14 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 			}
 		}()
 
-		t := time.NewTimer(td)
+		var t *time.Timer
+		select {
+		case t = <-cache:
+			t.Reset(td)
+		default:
+			t = time.NewTimer(td)
+		}
+
 		if logEvents {
 			log.Printf("Event queued in %s for %s: %q Input: %q", td, thing, name, input)
 		}
@@ -91,12 +103,20 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 		case <-cancel:
 			if !t.Stop() {
 				<-t.C
+				select {
+				case cache <- t:
+				default:
+				}
 				return
 			}
 			if logEvents {
 				log.Printf("Event cancelled for %s: %q Input: %q", thing, name, input)
 			}
 		case <-t.C:
+			select {
+			case cache <- t:
+			default:
+			}
 			if logEvents {
 				log.Printf("Event delivered for %s: %q Input: %q", thing, name, input)
 			}

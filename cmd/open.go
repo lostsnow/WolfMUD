@@ -6,6 +6,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
@@ -23,20 +25,35 @@ func (open) process(s *state) {
 		return
 	}
 
-	name := s.words[0]
-	from := s.where
+	// Find matching door at location
+	matches, words := Match(s.words, s.where.Everything())
+	match := matches[0]
+	mark := s.msg.Actor.Len()
 
-	// Search for item to open in the inventory where we are
-	what := s.where.Search(name)
+	switch {
+	case len(words) != 0: // Not exact match?
+		name := strings.Join(s.words, " ")
+		s.msg.Actor.SendBad("You see no '", name, "' here to open.")
 
-	// Was item to get found?
-	if what == nil {
-		s.msg.Actor.SendBad("You see no '", name, "' to open.")
+	case len(matches) != 1: // More than one match?
+		s.msg.Actor.SendBad("You can only open one thing at a time.")
+
+	case match.Unknown != "":
+		s.msg.Actor.SendBad("You see no '", match.Unknown, "' here to open.")
+
+	case match.NotEnough != "":
+		s.msg.Actor.SendBad("There are not that many '", match.NotEnough, "' here to open.")
+
+	}
+
+	// If we sent an error to the actor return now
+	if mark != s.msg.Actor.Len() {
 		return
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	from := s.where
+	what := match.Thing
+	name := attr.FindName(what).TheName("something") // Get item's proper name
 
 	// Is item a door that can be opened?
 	door := attr.FindDoor(what)
@@ -68,9 +85,11 @@ func (open) process(s *state) {
 		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " opens.")
 		s.msg.Observers[from].SendInfo(text.TitleFirst(name), " opens.")
 	} else {
-		who := attr.FindName(s.actor).Name("Someone")
 		s.msg.Actor.SendGood("You open ", name, ".")
-		s.msg.Observers[from].SendInfo(who, " opens ", name, ".")
+
+		who := attr.FindName(s.actor).TheName("Someone")
+		name = attr.FindName(what).Name(name)
+		s.msg.Observers[from].SendInfo(text.TitleFirst(who), " opens ", name, ".")
 		s.msg.Observers[to].SendInfo(text.TitleFirst(name), " opens.")
 	}
 

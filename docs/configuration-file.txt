@@ -67,6 +67,93 @@ FIELDS & VALUES
     The default value is false, to NOT log the incoming IP address and source
     port number.
 
+  Quota.Window: period
+
+    Every IP address connecting to the server has a quota of 4 connection
+    attempts unless quotas are disabled. If an IP address uses up its quota it
+    will be banned from connecting until its quota expire.
+
+    Every time an IP address connects to the server it uses one of its quota.
+    While the IP address is not over its quota each quota will expire after
+    the Quota.Window period has passed.
+
+    If an IP address goes over its quota then quota are expired based on the
+    setting of Quote.Timeout instead. See Quota.Timeout for details.
+
+    Example configuration entry:
+
+      Quota.Window:  10s
+
+    In this example if an IP address uses up its quota of 4 connections within
+    10 seconds it will be banned from connecting to the server.
+
+    Limiting connections from a client does not restrict the number of allowed
+    connections. It only limits how quickly the connections are allowed to be
+    made. For example an IP address could have hundreds of connections, so
+    long as they are not made in rapid succession.
+
+    If Quota.Window is set to 0 then quotas are disabled. The default value
+    for Quota.Window is 0.
+
+    NOTE: For performance reasons the number of quota per IP address is fixed
+          at 4 at compile time. (See comms/ring.go, ringSize)
+
+  Quota.Timeout: period
+
+    When an IP address goes over its quota of connection attempts it will be
+    banned from connecting to the server until its used quota expire. The
+    length of time it takes for the used quota to expire is determined by the
+    Quota.Timeout setting.
+
+    If Quota.Timeout is not zero then the time taken for the used quota to
+    expire is the Quote.Timeout period. If Quota.Timeout is 0 then the time
+    taken for the used quota to expire is the Quote.Window period. However, if
+    the IP address tries to connect during this period it will be banned for a
+    further Quote.Window period from the time of the connection attempt. This
+    means that if the IP address persistently tries connecting to the server
+    when over its quota it will be persistently banned.
+
+    For example:
+
+      Quota.Window:  10s
+      Quota.Timeout: 30m
+
+    In this example an IP address can connect to the server up to 4 times
+    within a 10 second window. If the IP address connects to the server more
+    than 4 times within 10 seconds it will be banned from connecting to the
+    server for 30 minutes.
+
+    Another example:
+
+      Quota.Window:  30s
+      Quota.Timeout: 0
+
+    In this example an IP address can connect to the server up to 4 times
+    within a 30 second window. If the IP address connects to the server more
+    than 4 times within 30 seconds it will be banned from connecting to the
+    server for 30 seconds. If the IP address tries connecting to the server
+    within the 30 second timeout window the 30 second timeout window will
+    start over again from the time of the connection attempt.
+
+    The default value for Quota.Timeout is 0.
+
+  Quota.Stats: period
+
+    The period is the minimum amount of time between logging of quota
+    statistics. If Quota.Stats is set to 0 no statistics will be logged. If
+    Quota.Stats is not 0 then statistics will be logged showing the current
+    quota cache state. Logging is performed the next time an IP address
+    connects, that is not banned, after the Quota.Stats period as elapsed:
+
+      quota cache: 6 entries [3 evicted, 2 over quota, 1 recent]
+
+    This shows the total number of IP addresses cached (6) of which 3 are
+    stale and have just been evicted, 2 are currently over quota and banned,
+    and 1 IP address has recently connected but still has a quota of
+    connection attempts left.
+
+    The default value for Quota.Stats is 0.
+
   Stats.Rate: period
     The period is the frequency at which statistics are collected and
     displayed by the server. The period can use a combination of hours (h),
@@ -81,17 +168,8 @@ FIELDS & VALUES
     garbage collection.
 
   Inventory.Compact:
-    This value causes inventories to be compacted when the difference between
-    their potential capacity and actual usage is over a certain threshold.
-    The threshold is calculated as:
-
-      capacity - 2*length >= Inventory.Compact
-
-    For the default value of 8 the excess capacity will be reclaimed when it
-    is larger than twice the actual length plus 8. The default prevents
-    small inventories from being constantly being reallocated. If there are
-    constantly large numbers of players in many locations increasing this
-    value will reduce reallocations at the expense of increased memory usage.
+    Old setting, now unused and can be safely removed from the configuration
+    file.
 
   Inventory.CrowdSize:
     This value determines how many players are considered to be a crowd. If
@@ -180,6 +258,9 @@ EXAMPLES
   Server.IdleTimeout:   10m
   Server.MaxPlayers:    1024
   Server.LogClient:     false
+  Quota.Window:         0
+  Quota.Timeout:        0
+  Quota.Stats:          0
   Stats.Rate:           10s
   Stats.GC:             false
   Inventory.Compact:    8

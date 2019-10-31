@@ -7,7 +7,6 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
-	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -38,38 +37,26 @@ func (look) process(s *state) {
 	// Write the location contents
 	if s.where.Crowded() {
 		s.msg.Actor.Send(text.Green, "You see a crowd here.")
-
-		// NOTE: If location is crowded we don't list the items
-
+		// NOTE: If location is crowded we don't list the players or items
 	} else {
 
-		// List mobiles here
-		items := []has.Thing{}
-		for _, c := range s.where.Contents() {
-
-			// Don't include the actor doing the looking in the list
-			if c == s.actor {
+		// List players here - but don't include the actor
+		for _, p := range s.where.Players() {
+			if p == s.actor {
 				continue
 			}
-
-			// If not a player it's an item so remember it instead of displaying it
-			if !attr.FindPlayer(c).Found() {
-				items = append(items, c)
-				continue
-			}
-
-			s.msg.Actor.Send(text.Green, "You see ", attr.FindName(c).Name("someone"), " here.")
+			s.msg.Actor.Send(text.Green, "You see ", attr.FindName(p).Name("someone"), " here.")
 		}
 
-		// Now write out the remembered items
-		for _, i := range items {
-			s.msg.Actor.Send(text.Yellow, "You see ", attr.FindName(i).Name("something"), " here.")
+		// List items here
+		for _, c := range s.where.Contents() {
+			s.msg.Actor.Send(text.Yellow, "You see ", attr.FindName(c).Name("something"), " here.")
 		}
 	}
 
-	// If we wrote any messages since the laste blank line out another blank
-	// line. This prevents two blanks lines from being written if there is
-	// nothing else here.
+	// If we wrote any messages since the last blank line out another blank line.
+	// This prevents two blanks lines from being written if there is nothing else
+	// here.
 	if mark != s.msg.Actor.Len() {
 		s.msg.Actor.Send("")
 	}
@@ -79,6 +66,7 @@ func (look) process(s *state) {
 
 	// Notify any observers we are looking around
 	who := attr.FindName(s.actor).Name("Someone")
+	who = text.TitleFirst(who)
 	s.msg.Observer.SendInfo(who, " starts looking around.")
 
 	s.ok = true

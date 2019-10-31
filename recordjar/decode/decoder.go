@@ -47,7 +47,7 @@ func Keyword(data []byte) string {
 
 // KeywordList returns the []byte data as an uppercased slice of strings. The
 // data is split on whitespace, extra whitespace is stripped and the individual
-// 'words' are returned in the string slice. Duplicate keywrods will be
+// 'words' are returned in the string slice. Duplicate keywords will be
 // removed.
 func KeywordList(data []byte) []string {
 
@@ -113,7 +113,7 @@ func PairList(data []byte) (pairs map[string]string) {
 
 // StringList returns the []byte data as a []string by splitting the data on a
 // colon separator. Any leading or trailing white space will be removed from
-// the returned strings.
+// the returned strings. The original order of the list will be preserved.
 func StringList(data []byte) (s []string) {
 	var w []byte
 
@@ -122,7 +122,6 @@ func StringList(data []byte) (s []string) {
 			s = append(s, string(w))
 		}
 	}
-	sort.Strings(s)
 	return
 }
 
@@ -189,7 +188,7 @@ func Duration(data []byte) (t time.Duration) {
 	// Lower case passed duration and remove all white space
 	d := make([]rune, 0, len(data))
 	for _, r := range string(data) {
-		if r >= '0' && r <= '9' || r >= 'a' && r <= 'z' {
+		if '0' <= r && r <= '9' || 'a' <= r && r <= 'z' {
 			d = append(d, r)
 		} else {
 			if !unicode.IsSpace(r) {

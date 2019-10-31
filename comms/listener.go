@@ -8,8 +8,14 @@ package comms
 import (
 	"log"
 	"net"
-	"runtime"
+	"time"
+
+	"code.wolfmud.org/WolfMUD.git/text"
 )
+
+// Message sent to client when they have been banned
+const tooManyMsg = text.Bad +
+	"\nToo many repeat connections. Please try again later.\n\n" + text.Reset
 
 // Listen sets up a socket to listen for client connections. When a client
 // connects the connection made is passed to newClient to setup a client
@@ -34,6 +40,7 @@ func Listen(host, port string) {
 	log.Printf("Accepting connections on: %s", addr)
 
 	seq := uint64(0)
+	q := NewQuota(time.Now)
 
 	for {
 		conn, err := listener.AcceptTCP()
@@ -42,10 +49,22 @@ func Listen(host, port string) {
 			continue
 		}
 
+		// Check if IP address is over its quota. If it is close the connection.
+		// Note that IP addresses that cannot be parsed will share a common quota.
+		if q.Enabled() {
+			ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
+			if q.Quota(ip) {
+				conn.CloseRead()
+				conn.Write([]byte(tooManyMsg))
+				conn.SetKeepAlive(false)
+				conn.SetLinger(0)
+				conn.CloseWrite()
+				continue
+			}
+		}
+
 		c := newClient(conn, seq)
 		go c.process()
 		seq++
-
-		runtime.Gosched()
 	}
 }

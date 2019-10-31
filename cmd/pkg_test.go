@@ -22,24 +22,26 @@ import (
 )
 
 // testPlayer represents a player for testing with a bytes.Buffer to simulate
-// the network I/O stream. If Messages, MessagesFull or Reset is not called
-// then data will accumulate in the bytes.Buffer.
+// the network I/O stream. If Messages or Reset is not called then data will
+// accumulate in the bytes.Buffer.
 type testPlayer struct {
 	has.Thing
 	*bytes.Buffer
 }
 
-// NewTestPlayer creates a new testPlayer and adds them into the game world at
-// a random Start location. The testPlayer will be added to the game world
+// NewTestPlayer creates a new player for testing and adds them into the game
+// world at a random Start location. The player will be added to the game world
 // silently, without using $POOF. The player's prompt will be set to StyleNone
 // and any passed has.Thing will be added to the player's initial inventory.
 // Multiple testPlayer may be created for testing the interactions between
-// players and messages received by actors, participants and observers.
-func NewTestPlayer(name string, inv ...has.Thing) *testPlayer {
+// players and messages received by actors, participants and observers. During
+// testing the play can be refered to using the passed alias.
+func NewTestPlayer(name string, alias string, inv ...has.Thing) *testPlayer {
 	buf := &bytes.Buffer{}
 	p := &testPlayer{
 		attr.NewThing(
 			attr.NewName(name),
+			attr.NewAlias(alias),
 			attr.NewDescription("This is a test player."),
 			attr.NewInventory(inv...),
 			attr.NewPlayer(buf),
@@ -68,8 +70,7 @@ func NewTestPlayer(name string, inv ...has.Thing) *testPlayer {
 }
 
 // Messages returns any unread messages from the testPlayer and resets the
-// output buffer. The messages will have any ANSI escape sequences stripped via
-// text.Monoize making it easier to write tests that compare message text.
+// output buffer.
 func (p *testPlayer) Messages() string {
 	where := attr.FindLocate(p).Where()
 	where.Lock()

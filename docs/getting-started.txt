@@ -38,7 +38,7 @@ BINARY DOWNLOADS (ARM)
   processors with hardware floating point including the Raspberry Pi. For more
   information see:
 
-    http://code.google.com/p/go-wiki/wiki/GoArm
+    https://github.com/golang/go/wiki/GoArm
 
   For the both arm5 and arm6 binary downloads follow the directions given in
   the section BINARY DOWNLOADS (LINUX).

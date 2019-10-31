@@ -136,6 +136,13 @@ func (a *Action) Abort() {
 	}
 }
 
+// Pending returns true if there is an Action event pending, else false. Use
+// with caution as this could introduce a race between checking the state and
+// acting on it as the event could fire between the two actions.
+func (a *Action) Pending() bool {
+	return a.Cancel != nil
+}
+
 // Free makes sure references are nil'ed and channels closed when the Action
 // attribute is freed.
 func (a *Action) Free() {

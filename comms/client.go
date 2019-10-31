@@ -23,9 +23,10 @@ import (
 
 // TODO: These need to be configuration options once we have them
 const (
-	termColumns = 80
-	termLines   = 24
-	inputBuffer = 512
+	termColumns  = 80
+	termLines    = 24
+	inputBuffer  = 512
+	writeTimeout = time.Second * 10
 )
 
 // This interface lets us assert network or our own errors
@@ -191,7 +192,7 @@ func clean(in *[]byte) {
 		*/
 
 		// Simple single byte printable ASCII
-		if data[r] >= LoASC && data[r] <= HiASC {
+		if LoASC <= data[r] && data[r] <= HiASC {
 			data[r], data[w] = 0x00, data[r]
 			w++
 			r++
@@ -207,7 +208,7 @@ func clean(in *[]byte) {
 				continue
 			}
 			// If deleting single byte ASCII remove it and drop BS/DEL
-			if data[w-1] >= LoASC && data[w-1] <= HiASC {
+			if LoASC <= data[w-1] && data[w-1] <= HiASC {
 				w--
 				data[r], data[w] = 0x00, 0x00
 				r++
@@ -236,7 +237,7 @@ func clean(in *[]byte) {
 		case R == utf8.RuneError:
 			// Drop invalid rune
 		case R == BS || R == DEL:
-			// Handle delete, repeate until non-combining rune found
+			// Handle delete, repeat until non-combining rune found
 			for comb := true; comb; {
 				// Decode last rune written in data[:w] taking advantage of the fact we
 				// know it's valid already and we just want the length and rune
@@ -267,7 +268,7 @@ func clean(in *[]byte) {
 				w -= L
 				copy(data[w:w+L], Z)
 			}
-		case R >= LoC1 && R <= HiC1:
+		case LoC1 <= R && R <= HiC1:
 			// Drop C1 control codes
 		default:
 			// Write saved rune
@@ -319,20 +320,24 @@ func (c *client) close() {
 	// Say goodbye to client and reset default colors
 	c.Write([]byte(text.Info + "\nBye bye...\n\n" + text.Reset))
 
-	// io.EOF does not give address info so handle specially, otherwise just
-	// report the error
-	if c.Error() == io.EOF {
-		c.log("connection dropped by remote client")
-	} else {
-		if config.Server.LogClient {
-			c.log("connection error: %s", c.Error())
-		} else {
-			// If not logging client IP addresses make sure we don't leak them in any
-			// error messages from the standard library
-			e := c.Error().Error()
-			e = strings.Replace(e, c.RemoteAddr().String(), "???", -1)
-			c.log("connection error: %s", e)
-		}
+	// Was the frontend closed?
+	_, feClosed := c.Error().(frontend.ClosedError)
+
+	switch {
+	case c.Error() == io.EOF:
+		// io.EOF does not give address info so handle specially
+		c.log("connection error: connection dropped by remote client")
+	case feClosed:
+		// Not an error so report without "Connection error:" prefix
+		c.log("%s", c.Error())
+	case !config.Server.LogClient:
+		// If not logging client IP addresses make sure we don't leak them in any
+		// error messages from the standard library
+		e := c.Error().Error()
+		e = strings.Replace(e, c.RemoteAddr().String(), "???", -1)
+		c.log("connection error: %s", e)
+	default:
+		c.log("connection error: %s", c.Error())
 	}
 
 	// Make sure connection closed down and deallocated
@@ -366,7 +371,7 @@ func (c *client) Write(d []byte) (n int, err error) {
 		t = text.Fold(d, termColumns)
 	}
 
-	c.SetWriteDeadline(time.Now().Add(config.Server.IdleTimeout))
+	c.SetWriteDeadline(time.Now().Add(writeTimeout))
 
 	if n, err = c.TCPConn.Write(t); err != nil {
 		c.SetError(err)

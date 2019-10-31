@@ -29,6 +29,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // zone represents a self contained collection of Things. The Things are split
@@ -170,6 +171,8 @@ func loadZone(path string) zone {
 			continue
 		}
 		ref := decode.Keyword(record["REF"])
+
+		record["DESCRIPTION"] = text.Unfold(record["DESCRIPTION"])
 
 		t := attr.NewThing()
 		t.Unmarshal(i, record)

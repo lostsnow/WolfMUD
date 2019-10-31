@@ -253,7 +253,7 @@ func TestStringList(t *testing.T) {
 	}{
 		{[]string{}, ""},
 		{[]string{" a", "b ", " c "}, "a\n: b\n: c"},
-		{[]string{"c", "b", "a"}, "a\n: b\n: c"},
+		{[]string{"c", "b", "a"}, "c\n: b\n: a"},
 
 		// Actual OnAction data
 		{
@@ -263,8 +263,8 @@ func TestStringList(t *testing.T) {
 				"The frog hops around a bit.",
 			},
 			"The frog croaks a bit.\n" +
-				": The frog hops around a bit.\n" +
-				": The little frog leaps high into the air.",
+				": The little frog leaps high into the air.\n" +
+				": The frog hops around a bit.",
 		},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {

@@ -6,6 +6,80 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.14 Released Thursday 31st October, 2019
+==============================================================================
+
+Added
+
+  - New ring buffer added for use with connection quotas.
+  - Per IP address connection quotas added.
+  - A text.Unfold function has been added to unfold folded text while keeping
+    significant whitespace.
+  - Support added for bound qualifiers allowing a qualifier to only be valid
+    for a specific alias. For example: '+SHORT:SWORD SWORD SHORTSWORD' allows
+    the item to be referred to as 'SWORD', 'SHORTSWORD' or 'SHORT SWORD' but
+    not 'SHORT SHORTSWORD'. The bound to alias does not have to be explicitly
+    specified. Given '+SHORT:SWORD' the bound qualifier 'SHORT' will be added
+    as will the alias 'SWORD'.
+  - Server stats now include number of allocations made since the last stat
+    line was logged. Shown in the stats line as 'A[ +n]'.
+  - Tests added for GET, DROP, PUT, TAKE, OPEN, CLOSE, EXAMINE, JUNK and READ
+    commands.
+
+Changed
+
+  - Cleaned up error handling in client communication code.
+  - Documentation updated with HTTPS links.
+  - The server greeting and zone file descriptions are now unfolded when the
+    record jar file is read.
+  - The commands GET, DROP, PUT, TAKE, OPEN, CLOSE, EXAMINE, JUNK and READ now
+    use the new matcher code.
+  - The messages for the commands GET, DROP, PUT, TAKE, OPEN, CLOSE, EXAMINE,
+    JUNK and READ have been improved.
+  - Events now use a small cache for timers.
+  - Inventories are now implemented using a double linked list instead of a
+    slice. This reduces the bookkeeping complexity, storage and allocations.
+  - Players and Narratives are now in separate lists within an Inventory.
+  - The Inventory.Players method is now Inventory.Occupied to better reflect
+    its purpose. Inventory.Players now returns the players in an Inventory.
+  - The GET command can no longer be used to pick up another player.
+  - The PUT command can no longer be used to put another player into a
+    container.
+  - The Inventory.Compact configuration value is now obsolete.
+  - Matcher code rewritten and performance improved.
+  - Action, Cleanup and Reset attribute types now have a Pending method.
+
+Fixed
+
+  - Connection logging now reports correct source file in log.
+  - Write timeout for client connections now set correctly.
+  - Frontend now delivers outstanding messages to client when closed.
+  - Test function TestFixDEL in client tests misnamed, should be TestClean.
+  - A gofmt issue in config/config.go has been fixed.
+  - Fields within a free text section in a record jar file should just be part
+    of the free text section and not recognised as fields.
+  - Indented record separators '%%' in a record jar file should be ignored when
+    found in a free text section.
+  - Line feeds should be preserved when reading record jar free text sections.
+  - String lists in a record jar should not be reordered when encoded/decoded.
+  - Alias qualifiers are now treated as distinct from aliases. This fixes the
+    bug where a qualifier would be recognised as a valid alias.
+  - Name of actor for LOOK command should be upper cased.
+  - The Thing.Collectable method no longer reports players as being collectable.
+  - Corner case in the matcher when switching from 'not enough' to 'unknown'
+    match results fixed.
+  - Matcher should only be returning unique results.
+  - The TAKE command now checks for a TAKEOUT veto before checking if item is
+    in the container.
+  - For Go 1.13 the server no longer uses command line arguments to set an
+    alternative data directory or configuration file. Instead it uses the
+    WOLFMUD_DIR environment variable. Documentation compiling-from-source.txt
+    and running-the-server.txt have been updated.
+
+Known Bugs
+
+  - New search and matching item limits and item instances undocumented.
+
 v0.0.13 Released Sunday 10th February, 2019
 ==============================================================================
 

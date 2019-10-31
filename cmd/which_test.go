@@ -20,9 +20,15 @@ func whichSetupWorld() (world attr.Things) {
 		attr.NewStart(),
 		attr.NewName("Test room A"),
 		attr.NewDescription(
-			"This is a room for testing. A large 'A' is painted on the wall.",
+			"This is a room for testing. A large letter 'A' is painted on the wall.",
 		),
 		attr.NewInventory(
+			attr.NewThing(
+				attr.NewName("a large, painted letter 'A'"),
+				attr.NewAlias("+PAINTED", "+LARGE", "LETTER"),
+				attr.NewDescription("This is a large, painted, capital letter 'A'."),
+				attr.NewNarrative(),
+			),
 			attr.NewThing(
 				attr.NewName("a small green ball"),
 				attr.NewAlias("+SMALL", "+GREEN", "BALL"),
@@ -32,26 +38,6 @@ func whichSetupWorld() (world attr.Things) {
 				attr.NewName("a large green ball"),
 				attr.NewAlias("+LARGE", "+GREEN", "BALL"),
 				attr.NewDescription("This is a large, green rubber ball."),
-			),
-			attr.NewThing(
-				attr.NewName("a small red ball"),
-				attr.NewAlias("+SMALL", "+RED", "BALL"),
-				attr.NewDescription("This is a small, red rubber ball."),
-			),
-			attr.NewThing(
-				attr.NewName("a large red ball"),
-				attr.NewAlias("+LARGE", "+RED", "BALL"),
-				attr.NewDescription("This is a large, red rubber ball."),
-			),
-			attr.NewThing(
-				attr.NewName("an apple"),
-				attr.NewAlias("APPLE"),
-				attr.NewDescription("This is an apple."),
-			),
-			attr.NewThing(
-				attr.NewName("a piece of chalk"),
-				attr.NewAlias("CHALK"),
-				attr.NewDescription("This is a short stick of white chalk"),
 			),
 		),
 	)
@@ -64,25 +50,23 @@ func TestWhich(t *testing.T) {
 	world := whichSetupWorld()
 	defer world.Free()
 
-	actor := cmd.NewTestPlayer("an actor",
+	actor := cmd.NewTestPlayer("an actor", "ACTOR",
 		attr.NewThing(
 			attr.NewName("a token"),
 			attr.NewAlias("+TEST", "TOKEN"),
 			attr.NewDescription("This is a test token."),
 		),
 	)
-	observer := cmd.NewTestPlayer("an observer")
+	observer := cmd.NewTestPlayer("an observer", "OBSERVER")
 
 	const (
 		// For actor
-		noBalls    = text.Bad + "You don't see that many 'BALL' here.\n"
+		noFrog     = text.Bad + "You see no 'FROG' here.\n"
 		smallGreen = text.Good + "You see a small green ball here.\n"
 		largeGreen = text.Good + "You see a large green ball here.\n"
-		smallRed   = text.Good + "You see a small red ball here.\n"
-		largeRed   = text.Good + "You see a large red ball here.\n"
-		apple      = text.Good + "You see an apple here.\n"
-		chalk      = text.Good + "You see a piece of chalk here.\n"
+		fewerBalls = text.Bad + "You don't see that many 'BALL' here.\n"
 		token      = text.Good + "You are carrying a token.\n"
+		paintedA   = text.Good + "You see a large, painted letter 'A' here.\n"
 
 		// For observer
 		nothing = ""
@@ -97,74 +81,19 @@ func TestWhich(t *testing.T) {
 		actor    string
 		observer string
 	}{
-		{"", text.Good + "You look around for nothing in particular.\n", nothing},
+		// Tests to make sure items found from correct Inventories and colours are
+		// set correctly for good/bad outcomes.
+		{"", text.Info + "You look around for nothing in particular.\n", nothing},
 		{"ball", smallGreen, noting},
-		{"all ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"green ball", smallGreen, noting},
-		{"all green ball", smallGreen + largeGreen, noting},
-		{"red ball", smallRed, noting},
-		{"all red ball", smallRed + largeRed, noting},
-		{"small ball", smallGreen, noting},
-		{"all small ball", smallGreen + smallRed, noting},
-		{"0 ball", noBalls, notFound},
-		{"1 ball", smallGreen, noting},
-		{"2 ball", smallGreen + largeGreen, noting},
-		{"3 ball", smallGreen + largeGreen + smallRed, noting},
-		{"4 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"5 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"0-0 ball", noBalls, notFound},
-		{"0-1 ball", smallGreen, noting},
-		{"0-2 ball", smallGreen + largeGreen, noting},
-		{"0-3 ball", smallGreen + largeGreen + smallRed, noting},
-		{"0-4 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"1-5 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"1-2 ball", smallGreen + largeGreen, noting},
-		{"1-3 ball", smallGreen + largeGreen + smallRed, noting},
-		{"1-4 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"1-5 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"2-1 ball", smallGreen + largeGreen, noting},
-		{"2-2 ball", largeGreen, noting},
-		{"2-3 ball", largeGreen + smallRed, noting},
-		{"2-4 ball", largeGreen + smallRed + largeRed, noting},
-		{"2-5 ball", largeGreen + smallRed + largeRed, noting},
-		{"3-1 ball", smallGreen + largeGreen + smallRed, noting},
-		{"3-2 ball", largeGreen + smallRed, noting},
-		{"3-3 ball", smallRed, noting},
-		{"3-4 ball", smallRed + largeRed, noting},
-		{"3-5 ball", smallRed + largeRed, noting},
-		{"4-1 ball", smallGreen + largeGreen + smallRed + largeRed, noting},
-		{"4-2 ball", largeGreen + smallRed + largeRed, noting},
-		{"4-3 ball", smallRed + largeRed, noting},
-		{"4-4 ball", largeRed, noting},
-		{"4-5 ball", largeRed, noting},
-		{"5-5 ball", noBalls, notFound},
-		{"5-6 ball", noBalls, notFound},
-		{"0th ball", noBalls, notFound},
-		{"1st ball", smallGreen, noting},
-		{"2nd ball", largeGreen, noting},
-		{"3rd ball", smallRed, noting},
-		{"4th ball", largeRed, noting},
-		{"5th ball", noBalls, notFound},
-		{"frog", text.Bad + "You see no 'FROG' here.\n", notFound},
-		{"blue frog", text.Bad + "You see no 'BLUE FROG' here.\n", notFound},
-		{"green frog", text.Bad + "You see no 'GREEN FROG' here.\n", notFound},
-		{"small frog", text.Bad + "You see no 'SMALL FROG' here.\n", notFound},
-		{
-			"red frog ball",
-			text.Bad + "You see no 'RED FROG' here.\n" + smallGreen, noting,
-		},
-		{"apple ball chalk", apple + smallGreen + chalk, noting},
-		{"apple 0th ball chalk", apple + noBalls + chalk, noting},
-		{
-			"apple all ball chalk",
-			apple + smallGreen + largeGreen + smallRed + largeRed + chalk, noting,
-		},
+		{"3rd ball", fewerBalls, notFound},
+		{"frog", noFrog, notFound},
+		{"small ball frog large ball", smallGreen + noFrog + largeGreen, noting},
+		{"frog ball", noFrog + smallGreen, noting},
+		{"ball frog", smallGreen + noFrog, noting},
+		{"3rd ball token", fewerBalls + token, noting},
+		{"token 3rd ball", token + fewerBalls, noting},
 		{"token", token, noting},
-		{"apple token chalk", apple + token + chalk, noting},
-
-		// Should not find a qualifier as an alias
-		// BUG (diddymus): test disabled until aliases updated to handle qualifiers
-		// {"+test", "You see no '+TEST' here.", notFound},
+		{"letter", paintedA, noting},
 	} {
 		t.Run(fmt.Sprintf("%s", test.cmd), func(t *testing.T) {
 			cmd.Parse(actor, "which "+test.cmd)
@@ -189,24 +118,15 @@ func BenchmarkWhich(b *testing.B) {
 	world := whichSetupWorld()
 	defer world.Free()
 
-	actor := cmd.NewTestPlayer("an actor")
-	observer := cmd.NewTestPlayer("an observer")
+	actor := cmd.NewTestPlayer("an actor", "ACTOR")
+	observer := cmd.NewTestPlayer("an observer", "OBSERVER")
 
 	for _, test := range []string{
-		"",
-		"apple",
-		"ball",
-		"token",
-		"all ball",
-		"all green ball",
-		"all red ball",
-		"all small ball",
-		"all large ball",
-		"apple ball chalk",
-		"apple all ball chalk",
-		"frog",
-		"apple frog",
-		"apple frog chalk",
+		"",         // Nothing
+		"ball",     // 1st of several
+		"all ball", // Several items
+		"token",    // In actor's Inventory
+		"frog",     // Not found
 	} {
 		c := "which " + test
 		b.Run(fmt.Sprintf(test), func(b *testing.B) {

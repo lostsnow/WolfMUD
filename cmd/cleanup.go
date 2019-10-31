@@ -56,7 +56,7 @@ func (cleanup) process(s *state) {
 	// Clean up will not be seen if we specifically have an empty message. It
 	// will also not be seen if there are no players here to see it or it's too
 	// crowded. In these cases just junk Thing.
-	if (oc.Found() && msg == "") || !where.Players() || where.Crowded() {
+	if (oc.Found() && msg == "") || !where.Occupied() || where.Crowded() {
 		s.scriptNone("junk", what.UID())
 
 		// s.ok will be that of the scripted JUNK and we will also retry if JUNK

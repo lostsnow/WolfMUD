@@ -17,6 +17,9 @@ type Inventory interface {
 	Attribute
 	sync.Locker
 
+	// Players returns a []Thing representing the players of the Inventory.
+	Players() []Thing
+
 	// Contents returns a []Thing representing the contents of the Inventory.
 	Contents() []Thing
 
@@ -31,8 +34,8 @@ type Inventory interface {
 	// false. Definition of crowded is implementation dependant.
 	Crowded() bool
 
-	// Players returns true if the Inventory contains any players else false.
-	Players() bool
+	// Occupied returns true if there is at least one player in the Inventory.
+	Occupied() bool
 
 	// Empty returns true if the Inventory is empty else false. What empty means
 	// is up to the individual Inventory implementation. It may mean that the

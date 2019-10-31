@@ -55,8 +55,9 @@ RECORD SEPARATOR
 
   Records are separated by a line containing only two percent symbols '%%'.
   Record separators may be indented using whitespace, although this is rarely
-  done. The final record separator for the last record in a record jar may be
-  omitted.
+  done, except when following a free text block. Following a free text block
+  there should be no leading whitespace before the record separator. The final
+  record separator for the last record in a record jar may be omitted.
 
 FIELDS
 

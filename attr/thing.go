@@ -55,9 +55,7 @@ func NewThing(a ...has.Attribute) *Thing {
 
 	t.Add(a...)
 
-	c := <-ThingCount
-	c++
-	ThingCount <- c
+	ThingCount <- <-ThingCount + 1
 
 	if config.Debug.Things {
 		runtime.SetFinalizer(t, func(t has.Thing) {
@@ -91,9 +89,7 @@ func (t *Thing) Free() {
 	t.attrs = nil
 
 	if t.uid != "" {
-		c := <-ThingCount
-		c--
-		ThingCount <- c
+		ThingCount <- <-ThingCount - 1
 	}
 
 	t.rwmutex.Unlock()
@@ -304,7 +300,16 @@ func (t *Thing) ClearOrigins() {
 // considered collectable can be easily changed.
 func (t *Thing) Collectable() bool {
 	o := FindLocate(t).Origin()
-	return o == nil || !o.Found()
+
+	// Collectable if there is no origin...
+	collectable := o == nil || !o.Found()
+
+	// ...unless they are a Player
+	if collectable && FindPlayer(t).Found() {
+		collectable = false
+	}
+
+	return collectable
 }
 
 // UID returns the unique identifier for a specific Thing or an empty string if
@@ -330,9 +335,7 @@ func (t *Thing) NotUnique() {
 		return
 	}
 
-	c := <-ThingCount
-	c--
-	ThingCount <- c
+	ThingCount <- <-ThingCount - 1
 	t.uid = ""
 }
 

@@ -1,19 +1,35 @@
-// Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2019 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
 // Package config provides access to all of the tunable settings of a WolfMUD
-// server. The default values can be overidden via a configuration file. The
-// default name of the configuration file is config.wrj.
+// server. The server's default configuration values may be overridden using a
+// configuration file. The name of the default configuration file is config.wrj
+// in the server's data path. By default the server's data path is './data',
+// the data directory in the current path.
 //
-// Users may specify an alternate path for the configuration file on the
-// command line. As a fallback it will use the current directory. If the path
-// does not specify a filename the default config.wrj will be used.
+// An alternative data path and/or configuration file can be specified using
+// the WOLFMUD_DIR environment variable. The format is:
+//
+//   WOLFMUD_DIR=<data path><configuration file>
+//
+// The default value, if not specified, is equivalent to:
+//
+//   WOLFMUD_DIR=./data/config.wrj
+//
+// If only the data path is specified the default configuration file will be
+// used. If only a configuration file is specified the default data path will
+// be used. The data path may be absolute or relative to the current path.
+//
+// NOTE: The server's data path is used to locate zone files and player files
+// as well as the configuration file.
+//
+// Alternative data directories and/or configuration files can be useful for
+// testing environments or for running multiple server instances.
 package config
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -47,6 +63,17 @@ var Server = struct {
 	SetPermissions: false,
 }
 
+// Per IP connection quota default configuration
+var Quota = struct {
+	Window  time.Duration // Period quota records connections for
+	Timeout time.Duration // Period after which quota are reset
+	Stats   time.Duration // Minimum reporting period for quota stats
+}{
+	Window:  0,
+	Timeout: 0,
+	Stats:   0,
+}
+
 // Stats default configuration
 var Stats = struct {
 	Rate time.Duration // Stats collection and display rate
@@ -58,10 +85,8 @@ var Stats = struct {
 
 // Inventory default configuration
 var Inventory = struct {
-	Compact   int // only compact if cap - len*2 > compact
 	CrowdSize int // If inventory has more player than this it's a crowd
 }{
-	Compact:   4,
 	CrowdSize: 10,
 }
 
@@ -93,12 +118,12 @@ var Debug = struct {
 	Things:     false,
 }
 
-// Load loads the configuration file and overrides the default configuration
+// Load reads the configuration file and overrides the default configuration
 // values with any values found.
 func init() {
 
 	// Setup global logging format
-	log.SetFlags( log.LstdFlags | log.Lshortfile | log.Lmicroseconds | log.LUTC)
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds | log.LUTC)
 	log.Printf("Server started, logging using UTC timezone.")
 
 	// Seed default random source
@@ -140,7 +165,15 @@ func init() {
 		case "SERVER.LOGCLIENT":
 			Server.LogClient = decode.Boolean(data)
 		case "SERVER.GREETING":
-			Server.Greeting = text.Colorize(decode.Bytes(data))
+			Server.Greeting = text.Colorize(text.Unfold(decode.Bytes(data)))
+
+		// Per IP connection quotas
+		case "QUOTA.WINDOW":
+			Quota.Window = decode.Duration(data)
+		case "QUOTA.TIMEOUT":
+			Quota.Timeout = decode.Duration(data)
+		case "QUOTA.STATS":
+			Quota.Stats = decode.Duration(data)
 
 		// Stats settings
 		case "STATS.RATE":
@@ -149,8 +182,6 @@ func init() {
 			Stats.GC = decode.Boolean(data)
 
 		// Inventory settings
-		case "INVENTORY.COMPACT":
-			Inventory.Compact = decode.Integer(data)
 		case "INVENTORY.CROWDSIZE":
 			Inventory.CrowdSize = decode.Integer(data)
 
@@ -190,23 +221,46 @@ func init() {
 		log.Printf("Error checking permissions, %s", err)
 	}
 
+	switch {
+	case Quota.Window == 0:
+		log.Printf("IP connection quotas are disabled.")
+	case Quota.Timeout != 0:
+		log.Printf(
+			"Per IP connection quota is 4 in %s, reset after %s.",
+			Quota.Window, Quota.Timeout,
+		)
+	case Quota.Timeout == 0:
+		log.Printf(
+			"Per IP connection quota is 4 in %s, reset after no connections for %s.",
+			Quota.Window, Quota.Window,
+		)
+	}
+
+	switch {
+	case Quota.Window == 0:
+	case Quota.Stats == 0:
+		log.Printf("Quota statistics logging disabled.")
+	default:
+		log.Printf("Minimum quota statistics logging period is %s.", Quota.Stats)
+	}
+
 	if !Debug.LongLog {
-		log.SetFlags(log.LstdFlags | log.LUTC )
+		log.SetFlags(log.LstdFlags | log.LUTC)
 		log.Printf("Switching to short log format.")
 	}
 }
 
-// openConfig tries to locate and open the configuration file to use. By
-// default it will use the path specified on the command line. As a fallback it
-// will use the data directory in the current directory. If the path does not
-// specify a filename the default config.wrj will be used. If a configuration
-// file is found and accessible a *os.File to it will be returned with a nil
-// error. If not found a nil pointer and a non-nil error will be returned.
+// openConfig tries to locate and open the configuration file to use. See
+// package comments for details of the default server data path and
+// configuration file used.
 func openConfig() (config *os.File, err error) {
 
 	// Has user supplied path ± specific file?
-	flag.Parse()
-	dir, file := filepath.Split(flag.Arg(0))
+	env := os.Getenv("WOLFMUD_DIR")
+	if env != "" {
+		log.Printf("Found environment variable WOLFMUD_DIR=%s", env)
+	}
+	dir, file := filepath.Split(env)
 
 	if dir == "" && strings.ToUpper(file) == "NONE" {
 		return nil, nil
@@ -245,31 +299,6 @@ func openConfig() (config *os.File, err error) {
 
 	log.Printf("Found configuration file: %s", path)
 	return config, nil
-}
-
-// findData tries to locate the data directory relative to the configuration
-// file.
-func findData(base, path string) (data string, err error) {
-
-	data = filepath.Join(base, path)
-
-	// Make sure path is good
-	if data, err = filepath.Abs(data); err != nil {
-		return "", err
-	}
-
-	// Try getting information on path
-	var info os.FileInfo
-	if info, err = os.Stat(data); err != nil {
-		return "", err
-	}
-
-	// If the path isn't a directory remove the filename.
-	if !info.IsDir() {
-		data = filepath.Dir(data)
-	}
-
-	return data, nil
 }
 
 // filesystemCheck tests to see if the filesystem the passed path is on

@@ -68,17 +68,17 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		err error
 
 		// Variables for processing current line
-		line   []byte   // current line from Reader
-		tokens [][]byte // temp vars for name:data pair parsed from line
-		name   string   // current name from line
-		data   []byte   // current data from line
-		field  string   // current field being processed (may differ from name)
+		line    []byte   // current line from Reader
+		startWS bool     // current line starts with whitespace before trimming?
+		tokens  [][]byte // temp vars for name:data pair parsed from line
+		name    string   // current name from line
+		data    []byte   // current data from line
+		field   string   // current field being processed (may differ from name)
 
 		// Some flags to improve code readability
-		noName     = false // true if line has no name
-		noData     = false // true if line has no data
-		noLine     = false // true if line has no name and no data
-		noLastLine = false // true if last line had no name and no data
+		noName = false // true if line has no name
+		noData = false // true if line has no data
+		noLine = false // true if line has no name and no data
 	)
 
 	// If not using a buffered Reader, make it buffered
@@ -102,6 +102,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 		// Read and parse current line
 		line = bytes.TrimRightFunc(line, unicode.IsSpace)
+		startWS = bytes.IndexFunc(line, unicode.IsSpace) == 0
 		tokens = splitLine.FindSubmatch(line)
 		name, data = string(bytes.ToUpper(tokens[1])), tokens[2]
 
@@ -115,31 +116,35 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		}
 
 		// Handle record separator by recording current Record in Jar and setting
-		// up a new next record, reset lastField seen and noLastLine flag.
+		// up a new next record, reset current field being processed. If a record
+		// separator appears after a free text section there must be no leading
+		// white-space before it otherwise it will be taken for free text.
 		if noName && bytes.Equal(data, rSeparator) {
-			if len(r) > 0 {
-				j = append(j, r)
-				r = Record{}
+			if field != freetext || (field == freetext && !startWS) {
+				if len(r) > 0 {
+					j = append(j, r)
+					r = Record{}
+				}
+				field = ""
+				continue
 			}
-			field = ""
-			noLastLine = false
-			continue
 		}
 
-		// If we get a new name store it as the current field being processed
-		if !noName {
+		// If we get a new name and not inside a free text section then store new
+		// name as the current field being processed
+		if !noName && field != freetext {
 			field = name
 		}
 
 		// Switch to free text field if an empty line and we are not already
-		// processing the free text section. If there was no lastField processed we
-		// need to record the blank line so that it is included in the free text
-		// section. This lets us have a record that has only a free text section
-		// and can start with a blank line, which is not counted as a separator
-		// line.
+		// processing the free text section. If there was no current field being
+		// processed we need to record the blank line so that it is included in the
+		// free text section. This lets us have a record that has only a free text
+		// section and can start with a blank line, which is not counted as a
+		// separator line.
 		if noLine && field != freetext {
 			if field == "" {
-				noLastLine = true
+				r[freetext] = []byte{}
 			}
 			field = freetext
 			continue
@@ -149,24 +154,10 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// we have no field - in which case assume we are starting a free text
 		// section
 		if field == freetext || field == "" {
-
-			// If last line was blank, current line is blank or current line starts
-			// with white space and we already have some text in the free text
-			// section, then append a new line to terminate the last line and start a
-			// new one. If not terminating last line, but we have some data in the
-			// free text section already, then append a space before appending the
-			// current line.
-			if noLastLine || noLine || (len(r[freetext]) != 0 && bytes.IndexFunc(line, unicode.IsSpace) == 0) {
+			if _, ok := r[freetext]; ok {
 				r[freetext] = append(r[freetext], '\n')
-			} else {
-				if _, ok = r[freetext]; ok {
-					r[freetext] = append(r[freetext], ' ')
-				}
 			}
-
 			r[freetext] = append(r[freetext], line...)
-
-			noLastLine = noLine
 			field = freetext
 			continue
 		}

@@ -6,6 +6,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
@@ -26,26 +28,38 @@ func (j junk) process(s *state) {
 		return
 	}
 
-	name := s.words[0]
+	// Find matching item at location or held by actor
+	matches, words := Match(
+		s.words,
+		attr.FindInventory(s.actor).Contents(),
+		s.where.Everything(),
+	)
+	match := matches[0]
+	mark := s.msg.Actor.Len()
 
-	// Search for item we want to junk in our inventory
-	where := attr.FindInventory(s.actor)
-	what := where.Search(name)
+	switch {
+	case len(words) != 0: // Not exact match?
+		name := strings.Join(s.words, " ")
+		s.msg.Actor.SendBad("You see no '", name, "' to junk.")
 
-	// If not found check inventory where we are
-	if what == nil {
-		where = s.where
-		what = where.Search(name)
+	case len(matches) != 1: // More than one match?
+		s.msg.Actor.SendBad("You can only junk one thing at a time.")
+
+	case match.Unknown != "":
+		s.msg.Actor.SendBad("You see no '", match.Unknown, "' to junk.")
+
+	case match.NotEnough != "":
+		s.msg.Actor.SendBad("There are not that many '", match.NotEnough, "' to junk.")
+
 	}
 
-	// Still not found?
-	if what == nil {
-		s.msg.Actor.SendBad("You see no '", name, "' to junk.")
+	// If we sent an error to the actor return now
+	if mark != s.msg.Actor.Len() {
 		return
 	}
 
-	// Get item's proper name
-	name = attr.FindName(what).Name(name)
+	what := match.Thing
+	name := attr.FindName(what).TheName("something") // Get item's proper name
 
 	// Is item a narrative?
 	if attr.FindNarrative(what).Found() {
@@ -76,11 +90,12 @@ func (j junk) process(s *state) {
 		return
 	}
 
+	s.msg.Actor.SendGood("You junk ", name, ".")
+	name = attr.FindName(what).Name("something")
+
 	j.dispose(what)
 
-	who := attr.FindName(s.actor).Name("Someone")
-
-	s.msg.Actor.SendGood("You junk ", name, ".")
+	who := attr.FindName(s.actor).TheName("someone")
 	s.msg.Observer.SendInfo("You see ", who, " junk ", name, ".")
 	s.ok = true
 }
