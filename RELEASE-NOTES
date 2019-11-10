@@ -6,6 +6,14 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.15 Released Thursday 10th November, 2019
+==============================================================================
+
+Fixed:
+
+  - Typo in data/zones/zinara.wrj for lady in pawn shop.
+  - A nil panic in the JUNK command triggered by a location issuing a CLEANUP.
+
 v0.0.14 Released Thursday 31st October, 2019
 ==============================================================================
 
