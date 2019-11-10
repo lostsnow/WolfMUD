@@ -29,11 +29,17 @@ func (j junk) process(s *state) {
 	}
 
 	// Find matching item at location or held by actor
-	matches, words := Match(
-		s.words,
+	//
+	// NOTE: s.where may be nil as in the case of a cleanup where the actor is
+	// the location doing the junking.
+	invs := [][]has.Thing{
 		attr.FindInventory(s.actor).Contents(),
-		s.where.Everything(),
-	)
+	}
+	if s.where != nil {
+		invs = append(invs, s.where.Everything())
+	}
+
+	matches, words := Match(s.words, invs...)
 	match := matches[0]
 	mark := s.msg.Actor.Len()
 
