@@ -324,6 +324,8 @@ func (c *client) close() {
 	_, feClosed := c.Error().(frontend.ClosedError)
 
 	switch {
+	case c.Error() == nil:
+		// No error - nothing to report
 	case c.Error() == io.EOF:
 		// io.EOF does not give address info so handle specially
 		c.log("connection error: connection dropped by remote client")
