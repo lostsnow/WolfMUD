@@ -70,12 +70,16 @@ func (b buffers) Append(s ...string) {
 //
 // See also Buffer.Silent for more details.
 func (b buffers) Silent(new bool) (t buffers, f buffers) {
-	t = make(map[has.Inventory]*Buffer)
-	f = make(map[has.Inventory]*Buffer)
 	for where, b := range b {
 		if old := b.Silent(new); old {
+			if t == nil {
+				t = make(map[has.Inventory]*Buffer)
+			}
 			t[where] = b
 		} else {
+			if f == nil {
+				f = make(map[has.Inventory]*Buffer)
+			}
 			f[where] = b
 		}
 	}
