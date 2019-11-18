@@ -29,6 +29,9 @@ type Thing interface {
 	// Free is used to clean-up/release references to all Attribute for a Thing.
 	Free()
 
+	// Free returns true if Free has been called on the Thing, else false.
+	Freed() bool
+
 	// Copy produces another, possibly inexact, instance of a Thing. The
 	// differences may be due to unique IDs, locks and other data that should not
 	// be copied between instances. The copy will contain a copy of all of the

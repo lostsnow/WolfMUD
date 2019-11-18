@@ -51,7 +51,7 @@ func init() {
 // new Thing has been created. A finalizer will also be registered to write a
 // message when the thing is garbage collected.
 func NewThing(a ...has.Attribute) *Thing {
-	t := &Thing{uid: <-internal.NextUID}
+	t := &Thing{uid: <-internal.NextUID, attrs: []has.Attribute{}}
 
 	t.Add(a...)
 
@@ -78,7 +78,7 @@ func (t *Thing) Free() {
 
 	t.rwmutex.Lock()
 
-	if t.uid != "" && len(t.attrs) == 0 {
+	if t.uid != "" && t.attrs == nil {
 		log.Printf("Warning, already freed: %s", t)
 	}
 
@@ -93,6 +93,14 @@ func (t *Thing) Free() {
 	}
 
 	t.rwmutex.Unlock()
+}
+
+// Freed returns true if Free has been called on the Thing, else false.
+func (t *Thing) Freed() (b bool) {
+	t.rwmutex.Lock()
+	b = t.attrs == nil
+	t.rwmutex.Unlock()
+	return
 }
 
 // Add is used to add the passed Attributes to a Thing. When an Attribute is
