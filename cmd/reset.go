@@ -23,11 +23,10 @@ type reset cmd
 
 func (reset) process(s *state) {
 
-	// Actor may be stale due to event queuing, so do some sanity checking. If a
-	// Thing has no attributes at all it is likely to have been freed and we have
-	// a stale reference. This can occur with nested containers where the parent
-	// gets cleaned up or reset. If actor is stale just return.
-	if len(s.actor.Attrs()) == 0 {
+	// The reference to the Actor may be stale and already freed due to event
+	// queuing. This can occur with nested containers where the parent gets
+	// cleaned up or reset. If actor is already freed just return.
+	if s.actor.Freed() {
 		return
 	}
 
