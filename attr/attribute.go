@@ -58,3 +58,9 @@ func (a *Attribute) Free() {
 		a.rwmutex.Unlock()
 	}
 }
+
+// Temporary implementation for development so that all Attribute have an Is
+// method until they implement their own.
+func (*Attribute) Is(a has.Attribute) bool {
+	return false
+}

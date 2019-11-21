@@ -48,4 +48,8 @@ type Attribute interface {
 	// disentangle cyclic pointers to assist in garbage collection. Attributes
 	// that implement their own Free method should also call Attribute.Free.
 	Free()
+
+	// Is returns true if the queried attribute can implement the passed
+	// attribute, else false.
+	Is(Attribute) bool
 }
