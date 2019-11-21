@@ -18,9 +18,6 @@ type Thing interface {
 	// Add is used to add one or more Attribute to a Thing.
 	Add(...Attribute)
 
-	// Attrs returns a []Attribute of all the Attribute for a Thing.
-	Attrs() []Attribute
-
 	// FindAttr returns the first Attribute implementing the passed attribute or
 	// the passed attribute if no matches found.
 	FindAttr(Attribute) Attribute

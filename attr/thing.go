@@ -136,19 +136,6 @@ func (t *Thing) Remove(a ...has.Attribute) {
 	t.rwmutex.Unlock()
 }
 
-// Attrs returns all of the Attributes a Thing has as a slice of has.Attribute.
-// This is commonly used to range over all of the Attributes of a Thing instead
-// of using a finder for a specific type of Attribute.
-func (t *Thing) Attrs() []has.Attribute {
-	t.rwmutex.RLock()
-	a := make([]has.Attribute, len(t.attrs))
-	for i := range t.attrs {
-		a[i] = t.attrs[i]
-	}
-	t.rwmutex.RUnlock()
-	return a
-}
-
 // FindAttr searches the attributes of the Thing for attributes that implement
 // the passed Attribute cmp returning the first match it finds or cmp
 // otherwise. The comparison is performed by calling cmp.Is on the attributes
@@ -240,15 +227,17 @@ func (t *Thing) Marshal() recordjar.Record {
 		data []byte
 	)
 
+	t.rwmutex.RLock()
 	rec := recordjar.Record{}
 	rec["ref"] = []byte(t.UID())
-	for _, a := range t.Attrs() {
+	for _, a := range t.attrs {
 		tag, data = a.Marshal()
 		if tag == "" {
 			continue
 		}
 		rec[tag] = data
 	}
+	t.rwmutex.RUnlock()
 	return rec
 }
 
