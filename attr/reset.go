@@ -67,6 +67,12 @@ func FindReset(t has.Thing) has.Reset {
 	return (*Reset)(nil)
 }
 
+// Is returns true if passed attribute implements a reset else false.
+func (*Reset) Is(a has.Attribute) bool {
+	_, ok := a.(has.Reset)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (r *Reset) Found() bool {
 	return r != nil

@@ -62,6 +62,12 @@ func FindName(t has.Thing) has.Name {
 	return (*Name)(nil)
 }
 
+// Is returns true if passed attribute implements a name else false.
+func (*Name) Is(a has.Attribute) bool {
+	_, ok := a.(has.Name)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (n *Name) Found() bool {
 	return n != nil

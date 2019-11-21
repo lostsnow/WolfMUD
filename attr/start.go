@@ -54,6 +54,12 @@ func FindStart(t has.Thing) has.Start {
 	return (*Start)(nil)
 }
 
+// Is returns true if passed attribute implements a starting location else false.
+func (*Start) Is(a has.Attribute) bool {
+	_, ok := a.(has.Start)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (s *Start) Found() bool {
 	return s != nil

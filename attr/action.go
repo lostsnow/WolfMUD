@@ -58,6 +58,12 @@ func FindAction(t has.Thing) has.Action {
 	return (*Action)(nil)
 }
 
+// Is returns true if passed attribute implements an action else false.
+func (*Action) Is(a has.Attribute) bool {
+	_, ok := a.(has.Action)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (a *Action) Found() bool {
 	return a != nil

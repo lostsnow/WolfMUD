@@ -194,6 +194,12 @@ func FindInventory(t has.Thing) has.Inventory {
 	return (*Inventory)(nil)
 }
 
+// Is returns true if passed attribute implements an inventory else false.
+func (*Inventory) Is(a has.Attribute) bool {
+	_, ok := a.(has.Inventory)
+	return ok
+}
+
 // Unmarshal is used to turn the passed data into a new Inventory attribute.
 func (*Inventory) Unmarshal(data []byte) has.Attribute {
 	return NewInventory()

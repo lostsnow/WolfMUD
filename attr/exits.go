@@ -144,6 +144,12 @@ func FindExits(t has.Thing) has.Exits {
 	return (*Exits)(nil)
 }
 
+// Is returns true if passed attribute implements exits else false.
+func (*Exits) Is(a has.Attribute) bool {
+	_, ok := a.(has.Exits)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (e *Exits) Found() bool {
 	return e != nil

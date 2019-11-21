@@ -59,6 +59,12 @@ func FindPlayer(t has.Thing) has.Player {
 	return (*Player)(nil)
 }
 
+// Is returns true if passed attribute implements a player else false.
+func (*Player) Is(a has.Attribute) bool {
+	_, ok := a.(has.Player)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (p *Player) Found() bool {
 	return p != nil

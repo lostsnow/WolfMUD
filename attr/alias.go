@@ -150,6 +150,12 @@ func FindAlias(t has.Thing) has.Alias {
 	return (*Alias)(nil)
 }
 
+// Is returns true if passed attribute implements an alias else false.
+func (*Alias) Is(a has.Attribute) bool {
+	_, ok := a.(has.Alias)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (a *Alias) Found() bool {
 	return a != nil

@@ -82,6 +82,12 @@ func FindGender(t has.Thing) has.Gender {
 	return (*Gender)(nil)
 }
 
+// Is returns true if passed attribute implements gender else false.
+func (*Gender) Is(a has.Attribute) bool {
+	_, ok := a.(has.Gender)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (g *Gender) Found() bool {
 	return g != nil

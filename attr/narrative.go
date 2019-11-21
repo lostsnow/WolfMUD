@@ -84,6 +84,12 @@ func FindNarrative(t has.Thing) has.Narrative {
 	return (*Narrative)(nil)
 }
 
+// Is returns true if passed attribute implements a narrative else false.
+func (*Narrative) Is(a has.Attribute) bool {
+	_, ok := a.(has.Narrative)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (n *Narrative) Found() bool {
 	return n != nil

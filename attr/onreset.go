@@ -47,6 +47,12 @@ func FindOnReset(t has.Thing) has.OnReset {
 	return (*OnReset)(nil)
 }
 
+// Is returns true if passed attribute implements an 'on reset' else false.
+func (*OnReset) Is(a has.Attribute) bool {
+	_, ok := a.(has.OnReset)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (or *OnReset) Found() bool {
 	return or != nil

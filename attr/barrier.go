@@ -82,6 +82,12 @@ func FindBarrier(t has.Thing) has.Barrier {
 	return (*Barrier)(nil)
 }
 
+// Is returns true if passed attribute implements a barrier else false.
+func (*Barrier) Is(a has.Attribute) bool {
+	_, ok := a.(has.Barrier)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (b *Barrier) Found() bool {
 	return b != nil

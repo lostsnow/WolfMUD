@@ -48,6 +48,12 @@ func FindOnAction(t has.Thing) has.OnAction {
 	return (*OnAction)(nil)
 }
 
+// Is returns true if passed attribute implements an 'on action' else false.
+func (*OnAction) Is(a has.Attribute) bool {
+	_, ok := a.(has.OnAction)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (oa *OnAction) Found() bool {
 	return oa != nil

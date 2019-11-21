@@ -203,6 +203,12 @@ func FindDoor(t has.Thing) has.Door {
 	return (*Door)(nil)
 }
 
+// Is returns true if passed attribute implements a door else false.
+func (*Door) Is(a has.Attribute) bool {
+	_, ok := a.(has.Door)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (d *Door) Found() bool {
 	return d != nil

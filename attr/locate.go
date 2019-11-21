@@ -58,6 +58,12 @@ func FindLocate(t has.Thing) has.Locate {
 	return (*Locate)(nil)
 }
 
+// Is returns true if passed attribute implements locate else false.
+func (*Locate) Is(a has.Attribute) bool {
+	_, ok := a.(has.Locate)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (l *Locate) Found() bool {
 	return l != nil

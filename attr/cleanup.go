@@ -82,6 +82,12 @@ func FindCleanup(t has.Thing) has.Cleanup {
 	return (*Cleanup)(nil)
 }
 
+// Is returns true if passed attribute implements a cleanup else false.
+func (*Cleanup) Is(a has.Attribute) bool {
+	_, ok := a.(has.Cleanup)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (c *Cleanup) Found() bool {
 	return c != nil

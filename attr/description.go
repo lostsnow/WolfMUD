@@ -56,6 +56,12 @@ func FindAllDescription(t has.Thing) (matches []has.Description) {
 	return
 }
 
+// Is returns true if passed attribute implements a description else false.
+func (*Description) Is(a has.Attribute) bool {
+	_, ok := a.(has.Description)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (d *Description) Found() bool {
 	return d != nil

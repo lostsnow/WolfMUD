@@ -55,6 +55,12 @@ func FindWriting(t has.Thing) has.Writing {
 	return (*Writing)(nil)
 }
 
+// Is returns true if passed attribute implements writing else false.
+func (*Writing) Is(a has.Attribute) bool {
+	_, ok := a.(has.Writing)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (w *Writing) Found() bool {
 	return w != nil

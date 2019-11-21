@@ -61,6 +61,12 @@ func FindAllVetoes(t has.Thing) (matches []has.Vetoes) {
 	return
 }
 
+// Is returns true if passed attribute implements vetoes else false.
+func (*Vetoes) Is(a has.Attribute) bool {
+	_, ok := a.(has.Vetoes)
+	return ok
+}
+
 // Found returns false if the receiver is nil otherwise true.
 func (v *Vetoes) Found() bool {
 	return v != nil
