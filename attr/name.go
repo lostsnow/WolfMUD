@@ -54,12 +54,7 @@ func NewName(n string) *Name {
 // implement has.Name returning the first match it finds or a *Name typed nil
 // otherwise.
 func FindName(t has.Thing) has.Name {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Name); ok {
-			return a
-		}
-	}
-	return (*Name)(nil)
+	return t.FindAttr((*Name)(nil)).(has.Name)
 }
 
 // Is returns true if passed attribute implements a name else false.

@@ -41,16 +41,14 @@ func NewDescription(description string) *Description {
 // attributes that implement has.Description returning all that match. If no
 // matches are found an empty slice will be returned.
 func FindAllDescription(t has.Thing) (matches []has.Description) {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Description); ok {
-			matches = append(matches, a)
+	for _, a := range t.FindAttrs((*Description)(nil)) {
+		matches = append(matches, a.(has.Description))
 
-			// If type is an actual *Description move it to the front of the slice as
-			// we want main descriptions first and additional descriptions afterwards
-			if _, ok := a.(*Description); ok {
-				copy(matches[1:], matches[0:])
-				matches[0] = a
-			}
+		// If type is an actual *Description move it to the front of the slice as
+		// we want main descriptions first and additional descriptions afterwards
+		if _, ok := a.(*Description); ok {
+			copy(matches[1:], matches[0:])
+			matches[0] = a.(*Description)
 		}
 	}
 	return

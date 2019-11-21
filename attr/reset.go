@@ -59,12 +59,7 @@ func NewReset(after time.Duration, jitter time.Duration, spawn bool) *Reset {
 // that implement has.Reset returning the first match it finds or a *Reset
 // typed nil otherwise.
 func FindReset(t has.Thing) has.Reset {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Reset); ok {
-			return a
-		}
-	}
-	return (*Reset)(nil)
+	return t.FindAttr((*Reset)(nil)).(has.Reset)
 }
 
 // Is returns true if passed attribute implements a reset else false.

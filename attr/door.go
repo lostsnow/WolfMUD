@@ -195,12 +195,7 @@ func (d *Door) OtherSide() {
 // implement has.Door returning the first match it finds or a *Door typed nil
 // otherwise.
 func FindDoor(t has.Thing) has.Door {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Door); ok {
-			return a
-		}
-	}
-	return (*Door)(nil)
+	return t.FindAttr((*Door)(nil)).(has.Door)
 }
 
 // Is returns true if passed attribute implements a door else false.

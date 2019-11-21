@@ -46,12 +46,7 @@ func NewStart() *Start {
 // implement has.Start returning the first match it finds or a *Start typed nil
 // otherwise.
 func FindStart(t has.Thing) has.Start {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Start); ok {
-			return a
-		}
-	}
-	return (*Start)(nil)
+	return t.FindAttr((*Start)(nil)).(has.Start)
 }
 
 // Is returns true if passed attribute implements a starting location else false.

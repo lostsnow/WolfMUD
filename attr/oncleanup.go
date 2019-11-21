@@ -39,12 +39,7 @@ func NewOnCleanup(text string) *OnCleanup {
 // that implement has.OnCleanup returning the first match it finds or a
 // *OnCleanup typed nil otherwise.
 func FindOnCleanup(t has.Thing) has.OnCleanup {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.OnCleanup); ok {
-			return a
-		}
-	}
-	return (*OnCleanup)(nil)
+	return t.FindAttr((*OnCleanup)(nil)).(has.OnCleanup)
 }
 
 // Is returns true if passed attribute implements an 'on cleanup' else false.

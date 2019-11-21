@@ -76,12 +76,7 @@ func NewNarrative() *Narrative {
 // that implement has.Narrative returning the first match it finds or a
 // *Narrative typed nil otherwise.
 func FindNarrative(t has.Thing) has.Narrative {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Narrative); ok {
-			return a
-		}
-	}
-	return (*Narrative)(nil)
+	return t.FindAttr((*Narrative)(nil)).(has.Narrative)
 }
 
 // Is returns true if passed attribute implements a narrative else false.

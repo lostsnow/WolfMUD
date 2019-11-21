@@ -51,12 +51,7 @@ func (p *Player) Dump() []string {
 // that implement has.Player returning the first match it finds or a *Player
 // typed nil otherwise.
 func FindPlayer(t has.Thing) has.Player {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Player); ok {
-			return a
-		}
-	}
-	return (*Player)(nil)
+	return t.FindAttr((*Player)(nil)).(has.Player)
 }
 
 // Is returns true if passed attribute implements a player else false.

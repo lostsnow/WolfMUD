@@ -50,12 +50,7 @@ func NewAction(after time.Duration, jitter time.Duration) *Action {
 // that implement has.Action returning the first match it finds or a *Action
 // typed nil otherwise.
 func FindAction(t has.Thing) has.Action {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Action); ok {
-			return a
-		}
-	}
-	return (*Action)(nil)
+	return t.FindAttr((*Action)(nil)).(has.Action)
 }
 
 // Is returns true if passed attribute implements an action else false.

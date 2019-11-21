@@ -74,12 +74,7 @@ func NewCleanup(after time.Duration, jitter time.Duration) *Cleanup {
 // that implement has.Cleanup returning the first match it finds or a *Cleanup
 // typed nil otherwise.
 func FindCleanup(t has.Thing) has.Cleanup {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Cleanup); ok {
-			return a
-		}
-	}
-	return (*Cleanup)(nil)
+	return t.FindAttr((*Cleanup)(nil)).(has.Cleanup)
 }
 
 // Is returns true if passed attribute implements a cleanup else false.

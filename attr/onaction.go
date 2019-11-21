@@ -40,12 +40,7 @@ func NewOnAction(actions []string) *OnAction {
 // that implement has.OnAction returning the first match it finds or a
 // *OnAction typed nil otherwise.
 func FindOnAction(t has.Thing) has.OnAction {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.OnAction); ok {
-			return a
-		}
-	}
-	return (*OnAction)(nil)
+	return t.FindAttr((*OnAction)(nil)).(has.OnAction)
 }
 
 // Is returns true if passed attribute implements an 'on action' else false.

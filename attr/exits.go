@@ -136,12 +136,7 @@ func NewExits() *Exits {
 // implement has.Exits returning the first match it finds or a *Exits typed nil
 // otherwise.
 func FindExits(t has.Thing) has.Exits {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Exits); ok {
-			return a
-		}
-	}
-	return (*Exits)(nil)
+	return t.FindAttr((*Exits)(nil)).(has.Exits)
 }
 
 // Is returns true if passed attribute implements exits else false.

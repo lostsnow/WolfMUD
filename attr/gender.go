@@ -74,12 +74,7 @@ func NewGender(gender string) *Gender {
 // that implement has.Gender returning the first match it finds or a *Gender
 // typed nil otherwise.
 func FindGender(t has.Thing) has.Gender {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Gender); ok {
-			return a
-		}
-	}
-	return (*Gender)(nil)
+	return t.FindAttr((*Gender)(nil)).(has.Gender)
 }
 
 // Is returns true if passed attribute implements gender else false.

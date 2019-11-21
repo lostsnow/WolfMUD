@@ -53,10 +53,10 @@ func NewVetoes(veto ...has.Veto) *Vetoes {
 // that implement has.Vetoes returning all that match. If no matches are found
 // an empty slice will be returned.
 func FindAllVetoes(t has.Thing) (matches []has.Vetoes) {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Vetoes); ok {
-			matches = append(matches, a)
-		}
+	vetoes := t.FindAttrs((*Vetoes)(nil))
+	matches = make([]has.Vetoes, len(vetoes))
+	for a := range vetoes {
+		matches[a] = vetoes[a].(has.Vetoes)
 	}
 	return
 }

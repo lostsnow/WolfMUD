@@ -50,12 +50,7 @@ func NewLocate(i has.Inventory) *Locate {
 // that implement has.Locate returning the first match it finds or a *Locate
 // typed nil otherwise.
 func FindLocate(t has.Thing) has.Locate {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Locate); ok {
-			return a
-		}
-	}
-	return (*Locate)(nil)
+	return t.FindAttr((*Locate)(nil)).(has.Locate)
 }
 
 // Is returns true if passed attribute implements locate else false.

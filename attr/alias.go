@@ -142,12 +142,7 @@ func (a *Alias) SetParent(t has.Thing) {
 // implement has.Alias returning the first match it finds or a *Alias typed nil
 // otherwise.
 func FindAlias(t has.Thing) has.Alias {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Alias); ok {
-			return a
-		}
-	}
-	return (*Alias)(nil)
+	return t.FindAttr((*Alias)(nil)).(has.Alias)
 }
 
 // Is returns true if passed attribute implements an alias else false.

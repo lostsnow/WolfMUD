@@ -39,12 +39,7 @@ func NewOnReset(text string) *OnReset {
 // that implement has.OnReset returning the first match it finds or a *OnReset
 // typed nil otherwise.
 func FindOnReset(t has.Thing) has.OnReset {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.OnReset); ok {
-			return a
-		}
-	}
-	return (*OnReset)(nil)
+	return t.FindAttr((*OnReset)(nil)).(has.OnReset)
 }
 
 // Is returns true if passed attribute implements an 'on reset' else false.

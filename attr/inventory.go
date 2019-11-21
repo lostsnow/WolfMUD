@@ -186,12 +186,7 @@ func (i *Inventory) Found() bool {
 // that implement has.Inventory returning the first match it finds or a
 // *Inventory typed nil otherwise.
 func FindInventory(t has.Thing) has.Inventory {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Inventory); ok {
-			return a
-		}
-	}
-	return (*Inventory)(nil)
+	return t.FindAttr((*Inventory)(nil)).(has.Inventory)
 }
 
 // Is returns true if passed attribute implements an inventory else false.

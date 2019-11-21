@@ -74,12 +74,7 @@ func NewBarrier(direction byte, allow []string, deny []string) *Barrier {
 // that implement has.Barrier returning the first match it finds or a *Barrier
 // typed nil otherwise.
 func FindBarrier(t has.Thing) has.Barrier {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Barrier); ok {
-			return a
-		}
-	}
-	return (*Barrier)(nil)
+	return t.FindAttr((*Barrier)(nil)).(has.Barrier)
 }
 
 // Is returns true if passed attribute implements a barrier else false.

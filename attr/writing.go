@@ -47,12 +47,7 @@ func NewWriting(w string) *Writing {
 // that implement has.Writing returning the first match it finds or a *Writing
 // typed nil otherwise.
 func FindWriting(t has.Thing) has.Writing {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Writing); ok {
-			return a
-		}
-	}
-	return (*Writing)(nil)
+	return t.FindAttr((*Writing)(nil)).(has.Writing)
 }
 
 // Is returns true if passed attribute implements writing else false.
