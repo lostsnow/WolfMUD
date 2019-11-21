@@ -21,6 +21,14 @@ type Thing interface {
 	// Attrs returns a []Attribute of all the Attribute for a Thing.
 	Attrs() []Attribute
 
+	// FindAttr returns the first Attribute implementing the passed attribute or
+	// the passed attribute if no matches found.
+	FindAttr(Attribute) Attribute
+
+	// FindAttrs returns all Attributes implementing the passed attribute or
+	// a nil slice if no matches found.
+	FindAttrs(cmp Attribute) []Attribute
+
 	Dump() []string
 
 	// Remove is used to remove one or more Attribute from a Thing.

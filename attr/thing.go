@@ -149,6 +149,41 @@ func (t *Thing) Attrs() []has.Attribute {
 	return a
 }
 
+// FindAttr searches the attributes of the Thing for attributes that implement
+// the passed Attribute cmp returning the first match it finds or cmp
+// otherwise. The comparison is performed by calling cmp.Is on the attributes
+// of the Thing. It is usual for cmp to be a typed nil attribute and for the
+// returned attribute to be converted to the general has interface type for
+// cmp. For an example see the attr.FindName function.
+func (t *Thing) FindAttr(cmp has.Attribute) has.Attribute {
+	t.rwmutex.RLock()
+	for _, a := range t.attrs {
+		if cmp.Is(a) {
+			t.rwmutex.RUnlock()
+			return a
+		}
+	}
+	t.rwmutex.RUnlock()
+	return cmp
+}
+
+// FindAttrs searches the attributes of the Thing for attributes that implement
+// the passed Attribute cmp returning a slice of all the matches it finds or a
+// nil slice otherwise. The comparison is performed by calling cmp.Is on the
+// attributes of the Thing. It is usual for cmp to be a typed nil attribute and
+// for the returned attribute to be converted to the general has interface
+// type for cmp. For an example see the attr.FindAllDescription function.
+func (t *Thing) FindAttrs(cmp has.Attribute) (attrs []has.Attribute) {
+	t.rwmutex.RLock()
+	for _, a := range t.attrs {
+		if cmp.Is(a) {
+			attrs = append(attrs, a)
+		}
+	}
+	t.rwmutex.RUnlock()
+	return
+}
+
 // ignoredFields is a list of known field names that should be ignored by
 // Unmarshal as there is no corresponding Attribute to unmarshal the field's
 // data. If the field isn't ignored we just get extra warnings in the log when
