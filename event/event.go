@@ -22,6 +22,13 @@ import (
 // we can then use. See cmd.Init in cmd/state.go for initialization.
 var Script func(t has.Thing, input string) string
 
+// FindName is an indirect reference to the attr.FindName function. The attr
+// package cannot be imported directly as it causes a cyclic dependency.
+// However the attr package can import the event package to initialise this
+// variable which we can then use. See init function in attr/name.go for
+// initialization.
+var FindName func(has.Thing) has.Name
+
 // Cancel is a send only channel that can be used to cancel a queued event.
 // When an event is queued via Queue a Cancel channel will be returned. The
 // Cancel channel should be closed to cancel the pending event that was queued.
@@ -43,15 +50,7 @@ var cache = make(chan *time.Timer, 10)
 // random event delay can be 0s.
 func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Duration) Cancel {
 
-	// Manually find the proper name of the thing instead of using attr.FindName
-	// to avoid cyclic imports with the attr and cmd packages.
-	name := "Unknown"
-	for _, a := range thing.Attrs() {
-		if a, ok := a.(has.Name); ok {
-			name = a.Name(name)
-		}
-	}
-
+	name := FindName(thing).(has.Name).Name("Unknown")
 	cancel := make(chan struct{})
 
 	// Calculate delay in seconds.

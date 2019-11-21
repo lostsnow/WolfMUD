@@ -7,6 +7,7 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
+	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
@@ -15,6 +16,11 @@ import (
 // Register marshaler for Name attribute.
 func init() {
 	internal.AddMarshaler((*Name)(nil), "name")
+}
+
+// Initialise event finder
+func init() {
+	event.FindName = FindName
 }
 
 type Name struct {
