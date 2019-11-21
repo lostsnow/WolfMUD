@@ -19,7 +19,7 @@ import (
 // Script is an indirect reference to the cmd.Script function. The cmd package
 // cannot be imported directly as it causes a cyclic dependency. However the
 // cmd package can import the event package to initialise this variable which
-// we can then use. See cmd.Init in cmd/state.go for initialization.
+// we can then use. See init function in cmd/state.go for initialization.
 var Script func(t has.Thing, input string) string
 
 // FindName is an indirect reference to the attr.FindName function. The attr
