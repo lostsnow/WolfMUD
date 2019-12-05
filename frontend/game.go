@@ -37,7 +37,7 @@ func (g *game) init() {
 	g.buf = nil
 
 	// Get a random starting location
-	start := (*attr.Start)(nil).Pick()
+	start := (*attr.Start)(nil).Pick().Outermost()
 
 	// Lock starting location and player in LockID order to avoid deadlocks
 	i1 := start
