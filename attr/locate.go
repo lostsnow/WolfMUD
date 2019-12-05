@@ -6,8 +6,6 @@
 package attr
 
 import (
-	"sync"
-
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 )
@@ -27,9 +25,9 @@ func init() {
 type Locate struct {
 	Attribute
 
-	rwmutex sync.RWMutex
-	where   has.Inventory
-	origin  has.Inventory
+	// Protected by Attribute RWMutex
+	where  has.Inventory
+	origin has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -41,8 +39,7 @@ var (
 // Inventory. Passing nil is a valid reference and is usually treated as being
 // nowhere.
 func NewLocate(i has.Inventory) *Locate {
-	l := &Locate{Attribute: Attribute{}}
-	l.SetWhere(i)
+	l := &Locate{Attribute: Attribute{}, where: i}
 	return l
 }
 
@@ -156,6 +153,6 @@ func (l *Locate) Free() {
 	l.rwmutex.Lock()
 	l.where = nil
 	l.origin = nil
+	l.Attribute.free()
 	l.rwmutex.Unlock()
-	l.Attribute.Free()
 }
