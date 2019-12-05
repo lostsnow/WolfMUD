@@ -58,3 +58,9 @@ func (a *Attribute) Free() {
 		a.rwmutex.Unlock()
 	}
 }
+
+// free is equivelent to calling Free but without any locking. This can be
+// useful if an attribute overrides Free and has already taken the lock.
+func (a *Attribute) free() {
+	a.parent = nil
+}
