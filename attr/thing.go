@@ -97,9 +97,9 @@ func (t *Thing) Free() {
 
 // Freed returns true if Free has been called on the Thing, else false.
 func (t *Thing) Freed() (b bool) {
-	t.rwmutex.Lock()
+	t.rwmutex.RLock()
 	b = t.attrs == nil
-	t.rwmutex.Unlock()
+	t.rwmutex.RUnlock()
 	return
 }
 
