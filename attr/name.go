@@ -23,6 +23,9 @@ func init() {
 	event.FindName = FindName
 }
 
+// Name implements an attribute for giving a Thing a short name. The name
+// should generally start with 'a', 'an' or 'some' except for proper names. For
+// example: an apple, some apples, an orange, Diddymus.
 type Name struct {
 	Attribute
 	name string
