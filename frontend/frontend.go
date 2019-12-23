@@ -180,11 +180,19 @@ func (f *frontend) greetingDisplay() {
 	NewLogin(f)
 }
 
-// Write writes the specified byte slice to the associated client.
+// Write writes the specified byte slice with the current prompt text appended
+// to the associated client. If the frontend has already raised an error,
+// Frontend.err != nil, then nothing will be written and n=0, err=nil will be
+// returned.
 func (f *frontend) Write(b []byte) (n int, err error) {
+	if f.err != nil {
+		return
+	}
+
 	b = append(b, text.Prompt...)
 	b = append(b, '>')
 	n, err = f.output.Write(b)
+
 	return
 }
 
