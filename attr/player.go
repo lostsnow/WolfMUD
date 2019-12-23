@@ -76,12 +76,12 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 // buildPrompt creates a prompt appropriate for the current PromptStyle. This
 // is mostly useful for dynamic prompts that show player statistics.
 func (p *Player) buildPrompt() []byte {
+	prompt := []byte(text.Prompt)
 	switch p.PromptStyle {
 	case has.StyleBrief:
-		return []byte(text.Prompt + ">")
-	default:
-		return []byte{}
+		prompt = append(prompt, '>')
 	}
+	return prompt
 }
 
 // Unmarshal is used to turn the passed data into a new Player attribute. At
