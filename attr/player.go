@@ -6,6 +6,7 @@
 package attr
 
 import (
+	"fmt"
 	"io"
 	"time"
 
@@ -74,12 +75,22 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 }
 
 // buildPrompt creates a prompt appropriate for the current PromptStyle. This
-// is mostly useful for dynamic prompts that show player statistics.
+// is mostly useful for dynamic prompts that show player stats such as health.
+//
+// NOTE: We always take the oppertunity to update stats when building the
+// prompt even if they are not included in the output.
 func (p *Player) buildPrompt() []byte {
+
 	prompt := []byte(text.Prompt)
+	cur, max := FindHealth(p.Parent()).State()
+
 	switch p.PromptStyle {
 	case has.StyleBrief:
 		prompt = append(prompt, '>')
+	case has.StyleShort:
+		prompt = append(prompt, fmt.Sprintf("H:%d/%d>", cur, max)...)
+	case has.StyleLong:
+		prompt = append(prompt, fmt.Sprintf("Health: %d/%d >", cur, max)...)
 	}
 	return prompt
 }
