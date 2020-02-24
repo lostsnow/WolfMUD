@@ -217,5 +217,16 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		p.Remove(a)
 	}
 
+	// Upgrade legacy player if no health attribute yet
+	h := attr.FindHealth(p)
+	if !h.Found() {
+		p.Add(attr.NewHealth(30, 30, 2, 10))
+	}
+
+	// Make sure player has at least one point of health
+	if cur, _ := h.State(); cur < 1 {
+		h.Adjust((cur * -1) + 1)
+	}
+
 	return p
 }
