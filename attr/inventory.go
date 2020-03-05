@@ -288,6 +288,7 @@ func (i *Inventory) Add(t has.Thing) {
 // once a Thing is removed Thing.Free should be called to release the Thing for
 // garbage collection.
 func (i *Inventory) Remove(t has.Thing) {
+	FindLocate(t).SetWhere(nil)
 	i.disabled.remove(t)
 }
 
