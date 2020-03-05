@@ -47,8 +47,7 @@ type state struct {
 }
 
 // Parse initiates processing of the input string for the specified Thing. The
-// input string is expected to be input from a player. The actual command
-// processed will be returned. For example GET or DROP.
+// input string is expected to be input from a player.
 //
 // Parse runs with state.scripting set to false, disallowing scripting specific
 // commands from being executed by players directly.
@@ -57,11 +56,10 @@ type state struct {
 // additional locks. In this case sync will return false and should be called
 // again. This repeats until the list of locks is complete, the command
 // processed and sync returns true.
-func Parse(t has.Thing, input string) string {
+func Parse(t has.Thing, input string) {
 	s := newState(t, input)
 	for !s.sync() {
 	}
-	return s.cmd
 }
 
 // Script processes the input string the same as Parse. However Script runs
