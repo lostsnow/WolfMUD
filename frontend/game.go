@@ -64,11 +64,18 @@ func (g *game) init() {
 }
 
 // gameProcess hands input to the game backend for processing while the player
-// is in the game. When the player quits the game the frontend.buf buffer is
-// restored - see gameInit.
+// is in the game. When the player is no longer in the world the frontend.buf
+// buffer is restored - see gameInit.
 func (g *game) process() {
-	c := cmd.Parse(g.player, string(g.input))
-	if c == "QUIT" {
+	l := attr.FindLocate(g.player)
+
+	// Only pass command to game parser if still in the world
+	if l.Where() != nil {
+		cmd.Parse(g.player, string(g.input))
+	}
+
+	// If no longer in the world switch to frontend main menu
+	if l.Where() == nil {
 		g.buf = message.AcquireBuffer()
 		g.buf.OmitLF(true)
 		NewMenu(g.frontend)
