@@ -25,6 +25,11 @@ func (hit) process(s *state) {
 		return
 	}
 
+	if s.where.Crowded() {
+		s.msg.Actor.SendInfo("It's too crowded in here to start a fight.")
+		return
+	}
+
 	matches, words := Match(s.words, s.where.Everything())
 	match := matches[0]
 	mark := s.msg.Actor.Len()
