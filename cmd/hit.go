@@ -9,7 +9,21 @@ import (
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
+
+// TODO(diddymus): Move to config(?) file...
+// BUG(diddymus): Do not use tabs in this string!
+var tomb = strings.ReplaceAll(`
+      ______
+     /      \
+    /        \
+    | R.I.P. |
+    |        |
+    |        |
+    |        |
+  __|________|__
+`, " ", "␠")
 
 // Syntax: HIT <who>
 func init() {
@@ -73,19 +87,24 @@ func (hit) process(s *state) {
 		return
 	}
 
-	cur, _ := h.State()
-
-	if cur <= 5 {
-		s.msg.Actor.SendInfo(what, " already seems pretty beaten up.")
-		s.ok = true
-		return
-	}
-
 	h.Adjust(-5)
+	cur, _ := h.State()
 
 	s.msg.Actor.SendGood("You hit ", what)
 	s.msg.Participant.SendBad(who, " hits you.")
 	s.msg.Observer.SendInfo("You see ", who, " hit ", what, ".")
+
+	// Participant killed?
+	if cur == 0 {
+		s.msg.Actor.SendGood("You killed ", what, "!")
+		s.msg.Observers.SendInfo("You see ", who, " kill ", what, "!")
+
+		s.msg.Participant.SendBad(who, " killed you!", text.Reset, tomb)
+		s.asParticipant("QUIT")
+		s.msg.Participant.Send(text.Reset, "\n[Press Enter for Main Menu]\n")
+		s.ok = true
+		return
+	}
 
 	s.ok = true
 	return
