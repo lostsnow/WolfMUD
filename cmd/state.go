@@ -230,6 +230,34 @@ func (s *state) scriptActor(input ...string) {
 	s.script(true, false, false, input...)
 }
 
+// asParticipant executes the given input as a command for the participant
+// using the current state. It is functionally equivalent to cmd.script but
+// with the actor and participant roles temporarily reversed for the duration
+// of the command. If the current participant is nil this method will just
+// return. See cmd.script for additional information.
+//
+// BUG(diddymus): It's currently assumed the actor and participant are at the
+// same location. This is important as s.were is not updated when roles are
+// switched, swapping locations could have implications for the locks being
+// held. More investigation and testing required.
+func (s *state) asParticipant(inputs ...string) {
+
+	if s.participant == nil {
+		return
+	}
+
+	// Reverse actor and participant roles
+	s.actor, s.participant = s.participant, s.actor
+	s.msg.Actor, s.msg.Participant = s.msg.Participant, s.msg.Actor
+
+	s.script(true, true, true, inputs...)
+
+	// Restore actor and participant roles
+	s.actor, s.participant = s.participant, s.actor
+	s.msg.Actor, s.msg.Participant = s.msg.Participant, s.msg.Actor
+
+}
+
 // messenger is used to send buffered messages to the actor, participant and
 // observers. The participant may be in another location to the actor - such as
 // when throwing something at someone or shooting someone.
