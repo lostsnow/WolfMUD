@@ -223,7 +223,7 @@ func (s *state) scriptNone(input ...string) {
 	s.script(false, false, false, input...)
 }
 
-// scriptAll is a helper method that is equivalent to calling script with
+// scriptActor is a helper method that is equivalent to calling script with
 // messages suppressed for any participant or observers. Only the actor will
 // receive any messages.
 func (s *state) scriptActor(input ...string) {
