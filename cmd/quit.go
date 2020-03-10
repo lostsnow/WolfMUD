@@ -43,6 +43,8 @@ func (q quit) process(s *state) {
 	// are locking.
 	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)
 
+	attr.FindHealth(s.actor).AutoUpdate(false)
+
 	// Remove the player from the world
 	if s.where != nil {
 		who := attr.FindName(s.actor).Name("someone")

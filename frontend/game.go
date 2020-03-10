@@ -49,6 +49,7 @@ func (g *game) init() {
 	i2.Lock()
 
 	attr.FindPlayer(g.player).SetPromptStyle(has.StyleShort)
+	attr.FindHealth(g.player).AutoUpdate(true)
 	start.Add(g.player)
 	start.Enable(g.player)
 	stats.Add(g.player)
