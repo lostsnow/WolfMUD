@@ -29,11 +29,12 @@ func init() {
 // drunk or otherwise applied.
 type Health struct {
 	Attribute
-	current   int
-	maximum   int
-	regens    int
-	frequency int64
-	update    int64
+	current    int
+	maximum    int
+	regens     int
+	frequency  int64
+	update     int64
+	autoUpdate bool
 }
 
 // Some interfaces we want to make sure we implement
@@ -56,7 +57,7 @@ var (
 // they regenerate - so the Player regenerates more health quicker - but the
 // effects only apply when the ring is being worn by the Player.
 func NewHealth(current, maximum, regens int, frequency int64) *Health {
-	return &Health{Attribute{}, current, maximum, regens, frequency, 0}
+	return &Health{Attribute{}, current, maximum, regens, frequency, 0, false}
 }
 
 // FindHealth searches the attributes of the specified Thing for attributes that
@@ -120,12 +121,12 @@ func (h *Health) Dump() []string {
 	absolute := FindPlayer(h.Parent()).Found()
 
 	if absolute {
-		tmpl = "%p %[1]T current: %d, maximum: %d, regens %d, frequency: %d"
+		tmpl = "%p %[1]T current: %d, maximum: %d, regens %d, frequency: %d, autoUpdate: %t"
 	} else {
-		tmpl = "%p %[1]T current: %+d, maximum: %+d, regens %+d, frequency: %+d"
+		tmpl = "%p %[1]T current: %+d, maximum: %+d, regens %+d, frequency: %+d, autoUpdate: %t"
 	}
 
-	return []string{DumpFmt(tmpl, h, h.current, h.maximum, h.regens, h.frequency)}
+	return []string{DumpFmt(tmpl, h, h.current, h.maximum, h.regens, h.frequency, h.autoUpdate)}
 }
 
 // State returns the current and maximum health points.
@@ -155,6 +156,12 @@ func (h *Health) Adjust(amount int) {
 	}
 }
 
+// AutoUpdate enables or disables the automatic regeneration of the current
+// health points.
+func (h *Health) AutoUpdate(enable bool) {
+	h.autoUpdate, h.update = enable, 0
+}
+
 // regen is responsible for regenerating current health points periodically.
 // Health points regenerate at a rate of Health.regens per Health.frequency.
 // Instead of regenerating on a timer regen calculates the number of updates
@@ -162,7 +169,7 @@ func (h *Health) Adjust(amount int) {
 // number of Health.regens to Health.current. As a result regens should be
 // called before Health.current is read or updated.
 func (h *Health) regen() {
-	if h == nil {
+	if h == nil || h.autoUpdate == false {
 		return
 	}
 

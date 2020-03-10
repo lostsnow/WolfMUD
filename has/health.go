@@ -17,4 +17,8 @@ type Health interface {
 	// Adjust increases or decreses the current health points by the given amount.
 	// The new value will be a minimum of 0 and capped at the health maximum.
 	Adjust(int)
+
+	// AutoUpdate enables or disables the automatic regeneration of current
+	// health points.
+	AutoUpdate(bool)
 }
