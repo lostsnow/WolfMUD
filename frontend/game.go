@@ -49,7 +49,15 @@ func (g *game) init() {
 	i2.Lock()
 
 	attr.FindPlayer(g.player).SetPromptStyle(has.StyleShort)
-	attr.FindHealth(g.player).AutoUpdate(true)
+
+	// Make sure player has at least one point of health and enable automatic
+	// health regeneration
+	h := attr.FindHealth(g.player)
+	if cur, _ := h.State(); cur == 0 {
+		h.Adjust(1)
+	}
+	h.AutoUpdate(true)
+
 	start.Add(g.player)
 	start.Enable(g.player)
 	stats.Add(g.player)
