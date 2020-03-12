@@ -995,6 +995,7 @@ OnAction: $ACT watches you suspiciously.
         : E
         : W
         : EXAMINE PLAYER
+    Veto: COMBAT→The city guard shouts "Oi! No fighting!".
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
@@ -1015,6 +1016,7 @@ OnAction: $ACT watches you suspiciously.
         : E
         : W
         : EXAMINE PLAYER
+    Veto: COMBAT→The city guard shouts "Oi! No fighting!".
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
