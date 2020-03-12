@@ -21,4 +21,8 @@ type Health interface {
 	// AutoUpdate enables or disables the automatic regeneration of current
 	// health points.
 	AutoUpdate(bool)
+
+	// Prompt returns the current health if brief is true else current health and
+	// maximum health as 'current/maximum' if false.
+	Prompt(brief bool) []byte
 }

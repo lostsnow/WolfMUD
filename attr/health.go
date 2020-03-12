@@ -7,12 +7,14 @@ package attr
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Register marshaler for Health attribute.
@@ -41,6 +43,16 @@ type Health struct {
 var (
 	_ has.Health = &Health{}
 )
+
+// padSpaces is large enough to cover the maximum digits in an int64 + sign. The
+// byte slice uses the Unicode symbol for space '␠' (U+2420, UTF-8 e2 90 a0)
+// so that the spaces do not cwcollapse into a single space when formatted for
+// the client.
+const padSpaces = "␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠"
+
+// padSize is the size in bytes of the Unicode symbol for space '␠' (U+2420,
+// UTF-8 e2 90 a0) used in padSpaces.
+const padSize = len("␠")
 
 // NewHealth returns a new Health attribute. If the Health attribute is added
 // to a Player the current, maximum, regens and frequency (in seconds) values
@@ -160,6 +172,48 @@ func (h *Health) Adjust(amount int) {
 // health points.
 func (h *Health) AutoUpdate(enable bool) {
 	h.autoUpdate, h.update = enable, 0
+}
+
+// Prompt returns the current and maximum health formatted as a colour coded
+// string for use in the player's prompt. The format is 'current/maximum' if
+// brief is false and 'current' if brief is true. In both cases current health
+// is colour coded based on the percentage of the maximum health:
+//
+//   Green: > 75%
+//  Yellow: 25%-75%
+//     Red: < 25%
+//
+// The current health is also left padded with spaces so that when the number
+// of digits change the values don't jump around.
+func (h *Health) Prompt(brief bool) (prompt []byte) {
+	h.regen()
+	level := (h.current * 100) / h.maximum
+
+	switch {
+	case level > 75:
+		prompt = append(prompt, text.Green...)
+	case level > 25:
+		prompt = append(prompt, text.Yellow...)
+	default:
+		prompt = append(prompt, text.Red...)
+	}
+
+	cur := strconv.Itoa(h.current)
+	max := strconv.Itoa(h.maximum)
+
+	// If needed, left pad current value to stop it jumping around as its length
+	// changes.
+	if diff := len(max) - len(cur); diff > 0 {
+		prompt = append(prompt, padSpaces[:diff*padSize]...)
+	}
+
+	prompt = append(prompt, cur...)
+	prompt = append(prompt, text.Reset...)
+	if !brief {
+		prompt = append(prompt, '/')
+		prompt = append(prompt, max...)
+	}
+	return
 }
 
 // regen is responsible for regenerating current health points periodically.
