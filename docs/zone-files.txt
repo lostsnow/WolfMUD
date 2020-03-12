@@ -532,6 +532,9 @@ ZONE RECORDS
     of TAKEOUT might be a rubbish bin you can only put things into but not
     remove.
 
+    Another pseudo command the can be vetoed is COMBAT which covers any form
+    of fighting, but not necessarily every way of harming another player.
+
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored
     by different people, which are then linked together using ZONELINKS. Using

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -67,6 +68,20 @@ func (hit) process(s *state) {
 	// If we sent an error to the actor return now
 	if mark != s.msg.Actor.Len() {
 		return
+	}
+
+	// Check if HIT command or COMBAT pseudo command is vetoed here or by
+	// something here. This lets us implement peaceful locations where no
+	// fighting is allowed.
+	canVeto := []has.Thing{s.where.Parent()}
+	canVeto = append(canVeto, s.where.Everything()...)
+	for _, t := range canVeto {
+		for _, vetoes := range attr.FindAllVetoes(t) {
+			if veto := vetoes.Check(s.actor, s.cmd, "COMBAT"); veto != nil {
+				s.msg.Actor.SendBad(veto.Message())
+				return
+			}
+		}
 	}
 
 	s.participant = match.Thing
