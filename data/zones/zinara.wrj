@@ -16,6 +16,8 @@ This is the city of Zinara.
   Aliases: TAVERN FIREPLACE
     Exits: E→L3 SE→L4 S→L2
 Inventory: L1N1A L1N1B
+     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
+           not fight.
 
 You are in the corner of the common room in the dragon's breath tavern. A fire
 burns merrily in an ornate fireplace, giving comfort to weary travellers. The
@@ -28,6 +30,8 @@ room leads to the tavern entrance.
   Aliases: TAVERN COMMON
     Exits: N→L1 NE→L3 E→L4
 Inventory: L2N1 L2N2 L2N3 M4
+     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
+           not fight.
 
 You are in a small, cosy common room in the dragon's breath tavern. Looking
 around you see a few chairs and tables for patrons. In one corner there is a
@@ -39,6 +43,8 @@ is the glow of a fire.
   Aliases: TAVERN ENTRANCE
     Exits: E→L5 S→L4 SW→L2 W→L1
 Inventory: L3N1
+     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
+           not fight.
 
 You are in the entryway to the dragon's breath tavern. To the west you see an
 inviting fireplace and south an even more inviting bar. Eastward a door leads
@@ -49,6 +55,8 @@ out into the street.
   Aliases: TAVERN BAR
     Exits: N→L3 NW→L1 W→L2
 Inventory: L4N1 L4N2 M6
+     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
+           not fight.
 
 You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with
 many bottles in a dizzying array of sizes, shapes and colours. There are also
