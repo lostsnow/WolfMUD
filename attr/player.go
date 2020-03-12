@@ -6,7 +6,6 @@
 package attr
 
 import (
-	"fmt"
 	"io"
 	"time"
 
@@ -81,17 +80,30 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 // prompt even if they are not included in the output.
 func (p *Player) buildPrompt() []byte {
 
-	prompt := []byte(text.Prompt)
-	cur, max := FindHealth(p.Parent()).State()
+	prompt := []byte(text.Reset)
+	h := FindHealth(p.Parent())
 
 	switch p.PromptStyle {
+	case has.StyleNone:
+		h.State()
+		prompt = append(prompt, text.Prompt...)
 	case has.StyleBrief:
+		h.State()
+		prompt = append(prompt, text.Prompt...)
 		prompt = append(prompt, '>')
 	case has.StyleShort:
-		prompt = append(prompt, fmt.Sprintf("H:%d/%d>", cur, max)...)
+		prompt = append(prompt, "H:"...)
+		prompt = append(prompt, h.Prompt(true)...)
+		prompt = append(prompt, text.Prompt...)
+		prompt = append(prompt, '>')
 	case has.StyleLong:
-		prompt = append(prompt, fmt.Sprintf("Health: %d/%d >", cur, max)...)
+		prompt = append(prompt, "Health: "...)
+		prompt = append(prompt, h.Prompt(false)...)
+		prompt = append(prompt, ' ')
+		prompt = append(prompt, text.Prompt...)
+		prompt = append(prompt, '>')
 	}
+
 	return prompt
 }
 
