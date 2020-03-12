@@ -284,6 +284,8 @@ streets of the city.
    Name: Quiet sheltered area
 Aliases: GARDENS SHELTERED
   Exits: S→L30
+   Veto: COMBAT→The surroundings are so peaceful that you cannot bring
+         yourself to harm anything here.
 
 You are in a small quiet area of the garden. Tall bushes have grown up over a
 trellis work to provide a small shaded area to come and sit in. The only exit
@@ -329,6 +331,8 @@ continue east, west and south.
   Aliases: GARDENS SHELTERED
     Exits: E→L33
 Inventory: M1
+     Veto: COMBAT→The surroundings are so peaceful that you cannot bring
+           yourself to harm anything here.
 
 You are in a small quiet area of the garden. Tall bushes have grown up over a
 trellis work to provide a small shaded area to come and sit in. The only exit
