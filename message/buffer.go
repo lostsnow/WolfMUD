@@ -212,9 +212,14 @@ func (b *Buffer) Deliver(w ...io.Writer) {
 		return
 	}
 
-	// If Buffer does not start with an escape sequence insert a reset to
-	// default colors
-	if len(b.buf) > 0 && b.buf[0] != '\x1b' {
+	// If Buffer does not start with an escape sequence or linefeed + an escape
+	// sequence, to cater for messages after moving off of the current prompt
+	// line, then insert a reset to default colors - this prevents bleeding of
+	// the prompt color into the messages by accident, which won't happend if we
+	// detect an escape sequence as the color is going to change immediatly
+	// anyway.
+	if !(len(b.buf) == 0 || (len(b.buf) > 0 && b.buf[0] == '\x1b') ||
+		(len(b.buf) > 1 && b.buf[0] == '\n' && b.buf[1] == '\x1b')) {
 		b.buf = append(b.buf, text.Reset...)
 		copy(b.buf[resetLen:], b.buf[0:len(b.buf)-resetLen])
 		copy(b.buf[0:resetLen], text.Reset)

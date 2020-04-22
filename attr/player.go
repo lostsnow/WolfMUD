@@ -78,9 +78,8 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 //
 // NOTE: We always take the oppertunity to update stats when building the
 // prompt even if they are not included in the output.
-func (p *Player) buildPrompt() []byte {
+func (p *Player) buildPrompt() (prompt []byte) {
 
-	prompt := []byte(text.Reset)
 	h := FindHealth(p.Parent())
 
 	switch p.PromptStyle {
