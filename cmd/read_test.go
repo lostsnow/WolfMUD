@@ -91,8 +91,6 @@ func TestRead_messages(t *testing.T) {
 			),
 		)
 
-		println(actor.Dump())
-
 		observer := cmd.NewTestPlayer("observer", "OBSERVER")
 
 		c := "read " + test.params
