@@ -17,8 +17,8 @@ import (
 // the correct color as well as being sent to the right players.
 func TestRead_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params   string
@@ -27,28 +27,28 @@ func TestRead_messages(t *testing.T) {
 	}{
 		{
 			"", // No item
-			text.Info + "Did you want to read something specific?\n", "",
+			text.Info + "Did you want to read something specific?" + P, "",
 		}, {
 			"frog", // Invalid item
-			text.Bad + "You see no 'FROG' to read.\n", "",
+			text.Bad + "You see no 'FROG' to read." + P, "",
 		}, {
 			"plaque", // Read narrative item at location
 			text.Good + "You read the plaque." +
-				text.Reset + "\nIt says 'Please do not read this plaque'.\n",
-			ORI + "You see the actor read a plaque.\n",
+				text.Reset + "\nIt says 'Please do not read this plaque'." + P,
+			OI + "You see the actor read a plaque." + P,
 		}, {
 			"newspaper", // Read item at location
 			text.Good + "You read the newspaper." +
-				text.Reset + "\nIt's full of depressing news stories.\n",
-			ORI + "You see the actor read a newspaper.\n",
+				text.Reset + "\nIt's full of depressing news stories." + P,
+			OI + "You see the actor read a newspaper." + P,
 		}, {
 			"token", // Read held item
 			text.Good + "You read the token." +
-				text.Reset + "\nIt has 'Test Token' written on it.\n",
-			ORI + "You see the actor read a token.\n",
+				text.Reset + "\nIt has 'Test Token' written on it." + P,
+			OI + "You see the actor read a token." + P,
 		}, {
 			"rock", // Try to read item with no writing
-			text.Bad + "You see no writing on the rock to read.\n", "",
+			text.Bad + "You see no writing on the rock to read." + P, "",
 		},
 	} {
 

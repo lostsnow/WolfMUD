@@ -18,8 +18,8 @@ import (
 // correct color as well as being sent to the right players.
 func TestOpen_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params    string
@@ -30,83 +30,83 @@ func TestOpen_messages(t *testing.T) {
 	}{
 		{
 			"", // No item or container
-			text.Info + "What did you want to open?\n", "", "", "",
+			text.Info + "What did you want to open?" + P, "", "", "",
 		}, {
 			"door", // Single door
-			text.Good + "You open the red door.\n",
-			ORI + "The actor opens a red door.\n",
-			ORI + "A red door opens.\n",
+			text.Good + "You open the red door." + P,
+			OI + "The actor opens a red door." + P,
+			OI + "A red door opens." + P,
 			"",
 		}, {
 			"door", // Single door - duplicate, check world reset
-			text.Good + "You open the red door.\n",
-			ORI + "The actor opens a red door.\n",
-			ORI + "A red door opens.\n",
+			text.Good + "You open the red door." + P,
+			OI + "The actor opens a red door." + P,
+			OI + "A red door opens." + P,
 			"",
 		}, {
 			"red door", // Door with specific qualifier to east
-			text.Good + "You open the red door.\n",
-			ORI + "The actor opens a red door.\n",
-			ORI + "A red door opens.\n",
+			text.Good + "You open the red door." + P,
+			OI + "The actor opens a red door." + P,
+			OI + "A red door opens." + P,
 			"",
 		}, {
 			"blue door", // Door with specific qualifier to west
-			text.Good + "You open the blue door.\n",
-			ORI + "The actor opens a blue door.\n",
+			text.Good + "You open the blue door." + P,
+			OI + "The actor opens a blue door." + P,
 			"",
-			ORI + "A blue door opens.\n",
+			OI + "A blue door opens." + P,
 		}, {
 			"wooden door", // First door matching multiple qualifier
-			text.Good + "You open the red door.\n",
-			ORI + "The actor opens a red door.\n",
-			ORI + "A red door opens.\n",
+			text.Good + "You open the red door." + P,
+			OI + "The actor opens a red door." + P,
+			OI + "A red door opens." + P,
 			"",
 		}, {
 			"2nd door", // Specific instance of a door
-			text.Good + "You open the blue door.\n",
-			ORI + "The actor opens a blue door.\n",
+			text.Good + "You open the blue door." + P,
+			OI + "The actor opens a blue door." + P,
 			"",
-			ORI + "A blue door opens.\n",
+			OI + "A blue door opens." + P,
 		}, {
 			"2nd wooden door", // Specific instance with qualifier
-			text.Good + "You open the blue door.\n",
-			ORI + "The actor opens a blue door.\n",
+			text.Good + "You open the blue door." + P,
+			OI + "The actor opens a blue door." + P,
 			"",
-			ORI + "A blue door opens.\n",
+			OI + "A blue door opens." + P,
 		}, {
 			"green door", // Door with unknown qualifier, fails match
-			text.Bad + "You see no 'GREEN DOOR' here to open.\n", "", "", "",
+			text.Bad + "You see no 'GREEN DOOR' here to open." + P, "", "", "",
 		}, {
 			"all door", // More than one door specified
-			text.Bad + "You can only open one thing at a time.\n", "", "", "",
+			text.Bad + "You can only open one thing at a time." + P, "", "", "",
 		}, {
 			"all wooden door", // More than one qualified door specified
-			text.Bad + "You can only open one thing at a time.\n", "", "", "",
+			text.Bad + "You can only open one thing at a time." + P, "", "", "",
 		}, {
 			"red door blue door", // Valid match, but unmatched words, so fail match
-			text.Bad + "You see no 'RED DOOR BLUE DOOR' here to open.\n", "", "", "",
+			text.Bad + "You see no 'RED DOOR BLUE DOOR' here to open." + P, "", "", "",
 		}, {
 			"frog turtle", // Invalid items
-			text.Bad + "You see no 'FROG TURTLE' here to open.\n", "", "", "",
+			text.Bad + "You see no 'FROG TURTLE' here to open." + P, "", "", "",
 		}, {
 			"frog door turtle", // Invalid and valid items mixed
-			text.Bad + "You see no 'FROG DOOR TURTLE' here to open.\n",
+			text.Bad + "You see no 'FROG DOOR TURTLE' here to open." + P,
 			"", "", "",
 		}, {
 			"token", // Open a non-door held item
-			text.Bad + "You see no 'TOKEN' here to open.\n", "", "", "",
+			text.Bad + "You see no 'TOKEN' here to open." + P, "", "", "",
 		}, {
 			"rock", // Open a non-door item at location
-			text.Bad + "You cannot open the rock.\n", "", "", "",
+			text.Bad + "You cannot open the rock." + P, "", "", "",
 		}, {
 			"window", // Open a non-narrative item
-			text.Good + "You open the window.\n",
-			ORI + "The actor opens a window.\n",
+			text.Good + "You open the window." + P,
+			OI + "The actor opens a window." + P,
 			"",
 			"",
 		}, {
 			"trapdoor", // Open something already open
-			text.Info + "The trapdoor is already open.\n", "", "", "",
+			text.Info + "The trapdoor is already open." + P, "", "", "",
 		},
 	} {
 

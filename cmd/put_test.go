@@ -18,8 +18,8 @@ import (
 // correct color as well as being sent to the right players.
 func TestPut_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params   string
@@ -28,88 +28,88 @@ func TestPut_messages(t *testing.T) {
 	}{
 		{
 			"", // No item or container
-			text.Info + "You go to put something into something else...\n", "",
+			text.Info + "You go to put something into something else..." + P, "",
 		}, {
 			"ball box", // Held item into held container
-			text.Good + "You put the small green ball into the box.\n",
-			ORI + "You see the actor put something into a box.\n",
+			text.Good + "You put the small green ball into the box." + P,
+			OI + "You see the actor put something into a box." + P,
 		}, {
 			"ball box", // Held item into held container - duplicate, check world reset
-			text.Good + "You put the small green ball into the box.\n",
-			ORI + "You see the actor put something into a box.\n",
+			text.Good + "You put the small green ball into the box." + P,
+			OI + "You see the actor put something into a box." + P,
 		}, {
 			"ball hole", // Held item into container at location
-			text.Good + "You put the small green ball into the hole.\n",
-			ORI + "You see the actor put something into a hole.\n",
+			text.Good + "You put the small green ball into the hole." + P,
+			OI + "You see the actor put something into a hole." + P,
 		}, {
 			"ball bag box", // 2x held item into held container
 			text.Good + "You put the small green ball into the box.\n" +
-				text.Good + "You put the bag into the box.\n",
-			ORI + "You see the actor put something into a box.\n",
+				text.Good + "You put the bag into the box." + P,
+			OI + "You see the actor put something into a box." + P,
 		}, {
 			"ball bag hole", // 2x held item into container at location
 			text.Good + "You put the small green ball into the hole.\n" +
-				text.Good + "You put the bag into the hole.\n",
-			ORI + "You see the actor put something into a hole.\n",
+				text.Good + "You put the bag into the hole." + P,
+			OI + "You see the actor put something into a hole." + P,
 		}, {
 			"ball", // Held item, no container
-			text.Bad + "What did you want to put a small green ball into?\n", "",
+			text.Bad + "What did you want to put a small green ball into?" + P, "",
 		}, {
 			"frog", // Invalid item, no container
-			text.Bad + "You have no 'FROG' to put into anything.\n", "",
+			text.Bad + "You have no 'FROG' to put into anything." + P, "",
 		}, {
 			"box", // Item only which is a container
-			text.Bad + "Did you want to put something into a box?\n", "",
+			text.Bad + "Did you want to put something into a box?" + P, "",
 		}, {
 			"2nd box", // Not enough item only
-			text.Bad + "You don't have that many 'BOX' to put into anything.\n", "",
+			text.Bad + "You don't have that many 'BOX' to put into anything." + P, "",
 		}, {
 			"ball frog bag box", // valid held item + invalid item into held container
 			text.Good + "You put the small green ball into the box.\n" +
 				text.Bad + "You have no 'FROG' to put into the box.\n" +
-				text.Good + "You put the bag into the box.\n",
-			ORI + "You see the actor put something into a box.\n",
+				text.Good + "You put the bag into the box." + P,
+			OI + "You see the actor put something into a box." + P,
 		}, {
 			"ball frog", // Valid held item, invalid container
-			text.Bad + "You see no 'FROG' to put things into.\n", "",
+			text.Bad + "You see no 'FROG' to put things into." + P, "",
 		}, {
 			"box box", // Try putting held container inside itself
 			text.Info + "It might be interesting to put a box inside itself, " +
-				"but probably paradoxical as well.\n",
-			ORI + "The actor seems to be trying to turn a box into a paradox.\n",
+				"but probably paradoxical as well." + P,
+			OI + "The actor seems to be trying to turn a box into a paradox." + P,
 		}, {
 			"hole hole", // Try putting container at location inside itself
-			text.Bad + "You have no 'HOLE' to put into the hole.\n", "",
+			text.Bad + "You have no 'HOLE' to put into the hole." + P, "",
 		}, {
 			"box ball", // Held item into a held non-container
-			text.Bad + "A small green ball isn't something you can put things in.\n", "",
+			text.Bad + "A small green ball isn't something you can put things in." + P, "",
 		}, {
 			"ball bag", // Held item into vetoing held container
-			text.Bad + "You can't get the bag open.\n", "",
+			text.Bad + "You can't get the bag open." + P, "",
 		}, {
 			"ball observer", // Held item into a player (treated as vetoing container)
-			text.Bad + "You can't put anything into the observer!\n", "",
+			text.Bad + "You can't put anything into the observer!" + P, "",
 		}, {
 			"hole box", // Held item into container at location
-			text.Bad + "You have no 'HOLE' to put into the box.\n", "",
+			text.Bad + "You have no 'HOLE' to put into the box." + P, "",
 		}, {
 			"sticky box", // Vetoing held item into held container
-			text.Bad + "You can't let go of something sticky.\n", "",
+			text.Bad + "You can't let go of something sticky." + P, "",
 		}, {
 			"rock box", // Non-held item into held container
-			text.Bad + "You have no 'ROCK' to put into the box.\n", "",
+			text.Bad + "You have no 'ROCK' to put into the box." + P, "",
 		}, {
 			"2nd ball box", // Not enough held items into held container
-			text.Bad + "You don't have that many 'BALL' to put into the box.\n", "",
+			text.Bad + "You don't have that many 'BALL' to put into the box." + P, "",
 		}, {
 			"ball 2nd box", // Held item but not enough containers
-			text.Bad + "You don't see that many 'BOX' to put things into.\n", "",
+			text.Bad + "You don't see that many 'BOX' to put things into." + P, "",
 		}, {
 			"ball all container", // Held item but multiple containers
-			text.Bad + "You can only put things into one container at a time.\n", "",
+			text.Bad + "You can only put things into one container at a time." + P, "",
 		}, {
 			"2 container", // 2 held items only that happen to be containers
-			text.Bad + "You go to put things into... something?\n", "",
+			text.Bad + "You go to put things into... something?" + P, "",
 		},
 	} {
 
@@ -214,7 +214,7 @@ func TestPut_noInventory(t *testing.T) {
 	c := "put ball hole"
 	cmd.Parse(actor, c)
 	have := actor.Messages()
-	want := text.Bad + "You have no 'BALL' to put into the hole.\n"
+	want := text.Bad + "You have no 'BALL' to put into the hole.\n" + text.Prompt
 	if have != want {
 		t.Errorf("Actor for %+q:\nhave: %+q\nwant: %+q", c, have, want)
 	}

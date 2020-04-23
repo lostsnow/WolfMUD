@@ -18,8 +18,8 @@ import (
 // correct color as well as being sent to the right players.
 func TestTake_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params   string
@@ -28,95 +28,95 @@ func TestTake_messages(t *testing.T) {
 	}{
 		{
 			"", // No item or container
-			text.Info + "You go to take something out of something else...\n", "",
+			text.Info + "You go to take something out of something else..." + P, "",
 		}, {
 			"ball box", // Item from held container
-			text.Good + "You take the small green ball out of the box.\n",
-			ORI + "You see the actor take something out of a box.\n",
+			text.Good + "You take the small green ball out of the box." + P,
+			OI + "You see the actor take something out of a box." + P,
 		}, {
 			"ball box", // Item from held container - duplicate, check world reset
-			text.Good + "You take the small green ball out of the box.\n",
-			ORI + "You see the actor take something out of a box.\n",
+			text.Good + "You take the small green ball out of the box." + P,
+			OI + "You see the actor take something out of a box." + P,
 		}, {
 			"ball bag box", // 2x item from held container
 			text.Good + "You take the small green ball out of the box.\n" +
-				text.Good + "You take the bag out of the box.\n",
-			ORI + "You see the actor take something out of a box.\n",
+				text.Good + "You take the bag out of the box." + P,
+			OI + "You see the actor take something out of a box." + P,
 		}, {
 			"rock pebble hole", // 2x item from container at location
 			text.Good + "You take the rock out of the hole.\n" +
-				text.Good + "You take the pebble out of the hole.\n",
-			ORI + "You see the actor take something out of a hole.\n",
+				text.Good + "You take the pebble out of the hole." + P,
+			OI + "You see the actor take something out of a hole." + P,
 		}, {
 			"rock hole", // Item from container at location
-			text.Good + "You take the rock out of the hole.\n",
-			ORI + "You see the actor take something out of a hole.\n",
+			text.Good + "You take the rock out of the hole." + P,
+			OI + "You see the actor take something out of a hole." + P,
 		}, {
 			"ball", // Item only
-			text.Bad + "What did you want to take 'BALL' out of?\n", "",
+			text.Bad + "What did you want to take 'BALL' out of?" + P, "",
 		}, {
 			"frog", // Invalid item only
-			text.Bad + "What did you want to take 'FROG' out of?\n", "",
+			text.Bad + "What did you want to take 'FROG' out of?" + P, "",
 		}, {
 			"box", // Item only that is a container
-			text.Bad + "Did you want to take something from the box?\n", "",
+			text.Bad + "Did you want to take something from the box?" + P, "",
 		}, {
 			"2nd token", // Not enough of held item only
-			text.Bad + "What did you want to take 'TOKEN' out of?\n", "",
+			text.Bad + "What did you want to take 'TOKEN' out of?" + P, "",
 		}, {
 			"ball frog bag box", // valid item + invalid item from held container
 			text.Good + "You take the small green ball out of the box.\n" +
 				text.Bad + "The box does not seem to contain 'FROG'.\n" +
-				text.Good + "You take the bag out of the box.\n",
-			ORI + "You see the actor rummage around in a box.\n" +
-				text.Info + "You see the actor take something out of a box.\n",
+				text.Good + "You take the bag out of the box." + P,
+			OI + "You see the actor rummage around in a box.\n" +
+				text.Info + "You see the actor take something out of a box." + P,
 		}, {
 			"frog ball newt box", // 2x invalid item, make sure only 1 rummage message
 			text.Bad + "The box does not seem to contain 'FROG'.\n" +
 				text.Good + "You take the small green ball out of the box.\n" +
-				text.Bad + "The box does not seem to contain 'NEWT'.\n",
-			ORI + "You see the actor rummage around in a box.\n" +
-				text.Info + "You see the actor take something out of a box.\n",
+				text.Bad + "The box does not seem to contain 'NEWT'." + P,
+			OI + "You see the actor rummage around in a box.\n" +
+				text.Info + "You see the actor take something out of a box." + P,
 		}, {
 			"ball bag", // Item from vetoing held container
-			text.Bad + "You can't get the bag open.\n", "",
+			text.Bad + "You can't get the bag open." + P, "",
 		}, {
 			"frog bag", // Invalid item from vetoing held container
-			text.Bad + "You can't get the bag open.\n", "",
+			text.Bad + "You can't get the bag open." + P, "",
 		}, {
 			"ball sack", // Item from invalid container
-			text.Bad + "You see no 'SACK' to take things out of.\n", "",
+			text.Bad + "You see no 'SACK' to take things out of." + P, "",
 		}, {
 			"ball token", // Item from a non-container
-			text.Bad + "You cannot take anything from the token.\n", "",
+			text.Bad + "You cannot take anything from the token." + P, "",
 		}, {
 			"token box", // Item not in container
-			text.Bad + "The box does not seem to contain 'TOKEN'.\n",
-			ORI + "You see the actor rummage around in a box.\n",
+			text.Bad + "The box does not seem to contain 'TOKEN'." + P,
+			OI + "You see the actor rummage around in a box." + P,
 		}, {
 			"sticky box", // Item with a TAKE veto from container
-			text.Bad + "You can't take something sticky.\n", "",
+			text.Bad + "You can't take something sticky." + P, "",
 		}, {
 			"carving box", // Narrative item from container
-			text.Bad + "For some reason you cannot take the carving from the box.\n",
-			ORI + "You see the actor having trouble removing something from a box.\n",
+			text.Bad + "For some reason you cannot take the carving from the box." + P,
+			OI + "You see the actor having trouble removing something from a box." + P,
 		}, {
 			"carving scratch box", // 2x narrative item from container, 1 trouble msg
 			text.Bad + "For some reason you cannot take the carving from the box.\n" +
-				text.Bad + "For some reason you cannot take the scratch from the box.\n",
-			ORI + "You see the actor having trouble removing something from a box.\n",
+				text.Bad + "For some reason you cannot take the scratch from the box." + P,
+			OI + "You see the actor having trouble removing something from a box." + P,
 		}, {
 			"2nd ball box", // Not enough items from held container
-			text.Bad + "There are not that many 'BALL' to take from the box.\n", "",
+			text.Bad + "There are not that many 'BALL' to take from the box." + P, "",
 		}, {
 			"ball 2nd box", // Not enough held containers
-			text.Bad + "You don't see that many 'BOX' to take things out of.\n", "",
+			text.Bad + "You don't see that many 'BOX' to take things out of." + P, "",
 		}, {
 			"ball all container", // Multiple containers
-			text.Bad + "You can only take things from one container at a time.\n", "",
+			text.Bad + "You can only take things from one container at a time." + P, "",
 		}, {
 			"2 container", // 2x items only that are containers
-			text.Bad + "You go to take things out of... something?\n", "",
+			text.Bad + "You go to take things out of... something?" + P, "",
 		},
 	} {
 
@@ -257,7 +257,7 @@ func TestTake_noInventory(t *testing.T) {
 	c := "take ball hole"
 	cmd.Parse(actor, c)
 	have := actor.Messages()
-	want := text.Bad + "You have nowhere to put the small green ball if you remove it from the hole.\n"
+	want := text.Bad + "You have nowhere to put the small green ball if you remove it from the hole.\n" + text.Prompt
 	if have != want {
 		t.Errorf("Actor for %+q:\nhave: %+q\nwant: %+q", c, have, want)
 	}

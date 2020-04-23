@@ -19,36 +19,38 @@ import (
 // correct color as well as being sent to the right players.
 func TestDrop_messages(t *testing.T) {
 
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
+
 	for _, test := range []struct {
 		cmd      string
 		actor    string
 		observer string
 	}{
 		// Drop with no item specified
-		{"", text.Info + "You go to drop... something?\n", ""},
+		{"", text.Info + "You go to drop... something?" + P, ""},
 
 		// Try to drop a single item
 		{
 			"ball",
-			text.Good + "You drop the small green ball.\n",
-			text.Reset + "\n" + text.Info + "The actor drops a small green ball.\n",
+			text.Good + "You drop the small green ball." + P,
+			"\n" + text.Info + "The actor drops a small green ball." + P,
 		},
 
 		// Duplicate normal drop - if world not cleaned after each test it will fail
 		{
 			"ball",
-			text.Good + "You drop the small green ball.\n",
-			text.Reset + "\n" + text.Info + "The actor drops a small green ball.\n",
+			text.Good + "You drop the small green ball." + P,
+			"\n" + text.Info + "The actor drops a small green ball." + P,
 		},
 
 		// Try to drop multiple items
 		{
 			"small ball large ball",
 			text.Good + "You drop the small green ball.\n" +
-				text.Good + "You drop the large green ball.\n",
-			text.Reset + "\n" +
+				text.Good + "You drop the large green ball." + P,
+			"\n" +
 				text.Info + "The actor drops a small green ball.\n" +
-				text.Info + "The actor drops a large green ball.\n",
+				text.Info + "The actor drops a large green ball." + P,
 		},
 
 		// Try to drop multiple items with one being invalid - checks colour change
@@ -56,20 +58,20 @@ func TestDrop_messages(t *testing.T) {
 			"small ball frog large ball",
 			text.Good + "You drop the small green ball.\n" +
 				text.Bad + "You have no 'FROG' to drop.\n" +
-				text.Good + "You drop the large green ball.\n",
-			text.Reset + "\n" +
+				text.Good + "You drop the large green ball." + P,
+			"\n" +
 				text.Info + "The actor drops a small green ball.\n" +
-				text.Info + "The actor drops a large green ball.\n",
+				text.Info + "The actor drops a large green ball." + P,
 		},
 
 		// Try to drop an invalid item
-		{"frog", text.Bad + "You have no 'FROG' to drop.\n", ""},
+		{"frog", text.Bad + "You have no 'FROG' to drop." + P, ""},
 
 		// Try to drop too many of an item
-		{"3rd ball", text.Bad + "You don't have that many 'BALL' to drop.\n", ""},
+		{"3rd ball", text.Bad + "You don't have that many 'BALL' to drop." + P, ""},
 
 		// Try to drop a non-narrative with an overriding veto message
-		{"something sticky", text.Bad + "You can't let go of something sticky.\n", ""},
+		{"something sticky", text.Bad + "You can't let go of something sticky." + P, ""},
 	} {
 
 		world := attr.Things{
@@ -150,7 +152,7 @@ func TestDrop_noInventory(t *testing.T) {
 	// Try and drop an item when player has no inventory
 	cmd.Parse(actor, "drop ball")
 	have := actor.Messages()
-	want := text.Bad + "You don't have anything to drop.\n"
+	want := text.Bad + "You don't have anything to drop.\n" + text.Prompt
 	if have != want {
 		t.Errorf(
 			"Actor for %+q:\nhave: %+q\nwant: %+q",
