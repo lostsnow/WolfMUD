@@ -126,9 +126,7 @@ func (p *Player) Write(b []byte) (n int, err error) {
 	}
 
 	b = append(b, p.buildPrompt()...)
-	if p != nil {
-		n, err = p.Writer.Write(b)
-	}
+	n, err = p.Writer.Write(b)
 	return
 }
 
