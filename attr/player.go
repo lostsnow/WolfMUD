@@ -125,8 +125,9 @@ func (p *Player) Write(b []byte) (n int, err error) {
 		return
 	}
 
-	b = append(b, p.buildPrompt()...)
-	n, err = p.Writer.Write(b)
+	// force new slice allocation leaving the originally passed []byte untouched,
+	// as per the io.Writer documention.
+	n, err = p.Writer.Write(append(b[:len(b):len(b)], p.buildPrompt()...))
 	return
 }
 
