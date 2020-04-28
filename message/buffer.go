@@ -230,18 +230,9 @@ func (b *Buffer) Deliver(w ...io.Writer) {
 		b.buf = append(b.buf, '\n')
 	}
 
-	// If sending messages to a single writer don't make a copy
-	if len(w) == 1 {
-		w[0].Write(b.buf)
-	}
-
-	// If we have multiple writers write a copy of the Buffer to each
-	if len(w) > 1 {
-		for _, w := range w {
-			c := make([]byte, len(b.buf))
-			copy(c, b.buf)
-			w.Write(c)
-		}
+	// Write buffer to all writers
+	for _, w := range w {
+		w.Write(b.buf)
 	}
 
 	// Reset Buffer for reuse
