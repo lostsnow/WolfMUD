@@ -218,11 +218,12 @@ func (b *Buffer) Deliver(w ...io.Writer) {
 	// the prompt color into the messages by accident, which won't happend if we
 	// detect an escape sequence as the color is going to change immediatly
 	// anyway.
-	if !(len(b.buf) == 0 || (len(b.buf) > 0 && b.buf[0] == '\x1b') ||
-		(len(b.buf) > 1 && b.buf[0] == '\n' && b.buf[1] == '\x1b')) {
-		b.buf = append(b.buf, text.Reset...)
-		copy(b.buf[resetLen:], b.buf[0:len(b.buf)-resetLen])
-		copy(b.buf[0:resetLen], text.Reset)
+	if l := len(b.buf); l > 0 {
+		if !(b.buf[0] == 0x1b || l > 1 && b.buf[0] == '\n' && b.buf[1] == 0x1b) {
+			b.buf = append(b.buf, text.Reset...)
+			copy(b.buf[resetLen:], b.buf[0:l])
+			copy(b.buf[0:resetLen], text.Reset)
+		}
 	}
 
 	// Make sure prompt appears at start of next new line
