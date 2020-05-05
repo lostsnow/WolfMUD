@@ -174,22 +174,37 @@ func (h *Health) AutoUpdate(enable bool) {
 	h.autoUpdate, h.update = enable, 0
 }
 
-// Prompt returns the current and maximum health formatted as a colour coded
-// string for use in the player's prompt. The format is 'current/maximum' if
-// brief is false and 'current' if brief is true. In both cases current health
-// is colour coded based on the percentage of the maximum health:
+// Prompt returns Health information appropriate for the prompt style. The
+// information may contain the current health and maximum health.
+//
+// If the current health is included it is colour coded based on the percentage
+// of maximum health:
 //
 //   Green: > 75%
 //  Yellow: 25%-75%
 //     Red: < 25%
 //
-// The current health is also left padded with spaces so that when the number
-// of digits change the values don't jump around.
-func (h *Health) Prompt(brief bool) (prompt []byte) {
-	h.regen()
-	level := (h.current * 100) / h.maximum
+// The current health is also left padded with spaces, if needed, so that when
+// the number of digits change the prompt does not jump around.
+func (h *Health) Prompt(style has.PromptStyle) (prompt []byte) {
+	if h == nil {
+		return
+	}
 
-	switch {
+	// Add label to prompt or just return if style has no stats
+	switch style {
+	case has.StyleNone, has.StyleBrief:
+		return
+	case has.StyleShort:
+		prompt = append(prompt, "H:"...)
+	case has.StyleLong:
+		prompt = append(prompt, "Health: "...)
+	}
+
+	h.regen()
+
+	// Colour current health based on % of maximum health
+	switch level := (h.current * 100) / h.maximum; {
 	case level > 75:
 		prompt = append(prompt, text.Green...)
 	case level > 25:
@@ -201,18 +216,23 @@ func (h *Health) Prompt(brief bool) (prompt []byte) {
 	cur := strconv.Itoa(h.current)
 	max := strconv.Itoa(h.maximum)
 
-	// If needed, left pad current value to stop it jumping around as its length
-	// changes.
+	// If needed, left pad current value with spaces to stop it jumping around as
+	// its length changes.
 	if diff := len(max) - len(cur); diff > 0 {
 		prompt = append(prompt, padSpaces[:diff*padSize]...)
 	}
 
+	// Add current health to prompt and reset to prompt colour
 	prompt = append(prompt, cur...)
-	prompt = append(prompt, text.Reset...)
-	if !brief {
+	prompt = append(prompt, text.Prompt...)
+
+	// If long style add maximum health to prompt + space
+	if style == has.StyleLong {
 		prompt = append(prompt, '/')
 		prompt = append(prompt, max...)
+		prompt = append(prompt, ' ')
 	}
+
 	return
 }
 

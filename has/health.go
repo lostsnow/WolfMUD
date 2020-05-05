@@ -24,5 +24,5 @@ type Health interface {
 
 	// Prompt returns the current health if brief is true else current health and
 	// maximum health as 'current/maximum' if false.
-	Prompt(brief bool) []byte
+	Prompt(PromptStyle) []byte
 }

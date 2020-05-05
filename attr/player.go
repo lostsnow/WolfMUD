@@ -75,35 +75,16 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 
 // buildPrompt creates a prompt appropriate for the current PromptStyle. This
 // is mostly useful for dynamic prompts that show player stats such as health.
-//
-// NOTE: We always take the oppertunity to update stats when building the
-// prompt even if they are not included in the output.
 func (p *Player) buildPrompt() (prompt []byte) {
 
 	h := FindHealth(p.Parent())
-
-	switch p.PromptStyle {
-	case has.StyleNone:
-		h.State()
-		prompt = append(prompt, text.Prompt...)
-	case has.StyleBrief:
-		h.State()
-		prompt = append(prompt, text.Prompt...)
-		prompt = append(prompt, '>')
-	case has.StyleShort:
-		prompt = append(prompt, "H:"...)
-		prompt = append(prompt, h.Prompt(true)...)
-		prompt = append(prompt, text.Prompt...)
-		prompt = append(prompt, '>')
-	case has.StyleLong:
-		prompt = append(prompt, "Health: "...)
-		prompt = append(prompt, h.Prompt(false)...)
-		prompt = append(prompt, ' ')
-		prompt = append(prompt, text.Prompt...)
+	prompt = append(prompt, text.Prompt...)
+	prompt = append(prompt, h.Prompt(p.PromptStyle)...)
+	if p.PromptStyle != has.StyleNone {
 		prompt = append(prompt, '>')
 	}
 
-	return prompt
+	return
 }
 
 // Unmarshal is used to turn the passed data into a new Player attribute. At
@@ -119,7 +100,8 @@ func (*Player) Marshal() (string, []byte) {
 	return "", []byte{}
 }
 
-// Write writes the specified byte slice to the associated client.
+// Write appends the current prompt to a copy of the passed []byte and writes
+// the resulting []byte to the Player.
 func (p *Player) Write(b []byte) (n int, err error) {
 	if p == nil {
 		return
