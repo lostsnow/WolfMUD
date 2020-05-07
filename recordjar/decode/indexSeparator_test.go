@@ -42,6 +42,10 @@ func TestIndexSeparator(t *testing.T) {
 		{"\ta→z:y", 2, 3},
 		{"\na→z:y", 2, 3},
 		{"Χαίρετε→hello", 14, 3},
+		{"X-Y→hello", 3, 3},
+		{"X_Y→hello", 3, 3},
+		{"X→Y-hello", 1, 3},
+		{"X→Y_hello", 1, 3},
 	} {
 		t.Run(fmt.Sprintf("%s", test.data), func(t *testing.T) {
 			haveIndex, haveSize := indexSeparator([]byte(test.data))
@@ -63,6 +67,8 @@ func BenchmarkIndexSeparator(b *testing.B) {
 		{"Exit", "E→L4"},
 		{"Veto", "GET→The rock seems quite immovable."},
 		{"Invalid", "Invalid"},
+		{"_Body", "UPPER_ARM→2"},
+		{"-Body", "UPPER-ARM→2"},
 	} {
 		data := []byte(test.data)
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {

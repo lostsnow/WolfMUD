@@ -72,8 +72,11 @@ func KeywordList(data []byte) []string {
 
 // PairList returns the []byte data as uppercassed pairs of strings in a map.
 // The data is first split on white space and extra white space is stripped.
-// The pairs are then split into a name and value on the first non-letter,
-// non-digit. If we take exits as an example:
+// The pairs are then split into a keyword and value on the first non-letter,
+// non-digit, non-underscore '_' or non-hyphen/minus '-'. That means the
+// keyword can contain letters, digits, underscores or hyphens/minuses.
+//
+// If we take exits as an example:
 //
 //  Exits: E→L3 SE→L4 S→ W
 //
@@ -86,11 +89,12 @@ func KeywordList(data []byte) []string {
 //    "W": "",
 //  }
 //
-// Here the separator used is '→' but any non-letter or non-digit may be used.
-// If the same name occurs more than once only the first instance will be used.
-// A name may appear by itself, as in 'E', or with a separator, as in 'E→' in
-// which case the value will be an empty string. If no name is given, for
-// example '→L3' any value will be ignored.
+// Here the separator used is '→' but any non-letter, non-digit, non-underscore
+// or non-hyphen/minus may be used. If the same keyword occurs more than once
+// only the first instance will be used. A keyword may appear by itself, as in
+// 'E', or with a separator, as in 'E→' in which case the value will be an
+// empty string. If no keyword is given, for example '→L3' any value will be
+// ignored.
 func PairList(data []byte) (pairs map[string]string) {
 
 	var i, l int
@@ -128,7 +132,11 @@ func StringList(data []byte) (s []string) {
 // KeyedStringList splits the []byte data into a map of keywords and strings.
 // The []byte data is first split on a colon (:) separator to determine the
 // pairs. The keyword is then split from the beginning of each pair on the
-// first non-letter or non-digit. For example:
+// first non-letter, non-digit, non-hyphen/minus '-' or non-underscore '_'.
+// That means the keyword can contain letters, digits, hyphens/minuses or
+// underscores.
+//
+// For example:
 //
 //  Vetoes:  GET→You can't get it.
 //        : DROP→You can't drop it.
@@ -264,16 +272,20 @@ func Integer(data []byte) (i int) {
 // indexSeparator returns the position (starting at 0) and length in bytes of
 // the first separator rune found. If no separator is found the position
 // returned will be equal to the length of 'b' and the length returned will be
-// 0. The separator is taken to be the first rune found that is a not a letter,
-// digit or white space.
+// 0. The separator is determined by calling IsSeparator.
 func indexSeparator(b []byte) (index int, size int) {
-	index = bytes.IndexFunc(b, func(r rune) bool {
-		return !unicode.In(r, unicode.Digit, unicode.Letter, unicode.White_Space)
-	})
-	if index != -1 {
-		_, size = utf8.DecodeRune(b[index:])
-	} else {
-		index, size = len(b), 0
+	index = bytes.IndexFunc(b, IsSeparator)
+	if index == -1 {
+		return len(b), 0
 	}
+	_, size = utf8.DecodeRune(b[index:])
 	return
+}
+
+// IsSeparator returns true if r is considered a name/value separator else
+// false. A rune is considered a separator if it is not a letter, digit, white
+// space, hyphen/minus '-' or underscore '_'.
+func IsSeparator(r rune) bool {
+	return !(r == '-' || r == '_' ||
+		unicode.In(r, unicode.Digit, unicode.Letter, unicode.White_Space))
 }

@@ -90,12 +90,18 @@ FIELD DATA TYPES
 
   PAIR LIST
     The data is a white space separated list of pairs. Each pair is separated
-    by a non-digit or non-letter character. For example:
+    by a non-digit, non-letter, non-hyphen/minus '-' or non-underscore '_'
+    character. That is, the keyword before the separator may contain digits,
+    letters, hyphen/minus or an underscore.
+
+    For example:
 
       Exits: E→L3 SE→L4 S→L2
 
     There are three pairs: E→L3, SE→L4 and S→L2. Each pair is separated by '→'
-    which is a non-digit and non-numeric.
+    which is the first character not valid in a keyword.
+
+    The names are not case sensitive.
 
   STRING LIST
     The data is separated into strings using a colon (:) as a separator. For
@@ -109,8 +115,10 @@ FIELD DATA TYPES
   KEYED STRING LIST
     The data is separated into keyword and string pairs, each pair separated
     by a colon. To help with readability the colon may start on a new line.
-    The keyword should be a single word followed by a non-letter, non-numeric
-    separator. For example:
+    The keyword should be a single word followed by a non-digit, non-letter,
+    non-hyphen/minus '-' or non-underscore '_' separator. That is, the keyword
+    before the separator may contain digits, letters, hyphen/minus or an
+    underscore. For example:
 
       Vetoes: GET→You cannot get it!
             : EXAMINE→You go to examine it, as it seems to be a very curious
@@ -120,7 +128,7 @@ FIELD DATA TYPES
     This defines three vetoes, each separated by a colon. Each veto is a
     keyword - here GET, EXAMINE and PUT - each followed by a string. The
     keywords and strings are separated using the '→' character, but any
-    non-letter or non-numeric can be used.
+    non-digit, non-letter, non-hyphen/minus or non-underscore can be used.
 
 ZONE HEADER RECORD
 
