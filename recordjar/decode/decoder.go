@@ -76,6 +76,11 @@ func KeywordList(data []byte) []string {
 // non-digit, non-underscore '_' or non-hyphen/minus '-'. That means the
 // keyword can contain letters, digits, underscores or hyphens/minuses.
 //
+// In addition a keyword may have a leading exclamation mark '!' that is not
+// treated as a delimiter. A keyword with a leading exclamation mark is
+// distinct from a keyword without. For example 'KEYWORD' and '!KEYWORD' are
+// distinct keywords.
+//
 // If we take exits as an example:
 //
 //  Exits: E→L3 SE→L4 S→ W
@@ -94,21 +99,29 @@ func KeywordList(data []byte) []string {
 // only the first instance will be used. A keyword may appear by itself, as in
 // 'E', or with a separator, as in 'E→' in which case the value will be an
 // empty string. If no keyword is given, for example '→L3' any value will be
-// ignored.
+// ignored. The keywords in the returned map will always be uppercased.
 func PairList(data []byte) (pairs map[string]string) {
 
-	var i, l int
-	var name string
+	var (
+		i, l int
+		name string
+		ok   bool
+	)
 
 	pairs = make(map[string]string)
 
 	for _, data := range bytes.Fields(data) {
-		i, l = indexSeparator(data)
-		name = Keyword(data[:i])
-		if name == "" {
+		// If leading '!' skip so not identified as separator else just process
+		if data[0] == '!' {
+			i, l = indexSeparator(data[1:])
+			i++
+		} else {
+			i, l = indexSeparator(data)
+		}
+		if name = Keyword(data[:i]); name == "" {
 			continue
 		}
-		if _, ok := pairs[name]; !ok {
+		if _, ok = pairs[name]; !ok {
 			pairs[name] = Keyword(data[i+l:])
 		}
 	}

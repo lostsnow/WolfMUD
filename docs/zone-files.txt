@@ -103,6 +103,12 @@ FIELD DATA TYPES
 
     The names are not case sensitive.
 
+    Under certain circumstances a keyword may contain a leading exclamation
+    mark '!', which will not be identified as a keyword/value delimiter. A
+    keyword with a leading exclamation mark is distinct from one without. For
+    example '!KEYWORD' is separate from 'KEYWORD'. The record sections that
+    follow will detail when a leading exclamation mark is valid for a keyword.
+
   STRING LIST
     The data is separated into strings using a colon (:) as a separator. For
     example:
