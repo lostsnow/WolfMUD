@@ -278,6 +278,56 @@ ZONE RECORDS
 
     See also the section on ALIASES.
 
+  BODY: <PAIR LIST>
+    BODY is used to specify the body slots of players and mobiles. Body slots
+    determine which items can be held, worn or wielded. Each pair in the list
+    defines a slot name as the keyword followed by an optional quantity. For
+    example:
+
+      BODY: TORSO HAND→2
+
+    This defines a body with one TORSO slot and two HAND slots. A currently
+    unavailable slot can be defined by prefixing the slot name with an
+    exclamation mark '!'. For example:
+
+      BODY: TORSO HAND !HAND
+
+    We now have the same body as before but with a hand missing. By marking a
+    slot as unavailable it is possible to use magic, healing or prosthetics to
+    restore it. Note that if a player has a missing hand then they would be
+    limited to single handed weapons - so no bows for example. It should also
+    be noted that a mythical creature with four arms/hands would be able to
+    use two bows or a bow and two single handed weapons - simply by having the
+    approbate body slots available.
+
+    A body can be defined using only a few general slots. For example a
+    minimal body would be:
+
+      BODY: TORSO HAND→2
+
+    This would allow basic armour/clothing to be worn using the TORSO slot. It
+    would also allow items to be held, worn or wielded in the HAND slots.
+    Having two hands automatically allows for single or dual wielding weapons
+    as well as the wielding of two handed weapons like bows.
+
+    A body can also be defined with a wide array of slots available, allowing
+    more customisation for players. Currently the default, humanoid body is
+    defined as:
+
+      Body: HEAD FACE EAR→2 EYE→2 NOSE MOUTH UPPER_LIP LOWER_LIP NECK
+            SHOULDER→2 UPPER_ARM→2 ELBOW→2 LOWER_ARM→2 WRIST→2 HAND→2 FINGER→8
+            THUMB→2 CHEST BACK WAIST PELVIS UPPER_LEG→2 KNEE→2 LOWER_LEG→2
+            ANKLE→2 FOOT→2
+
+    The only constraint is that the slot name: HEAD, HAND, etc. used in
+    defining body slots matches the slot names used for the HOLDABLE, WEARABLE
+    and WIELDABLE fields when defining items. All of the defined slots do not
+    have to be used. For example there may be no holdable, wearable or
+    wieldable items that currently use the MOUTH, UPPER_LIP or LOWER_LIP
+    slots.
+
+    See also HOLDABLE, WEARABLE and WIELDABLE for more details.
+
   CLEANUP: <PAIR LIST>
     CLEANUP is used to specify how long to wait after an item is dropped
     before it is automatically cleaned up and either reset or disposed of. If
