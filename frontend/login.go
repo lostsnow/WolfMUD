@@ -222,5 +222,23 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		p.Add(attr.NewHealth(30, 30, 2, 10))
 	}
 
+	// Upgrade legacy player if no body attribute yet
+	if !attr.FindBody(p).Found() {
+		p.Add(attr.NewBody(
+			"HEAD",
+			"FACE", "EAR", "EYE", "NOSE", "EYE", "EAR",
+			"MOUTH", "UPPER_LIP", "LOWER_LIP",
+			"NECK",
+			"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+			"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+			"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+			"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+			"BACK", "CHEST",
+			"WAIST", "PELVIS",
+			"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+			"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+		))
+	}
+
 	return p
 }
