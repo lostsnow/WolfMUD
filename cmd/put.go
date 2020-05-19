@@ -48,6 +48,15 @@ func (p put) process(s *state) {
 			continue
 		}
 
+		// If item is being used try to remove it first to sync Body slots. If
+		// the REMOVE command fails also fail PUT command.
+		if b := attr.FindBody(s.actor); b.Using(tWhat) {
+			s.scriptAll("REMOVE", tWhat.UID())
+			if b.Using(tWhat) {
+				continue
+			}
+		}
+
 		// Move the item from the actor's inventory to the container
 		aInv.Move(tWhat, cInv)
 
