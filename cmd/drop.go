@@ -51,6 +51,16 @@ nextMatch:
 			s.msg.Actor.SendBad("You don't have that many '", match.NotEnough, "' to drop.")
 
 		default:
+
+			// If item is being used try to remove it first to sync Body slots. If
+			// the REMOVE command fails also fail DROP command.
+			if b := attr.FindBody(s.actor); b.Using(what) {
+				s.scriptAll("REMOVE", what.UID())
+				if b.Using(what) {
+					continue nextMatch
+				}
+			}
+
 			// Check drop is not vetoed by item, item's current inventory or receiving
 			// inventory
 			for _, t := range []has.Thing{what, s.actor, s.where.Parent()} {
