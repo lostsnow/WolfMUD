@@ -599,6 +599,23 @@ ZONE RECORDS
     Another pseudo command the can be vetoed is COMBAT which covers any form
     of fighting, but not necessarily every way of harming another player.
 
+  WIELDABLE: <PAIR LIST>
+    The WIELDABLE field specifies that an item can be wielded as a weapon and
+    the BODY slots required to do so. For example a sword that can be wielded
+    in one hand would be specified with:
+
+      WIELDABLE: HAND
+
+    While a bow that requires two hands would be specified as:
+
+      WIELDABLE: HAND→2
+
+    For the item to be successfully wielded the BODY slots must be available
+    to the wielder and must also be free - not holding, wearing or wielding
+    other items in the required slots.
+
+    See also: BODY, HOLDABLE and WEARABLE for more details.
+
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored
     by different people, which are then linked together using ZONELINKS. Using
