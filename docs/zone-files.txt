@@ -420,6 +420,35 @@ ZONE RECORDS
     If an EXITS field is added to something an inventory will be automatically
     added as well even if there is no specific INVENTORY field.
 
+  HOLDABLE: <PAIR LIST>
+    The HOLDABLE field specifies that an item can be held and the BODY slots
+    required to do so. Unlike WEARABLE and WIELDABLE any item, except players
+    and mobiles - i.e. items with a BODY field defined, can be held as if they
+    were defined with:
+
+      HOLDABLE: HAND
+
+    This can be overridden by adding a specific HOLDABLE field. For example if
+    an item requires two hands to hold it the definition would be:
+
+      HOLDABLE: HAND→2
+
+    A specific HOLDABLE field can also be added to mobiles, maybe so that
+    small creatures can be held. In this case the HOLDABLE could be for one
+    hand or two depending on the size of the mobile.
+
+    If an item should not be held at all then the HOLD command can be vetoed:
+
+      VETO: HOLD→You cannot hold that in your hand.
+
+    This will allow overriding the default HOLDABLE ability of an item.
+
+    For the item to be successfully held the BODY slots must be available to
+    the holder and must also be free - not holding, wearing or wielding other
+    items in the required slots.
+
+    See also: BODY, WEARABLE and WIELDABLE for more details.
+
   INVENTORY: <KEYWORD LIST>
     The INVENTORY field defines something as being a container or location. It
     may be followed by a list of space separated references. Each reference
