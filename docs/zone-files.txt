@@ -190,27 +190,83 @@ ZONE RECORDS
 
   ALIAS: <KEYWORD LIST>
   ALIASES: <KEYWORD LIST>
-    A list of keywords used by players to interact with something. For
-    example: LATTICE
-
-    Anything can have more than one alias. This allows aliases to be used to
-    group related things together. For example, barriers use aliases to
-    determine who can pass through the barrier. By grouping all non-player
-    characters with the alias "NPC" we can prevent mobiles from wandering off
-    into areas they shouldn't. However, by specifying a specifically allowed
-    alias we can let certain mobiles through, even if they are non-player
-    characters. For example:
+    A list of keywords used by players to refer to an item. To illustrate
+    aliases the following definition of a sword will be used:
 
       %%
-            Ref: B1
-      Narrative:
-        Barrier: EXIT→East DENY→NPC,CREATURE ALLOW→GUARD,WARDEN
+          Ref: O1
+         Name: a wooden shortsword
+      Aliases: SWORD SHORTSWORD WEAPONS
+        Reset: AFTER→1m JITTER→1m
+      Cleanup: AFTER→10m JITTER→5m
+
+      This is a shortsword made of wood for use in training.
       %%
 
-    Here we define a barrier that prevents anything with an alias of NPC or
-    CREATURE from passing through - two general groups. However any mobile
-    also tagged with GUARD or WARDEN can still pass through. GUARD would be a
-    sub-group for all guards, and there would probably only be one warden.
+    The aliases 'SWORD', 'SHORTSWORD' and 'WEAPONS' allow the item to be
+    specified on commands used by players. For example 'GET SWORD', 'EXAMINE
+    SHORTSWORD', 'DROP ALL WEAPONS'.
+
+    When defining items it is a good idea to have at least one general
+    category for the item, in this case 'WEAPONS'. This allows a player to
+    easily refer to groups of items in a command such as 'DROP ALL WEAPONS'.
+
+    Alias Qualifiers
+    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    Aliases may be defined with one or more optional qualifiers using the plus
+    '+' symbol. The above example could be improved by using the '+SHORT' and
+    '+WOODEN' qualifiers:
+
+      Aliases: +WOODEN +SHORT SWORD SHORTSWORD
+
+    This is most useful when there are similar items and the player wants to
+    target a specific one easily - for example a shortsword and a longsword.
+    With the revised aliases definition a player could use any of the
+    following commands:
+
+      GET SWORD
+      GET SHORTSWORD
+      GET WOODEN SWORD
+      GET WOODEN SHORTSWORD
+      GET SHORT SWORD
+      GET WOODEN SHORT SWORD
+      GET SHORT WOODEN SWORD
+
+    Bound Qualifiers
+    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    An alias qualifier may be bound to a specific alias by specifying the
+    qualifier, a colon ':' and then the alias the qualifier is bound to. The
+    alias for a bound qualifier does not have to be specified separately.
+
+    One drawback to the above revised aliases definition is that it also
+    allows the player to specify commands like the following:
+
+      GET SHORT SHORTSWORD
+      GET SHORT WOODEN SHORTSWORD
+
+    This may, or may not, be desirable. If it is not then bound qualifiers can
+    be used to specify that a qualifier can only be used with a specific
+    alias. A better aliases definition for the shortsword would be:
+
+      Aliases: +WOODEN +SHORT:SWORD SHORTSWORD
+
+    The bound qualifier here is '+SHORT:SWORD'. This specifies that the
+    qualifier 'SHORT' is only valid when used with the alias 'SWORD'. As a
+    result the command 'GET SHORT SHORTSWORD' would not be recognised as
+    'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'.
+
+    When a bound alias is used the alias does not have to be defined
+    separately. In the above example the bound alias '+SHORT:SWORD' will
+    define the alias 'SWORD' automatically, although it can still be specified
+    for clarity if needed.
+
+    It should be noted that the qualifier 'WOODEN' is still unbound and so
+    'GET WOODEN SWORD', 'GET WOODEN SHORTSWORD', 'GET WOODEN SHORT SWORD' and
+    'GET SHORT WOODEN SWORD' are all valid.
+
+    A good use of qualifiers, bound or unbound, is when differentiating items
+    by size, colour or material. It should also be noted that all players have
+    the 'PLAYER' group alias automatically.
 
   BARRIER: <PAIR LIST>
     BARRIER is used to conditionally block movement of a mobile in a specific
