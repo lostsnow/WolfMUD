@@ -580,11 +580,18 @@ ZONE RECORDS
       RESET: AFTER→2m JITTER→1m SPAWN→true
 
     AFTER and JITTER specify the reset or respawn period to be between AFTER
-    and AFTER+JITTER. If SPAWN is false this is the period after which the
-    item will be reset and placed back into the game after being disposed of.
-    If SPAWN is true it is the period after which a new copy of the item will
-    appear in the game - with or without the previous copy being disposed of
-    first.
+    and AFTER+JITTER. If SPAWN is false, or omitted, the item is considered
+    unique, unless more than one is defined.
+
+    If an item is unique AFTER+JITTER is the period after which the item will
+    be reset and placed back into the game after being disposed of. Unique
+    items cannot be kept by players and a reset of the item will be forced
+    whenever the player logs out.
+
+    If an item is not unique AFTER+JITTER is the period after which a new copy
+    of the item will appear in the game - with or without the previous copy
+    being disposed of first. Non-unique items may be kept and collected by
+    players.
 
     If AFTER and JITTER are not specified the minimum reset period will be 1
     second. If SPAWN is not specified it will default to false.
