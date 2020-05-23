@@ -835,6 +835,7 @@ OnAction: $ACT hops around a bit.
         : S
         : E
         : W
+Holdable: HAND→2
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
 doesn't seem to be late for anything!
@@ -852,6 +853,7 @@ OnAction: $ACT croaks a bit.
         : S
         : E
         : W
+Holdable: HAND
 
 It is a small, lime green frog. It's slimy and croaks. What more can you say?
 %%
