@@ -1116,27 +1116,27 @@ Location: L1
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.
 %%
-     Ref: O3
+     Ref: O2
     Name: a small red ball
  Aliases: BALL
    Reset: AFTER→0s JITTER→2m SPAWN
  Cleanup: AFTER→1s
-Location: O4A
+Location: O4
 
 This is a small, red, rubber ball.
 %%
-      Ref: O4
+      Ref: O3
      Name: an iron bound chest
   Aliases: CHEST
     Reset: AFTER→1m JITTER→1m
   Cleanup: AFTER→10m JITTER→5m
- Location: L1
-Inventory: O4A
+ Location: L16
+Inventory: O4
 
 This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick metal
 bands bind it.
 %%
-      Ref: O4A
+      Ref: O4
      Name: a small leather pouch
   Aliases: POUCH
     Reset: AFTER→1m JITTER→1m
