@@ -1194,7 +1194,7 @@ gold.
   Aliases: SACK
     Reset: AFTER→1m JITTER→1m SPAWN
   Cleanup: AFTER→10m JITTER→5m
- Location: L1
+ Location: L16
 Inventory:
 
 This is a small sack, handy for carrying things in.
@@ -1204,7 +1204,7 @@ This is a small sack, handy for carrying things in.
   Aliases: BAG
     Reset: AFTER→1m JITTER→1m SPAWN
   Cleanup: AFTER→10m JITTER→5m
- Location: L1
+ Location: L16
 Inventory:
 
 This is a small bag, handy for carrying things in.
