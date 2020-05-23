@@ -715,7 +715,7 @@ ticking.
       Ref: L3N1
 Narrative:
      Name: the tavern door
-  Aliases: DOOR
+  Aliases: +TAVERN DOOR
      Door: EXIT→E RESET→1m JITTER→1m
 
 This is a sturdy wooden door with a simple latch.
