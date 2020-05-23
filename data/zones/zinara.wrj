@@ -1110,7 +1110,7 @@ This is a very large, serious looking man.
     Name: a curious brass lattice
  Aliases: LATTICE
    Reset: AFTER→10m JITTER→10m
-Location: L1
+Location: L8
     Veto: JUNK→The lattice cannot be junked.
 
 This is a finely crafted, intricate lattice of fine brass wires forming a
