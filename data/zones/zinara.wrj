@@ -1116,50 +1116,6 @@ Location: L1
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.
 %%
-      Ref: O2a
-     Name: a small green ball
-  Aliases: +SMALL +GREEN BALL
-    Reset: AFTER→0s JITTER→0s
-  OnReset: There is a bright flash and a small green ball appears.
-  Cleanup: AFTER→0s JITTER→0s
-OnCleanup: There is a bright flash and the small green ball disappears.
- Location: L1
-
-This is a small, green, rubber ball.
-%%
-      Ref: O2b
-     Name: a large green ball
-  Aliases: +LARGE +GREEN BALL
-    Reset: AFTER→0s JITTER→0s
-  OnReset: There is a bright flash and a large green ball appears.
-  Cleanup: AFTER→0s JITTER→0s
-OnCleanup: There is a bright flash and the large green ball disappears.
- Location: L1
-
-This is a large, green, rubber ball.
-%%
-      Ref: O2c
-     Name: a small red ball
-  Aliases: +SMALL +RED BALL
-    Reset: AFTER→0s JITTER→0s
-  OnReset: There is a bright flash and a small red ball appears.
-  Cleanup: AFTER→0s JITTER→0s
-OnCleanup: There is a bright flash and the small red ball disappears.
- Location: L1
-
-This is a small, red, rubber ball.
-%%
-      Ref: O2d
-     Name: a large red ball
-  Aliases: +LARGE +RED BALL
-    Reset: AFTER→0s JITTER→0s
-  OnReset: There is a bright flash and a large red ball appears.
-  Cleanup: AFTER→0s JITTER→0s
-OnCleanup: There is a bright flash and the large red ball disappears.
- Location: L1
-
-This is a large, red, rubber ball.
-%%
      Ref: O3
     Name: a small red ball
  Aliases: BALL
