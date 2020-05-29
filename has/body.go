@@ -31,6 +31,18 @@ type Body interface {
 	// slots will also have the usage flags cleared.
 	Remove(Thing)
 
+	// Wielding returns a unique slice of Things currently being wielded by the
+	// Body or an empty slice.
+	Wielding() []Thing
+
+	// Wearing returns a unique slice of Things currently being worn on the Body
+	// or an empty slice.
+	Wearing() []Thing
+
+	// Holding returns a unique slice of Things currently being held by the Body
+	// or an empty slice.
+	Holding() []Thing
+
 	// Using returns true if passed Thing is allocated to any Body slot, else
 	// false.
 	Using(Thing) bool

@@ -256,6 +256,27 @@ func (b *Body) Remove(t has.Thing) {
 	}
 }
 
+// Wielding returns a unique slice of Things, even if they take up more than
+// one Body slot, currently being wielded by the Body. If nothing is being
+// wielded an empty slice will be returned.
+func (b *Body) Wielding() []has.Thing {
+	return b.usedFor(wielding)
+}
+
+// Wearing returns a unique slice of Things, even if they take up more than one
+// Body slot, currently being worn on the Body. If nothing is being worn an
+// empty slice will be returned.
+func (b *Body) Wearing() []has.Thing {
+	return b.usedFor(wearing)
+}
+
+// Holding returns a unique slice of Things, even if they take up more than one
+// Body slot, currently being held by the Body. If nothing is being held an
+// empty slice will be returned.
+func (b *Body) Holding() []has.Thing {
+	return b.usedFor(holding)
+}
+
 // use allocates Body slots returned by the Slotable and sets the slot's usage.
 // If all of the slots from Slotable can be allocated returns true else returns
 // false and none of the slots are allocated.
@@ -329,6 +350,29 @@ func (b *Body) UsedBy(refs []string) (usedBy []has.Thing) {
 		usedBy = append(usedBy, u)
 	}
 	return
+}
+
+// usedFor returns a unique slice of Things that are being used for a specific
+// purpose, even if an item is using more than one Body slot. For example all
+// items being worn. If there are no items that match the specified usage, or
+// there is no Body attribute, an empty slice will be returned.
+func (b *Body) usedFor(usage usageBits) []has.Thing {
+	if b == nil {
+		return []has.Thing{}
+	}
+	seen := make(map[has.Thing]struct{}, len(b.slots))
+	for _, slot := range b.slots {
+		if slot.usage&usage != 0 {
+			if _, found := seen[slot.used]; !found {
+				seen[slot.used] = struct{}{}
+			}
+		}
+	}
+	unique := make([]has.Thing, 0, len(seen))
+	for what := range seen {
+		unique = append(unique, what)
+	}
+	return unique
 }
 
 // Usage returns a string describing the Body slot usage for the passed Thing.
