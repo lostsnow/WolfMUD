@@ -542,12 +542,13 @@ You are in a narrow alley that continues north. South you see a street beyond
 the alley's end.
 %%
     Ref: L60
-   Name: Street
+   Name: Street outside Merkle's Fine Emporium
   Alias: STREET
-  Exits: N→L59 E→L24 W→L61
+  Exits: N→L59 E→L24 S→L73 W→L61
 
 You are on a street that runs east and west. To the north you can see a narrow
-alley.
+alley. To the south is a clothier's shop with a sign proclaiming it to be
+"Merkle's Fine Emporium".
 %%
       Ref: L61
      Name: Street outside warrior's barracks
@@ -655,6 +656,15 @@ accommodation for the gate-warden on duty. The only exit is west.
 
 You are in a small gate house. It is sparse but functional, providing
 accommodation for the gate-warden on duty. The only exit is north.
+%%
+      Ref: L73
+     Name: Merkle's Fine Emporium
+    Alias: +MERKLE'S:EMPORIUM +FINE:EMPORIUM
+    Exits: N→L60
+Inventory: M18
+
+You are in Merkle's fine emporium. All around you hanging from pegs or lying
+on shelves and tables are various articles of clothing.
 %%
 //
 // Narratives
@@ -1104,6 +1114,26 @@ OnAction: $ACT looks at you, then quickly looks away again.
 
 This is a very large, serious looking man.
 %%
+     Ref: M18
+    Name: Merkle
+   Reset: AFTER→1m
+ OnReset: Merkle walks into view.
+ Aliases: MERKLE CLOTHIER NPC
+  Action: AFTER→30s JITTER→15s
+OnAction: $ACT looks at you, then quickly looks away again.
+        : $ACT walks around the shop a bit keeping an eye on things.
+        : $ACT cautiously watches you as you browse around the shop.
+        : $ACT starts sweeping the floor.
+        : $ACT smiles and nods.
+        : $ACT folds some clothing and puts it back on a table.
+        : SAY See anything you like?
+        : SAY Please look around, there must be something here you like?
+        : EXAMINE PLAYER
+        : EXAMINE CLOTHING
+
+Merkle the clothier is a thin, slightly balding man. He seems happy in his
+work and eager to please potential customers.
+%%
 //
 // OBJECTS
 //
@@ -1208,4 +1238,171 @@ This is a small sack, handy for carrying things in.
 Inventory:
 
 This is a small bag, handy for carrying things in.
+%%
+//
+// STOCK FOR MERKLE'S FINE EMPORIUM
+//
+%%
+     Ref: L73O1
+    Name: some leather breeches
+ Aliases: +LEATHER:BREECHES CLOTHING CLOTHES
+Wearable: UPPER_LEG→2 LOWER_LEG→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+These are a pair of soft leather breeches.
+%%
+     Ref: L73O2
+    Name: a leather jerkin
+ Aliases: +LEATHER:JERKIN CLOTHING CLOTHES
+Wearable: CHEST BACK
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a sleeveless, soft leather jerkin.
+%%
+     Ref: L73O3
+    Name: a leather jacket
+ Aliases: +LEATHER:JACKET CLOTHING CLOTHES
+Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a long sleeved, soft leather jacket.
+%%
+     Ref: L73O4
+    Name: a leather cap
+ Aliases: +LEATHER:CAP CLOTHING CLOTHES
+Wearable: HEAD
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a soft leather cap.
+%%
+     Ref: L73O5
+    Name: some leather bracers
+ Aliases: +LEATHER:BRACERS ARMOUR
+Wearable: LOWER_ARM→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+These are hard leather bracers. They are worn to protect the lower arms.
+%%
+     Ref: L73O6
+    Name: some shoes
+ Aliases: +LEATHER:SHOES CLOTHING CLOTHES
+Wearable: FOOT→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+A pair of plain, soft leather shoes.
+%%
+     Ref: L73O7
+    Name: some boots
+ Aliases: +LEATHER:BOOTS CLOTHING CLOTHES
+Wearable: FOOT→2 ANKLE→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+A pair of plain, soft leather boots that come up to just below the knees.
+%%
+     Ref: L73O8
+    Name: a plain belt
+ Aliases: +LEATHER:BELT CLOTHING CLOTHES
+Wearable: WAIST
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+An unadorned  belt made from hard, dark leather. The buckle is a plain, brass
+frame with a prong for fastening.
+%%
+     Ref: L73O9
+    Name: a floral belt
+ Aliases: +FLORAL:BELT +LEATHER:BELT CLOTHING CLOTHES
+Wearable: WAIST
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+A soft leather belt with an ornate floral pattern carved into it. The
+fastening is a simple brass plate engraved with a flower.
+%%
+     Ref: L73O9
+    Name: a knotwork belt
+ Aliases: +KNOTWORK:BELT +LEATHER:BELT CLOTHING CLOTHES
+Wearable: WAIST
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+A soft leather belt with an ornate knotwork pattern carved into it. The buckle
+is a sculpted, ornate brass knot.
+%%
+     Ref: L73O10
+    Name: a cotton shirt
+ Aliases: +COTTON:SHIRT +COTTON:SHIRT CLOTHING CLOTHES
+Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a rough, light cotton shirt with long sleves.
+%%
+     Ref: L73O11
+    Name: some cotton trousers
+ Aliases: +COTTON:TROUSERS +COTTON:TROUSERS CLOTHING CLOTHES
+Wearable: UPPER_LEG→2 LOWER_LEG→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+These are rough, long cotton trousers.
+%%
+     Ref: L73O12
+    Name: a cotton dress
+ Aliases: +COTTON:DRESS +COTTON:DRESS CLOTHING CLOTHES
+Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a long, rough cotton dress.
+%%
+     Ref: L73O13
+    Name: a formal gown
+ Aliases: +FORMAL:GOWN +FINE:GOWN CLOTHING CLOTHES
+Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a long, formal gown made from fine cotton.
+%%
+     Ref: L73O14
+    Name: a plain silk scarf
+ Aliases: +PLAIN:SCARF +SILK:SCARF CLOTHING CLOTHES
+Wearable: NECK
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a unadorned, fine silk scarf.
+%%
+     Ref: L73O15
+    Name: a floral silk scarf
+ Aliases: +FLORAL:SCARF +SILK:SCARF CLOTHING CLOTHES
+Wearable: NECK
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a fine silk scarf with a colourful floral pattern on it.
 %%
