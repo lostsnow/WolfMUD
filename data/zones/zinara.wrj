@@ -445,7 +445,7 @@ to the mage's tower.
 %%
     Ref: L48
    Name: Entrance to mage's tower
-  Alias: ENTRANCE, TOWER
+  Alias: ENTRANCE TOWER
   Exits: N→L49 W→L46
 
 You are standing at the entrance to the mage's tower. In front of you stand two
@@ -453,7 +453,7 @@ huge gates. West the street beckons. Northward the mysteries of the Tower await.
 %%
     Ref: L49
    Name: Mage's tower
-  Alias: TOWER, HALL
+  Alias: TOWER HALL
   Exits: S→L48
 
 You are standing in a great hall at the base of the mage's tower. The only exit
@@ -486,7 +486,7 @@ modest temple.
 %%
     Ref: L53
    Name: Entrance to temple
-  Alias: ENTRANCE, TEMPLE
+  Alias: ENTRANCE TEMPLE
   Exits: E→L52 W→L54
 
 You are standing at the entrance to a modest temple. West there is a large set
@@ -585,7 +585,7 @@ south you see a small gate house, east the way leads into the city.
 %%
     Ref: L65
    Name: Entrance to warrior's barracks
-  Alias: BARRACKS, ENTRANCE
+  Alias: BARRACKS ENTRANCE
   Exits: N→L66 S→L61
 
 You are standing at the entrance to the warrior's barracks. North there is a set
@@ -601,7 +601,7 @@ the earth packed by many passing feet. The only exit lies to the south.
 %%
     Ref: L67
    Name: Magic shop
-  Alias: SHOP, MAGIC
+  Alias: SHOP MAGIC
   Exits: W→L51
 
 You are in a small and shabby magic shop. If it's 'wrath of god' stuff you want
