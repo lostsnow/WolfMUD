@@ -35,7 +35,7 @@ type state struct {
 	participant has.Thing     // The other Thing participating in the command
 	input       []string      // The original input of the actor minus cmd
 	cmd         string        // The current command being processed
-	words       []string      // Input as uppercased words, less stopwords
+	words       []string      // Input as uppercased words, less cmd & stopwords
 	ok          bool          // Flag to indicate if command was successful
 	scripting   bool          // Is state in scripting mode?
 
