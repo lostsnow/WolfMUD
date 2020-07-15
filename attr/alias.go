@@ -13,6 +13,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Alias attribute.
@@ -188,34 +189,28 @@ func (a *Alias) Marshal() (tag string, data []byte) {
 	return
 }
 
-func (a *Alias) Dump() []string {
-	return []string{
-		DumpFmt(
-			"%p %[1]T %d aliases: %s, %d qualifiers: %s",
-			a,
-			len(a.aliases),
-			dumpFmtList(a.Aliases()),
-			len(a.qualifiers),
-			dumpFmtList(a.Qualifiers()),
-		),
-	}
-}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (a *Alias) Dump(node *tree.Node) *tree.Node {
 
-// dumpFmtList returns a formatted list of strings. The format wraps the list
-// elements in quotes and returns the list comma separated. For example:
-// the slice []string{"A", "B"} becomes the string `"A", "B"`
-func dumpFmtList(list []string) string {
-	if len(list) == 0 {
-		return ""
+	// Format list of aliases and qualifiers as '"A", "B", "C"'
+	aliases, qualifiers := []byte{}, []byte{}
+	if len(a.aliases) > 0 {
+		for l := range a.aliases {
+			aliases = strconv.AppendQuote(append(aliases, ", "...), l)
+		}
+		aliases = aliases[2:]
 	}
-	b := []byte{}
-	for _, l := range list {
-		b = append(b, ',')
-		b = append(b, ' ')
-		b = strconv.AppendQuote(b, l)
+	if len(a.qualifiers) > 0 {
+		for l := range a.qualifiers {
+			qualifiers = strconv.AppendQuote(append(qualifiers, ", "...), l)
+		}
+		qualifiers = qualifiers[2:]
 	}
-	b = b[2:]
-	return string(b)
+
+	return node.Append(
+		"%p %[1]T - aliases: %d [%s], qualifiers: %d [%s]",
+		a, len(a.aliases), aliases, len(a.qualifiers), qualifiers,
+	)
 }
 
 // HasAlias checks the passed string for a matching alias. Returns true if a
