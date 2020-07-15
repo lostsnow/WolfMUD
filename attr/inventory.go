@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Inventory attribute.
@@ -211,27 +212,33 @@ func (i *Inventory) Marshal() (tag string, data []byte) {
 	return "inventory", encode.KeywordList(refs)
 }
 
-func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, "")
-	for _, list := range []*list{i.players, i.contents, i.narratives, i.disabled} {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (i *Inventory) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - lock ID: %d, items: %d",
+		i,
+		i.LockID(),
+		i.players.len+i.contents.len+i.narratives.len+i.disabled.len,
+	)
+
+	lists := node.Branch()
+
+	for _, list := range []struct {
+		label string
+		*list
+	}{
+		{"players", i.players},
+		{"contents", i.contents},
+		{"narratives", i.narratives},
+		{"disabled", i.disabled},
+	} {
+		lists.Append("%p %[1]T - (%s) len: %d", list.list, list.label, list.len)
+		branch := lists.Branch()
 		for n := list.head.next; n.next != nil; n = n.next {
-			for _, l := range n.item.Dump() {
-				buff = append(buff, DumpFmt("%s", l))
-			}
+			n.item.Dump(branch)
 		}
 	}
 
-	buff[0] = DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, contents: %d, narratives: %d, disabled: %d):",
-		i,
-		i.LockID(),
-		i.players.len+i.contents.len+i.narratives.len,
-		i.players.len,
-		i.contents.len,
-		i.narratives.len,
-		i.disabled.len,
-	)
-
-	return buff
+	return node
 }
 
 // Move removes an enabled Thing from the receiver Inventory and puts it into
