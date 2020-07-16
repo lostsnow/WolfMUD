@@ -8,6 +8,7 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Narrative attribute.
@@ -104,9 +105,9 @@ func (n *Narrative) Marshal() (tag string, data []byte) {
 // a Narrative.
 func (*Narrative) ImplementsNarrative() {}
 
-func (n *Narrative) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T", n))
-	return buff
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (n *Narrative) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T", n)
 }
 
 // Copy returns a copy of the Narrative receiver.
