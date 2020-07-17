@@ -14,6 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Cleanup attribute.
@@ -118,10 +119,11 @@ func (c *Cleanup) Marshal() (tag string, data []byte) {
 	return
 }
 
-func (c *Cleanup) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s", c, c.after, c.jitter))
-	buff = append(buff, DumpFmt("  %p %[1]T", c.Cancel))
-	return
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (c *Cleanup) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - after: %s, jitter: %s", c, c.after, c.jitter)
+	node.Branch().Append("%p %[1]T", c.Cancel)
+	return node
 }
 
 // Copy returns a copy of the Cleanup receiver. The copy will not inherit any
