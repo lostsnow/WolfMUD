@@ -7,26 +7,28 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
-// Syntax: #DUMP alias
+// Syntax: #DUMP|#UDUMP|#LDUMP alias
 //
-// The #DUMP command is only available if the server is running with the
-// configuration option Debug.AllowDump set to true.
+// The #DUMP, #UDUMP and #LDUMP commands are only available if the server is
+// running with the configuration option Debug.AllowDump set to true.
 func init() {
-	addHandler(dump{}, "#DUMP")
+	addHandler(dump{}, "#DUMP")  // Dump ASCII graph to terminal
+	addHandler(dump{}, "#UDUMP") // Dump Unicode graph to terminal
+	addHandler(dump{}, "#LDUMP") // Dump ASCII graph to server log
 }
 
 type dump cmd
 
 func (dump) process(s *state) {
 	if !config.Debug.AllowDump {
-		s.msg.Actor.SendBad("#DUMP command is not available. Server not running with configuration option Debug.AllowDump=true")
+		s.msg.Actor.SendBad("The #DUMP, #UDUMP and #LDUMP commands are not available. Server not running with configuration option Debug.AllowDump=true")
 		return
 	}
 
@@ -79,6 +81,23 @@ func (dump) process(s *state) {
 		return
 	}
 
-	s.msg.Actor.Send(strings.Join(what.Dump(), "\n"))
+	if s.cmd == "#LDUMP" {
+		what.DumpToLog("#LDUMP")
+		s.ok = true
+		return
+	}
+
+	t := tree.Tree{}
+	t.Indent, t.Offset, t.Width = 2, 13, 78
+
+	if s.cmd == "#UDUMP" {
+		t.Style = tree.StyleUnicode + "␠"
+	} else {
+		t.Style = tree.StyleASCII + "␠"
+	}
+
+	what.Dump(t.Branch())
+
+	s.msg.Actor.Send(t.Render())
 	s.ok = true
 }
