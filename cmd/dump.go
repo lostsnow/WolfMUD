@@ -7,23 +7,17 @@ package cmd
 
 import (
 	"fmt"
-	rtdebug "runtime/debug"
-	"strconv"
 	"strings"
-	"unsafe"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 )
 
-// Syntax: #DUMP ( alias | <address> )
+// Syntax: #DUMP alias
 //
 // The #DUMP command is only available if the server is running with the
 // configuration option Debug.AllowDump set to true.
-//
-// The address can be any address printed using %p that points to a
-// *attr.Thing - e.g. 0xc42011fab0.
 func init() {
 	addHandler(dump{}, "#DUMP")
 }
@@ -39,7 +33,7 @@ func (dump) process(s *state) {
 	defer func() {
 		if p := recover(); p != nil {
 			err := fmt.Errorf("%v", p)
-			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": ", err.Error())
+			s.msg.Actor.SendBad("Error dumping ", s.input[0], ": ", err.Error())
 		}
 	}()
 
@@ -77,19 +71,6 @@ func (dump) process(s *state) {
 		if attr.FindAlias(s.actor).HasAlias(name) {
 			what = s.actor
 		}
-	}
-
-	// Here be dragons - poking around in random memory locations is ill advised!
-	if strings.HasPrefix(name, "0X") {
-
-		// Change faults to panics instead so we can catch them and defer changing
-		// them back again. It's easy to cause a fault with an invalid address.
-		spof := rtdebug.SetPanicOnFault(true)
-		defer rtdebug.SetPanicOnFault(spof)
-
-		n, _ := strconv.ParseUint(name[2:], 16, 64)
-		p := (*attr.Thing)(unsafe.Pointer(uintptr(n)))
-		what = (*attr.Thing)(p)
 	}
 
 	// Was item to dump eventually found?
