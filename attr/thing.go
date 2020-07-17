@@ -242,6 +242,20 @@ func (t *Thing) Marshal() recordjar.Record {
 	return rec
 }
 
+// DumpToLog is a convenience method for dumping the current state of a Thing
+// to the log. The information is annotated with the file and line number where
+// the dump was taken and specified label.
+//
+// NOTE: Care should be take if debugging Thing itself (Add, Remove, Free) as
+// Dump will acquire a read lock on the rwmutex.
+func (t *Thing) DumpToLog(label string) {
+	_, file, line, _ := runtime.Caller(1)
+	dbg := tree.Tree{}
+	dbg.Indent, dbg.Width, dbg.Offset = 20, 110, 13
+	t.Dump(dbg.Branch())
+	log.Printf("Debug @ %s:%d (%q)\n"+dbg.Render(), file, line, label)
+}
+
 // Dump adds Thing information to the passed tree.Node for debugging and
 // returns the new node. A new branch is created on the node which is passed to
 // each of the Thing's attributes to add their information. This may continue

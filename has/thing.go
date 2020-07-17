@@ -34,6 +34,9 @@ type Thing interface {
 	// indicates where addition information can be added.
 	Dump(*tree.Node) *tree.Node
 
+	// DumpToLog calls Dump on a Thing and writes the information to the log.
+	DumpToLog(string)
+
 	// Remove is used to remove one or more Attribute from a Thing.
 	Remove(...Attribute)
 
