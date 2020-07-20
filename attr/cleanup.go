@@ -55,6 +55,7 @@ type Cleanup struct {
 	Attribute
 	after  time.Duration
 	jitter time.Duration
+	due    time.Time
 	event.Cancel
 }
 
@@ -68,7 +69,7 @@ var (
 // between after and after+jitter for when a Thing is cleaned up after being
 // dropped.
 func NewCleanup(after time.Duration, jitter time.Duration) *Cleanup {
-	return &Cleanup{Attribute{}, after, jitter, nil}
+	return &Cleanup{Attribute{}, after, jitter, time.Time{}, nil}
 }
 
 // FindCleanup searches the attributes of the specified Thing for attributes
@@ -122,7 +123,12 @@ func (c *Cleanup) Marshal() (tag string, data []byte) {
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (c *Cleanup) Dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T - after: %s, jitter: %s", c, c.after, c.jitter)
-	node.Branch().Append("%p %[1]T", c.Cancel)
+	dueIn := time.Until(c.due).Truncate(time.Second)
+	if c.Cancel != nil && dueIn > 0 {
+		node.Branch().Append("%p %[1]T - due: %s", c.Cancel, dueIn)
+	} else {
+		node.Branch().Append("%p %[1]T - due: expired", c.Cancel)
+	}
 	return node
 }
 
@@ -153,7 +159,7 @@ func (c *Cleanup) Cleanup() {
 	if !c.Active() {
 		what := c.Parent()
 		actor := FindLocate(what).Where().Parent()
-		c.Cancel = event.Queue(actor, "$CLEANUP "+what.UID(), c.after, c.jitter)
+		c.Cancel, c.due = event.Queue(actor, "$CLEANUP "+what.UID(), c.after, c.jitter)
 	}
 }
 

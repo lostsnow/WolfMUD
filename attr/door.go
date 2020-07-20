@@ -95,6 +95,7 @@ type state struct {
 	initOpen  bool          // Initial state
 	open      bool          // Current state
 	otherSide bool          // Does door have 'other side' yet?
+	due       time.Time
 	event.Cancel
 }
 
@@ -115,8 +116,9 @@ var (
 //
 // This actually only creates one side of a door. To create the 'other side' of
 // the door Door.OtherSide should be called.
-func NewDoor(direction byte, open bool, reset time.Duration, jitter time.Duration) *Door {
-	return &Door{Attribute{}, direction, &state{reset, jitter, open, open, false, nil}}
+func NewDoor(direction byte, open bool, reset, jitter time.Duration) *Door {
+	s := &state{reset, jitter, open, open, false, time.Time{}, nil}
+	return &Door{Attribute{}, direction, s}
 }
 
 // OtherSide creates the 'other side' of a Door and places it in the World. The
@@ -264,7 +266,12 @@ func (s *state) dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T - reset: %q, jitter: %q, initially open: %t, open: %t",
 		s, s.reset, s.jitter, s.initOpen, s.open,
 	)
-	node.Branch().Append("%p %[1]T", s.Cancel)
+	dueIn := time.Until(s.due).Truncate(time.Second)
+	if s.Cancel != nil && dueIn > 0 {
+		node.Branch().Append("%p %[1]T - due: %s", s.Cancel, dueIn)
+	} else {
+		node.Branch().Append("%p %[1]T - due: expired", s.Cancel)
+	}
 	return node
 }
 
@@ -341,7 +348,7 @@ func (d *Door) Open() {
 
 	if d.reset+d.jitter != 0 && d.open != d.initOpen {
 		t := d.Parent()
-		d.Cancel = event.Queue(t, "CLOSE "+t.UID(), d.reset, d.jitter)
+		d.Cancel, d.due = event.Queue(t, "CLOSE "+t.UID(), d.reset, d.jitter)
 	}
 }
 
@@ -363,7 +370,7 @@ func (d *Door) Close() {
 
 	if d.reset+d.jitter != 0 && d.open != d.initOpen {
 		t := d.Parent()
-		d.Cancel = event.Queue(t, "OPEN "+t.UID(), d.reset, d.jitter)
+		d.Cancel, d.due = event.Queue(t, "OPEN "+t.UID(), d.reset, d.jitter)
 	}
 }
 

@@ -39,18 +39,35 @@ type Cancel chan<- struct{}
 // handle the event.
 var cache = make(chan *time.Timer, 10)
 
-// Queue schedules a scripted event to happen after the given delay period.
-// Events can use any normal player commands and in addition have access to
-// scripting only commands starting with the '$' symbol. The event can be
-// cancelled by closing the returned Cancel channel. The passed in Thing is
-// expected to be the 'actor' for the event. The input is the command to
-// script. The delay is the period after which the command will be run. The
-// jitter is a random amount that can be added to the delay. So the actual
-// delay for an event will be between delay and delay+jitter. For a totally
-// random event delay can be 0s.
-func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Duration) Cancel {
+// Queue schedules a scripted event to happen after the given delay. Queue
+// returns a channel to cancel the event and the time of when the event is
+// expected to fire.
+//
+// The firing time is only the expected time and not guaranteed to be 100%
+// accurate due to system load, scheduling and processing delays. Typically
+// delays are expected to be < 500µs (0.0005s). Delays can be monitored by
+// setting Debug.Events to true in the configuration file, in which case the
+// delivered messages will contain the amount the event was delayed by, for
+// example: "Event delivered (delayed 127.596µs)"
+//
+// The passed Thing is expected to be the 'actor' for the scripted event.
+//
+// The input string can use any normal player command and in addition can use
+// the scripting only commands starting with the '$' symbol.
+//
+// The event can be cancelled by closing the returned Cancel channel.
+//
+// The delay is the period after which the command will be run. The jitter is a
+// random amount that can be added to the delay. So the actual delay for an
+// event will be between delay and delay+jitter. For a totally random event
+// delay can be 0s.
+func Queue(thing has.Thing, input string, delay, jitter time.Duration) (Cancel, time.Time) {
 
 	name := FindName(thing).(has.Name).Name("Unknown")
+
+	// Log event notifications?
+	logEvents := config.Debug.Events
+
 	cancel := make(chan struct{})
 
 	// Calculate delay in seconds.
@@ -71,8 +88,7 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 		td = time.Second
 	}
 
-	// Log event notifications?
-	logEvents := config.Debug.Events
+	due := time.Now().Add(td) // Time we expect event to fire
 
 	go func() {
 
@@ -117,11 +133,11 @@ func Queue(thing has.Thing, input string, delay time.Duration, jitter time.Durat
 			default:
 			}
 			if logEvents {
-				log.Printf("Event delivered for %s: %q Input: %q", thing, name, input)
+				log.Printf("Event delivered (delayed %s) for %s: %q Input: %q", time.Now().Sub(due), thing, name, input)
 			}
 			Script(thing, input)
 		}
 	}()
 
-	return cancel
+	return cancel, due
 }

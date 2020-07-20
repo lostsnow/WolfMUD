@@ -32,6 +32,7 @@ type Action struct {
 	Attribute
 	after  time.Duration
 	jitter time.Duration
+	due    time.Time
 	event.Cancel
 }
 
@@ -44,7 +45,7 @@ var (
 // and jitter durations. The after and jitter Duration set the delay period to
 // between after and after+jitter for when a Thing performs an action.
 func NewAction(after time.Duration, jitter time.Duration) *Action {
-	return &Action{Attribute{}, after, jitter, nil}
+	return &Action{Attribute{}, after, jitter, time.Time{}, nil}
 }
 
 // FindAction searches the attributes of the specified Thing for attributes
@@ -98,7 +99,12 @@ func (a *Action) Marshal() (tag string, data []byte) {
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (a *Action) Dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T - after: %s, jitter: %s", a, a.after, a.jitter)
-	node.Branch().Append("%p %[1]T", a.Cancel)
+	dueIn := time.Until(a.due).Truncate(time.Second)
+	if a.Cancel != nil && dueIn > 0 {
+		node.Branch().Append("%p %[1]T - due: %s", a.Cancel, dueIn)
+	} else {
+		node.Branch().Append("%p %[1]T - due: expired", a.Cancel)
+	}
 	return node
 }
 
@@ -123,7 +129,7 @@ func (a *Action) Action() {
 	p := a.Parent()
 	oa := FindOnAction(p)
 	if oa.Found() {
-		a.Cancel = event.Queue(p, "$ACTION "+oa.ActionText(), a.after, a.jitter)
+		a.Cancel, a.due = event.Queue(p, "$ACTION "+oa.ActionText(), a.after, a.jitter)
 	}
 }
 

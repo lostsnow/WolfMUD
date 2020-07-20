@@ -40,6 +40,7 @@ type Reset struct {
 	after  time.Duration
 	jitter time.Duration
 	spawn  bool
+	due    time.Time
 	event.Cancel
 }
 
@@ -53,7 +54,7 @@ var (
 // period to between after and after+jitter for when a Thing is reset or
 // respawned. If spawn is true the Thing will respawn otherwise it will reset.
 func NewReset(after time.Duration, jitter time.Duration, spawn bool) *Reset {
-	return &Reset{Attribute{}, after, jitter, spawn, nil}
+	return &Reset{Attribute{}, after, jitter, spawn, time.Time{}, nil}
 }
 
 // FindReset searches the attributes of the specified Thing for attributes
@@ -113,7 +114,12 @@ func (r *Reset) Dump(node *tree.Node) *tree.Node {
 		"%p %[1]T - after: %s, jitter: %s, spawn: %t",
 		r, r.after, r.jitter, r.spawn,
 	)
-	node.Branch().Append("%p %[1]T", r.Cancel)
+	dueIn := time.Until(r.due).Truncate(time.Second)
+	if r.Cancel != nil && dueIn > 0 {
+		node.Branch().Append("%p %[1]T - due: %s", r.Cancel, dueIn)
+	} else {
+		node.Branch().Append("%p %[1]T - due: expired", r.Cancel)
+	}
 	return node
 }
 
@@ -138,8 +144,8 @@ func (r *Reset) Reset() {
 
 	// Schedule reset. For a $RESET the actor is where the reset will take place.
 	what := r.Parent()
-	actor := FindLocate(what).Where().Parent()
-	r.Cancel = event.Queue(actor, "$RESET "+what.UID(), r.after, r.jitter)
+	actor := FindLocate(what).Origin().Parent()
+	r.Cancel, r.due = event.Queue(actor, "$RESET "+what.UID(), r.after, r.jitter)
 }
 
 // Abort causes an outstanding reset event to be cancelled for the parent
