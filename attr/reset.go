@@ -197,7 +197,7 @@ func (r *Reset) Spawn() has.Thing {
 	// that it will all be disposed of when cleaned up - it is only the original
 	// that respawns.
 	p := r.Parent()
-	c := p.Copy()
+	c := p.DeepCopy()
 	c.ClearOrigins()
 
 	// Disable original Thing and register a reset for it

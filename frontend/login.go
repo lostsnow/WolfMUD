@@ -200,7 +200,7 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 
 	// Find and extract player as a copy - resolves any references as copies too
 	ref := decode.Keyword(jar[0]["REF"])
-	p := store[ref].Copy().(*attr.Thing)
+	p := store[ref].DeepCopy().(*attr.Thing)
 
 	// Cleanup store
 	for ref, t := range store {

@@ -513,13 +513,13 @@ func (i *Inventory) Copy() has.Attribute {
 	ni := NewInventory()
 	for _, list := range []*list{i.contents, i.narratives} {
 		for n := list.head.next; n.next != nil; n = n.next {
-			c := n.item.Copy()
+			c := n.item.DeepCopy()
 			ni.Add(c)
 			ni.Enable(c)
 		}
 	}
 	for n := i.disabled.head.next; n.next != nil; n = n.next {
-		ni.Add(n.item.Copy())
+		ni.Add(n.item.DeepCopy())
 	}
 	return ni
 }

@@ -341,7 +341,7 @@ func (z *zone) linkupInventory() {
 				log.Printf("Invalid Inventory reference: ref not found %s", iref)
 				continue
 			}
-			t := s.Copy()
+			t := s.DeepCopy()
 			i.Add(t)
 			i.Enable(t)
 			t.SetOrigins()
@@ -369,7 +369,7 @@ func (z *zone) linkupLocation() {
 				}
 				continue
 			}
-			t := s.Copy()
+			t := s.DeepCopy()
 			i := attr.FindInventory(l)
 			i.Lock()
 			i.Add(t)

@@ -151,7 +151,7 @@ func (d *Door) OtherSide() {
 	n := FindName(p).Name("'door'")
 
 	// Create 'other side' of the door as a duplicate Thing
-	t := p.Copy()
+	t := p.DeepCopy()
 
 	// Find the door on the 'other side'
 	o := FindDoor(t).(*Door)

@@ -302,9 +302,9 @@ func dump(node *tree.Node, a has.Attribute) {
 	a.Dump(node)
 }
 
-// Copy returns a copy of the Thing receiver. The copy will be made recursively
-// copying all associated Attribute and Thing.
-func (t *Thing) Copy() has.Thing {
+// DeepCopy returns a copy of the Thing receiver recursing into Inventory. The
+// copy will be made recursively copying all associated Attribute and Thing.
+func (t *Thing) DeepCopy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)
 	}

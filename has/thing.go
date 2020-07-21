@@ -46,11 +46,10 @@ type Thing interface {
 	// Free returns true if Free has been called on the Thing, else false.
 	Freed() bool
 
-	// Copy produces another, possibly inexact, instance of a Thing. The
-	// differences may be due to unique IDs, locks and other data that should not
-	// be copied between instances. The copy will contain a copy of all of the
-	// attributes and possibly other Things associated with the Thing as well.
-	Copy() Thing
+	// DeepCopy returns a copy of a Thing, with attributes, and recursing into
+	// Inventory. The copy may be inexact due to unique IDs, locks and other data
+	// that should not be copied between instances.
+	DeepCopy() Thing
 
 	// SetOrigins updates the origin for the Thing to its containing Inventory and
 	// recursivly sets the origins for the content of a Thing's Inventory if it has
