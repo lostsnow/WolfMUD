@@ -145,6 +145,7 @@ func (l *Locate) Copy() has.Attribute {
 	}
 	l.rwmutex.RLock()
 	nl := NewLocate(l.where)
+	nl.origin = l.origin
 	l.rwmutex.RUnlock()
 	return nl
 }
