@@ -46,6 +46,12 @@ type Thing interface {
 	// Free returns true if Free has been called on the Thing, else false.
 	Freed() bool
 
+	// Copy returns a copy of a Thing, with attributes. The copy may be inexact
+	// due to unique IDs, locks and other data that should not be copied between
+	// instances. The copy is not recursive and does not include the content of
+	// Inventory.
+	Copy() Thing
+
 	// DeepCopy returns a copy of a Thing, with attributes, and recursing into
 	// Inventory. The copy may be inexact due to unique IDs, locks and other data
 	// that should not be copied between instances.

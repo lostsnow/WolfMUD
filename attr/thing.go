@@ -302,8 +302,37 @@ func dump(node *tree.Node, a has.Attribute) {
 	a.Dump(node)
 }
 
+// Copy returns a copy of the Thing receiver. Associated Attributes will be
+// copied. However, the copy is not recursive and will not copy the content of
+// Inventory. To make a copy that includes Inventory content the DeepCopy
+// method should be used instead.
+//
+// BUG(diddymus): This method specifically checks for a *attr.Inventory, which
+// is currently the only implementation of has.Inventory - if this changes this
+// method will need updating.
+func (t *Thing) Copy() has.Thing {
+	if t == nil {
+		return (*Thing)(nil)
+	}
+	t.rwmutex.RLock()
+	na := make([]has.Attribute, len(t.attrs), len(t.attrs))
+	for i, a := range t.attrs {
+		// If we find an inventory provide a new one, don't copy - this prevents
+		// recursive copying
+		if _, ok := a.(*Inventory); ok {
+			na[i] = NewInventory()
+		} else {
+			na[i] = a.Copy()
+		}
+	}
+	t.rwmutex.RUnlock()
+	return NewThing(na...)
+}
+
 // DeepCopy returns a copy of the Thing receiver recursing into Inventory. The
-// copy will be made recursively copying all associated Attribute and Thing.
+// copy will be made recursively copying all associated Attribute and Thing. To
+// make a non-recursive copy (excluding Inventory content) the Copy method
+// should be used instead.
 func (t *Thing) DeepCopy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)
