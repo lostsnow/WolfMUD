@@ -365,11 +365,11 @@ func (t *Thing) SetOrigins() {
 		return
 	}
 
-	// Set the origin for everything in our Inventory
+	// Set the origin for everything in our Inventory including disabled items
 	for _, t := range i.Everything() {
-		if l := FindLocate(t); l.Found() {
-			l.SetOrigin(i)
-		}
+		t.SetOrigins()
+	}
+	for _, t := range i.Disabled() {
 		t.SetOrigins()
 	}
 }
@@ -392,11 +392,11 @@ func (t *Thing) ClearOrigins() {
 		return
 	}
 
-	// Clear the origin for items in our Inventory
+	// Clear the origin for items in our Inventory including disabled items
 	for _, t := range i.Everything() {
-		if l := FindLocate(t); l.Found() {
-			l.SetOrigin(nil)
-		}
+		t.ClearOrigins()
+	}
+	for _, t := range i.Disabled() {
 		t.ClearOrigins()
 	}
 }
