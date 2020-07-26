@@ -139,9 +139,13 @@ func (j junk) dispose(t has.Thing) {
 
 	attr.FindAction(t).Abort()
 	attr.FindCleanup(t).Abort()
+	attr.FindReset(t).Abort()
 
 	// Recurse into inventories and dispose of the content
 	for _, c := range attr.FindInventory(t).Contents() {
+		j.dispose(c)
+	}
+	for _, c := range attr.FindInventory(t).Disabled() {
 		j.dispose(c)
 	}
 
