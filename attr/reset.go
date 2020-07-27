@@ -184,38 +184,82 @@ func (r *Reset) Pending() bool {
 	return r.Cancel != nil
 }
 
-// Spawn returns a non-spawnable copy of a Thing and schedules the original
-// Thing to reset if Reset.spawn is true. Otherwise it returns nil.
+// Spawn returns a non-spawnable copy of a spawnable Thing and schedules the
+// original Thing to reset if Reset.spawn is true. Otherwise it returns nil.
+//
+// If a new item is spawned then the Inventory of the original is processed.
+// Unique and non-spawnable items are moved from the original to the copy.
+// Copies of spawnable content are made and the original spawnable content is
+// disabled and a reset scheduled. This processing is recursive.
 func (r *Reset) Spawn() has.Thing {
 
-	// If no Reset or not spawnable return nil
 	if r == nil || !r.spawn {
 		return nil
 	}
 
-	// Make a copy of original Thing, clear the origins of it and it's content so
-	// that it will all be disposed of when cleaned up - it is only the original
-	// that respawns.
+	// Spawnable so make a copy of original Thing, disable original and register
+	// original for a reset
 	p := r.Parent()
-	c := p.DeepCopy()
-	c.ClearOrigins()
-
-	// Disable original Thing and register a reset for it
-	o := FindLocate(p).Origin()
-	o.Disable(p)
+	c := p.Copy()
+	FindLocate(p).Origin().Disable(p)
 	r.Reset()
 
-	// Remove reset attribute from copied Thing
+	// Remove reset attribute from copy and clear origin - only originals respawn
 	R := FindReset(c)
 	c.Remove(R)
 	R.Free()
+	l := FindLocate(c)
+	l.SetOrigin(nil)
+
+	r.spawnInventory(p, c)
 
 	// Add copy back into the world
-	l := FindLocate(c)
 	l.Where().Add(c)
 	l.Where().Enable(c)
 
 	return c
+}
+
+// spawnInventory recursively spawns the content of the Inventory from one
+// Thing to another. Spawning will either move non-spawnable items or copy
+// spawnable items. If a disabled item is copied it's reset is rescheduled.
+//
+// Note that we can't use Thing.DeepCopy as we need to selectively move or copy
+// items to the spawned Thing, and possibly reschedule a Reset for copied
+// disabled things.
+func (r *Reset) spawnInventory(from, to has.Thing) {
+
+	// If original has no Inventory nothing to do
+	fromInv := FindInventory(from)
+	if !fromInv.Found() {
+		return
+	}
+
+	toInv := FindInventory(to)
+
+	for _, t := range fromInv.Contents() {
+		if !FindReset(t).Spawnable() {
+			fromInv.Move(t, toInv)
+			continue
+		}
+		c := t.Copy()
+		FindLocate(c).SetOrigin(toInv)
+		r.spawnInventory(t, c)
+		toInv.Add(c)
+		toInv.Enable(c)
+	}
+
+	for _, t := range fromInv.Disabled() {
+		if !FindReset(t).Spawnable() {
+			fromInv.Move(t, toInv)
+			continue
+		}
+		c := t.Copy()
+		FindLocate(c).SetOrigin(toInv)
+		r.spawnInventory(t, c)
+		FindReset(c).Reschedule()
+		toInv.Add(c)
+	}
 }
 
 // Spawnable returns true if the parent Thing is spawnable else false.
