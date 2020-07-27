@@ -132,13 +132,15 @@ func (c *Cleanup) Dump(node *tree.Node) *tree.Node {
 	return node
 }
 
-// Copy returns a copy of the Cleanup receiver. The copy will not inherit any
-// pending clean up events.
+// Copy returns a copy of the Cleanup receiver. If a Cleanup event is currently
+// in-flight it will not be rescheduled automatically.
 func (c *Cleanup) Copy() has.Attribute {
 	if c == nil {
 		return (*Cleanup)(nil)
 	}
-	return NewCleanup(c.after, c.jitter)
+	nc := NewCleanup(c.after, c.jitter)
+	nc.due = c.due
+	return nc
 }
 
 // Cleanup schedules a clean up of the parent Thing. If there is already a

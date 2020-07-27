@@ -123,13 +123,15 @@ func (r *Reset) Dump(node *tree.Node) *tree.Node {
 	return node
 }
 
-// Copy returns a copy of the Reset receiver. The copy will not inherit any
-// pending Reset events.
+// Copy returns a copy of the Reset receiver. If a Reset event is currently
+// in-flight it will not be rescheduled automatically.
 func (r *Reset) Copy() has.Attribute {
 	if r == nil {
 		return (*Reset)(nil)
 	}
-	return NewReset(r.after, r.jitter, r.spawn)
+	nr := NewReset(r.after, r.jitter, r.spawn)
+	nr.due = r.due
+	return nr
 }
 
 // Reset schedules a reset of the parent Thing. If there is already a reset

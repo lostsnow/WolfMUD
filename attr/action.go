@@ -108,13 +108,15 @@ func (a *Action) Dump(node *tree.Node) *tree.Node {
 	return node
 }
 
-// Copy returns a copy of the Action receiver. The copy will not inherit any
-// pending action events.
+// Copy returns a copy of the Action receiver. If an Action event is currently
+// in-flight it will not be rescheduled automatically.
 func (a *Action) Copy() has.Attribute {
 	if a == nil {
 		return (*Action)(nil)
 	}
-	return NewAction(a.after, a.jitter)
+	na := NewAction(a.after, a.jitter)
+	na.due = a.due
+	return na
 }
 
 // Action schedules an action. If there is already an action event pending it
