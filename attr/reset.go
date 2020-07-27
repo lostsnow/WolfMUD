@@ -134,20 +134,34 @@ func (r *Reset) Copy() has.Attribute {
 	return nr
 }
 
-// Reset schedules a reset of the parent Thing. If there is already a reset
-// event pending it will be cancelled and a new one queued.
-func (r *Reset) Reset() {
-	if r == nil {
-		return
-	}
-
-	// Cancel any outstanding reset
+// schedule queues a Reset event to occur after the given delay has passed. The
+// delay will be between 'after' and 'after+jitter'. If the Reset event is
+// already queued it will be cancelled and a new one queued.
+func (r *Reset) schedule(after, jitter time.Duration) {
 	r.Abort()
 
-	// Schedule reset. For a $RESET the actor is where the reset will take place.
+	// Schedule event, for a $RESET the actor is where the reset will take place.
 	what := r.Parent()
 	actor := FindLocate(what).Origin().Parent()
-	r.Cancel, r.due = event.Queue(actor, "$RESET "+what.UID(), r.after, r.jitter)
+	r.Cancel, r.due = event.Queue(actor, "$RESET "+what.UID(), after, jitter)
+}
+
+// Reset schedules a Reset event. If the Reset event is already queued it will
+// be cancelled and a new one queued.
+func (r *Reset) Reset() {
+	if r != nil {
+		r.schedule(r.after, r.jitter)
+	}
+}
+
+// Reschedule re-queues a pending Reset event based on the time the event was
+// expected to fire. If the Reset event is already queued it will be cancelled
+// and a new one queued. This overrides the normal after and jitter values
+// normally used to schedule a Reset event.
+func (r *Reset) Reschedule() {
+	if r != nil {
+		r.schedule(time.Until(r.due), 0)
+	}
 }
 
 // Abort causes an outstanding reset event to be cancelled for the parent

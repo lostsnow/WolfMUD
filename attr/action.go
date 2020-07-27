@@ -119,19 +119,34 @@ func (a *Action) Copy() has.Attribute {
 	return na
 }
 
-// Action schedules an action. If there is already an action event pending it
-// will be cancelled and a new one queued.
-func (a *Action) Action() {
-	if a == nil {
-		return
-	}
-
+// schedule queues an Action event to occur after the given delay has passed.
+// The delay will be between 'after' and 'after+jitter'. If the Action event is
+// already queued it will be cancelled and a new one queued.
+func (a *Action) schedule(after, jitter time.Duration) {
 	a.Abort()
 
-	p := a.Parent()
-	oa := FindOnAction(p)
+	what := a.Parent()
+	oa := FindOnAction(what)
 	if oa.Found() {
-		a.Cancel, a.due = event.Queue(p, "$ACTION "+oa.ActionText(), a.after, a.jitter)
+		a.Cancel, a.due = event.Queue(what, "$ACTION "+oa.ActionText(), after, jitter)
+	}
+}
+
+// Action schedules an Action event. If the Action event is already queued it
+// will be cancelled and a new one queued.
+func (a *Action) Action() {
+	if a != nil {
+		a.schedule(a.after, a.jitter)
+	}
+}
+
+// Reschedule re-queues a pending Action event based on the time the event was
+// expected to fire. If there is already an in-flight Action event it will be
+// cancelled and a new one queued. This overrides the normal after and jitter
+// values normally used to schedule an Action event.
+func (a *Action) Reschedule() {
+	if a != nil {
+		a.schedule(time.Until(a.due), 0)
 	}
 }
 

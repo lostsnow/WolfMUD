@@ -143,25 +143,41 @@ func (c *Cleanup) Copy() has.Attribute {
 	return nc
 }
 
-// Cleanup schedules a clean up of the parent Thing. If there is already a
-// clean up event pending it will be cancelled and a new one queued.
+// schedule queues a Cleanup event to occur after the given delay has passed.
+// The delay will be between 'after' and 'after+jitter'. If the Cleanup event
+// is already queued it will be cancelled and a new one queued.
+func (c *Cleanup) schedule(after, jitter time.Duration) {
+	c.Abort()
+
+	// Schedule event, for a $CLEANUP the actor is where the cleanup takes place
+	what := c.Parent()
+	actor := FindLocate(what).Where().Parent()
+	c.Cancel, c.due = event.Queue(actor, "$CLEANUP "+what.UID(), after, jitter)
+}
+
+// Cleanup schedules a Cleanup event. If the Cleanup event is already queued it
+// will be cancelled and a new one queued.
 func (c *Cleanup) Cleanup() {
 	if c == nil {
 		return
 	}
 
-	// Cancel any outstanding clean up
-	c.Abort()
-
-	// If no parent Inventory have a clean up scheduled, schedule for reset. By
+	// If no parent Inventory have a clean up scheduled, schedule for cleanup. By
 	// checking the parents we can put items into containers that have not been
 	// moved yet and have the items cleaned up. If a container has been moved,
-	// the item will be cleaned up when the parent container is cleaned up. For a
-	// $CLEANUP the actor is where the clean up will take place.
+	// the item will be cleaned up when the parent container is cleaned up.
 	if !c.Active() {
-		what := c.Parent()
-		actor := FindLocate(what).Where().Parent()
-		c.Cancel, c.due = event.Queue(actor, "$CLEANUP "+what.UID(), c.after, c.jitter)
+		c.schedule(c.after, c.jitter)
+	}
+}
+
+// Reschedule re-queues a pending Cleanup event based on the time the event was
+// expected to fire. If the Cleanup event is already queued it will be
+// cancelled and a new one queued. This overrides the normal after and jitter
+// values normally used to schedule a Cleanup event.
+func (c *Cleanup) Reschedule() {
+	if c != nil {
+		c.schedule(time.Until(c.due), 0)
 	}
 }
 

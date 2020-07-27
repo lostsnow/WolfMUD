@@ -15,6 +15,10 @@ type Action interface {
 	// Action causes the parent Thing to schedule an action message.
 	Action()
 
+	// Reschedule an Action event based on the time the event was expected to
+	// fire.
+	Reschedule()
+
 	// Abort cancels any outstanding action events.
 	Abort()
 }
