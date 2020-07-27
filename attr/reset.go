@@ -218,6 +218,11 @@ func (r *Reset) Spawn() has.Thing {
 	return c
 }
 
+// Spawnable returns true if the parent Thing is spawnable else false.
+func (r *Reset) Spawnable() bool {
+	return r != nil && r.spawn
+}
+
 // Free makes sure references are nil'ed and channels closed when the Reset
 // attribute is freed.
 func (r *Reset) Free() {

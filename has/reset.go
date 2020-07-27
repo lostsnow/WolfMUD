@@ -24,4 +24,7 @@ type Reset interface {
 	// Spawn returns a non-spawnable copy of the parent Thing and schedules the
 	// original to be respawned.
 	Spawn() Thing
+
+	// Spawnable returns true if the parent Thing is spawnable else false.
+	Spawnable() bool
 }
