@@ -66,7 +66,7 @@ func (b buffers) Append(s ...string) {
 //	: // do something
 //	:
 //	t.Silent(true)
-//	f.silent(false)
+//	f.Silent(false)
 //
 // See also Buffer.Silent for more details.
 func (b buffers) Silent(new bool) (t buffers, f buffers) {
