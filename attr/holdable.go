@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for holdable attribute.
@@ -120,8 +121,16 @@ func (h *Holdable) Marshal() (tag string, data []byte) {
 	return "holdable", encode.PairList(sSlots, '→')
 }
 
-func (h *Holdable) Dump() (buff []string) {
-	return []string{DumpFmt("%p %[1]T: slots: %v", h, h.slots)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (h *Holdable) Dump(node *tree.Node) *tree.Node {
+	slots := []byte{}
+	if len(h.slots) > 0 {
+		for _, slot := range h.slots {
+			slots = strconv.AppendQuote(append(slots, ", "...), slot)
+		}
+		slots = slots[2:]
+	}
+	return node.Append("%p %[1]T - slots: %d [%s]", h, len(h.slots), slots)
 }
 
 // IsHoldable returns true.
