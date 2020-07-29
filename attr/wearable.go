@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for wearable attribute.
@@ -95,8 +96,16 @@ func (w *Wearable) Marshal() (tag string, data []byte) {
 	return "wearable", encode.PairList(sSlots, '→')
 }
 
-func (w *Wearable) Dump() (buff []string) {
-	return []string{DumpFmt("%p %[1]T: slots: %v", w, w.slots)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (w *Wearable) Dump(node *tree.Node) *tree.Node {
+	slots := []byte{}
+	if len(w.slots) > 0 {
+		for _, slot := range w.slots {
+			slots = strconv.AppendQuote(append(slots, ", "...), slot)
+		}
+		slots = slots[2:]
+	}
+	return node.Append("%p %[1]T - slots: %d [%s]", w, len(w.slots), slots)
 }
 
 // IsWearable return true
