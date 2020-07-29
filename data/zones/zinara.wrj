@@ -132,22 +132,22 @@ pieces of leather, plate, ringmail and chainmail armour. Above the shelving on
 hooks are displayed various plain helmets and fancy helms in different styles.
 %%
     Ref: L12
-   Name: Street outside weapon shop
-Aliases: WEAPONSHOP STREET
+   Name: Street outside bladesmith
+Aliases: STREET
   Exits: S→L13 W→L9 E→L21
 
 You are on a well kept, cobbled, wide street that runs east to west. To the west
 you see a large fountain in the street. To the south is a shop selling weapons.
 %%
       Ref: L13
-     Name: Weapon shop
-  Aliases: WEAPON SHOP
+     Name: Bladesmith workshop
+  Aliases: BLADESMITH WORKSHOP
     Exits: N→L12
 Inventory: M14
 
-You are in a small shop selling weapons. Against the walls are racks holding
-large swords and polearms. Smaller hand weapons are displayed on some trestle
-tables.
+You are in a small workshop that makes and sells weapons. Against the walls
+are racks holding large swords and polearms. Smaller hand weapons are
+displayed on some trestle tables.
 %%
       Ref: L14
      Name: Crossroads
@@ -1405,4 +1405,39 @@ Wearable: NECK
 Location: L73
 
 This is a fine silk scarf with a colourful floral pattern on it.
+%%
+//
+// STOCK FOR BLADESMITH
+//
+%%
+      Ref: L13O1
+     Name: a short sword
+  Aliases: +SHORT:SWORD
+Wieldable: HAND
+    Reset: AFTER→1m JITTER→5m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L13
+
+This is a fine short sword. It has a pointy end.
+%%
+      Ref: L13O2
+     Name: a dagger
+  Aliases: DAGGER
+Wieldable: HAND
+    Reset: AFTER→1m JITTER→5m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L13
+
+This is a small, sharp dagger.
+%%
+      Ref: L13O3
+     Name: a battle axe
+  Aliases: +BATTLE:AXE
+Wieldable: HAND→2
+    Reset: AFTER→1m JITTER→5m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L13
+
+This is a very large, heavy battle axe requiring two hands to wield it
+efficiently.
 %%
