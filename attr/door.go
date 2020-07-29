@@ -14,6 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Door attribute.
@@ -249,19 +250,22 @@ func (d *Door) Marshal() (tag string, data []byte) {
 	return
 }
 
-func (d *Door) Dump() (buff []string) {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (d *Door) Dump(node *tree.Node) *tree.Node {
 	e := NewExits()
-	buff = append(buff, DumpFmt("%p %[1]T Exit: %q", d, e.ToName(d.direction)))
-	for _, line := range d.state.dump() {
-		buff = append(buff, DumpFmt("%s", line))
-	}
-	return
+	node = node.Append("%p %[1]T - exit: %q", d, e.ToName(d.direction))
+	d.state.dump(node.Branch())
+	return node
 }
 
-func (s *state) dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Reset: %q Jitter: %q Init: %t Open: %t", s, s.reset, s.jitter, s.initOpen, s.open))
-	buff = append(buff, DumpFmt("%p %[1]T", s.Cancel))
-	return
+// dump adds the shared door state information to the passed tree.Node for
+// debugging.
+func (s *state) dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - reset: %q, jitter: %q, initially open: %t, open: %t",
+		s, s.reset, s.jitter, s.initOpen, s.open,
+	)
+	node.Branch().Append("%p %[1]T", s.Cancel)
+	return node
 }
 
 // Direction returns the direction of the exit being blocked. The returned

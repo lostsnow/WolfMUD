@@ -10,6 +10,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Start attribute.
@@ -70,8 +71,9 @@ func (*Start) Marshal() (tag string, data []byte) {
 	return "start", data
 }
 
-func (s *Start) Dump() []string {
-	return []string{DumpFmt("%p %[1]T", s)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (s *Start) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T", s)
 }
 
 // Pick returns the Inventory of a randomly selected starting location.

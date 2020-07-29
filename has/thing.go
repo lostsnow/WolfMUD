@@ -5,6 +5,10 @@
 
 package has
 
+import (
+	"code.wolfmud.org/WolfMUD.git/text/tree"
+)
+
 // Thing is used to create everything and anything in a WolfMUD world. In
 // WolfMUD everything is created by creating a Thing and adding Attributes to
 // it. Attribute define the behaviour and characteristics of specific Things.
@@ -26,7 +30,12 @@ type Thing interface {
 	// a nil slice if no matches found.
 	FindAttrs(cmp Attribute) []Attribute
 
-	Dump() []string
+	// Dump adds information to the passed Node for debugging. The returned Node
+	// indicates where addition information can be added.
+	Dump(*tree.Node) *tree.Node
+
+	// DumpToLog calls Dump on a Thing and writes the information to the log.
+	DumpToLog(string)
 
 	// Remove is used to remove one or more Attribute from a Thing.
 	Remove(...Attribute)

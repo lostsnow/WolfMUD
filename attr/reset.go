@@ -14,6 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Reset attribute.
@@ -106,10 +107,14 @@ func (r *Reset) Marshal() (tag string, data []byte) {
 	return
 }
 
-func (r *Reset) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s Spawn: %t", r, r.after, r.jitter, r.spawn))
-	buff = append(buff, DumpFmt("  %p %[1]T", r.Cancel))
-	return
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (r *Reset) Dump(node *tree.Node) *tree.Node {
+	node = node.Append(
+		"%p %[1]T - after: %s, jitter: %s, spawn: %t",
+		r, r.after, r.jitter, r.spawn,
+	)
+	node.Branch().Append("%p %[1]T", r.Cancel)
+	return node
 }
 
 // Copy returns a copy of the Reset receiver. The copy will not inherit any

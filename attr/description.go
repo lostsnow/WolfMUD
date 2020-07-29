@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Description attribute.
@@ -75,8 +76,9 @@ func (d *Description) Marshal() (tag string, data []byte) {
 	return "description", encode.Bytes([]byte(d.description))
 }
 
-func (d *Description) Dump() []string {
-	return []string{DumpFmt("%p %[1]T: %q", d, d.description)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (d *Description) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", d, d.description)
 }
 
 // Description returns the descriptive string of the attribute.

@@ -8,6 +8,7 @@ package attr
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Locate attribute.
@@ -74,19 +75,22 @@ func (*Locate) Marshal() (string, []byte) {
 	return "", []byte{}
 }
 
-func (l *Locate) Dump() (buf []string) {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (l *Locate) Dump(node *tree.Node) *tree.Node {
 	origin := "Nowhere"
 	where := "Nowhere"
 	l.rwmutex.RLock()
+	defer l.rwmutex.RUnlock()
+
 	if l.origin != nil && l.origin.Found() {
 		origin = FindName(l.origin.Parent()).Name("no name!")
 	}
 	if l.where != nil && l.where.Found() {
 		where = FindName(l.where.Parent()).Name("no name!")
 	}
-	buf = append(buf, DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where))
-	l.rwmutex.RUnlock()
-	return
+
+	return node.Append("%p %[1]T - origin: %p %q, where: %p %q",
+		l, l.origin, origin, l.where, where)
 }
 
 // Where returns the Inventory the parent Thing is in. Returning nil is a

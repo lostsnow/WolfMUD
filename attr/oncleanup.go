@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for OnCleanup attribute.
@@ -63,8 +64,9 @@ func (oc *OnCleanup) Marshal() (tag string, data []byte) {
 	return "oncleanup", encode.String(oc.text)
 }
 
-func (oc *OnCleanup) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", oc, oc.text)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (oc *OnCleanup) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", oc, oc.text)
 }
 
 // CleanupText returns the clean up message to be used for a Thing.

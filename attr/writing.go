@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Writing attribute.
@@ -71,8 +72,9 @@ func (w *Writing) Marshal() (tag string, data []byte) {
 	return "writing", encode.String(w.writing)
 }
 
-func (w *Writing) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", w, w.writing)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (w *Writing) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", w, w.writing)
 }
 
 // Writing returns the text that has been written.

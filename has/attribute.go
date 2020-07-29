@@ -5,6 +5,10 @@
 
 package has
 
+import (
+	"code.wolfmud.org/WolfMUD.git/text/tree"
+)
+
 // Attribute provides a minimal, common interface for implementing any type of
 // Attribute. The interface provides a way for an Attribute to associate itself
 // with the parent Thing it is being added to - or disassociate if removed.
@@ -19,7 +23,6 @@ package has
 // is due to the fact that other attributes will know best how to create copies
 // based on their own implementation.
 type Attribute interface {
-	Dump() []string
 
 	// Attributes need to be able to marshal and unmarshal themselves. Marshaler
 	// has no default implementation and should be implemented by each Attribute.
@@ -52,4 +55,8 @@ type Attribute interface {
 	// Is returns true if the queried attribute can implement the passed
 	// attribute, else false.
 	Is(Attribute) bool
+
+	// Dump adds information to the passed Node for debugging. The returned Node
+	// indicates where addition information may be added.
+	Dump(*tree.Node) *tree.Node
 }

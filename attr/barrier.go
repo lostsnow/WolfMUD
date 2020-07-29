@@ -7,12 +7,14 @@ package attr
 
 import (
 	"log"
+	"strconv"
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Barrier attribute.
@@ -125,10 +127,28 @@ func (b *Barrier) Marshal() (tag string, data []byte) {
 	return
 }
 
-func (b *Barrier) Dump() (buff []string) {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (b *Barrier) Dump(node *tree.Node) *tree.Node {
 	e := NewExits()
-	buff = append(buff, DumpFmt("%p %[1]T Exit: %q Allow: %q Deny: %q", b, e.ToName(b.direction), b.allow, b.deny))
-	return
+
+	// Format list of aliases and qualifiers as '"A", "B", "C"'
+	allow, deny := []byte{}, []byte{}
+	if len(b.allow) > 0 {
+		for l := range b.allow {
+			allow = strconv.AppendQuote(append(allow, ", "...), l)
+		}
+		allow = allow[2:]
+	}
+	if len(b.deny) > 0 {
+		for l := range b.deny {
+			deny = strconv.AppendQuote(append(deny, ", "...), l)
+		}
+		deny = deny[2:]
+	}
+
+	return node.Append("%p %[1]T - exit: %q, allow: %d [%s], deny: %d [%s]",
+		b, e.ToName(b.direction), len(b.allow), allow, len(b.deny), deny,
+	)
 }
 
 // Allowed returns a string slice of aliases that can unconditionally pass

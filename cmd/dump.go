@@ -7,39 +7,35 @@ package cmd
 
 import (
 	"fmt"
-	rtdebug "runtime/debug"
-	"strconv"
-	"strings"
-	"unsafe"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
-// Syntax: #DUMP ( alias | <address> )
+// Syntax: #DUMP|#UDUMP|#LDUMP alias
 //
-// The #DUMP command is only available if the server is running with the
-// configuration option Debug.AllowDump set to true.
-//
-// The address can be any address printed using %p that points to a
-// *attr.Thing - e.g. 0xc42011fab0.
+// The #DUMP, #UDUMP and #LDUMP commands are only available if the server is
+// running with the configuration option Debug.AllowDump set to true.
 func init() {
-	addHandler(dump{}, "#DUMP")
+	addHandler(dump{}, "#DUMP")  // Dump ASCII graph to terminal
+	addHandler(dump{}, "#UDUMP") // Dump Unicode graph to terminal
+	addHandler(dump{}, "#LDUMP") // Dump ASCII graph to server log
 }
 
 type dump cmd
 
 func (dump) process(s *state) {
 	if !config.Debug.AllowDump {
-		s.msg.Actor.SendBad("#DUMP command is not available. Server not running with configuration option Debug.AllowDump=true")
+		s.msg.Actor.SendBad("The #DUMP, #UDUMP and #LDUMP commands are not available. Server not running with configuration option Debug.AllowDump=true")
 		return
 	}
 
 	defer func() {
 		if p := recover(); p != nil {
 			err := fmt.Errorf("%v", p)
-			s.msg.Actor.SendBad("Cannot dump ", s.input[0], ": ", err.Error())
+			s.msg.Actor.SendBad("Error dumping ", s.input[0], ": ", err.Error())
 		}
 	}()
 
@@ -79,25 +75,29 @@ func (dump) process(s *state) {
 		}
 	}
 
-	// Here be dragons - poking around in random memory locations is ill advised!
-	if strings.HasPrefix(name, "0X") {
-
-		// Change faults to panics instead so we can catch them and defer changing
-		// them back again. It's easy to cause a fault with an invalid address.
-		spof := rtdebug.SetPanicOnFault(true)
-		defer rtdebug.SetPanicOnFault(spof)
-
-		n, _ := strconv.ParseUint(name[2:], 16, 64)
-		p := (*attr.Thing)(unsafe.Pointer(uintptr(n)))
-		what = (*attr.Thing)(p)
-	}
-
 	// Was item to dump eventually found?
 	if what == nil {
 		s.msg.Actor.Send("There is nothing with alias '", name, "' to dump.")
 		return
 	}
 
-	s.msg.Actor.Send(strings.Join(what.Dump(), "\n"))
+	if s.cmd == "#LDUMP" {
+		what.DumpToLog("#LDUMP")
+		s.ok = true
+		return
+	}
+
+	t := tree.Tree{}
+	t.Indent, t.Offset, t.Width = 2, 13, 78
+
+	if s.cmd == "#UDUMP" {
+		t.Style = tree.StyleUnicode + "␠"
+	} else {
+		t.Style = tree.StyleASCII + "␠"
+	}
+
+	what.Dump(t.Branch())
+
+	s.msg.Actor.Send(t.Render())
 	s.ok = true
 }

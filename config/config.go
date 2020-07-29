@@ -105,7 +105,7 @@ var Login = struct {
 var Debug = struct {
 	LongLog    bool // Long log with microseconds & filename?
 	Panic      bool // Let goroutines panic and stop server?
-	AllowDump  bool // Allow use of #DUMP command?
+	AllowDump  bool // Allow use of #DUMP/#UDUMP/#LDUMP commands?
 	AllowDebug bool // Allow use of #DEBUG command?
 	Events     bool // Log events? - this can make the log quite noisy
 	Things     bool // Log additional information for Thing?

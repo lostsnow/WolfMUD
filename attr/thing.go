@@ -16,6 +16,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/text"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by
@@ -241,20 +242,64 @@ func (t *Thing) Marshal() recordjar.Record {
 	return rec
 }
 
-func (t *Thing) Dump() (buff []string) {
-	t.rwmutex.RLock()
-	buff = append(buff, DumpFmt("%s, collectable: %t, %d attributes:", t, t.Collectable(), len(t.attrs)))
-	for _, a := range t.attrs {
-		for _, a := range a.Dump() {
-			buff = append(buff, DumpFmt("%s", a))
-		}
-	}
-	t.rwmutex.RUnlock()
-	return buff
+// DumpToLog is a convenience method for dumping the current state of a Thing
+// to the log. The information is annotated with the file and line number where
+// the dump was taken and specified label.
+//
+// NOTE: Care should be take if debugging Thing itself (Add, Remove, Free) as
+// Dump will acquire a read lock on the rwmutex.
+func (t *Thing) DumpToLog(label string) {
+	_, file, line, _ := runtime.Caller(1)
+	dbg := tree.Tree{}
+	dbg.Indent, dbg.Width, dbg.Offset = 20, 110, 13
+	t.Dump(dbg.Branch())
+	log.Printf("Debug @ %s:%d (%q)\n"+dbg.Render(), file, line, label)
 }
 
-func DumpFmt(format string, args ...interface{}) string {
-	return "  " + fmt.Sprintf(format, args...)
+// Dump adds Thing information to the passed tree.Node for debugging and
+// returns the new node. A new branch is created on the node which is passed to
+// each of the Thing's attributes to add their information. This may continue
+// recursivly as in the case of containers.
+//
+// NOTE: Care should be take if debugging Thing itself (Add, Remove, Free) as
+// Dump will acquire a read lock on the rwmutex.
+func (t *Thing) Dump(node *tree.Node) *tree.Node {
+	t.rwmutex.RLock()
+
+	// Manually try to find the Name of the Thing as FindName could panic
+	name := "???"
+	if t.attrs != nil {
+		for _, a := range t.attrs {
+			if a, ok := a.(has.Name); ok {
+				name = a.Name(name)
+			}
+		}
+	}
+
+	node = node.Append("%s (%q), collectable: %t, attributes: %d",
+		t, name, t.Collectable(), len(t.attrs),
+	)
+
+	branch := node.Branch()
+	for _, a := range t.attrs {
+		dump(branch, a)
+	}
+
+	t.rwmutex.RUnlock()
+	return node
+}
+
+// dump will attempt to add the specified Attribute information to the passed
+// node. If the attempt causes a panic the error will be appended to the node
+// instead of the Attribute information.
+func dump(node *tree.Node, a has.Attribute) {
+	defer func() {
+		if r := recover(); r != nil {
+			node.Append("%p %[1]T - (error %v)", a, r)
+			return
+		}
+	}()
+	a.Dump(node)
 }
 
 // Copy returns a copy of the Thing receiver. The copy will be made recursively
@@ -374,12 +419,12 @@ func (t *Thing) NotUnique() {
 // String causes a Thing to implement the Stringer interface so that a Thing
 // can print information about itself. The format of the string is:
 //
-//  <address> <type> UID: <unique ID>
+//  <address> <type> - uid: <unique ID>
 //
-//  0xc420108630 *attr.Thing UID: #UID-6M
+//  0xc420108630 *attr.Thing - uid: #UID-6M
 //
 func (t *Thing) String() string {
-	return fmt.Sprintf("%p %[1]T %s", t, t.UID())
+	return fmt.Sprintf("%p %[1]T - uid: %s", t, t.UID())
 }
 
 // Things is a type of slice *Thing. It allows methods to be defined directly

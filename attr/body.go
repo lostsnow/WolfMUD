@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Body attribute.
@@ -190,17 +191,18 @@ func (b *Body) Marshal() (tag string, data []byte) {
 	return "body", encode.PairList(slots, '→')
 }
 
-func (b *Body) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T: ", b))
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (b *Body) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T", b)
+	branch := node.Branch()
 	for _, slot := range b.slots {
-		for _, l := range slot.Dump() {
-			buff = append(buff, DumpFmt("%s", l))
-		}
+		slot.Dump(branch)
 	}
-	return
+	return node
 }
 
-func (s slot) Dump() []string {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (s slot) Dump(node *tree.Node) *tree.Node {
 	meanings := make([]string, 0, len(usageBitNames))
 	for usage, name := range usageBitNames {
 		if s.usage&usage != 0 {
@@ -209,16 +211,16 @@ func (s slot) Dump() []string {
 	}
 
 	if s.used != nil {
-		return []string{
-			DumpFmt(
-				"%T: ref: %s, usageBits: %08b %v, inuse: %p %s",
-				s, s.ref, s.usage, meanings, s.used, FindName(s.used).Name("Something"),
-			),
-		}
+		return node.Append(
+			"%T - ref: %q, inuse: %p %q, usageBits: %08b %v",
+			s, s.ref, s.used, FindName(s.used).Name("Something"), s.usage, meanings,
+		)
 	}
-	return []string{
-		DumpFmt("%T: ref: %s, usageBits: %08b %v", s, s.ref, s.usage, meanings),
-	}
+
+	return node.Append(
+		"%T - ref: %q, usageBits: %08b %v",
+		s, s.ref, s.usage, meanings,
+	)
 }
 
 // Wield returns true if the Wieldable is successfully wielded else false. If

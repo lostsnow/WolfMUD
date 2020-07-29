@@ -15,6 +15,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Player attribute.
@@ -43,8 +44,9 @@ func NewPlayer(w io.Writer) *Player {
 	return &Player{Attribute{}, w, has.StyleBrief, &account{}}
 }
 
-func (p *Player) Dump() []string {
-	return []string{DumpFmt("%p %[1]T", p)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (p *Player) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T", p)
 }
 
 // FindPlayer searches the attributes of the specified Thing for attributes

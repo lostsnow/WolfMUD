@@ -11,6 +11,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Name attribute.
@@ -87,8 +88,9 @@ func (n *Name) Marshal() (tag string, data []byte) {
 	return "name", encode.String(n.name)
 }
 
-func (n *Name) Dump() []string {
-	return []string{DumpFmt("%p %[1]T: %q", n, n.name)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (n *Name) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", n, n.name)
 }
 
 // Name returns the name stored in the attribute. If the receiver is nil or the
