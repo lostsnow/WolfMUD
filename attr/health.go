@@ -15,6 +15,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Health attribute.
@@ -124,7 +125,8 @@ func (h *Health) Marshal() (tag string, data []byte) {
 	)
 }
 
-func (h *Health) Dump() []string {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (h *Health) Dump(node *tree.Node) *tree.Node {
 
 	var tmpl string
 
@@ -133,12 +135,12 @@ func (h *Health) Dump() []string {
 	absolute := FindPlayer(h.Parent()).Found()
 
 	if absolute {
-		tmpl = "%p %[1]T current: %d, maximum: %d, regens %d, frequency: %d, autoUpdate: %t"
+		tmpl = "%p %[1]T - current: %d, maximum: %d, regens: %d, frequency: %d, autoUpdate: %t"
 	} else {
-		tmpl = "%p %[1]T current: %+d, maximum: %+d, regens %+d, frequency: %+d, autoUpdate: %t"
+		tmpl = "%p %[1]T - current: %+d, maximum: %+d, regens: %+d, frequency: %+d, autoUpdate: %t"
 	}
 
-	return []string{DumpFmt(tmpl, h, h.current, h.maximum, h.regens, h.frequency, h.autoUpdate)}
+	return node.Append(tmpl, h, h.current, h.maximum, h.regens, h.frequency, h.autoUpdate)
 }
 
 // State returns the current and maximum health points.
