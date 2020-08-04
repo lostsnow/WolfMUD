@@ -6,9 +6,9 @@
 package internal
 
 import (
-	"code.wolfmud.org/WolfMUD.git/has"
-
 	"strings"
+
+	"code.wolfmud.org/WolfMUD.git/has"
 )
 
 // Marshalers is a map of registered .wrj marshalers keyed by uppercased field
