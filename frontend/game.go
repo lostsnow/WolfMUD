@@ -23,15 +23,15 @@ type game struct {
 // game can be used for processing communication to the actual game.
 func NewGame(f *frontend) (g *game) {
 	g = &game{frontend: f}
-	g.init()
+	g.enter()
 	return
 }
 
-// init is used to place the player into the game world. As the game backend
+// enter is used to place the player into the game world. As the game backend
 // has it's own output handling we remove the frontend.buf buffer to prevent
 // duplicate output. The buffer is restored by process when the player quits
 // the game world.
-func (g *game) init() {
+func (g *game) enter() {
 
 	message.ReleaseBuffer(g.buf)
 	g.buf = nil
@@ -74,7 +74,7 @@ func (g *game) init() {
 
 // process hands input to the game backend for processing while the player is
 // in the game. When the player is no longer in the world the frontend.buf
-// buffer is restored - see init.
+// buffer is restored - see enter.
 func (g *game) process() {
 	l := attr.FindLocate(g.player)
 
