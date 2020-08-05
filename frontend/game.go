@@ -27,10 +27,10 @@ func NewGame(f *frontend) (g *game) {
 	return
 }
 
-// gameInit is used to place the player into the game world. As the game
-// backend has it's own output handling we remove the frontend.buf buffer to
-// prevent duplicate output. The buffer is restored by gameProcess when the
-// player quits the game world.
+// init is used to place the player into the game world. As the game backend
+// has it's own output handling we remove the frontend.buf buffer to prevent
+// duplicate output. The buffer is restored by process when the player quits
+// the game world.
 func (g *game) init() {
 
 	message.ReleaseBuffer(g.buf)
@@ -72,9 +72,9 @@ func (g *game) init() {
 	g.nextFunc = g.process
 }
 
-// gameProcess hands input to the game backend for processing while the player
-// is in the game. When the player is no longer in the world the frontend.buf
-// buffer is restored - see gameInit.
+// process hands input to the game backend for processing while the player is
+// in the game. When the player is no longer in the world the frontend.buf
+// buffer is restored - see init.
 func (g *game) process() {
 	l := attr.FindLocate(g.player)
 
