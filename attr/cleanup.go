@@ -171,11 +171,9 @@ func (c *Cleanup) Cleanup() {
 	}
 }
 
-// Reschedule re-queues a pending Cleanup event based on the time the event was
-// expected to fire. If the Cleanup event is already queued it will be
-// cancelled and a new one queued. This overrides the normal after and jitter
-// values normally used to schedule a Cleanup event.
-func (c *Cleanup) Reschedule() {
+// Resume a suspended Cleanup event. If the event is not suspended nothing
+// happens.
+func (c *Cleanup) Resume() {
 	if c != nil {
 		c.schedule(time.Until(c.due), 0)
 	}

@@ -15,8 +15,8 @@ type Reset interface {
 	// Reset causes the parent Thing to be scheduled for a reset.
 	Reset()
 
-	// Reschedule a Reset event based on the time the event was expected to fire.
-	Reschedule()
+	// Resume a suspended Reset event.
+	Resume()
 
 	// Abort cancels any outstanding reset events.
 	Abort()

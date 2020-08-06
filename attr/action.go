@@ -140,11 +140,9 @@ func (a *Action) Action() {
 	}
 }
 
-// Reschedule re-queues a pending Action event based on the time the event was
-// expected to fire. If there is already an in-flight Action event it will be
-// cancelled and a new one queued. This overrides the normal after and jitter
-// values normally used to schedule an Action event.
-func (a *Action) Reschedule() {
+// Resume a suspended Action event. If the event is not suspended nothing
+// happens.
+func (a *Action) Resume() {
 	if a != nil {
 		a.schedule(time.Until(a.due), 0)
 	}

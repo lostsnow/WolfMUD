@@ -154,11 +154,9 @@ func (r *Reset) Reset() {
 	}
 }
 
-// Reschedule re-queues a pending Reset event based on the time the event was
-// expected to fire. If the Reset event is already queued it will be cancelled
-// and a new one queued. This overrides the normal after and jitter values
-// normally used to schedule a Reset event.
-func (r *Reset) Reschedule() {
+// Resume a suspended Reset event. If the event is not suspended nothing
+// happens.
+func (r *Reset) Resume() {
 	if r != nil {
 		r.schedule(time.Until(r.due), 0)
 	}
@@ -257,7 +255,7 @@ func (r *Reset) spawnInventory(from, to has.Thing) {
 		c := t.Copy()
 		FindLocate(c).SetOrigin(toInv)
 		r.spawnInventory(t, c)
-		FindReset(c).Reschedule()
+		FindReset(c).Resume()
 		toInv.Add(c)
 	}
 }
