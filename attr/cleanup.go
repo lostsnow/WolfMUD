@@ -55,7 +55,8 @@ type Cleanup struct {
 	Attribute
 	after  time.Duration
 	jitter time.Duration
-	due    time.Time
+	dueAt  time.Time     // Time a queued event is expected to fire
+	dueIn  time.Duration // Time remaining for a suspended event
 	event.Cancel
 }
 
@@ -69,7 +70,7 @@ var (
 // between after and after+jitter for when a Thing is cleaned up after being
 // dropped.
 func NewCleanup(after time.Duration, jitter time.Duration) *Cleanup {
-	return &Cleanup{Attribute{}, after, jitter, time.Time{}, nil}
+	return &Cleanup{Attribute{}, after, jitter, time.Time{}, 0, nil}
 }
 
 // FindCleanup searches the attributes of the specified Thing for attributes
@@ -100,6 +101,8 @@ func (*Cleanup) Unmarshal(data []byte) has.Attribute {
 			c.after = decode.Duration(data)
 		case "JITTER":
 			c.jitter = decode.Duration(data)
+		case "DUE-IN", "DUE_IN":
+			c.dueIn = decode.Duration(data)
 		default:
 			log.Printf("Cleanup.unmarshal unknown attribute: %q: %q", field, data)
 		}
@@ -110,36 +113,51 @@ func (*Cleanup) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (c *Cleanup) Marshal() (tag string, data []byte) {
 	tag = "cleanup"
-	data = encode.PairList(
-		map[string]string{
-			"after":  string(encode.Duration(c.after)),
-			"jitter": string(encode.Duration(c.jitter)),
-		},
-		'→',
-	)
+	pairs := map[string]string{
+		"after":  string(encode.Duration(c.after)),
+		"jitter": string(encode.Duration(c.jitter)),
+	}
+
+	switch {
+	case c.Cancel != nil:
+		pairs["due_In"] = string(encode.Duration(time.Until(c.dueAt)))
+	case c.dueIn > 0:
+		pairs["due_In"] = string(encode.Duration(c.dueIn))
+	}
+
+	data = encode.PairList(pairs, '→')
 	return
 }
 
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (c *Cleanup) Dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T - after: %s, jitter: %s", c, c.after, c.jitter)
-	dueIn := time.Until(c.due).Truncate(time.Second)
-	if c.Cancel != nil && dueIn > 0 {
-		node.Branch().Append("%p %[1]T - due: %s", c.Cancel, dueIn)
+
+	var due, source string
+	if c.Cancel != nil {
+		due = time.Until(c.dueAt).String()
+		source = "at"
 	} else {
-		node.Branch().Append("%p %[1]T - due: expired", c.Cancel)
+		due = c.dueIn.String()
+		source = "in"
 	}
+	node.Branch().Append("%p %[1]T - due: %s, source: %s", c.Cancel, due, source)
+
 	return node
 }
 
-// Copy returns a copy of the Cleanup receiver. If a Cleanup event is currently
-// in-flight it will not be rescheduled automatically.
+// Copy returns a copy of the Cleanup receiver. If the Cleanup event is
+// currently queued it will be suspended in the returned copy.
 func (c *Cleanup) Copy() has.Attribute {
 	if c == nil {
 		return (*Cleanup)(nil)
 	}
 	nc := NewCleanup(c.after, c.jitter)
-	nc.due = c.due
+	if c.Cancel != nil {
+		nc.dueIn = time.Until(c.dueAt)
+	} else {
+		nc.dueIn = c.dueIn
+	}
 	return nc
 }
 
@@ -152,7 +170,9 @@ func (c *Cleanup) schedule(after, jitter time.Duration) {
 	// Schedule event, for a $CLEANUP the actor is where the cleanup takes place
 	what := c.Parent()
 	actor := FindLocate(what).Where().Parent()
-	c.Cancel, c.due = event.Queue(actor, "$CLEANUP "+what.UID(), after, jitter)
+
+	c.dueIn = 0
+	c.Cancel, c.dueAt = event.Queue(actor, "$CLEANUP "+what.UID(), after, jitter)
 }
 
 // Cleanup schedules a Cleanup event. If the Cleanup event is already queued it
@@ -171,11 +191,24 @@ func (c *Cleanup) Cleanup() {
 	}
 }
 
-// Resume a suspended Cleanup event. If the event is not suspended nothing
-// happens.
+// Suspend a queued Cleanup event, or do nothing if event not queued.
+func (c *Cleanup) Suspend() {
+	if c == nil {
+		return
+	}
+
+	if c.Cancel != nil {
+		close(c.Cancel)
+		c.Cancel = nil
+		c.dueIn = time.Until(c.dueAt)
+		c.dueAt = time.Time{}
+	}
+}
+
+// Resume a suspended Cleanup event, or do nothing if event not suspended.
 func (c *Cleanup) Resume() {
 	if c != nil {
-		c.schedule(time.Until(c.due), 0)
+		c.schedule(c.dueIn, 0)
 	}
 }
 
@@ -224,6 +257,7 @@ func (c *Cleanup) Abort() {
 	if c.Cancel != nil {
 		close(c.Cancel)
 		c.Cancel = nil
+		c.dueAt = time.Time{}
 	}
 }
 
@@ -234,15 +268,19 @@ func (c *Cleanup) Pending() bool {
 	return c.Cancel != nil
 }
 
-// Free makes sure references are nil'ed and channels closed when the Cleanup
-// attribute is freed.
+// Free makes sure references are nil'ed and queued events aborted when the
+// Cleanup attribute is freed.
 func (c *Cleanup) Free() {
 	if c == nil {
 		return
 	}
+
+	// Don't call Abort as it is recursive
 	if c.Cancel != nil {
 		close(c.Cancel)
 		c.Cancel = nil
+		c.dueAt = time.Time{}
 	}
+
 	c.Attribute.Free()
 }

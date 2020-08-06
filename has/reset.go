@@ -18,6 +18,9 @@ type Reset interface {
 	// Resume a suspended Reset event.
 	Resume()
 
+	// Suspend a queued Reset event.
+	Suspend()
+
 	// Abort cancels any outstanding reset events.
 	Abort()
 

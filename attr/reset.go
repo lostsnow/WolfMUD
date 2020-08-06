@@ -40,7 +40,8 @@ type Reset struct {
 	after  time.Duration
 	jitter time.Duration
 	spawn  bool
-	due    time.Time
+	dueAt  time.Time     // Time a queued event is expected to fire
+	dueIn  time.Duration // Time remaining for a suspended event
 	event.Cancel
 }
 
@@ -54,7 +55,7 @@ var (
 // period to between after and after+jitter for when a Thing is reset or
 // respawned. If spawn is true the Thing will respawn otherwise it will reset.
 func NewReset(after time.Duration, jitter time.Duration, spawn bool) *Reset {
-	return &Reset{Attribute{}, after, jitter, spawn, time.Time{}, nil}
+	return &Reset{Attribute{}, after, jitter, spawn, time.Time{}, 0, nil}
 }
 
 // FindReset searches the attributes of the specified Thing for attributes
@@ -87,6 +88,8 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 			r.jitter = decode.Duration(data)
 		case "SPAWN":
 			r.spawn = decode.Boolean(data)
+		case "DUE-IN", "DUE_IN":
+			r.dueIn = decode.Duration(data)
 		default:
 			log.Printf("Reset.unmarshal unknown attribute: %q: %q", field, data)
 		}
@@ -97,14 +100,20 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (r *Reset) Marshal() (tag string, data []byte) {
 	tag = "reset"
-	data = encode.PairList(
-		map[string]string{
-			"after":  string(encode.Duration(r.after)),
-			"jitter": string(encode.Duration(r.jitter)),
-			"spawn":  string(encode.Boolean(r.spawn)),
-		},
-		'→',
-	)
+	pairs := map[string]string{
+		"after":  string(encode.Duration(r.after)),
+		"jitter": string(encode.Duration(r.jitter)),
+		"spawn":  string(encode.Boolean(r.spawn)),
+	}
+
+	switch {
+	case r.Cancel != nil:
+		pairs["due_In"] = string(encode.Duration(time.Until(r.dueAt)))
+	case r.dueIn > 0:
+		pairs["due_In"] = string(encode.Duration(r.dueIn))
+	}
+
+	data = encode.PairList(pairs, '→')
 	return
 }
 
@@ -114,23 +123,32 @@ func (r *Reset) Dump(node *tree.Node) *tree.Node {
 		"%p %[1]T - after: %s, jitter: %s, spawn: %t",
 		r, r.after, r.jitter, r.spawn,
 	)
-	dueIn := time.Until(r.due).Truncate(time.Second)
-	if r.Cancel != nil && dueIn > 0 {
-		node.Branch().Append("%p %[1]T - due: %s", r.Cancel, dueIn)
+
+	var due, source string
+	if r.Cancel != nil {
+		due = time.Until(r.dueAt).String()
+		source = "at"
 	} else {
-		node.Branch().Append("%p %[1]T - due: expired", r.Cancel)
+		due = r.dueIn.String()
+		source = "in"
 	}
+	node.Branch().Append("%p %[1]T - due: %s, source: %s", r.Cancel, due, source)
+
 	return node
 }
 
-// Copy returns a copy of the Reset receiver. If a Reset event is currently
-// in-flight it will not be rescheduled automatically.
+// Copy returns a copy of the Reset receiver. If the Reset event is currently
+// queued it will be suspended in the returned copy.
 func (r *Reset) Copy() has.Attribute {
 	if r == nil {
 		return (*Reset)(nil)
 	}
 	nr := NewReset(r.after, r.jitter, r.spawn)
-	nr.due = r.due
+	if r.Cancel != nil {
+		nr.dueIn = time.Until(r.dueAt)
+	} else {
+		nr.dueIn = r.dueIn
+	}
 	return nr
 }
 
@@ -143,7 +161,9 @@ func (r *Reset) schedule(after, jitter time.Duration) {
 	// Schedule event, for a $RESET the actor is where the reset will take place.
 	what := r.Parent()
 	actor := FindLocate(what).Origin().Parent()
-	r.Cancel, r.due = event.Queue(actor, "$RESET "+what.UID(), after, jitter)
+
+	r.dueIn = 0
+	r.Cancel, r.dueAt = event.Queue(actor, "$RESET "+what.UID(), after, jitter)
 }
 
 // Reset schedules a Reset event. If the Reset event is already queued it will
@@ -154,16 +174,28 @@ func (r *Reset) Reset() {
 	}
 }
 
-// Resume a suspended Reset event. If the event is not suspended nothing
-// happens.
-func (r *Reset) Resume() {
-	if r != nil {
-		r.schedule(time.Until(r.due), 0)
+// Suspend a queued Reset event, or do nothing if event not queued.
+func (r *Reset) Suspend() {
+	if r == nil {
+		return
+	}
+
+	if r.Cancel != nil {
+		close(r.Cancel)
+		r.Cancel = nil
+		r.dueIn = time.Until(r.dueAt)
+		r.dueAt = time.Time{}
 	}
 }
 
-// Abort causes an outstanding reset event to be cancelled for the parent
-// Thing.
+// Resume a suspended Reset event, or do nothing if event not suspended.
+func (r *Reset) Resume() {
+	if r != nil && r.dueIn != 0 {
+		r.schedule(r.dueIn, 0)
+	}
+}
+
+// Abort a queued Reset event, or do nothing if event not queued.
 func (r *Reset) Abort() {
 	if r == nil {
 		return
@@ -172,6 +204,7 @@ func (r *Reset) Abort() {
 	if r.Cancel != nil {
 		close(r.Cancel)
 		r.Cancel = nil
+		r.dueAt = time.Time{}
 	}
 }
 
@@ -265,15 +298,12 @@ func (r *Reset) Spawnable() bool {
 	return r != nil && r.spawn
 }
 
-// Free makes sure references are nil'ed and channels closed when the Reset
-// attribute is freed.
+// Free makes sure references are nil'ed and queued events aborted when the
+// Reset attribute is freed.
 func (r *Reset) Free() {
 	if r == nil {
 		return
 	}
-	if r.Cancel != nil {
-		close(r.Cancel)
-		r.Cancel = nil
-	}
+	r.Abort()
 	r.Attribute.Free()
 }

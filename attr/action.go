@@ -32,7 +32,8 @@ type Action struct {
 	Attribute
 	after  time.Duration
 	jitter time.Duration
-	due    time.Time
+	dueAt  time.Time     // Time a queued event is expected to fire
+	dueIn  time.Duration // Time remaining for a suspended event
 	event.Cancel
 }
 
@@ -45,7 +46,7 @@ var (
 // and jitter durations. The after and jitter Duration set the delay period to
 // between after and after+jitter for when a Thing performs an action.
 func NewAction(after time.Duration, jitter time.Duration) *Action {
-	return &Action{Attribute{}, after, jitter, time.Time{}, nil}
+	return &Action{Attribute{}, after, jitter, time.Time{}, 0, nil}
 }
 
 // FindAction searches the attributes of the specified Thing for attributes
@@ -76,6 +77,8 @@ func (*Action) Unmarshal(data []byte) has.Attribute {
 			a.after = decode.Duration(data)
 		case "JITTER":
 			a.jitter = decode.Duration(data)
+		case "DUE-IN", "DUE_IN":
+			a.dueIn = decode.Duration(data)
 		default:
 			log.Printf("Action.unmarshal unknown attribute: %q: %q", field, data)
 		}
@@ -86,36 +89,51 @@ func (*Action) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (a *Action) Marshal() (tag string, data []byte) {
 	tag = "action"
-	data = encode.PairList(
-		map[string]string{
-			"after":  string(encode.Duration(a.after)),
-			"jitter": string(encode.Duration(a.jitter)),
-		},
-		'→',
-	)
+	pairs := map[string]string{
+		"after":  string(encode.Duration(a.after)),
+		"jitter": string(encode.Duration(a.jitter)),
+	}
+
+	switch {
+	case a.Cancel != nil:
+		pairs["due_In"] = string(encode.Duration(time.Until(a.dueAt)))
+	case a.dueIn > 0:
+		pairs["due_In"] = string(encode.Duration(a.dueIn))
+	}
+
+	data = encode.PairList(pairs, '→')
 	return
 }
 
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (a *Action) Dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T - after: %s, jitter: %s", a, a.after, a.jitter)
-	dueIn := time.Until(a.due).Truncate(time.Second)
-	if a.Cancel != nil && dueIn > 0 {
-		node.Branch().Append("%p %[1]T - due: %s", a.Cancel, dueIn)
+
+	var due, source string
+	if a.Cancel != nil {
+		due = time.Until(a.dueAt).String()
+		source = "at"
 	} else {
-		node.Branch().Append("%p %[1]T - due: expired", a.Cancel)
+		due = a.dueIn.String()
+		source = "in"
 	}
+	node.Branch().Append("%p %[1]T - due: %s, source: %s", a.Cancel, due, source)
+
 	return node
 }
 
-// Copy returns a copy of the Action receiver. If an Action event is currently
-// in-flight it will not be rescheduled automatically.
+// Copy returns a copy of the Action receiver. If the Action event is currently
+// queued it will be suspended in the returned copy.
 func (a *Action) Copy() has.Attribute {
 	if a == nil {
 		return (*Action)(nil)
 	}
 	na := NewAction(a.after, a.jitter)
-	na.due = a.due
+	if a.Cancel != nil {
+		na.dueIn = time.Until(a.dueAt)
+	} else {
+		na.dueIn = a.dueIn
+	}
 	return na
 }
 
@@ -127,9 +145,12 @@ func (a *Action) schedule(after, jitter time.Duration) {
 
 	what := a.Parent()
 	oa := FindOnAction(what)
-	if oa.Found() {
-		a.Cancel, a.due = event.Queue(what, "$ACTION "+oa.ActionText(), after, jitter)
+	if !oa.Found() {
+		return
 	}
+
+	a.dueIn = 0
+	a.Cancel, a.dueAt = event.Queue(what, "$ACTION "+oa.ActionText(), after, jitter)
 }
 
 // Action schedules an Action event. If the Action event is already queued it
@@ -140,15 +161,28 @@ func (a *Action) Action() {
 	}
 }
 
-// Resume a suspended Action event. If the event is not suspended nothing
-// happens.
-func (a *Action) Resume() {
-	if a != nil {
-		a.schedule(time.Until(a.due), 0)
+// Suspend a queued Action event, or do nothing if event not queued.
+func (a *Action) Suspend() {
+	if a == nil {
+		return
+	}
+
+	if a.Cancel != nil {
+		close(a.Cancel)
+		a.Cancel = nil
+		a.dueIn = time.Until(a.dueAt)
+		a.dueAt = time.Time{}
 	}
 }
 
-// Abort cancels any pending action events.
+// Resume a suspended Action event, or do nothing if event not suspended.
+func (a *Action) Resume() {
+	if a != nil && a.dueIn != 0 {
+		a.schedule(a.dueIn, 0)
+	}
+}
+
+// Abort a queued Action event, or do nothing if event not queued.
 func (a *Action) Abort() {
 	if a == nil {
 		return
@@ -157,6 +191,7 @@ func (a *Action) Abort() {
 	if a.Cancel != nil {
 		close(a.Cancel)
 		a.Cancel = nil
+		a.dueAt = time.Time{}
 	}
 }
 
@@ -167,8 +202,8 @@ func (a *Action) Pending() bool {
 	return a.Cancel != nil
 }
 
-// Free makes sure references are nil'ed and channels closed when the Action
-// attribute is freed.
+// Free makes sure references are nil'ed and queued events aborted when the
+// Action attribute is freed.
 func (a *Action) Free() {
 	if a == nil {
 		return

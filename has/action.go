@@ -18,6 +18,9 @@ type Action interface {
 	// Resume a suspended Action event.
 	Resume()
 
+	// Suspend a queued Action event.
+	Suspend()
+
 	// Abort cancels any outstanding action events.
 	Abort()
 }
