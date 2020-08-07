@@ -30,4 +30,7 @@ type Reset interface {
 
 	// Spawnable returns true if the parent Thing is spawnable else false.
 	Spawnable() bool
+
+	// Unique returns true if item is considered unique else false.
+	Unique() bool
 }

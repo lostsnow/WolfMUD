@@ -298,6 +298,15 @@ func (r *Reset) Spawnable() bool {
 	return r != nil && r.spawn
 }
 
+// Unique returns true if item is considered unique else false. For an item to
+// be unique it must be resetable and must not be spawnable.
+//
+// NOTE: An item without a reset is technically not unique as it is the
+// byproduct of an item spawning and hence a copy of that item.
+func (r *Reset) Unique() bool {
+	return r != nil && !r.spawn
+}
+
 // Free makes sure references are nil'ed and queued events aborted when the
 // Reset attribute is freed.
 func (r *Reset) Free() {
