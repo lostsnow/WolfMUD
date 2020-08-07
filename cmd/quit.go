@@ -32,6 +32,8 @@ func (q quit) process(s *state) {
 		return
 	}
 
+	q.suspendResets(attr.FindInventory(s.actor))
+
 	// Dispose of player's non-collectables items. Doing this before saving means
 	// the SAVE command has potentially less items to look through.
 	q.dispose(s, s.actor)
@@ -93,5 +95,23 @@ func (q quit) dispose(s *state, t has.Thing) {
 			continue
 		}
 		q.dispose(s, t)
+	}
+}
+
+// suspendResets goes through a player's inventory recursivly and suspends any
+// in-flight resets.
+func (q quit) suspendResets(i has.Inventory) {
+	for _, t := range i.Contents() {
+		if i := attr.FindInventory(t); i.Found() {
+			q.suspendResets(i)
+		}
+	}
+	for _, t := range i.Disabled() {
+		if i := attr.FindInventory(t); i.Found() {
+			q.suspendResets(i)
+		}
+		if r := attr.FindReset(t); r.Found() {
+			r.Suspend()
+		}
 	}
 }

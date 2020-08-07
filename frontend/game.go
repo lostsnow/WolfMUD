@@ -40,8 +40,8 @@ func (g *game) enter() {
 	start := (*attr.Start)(nil).Pick().Outermost()
 
 	// Lock starting location and player in LockID order to avoid deadlocks
-	i1 := start
-	i2 := attr.FindInventory(g.player)
+	pi := attr.FindInventory(g.player)
+	i1, i2 := start, pi
 	if i1.LockID() > i2.LockID() {
 		i1, i2 = i2, i1
 	}
@@ -57,6 +57,7 @@ func (g *game) enter() {
 		h.Adjust(1)
 	}
 	h.AutoUpdate(true)
+	g.resumeResets(pi)
 
 	start.Add(g.player)
 	start.Enable(g.player)
@@ -88,5 +89,29 @@ func (g *game) process() {
 		g.buf = message.AcquireBuffer()
 		g.buf.OmitLF(true)
 		NewMenu(g.frontend)
+	}
+}
+
+// enableResets goes through a player's inventory recursivly and resumes any
+// suspended resets.
+func (g *game) resumeResets(i has.Inventory) {
+	for _, t := range i.Contents() {
+		if i := attr.FindInventory(t); i.Found() {
+			g.resumeResets(i)
+		}
+		if r := attr.FindReset(t); r.Found() {
+			i.Disable(t)
+			attr.FindLocate(t).SetOrigin(i)
+			r.Resume()
+		}
+	}
+	for _, t := range i.Disabled() {
+		if i := attr.FindInventory(t); i.Found() {
+			g.resumeResets(i)
+		}
+		if r := attr.FindReset(t); r.Found() {
+			attr.FindLocate(t).SetOrigin(i)
+			r.Resume()
+		}
 	}
 }
