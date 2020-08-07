@@ -204,7 +204,7 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (i *Inventory) Marshal() (tag string, data []byte) {
 	var refs []string
-	for _, list := range []*list{i.contents, i.narratives} {
+	for _, list := range []*list{i.contents, i.narratives, i.disabled} {
 		for n := list.head.next; n.next != nil; n = n.next {
 			refs = append(refs, n.item.UID())
 		}
