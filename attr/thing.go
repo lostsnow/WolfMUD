@@ -378,17 +378,7 @@ func (t *Thing) SetOrigins() {
 // returns false. This is a helper routine so that the definition of what is
 // considered collectable can be easily changed.
 func (t *Thing) Collectable() bool {
-	o := FindLocate(t).Origin()
-
-	// Collectable if there is no origin...
-	collectable := o == nil || !o.Found()
-
-	// ...unless they are a Player
-	if collectable && FindPlayer(t).Found() {
-		collectable = false
-	}
-
-	return collectable
+	return !FindReset(t).Unique() && !FindPlayer(t).Found()
 }
 
 // UID returns the unique identifier for a specific Thing or an empty string if
