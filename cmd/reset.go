@@ -66,6 +66,7 @@ func (reset) process(s *state) {
 	// message. The reset will also not be seen if we specifically have an empty
 	// message. In both cases just silently reset the Thing.
 	if (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
+		attr.FindReset(what).Abort()
 		where.Enable(what)
 		s.ok = true
 		return
