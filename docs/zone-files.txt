@@ -511,8 +511,16 @@ ZONE RECORDS
     will be looked up and the something it uniquely references will be placed
     into the inventory. The same reference may appear in multiple INVENTORY in
     which case a copy of the original something will be made. As an example:
-    INVENTORY: O1 - this says to put the something defined as O1 into this
-    inventory. See also LOCATION.
+
+      INVENTORY: O1
+
+    This says to put the item with the reference (REF) O1 into this inventory.
+
+    If the item reference is prefixed with an exclamation mark '!' the item
+    will initially be added to the Inventory in a disabled, out of play state.
+    The item can be enabled and put into play by a suspended RESET event. A
+    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
+    period. See RESET for more details.
 
     It is possible to put containers inside other containers. It is also
     possible, but very confusing, to put locations inside locations or inside
@@ -522,17 +530,32 @@ ZONE RECORDS
     It is also possible for players to enter containers even though it may not
     have EXITS defining it as an actual location.
 
+    See also LOCATION.
+
   LOCATION: <KEYWORD LIST>
     LOCATION fields are used to put something into one or more inventories.
     Whereas an INVENTORY field says 'put these items here' a LOCATION field
     says 'put this item there and there'. Both LOCATION and INVENTORY have the
     same effect but LOCATION allows where something is put to be defined with
     the actual something, whereas INVENTORY allows you to define what is at a
-    location with the location.
+    location with the location. For example:
+
+      LOCATION: L1 L2
+
+    This says to put copies of the item the LOCATION field is defined on into
+    the inventories of the things with references (REF) of L1 and L2.
+
+    If the inventory reference is prefixed with an exclamation mark '!' the item
+    will initially be added to the Inventory in a disabled, out of play state.
+    The item can be enabled and put into play by a suspended RESET event. A
+    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
+    period. See RESET for more details.
 
     When deciding whether to use LOCATION or INVENTORY to place things as a
     rule of thumb use LOCATION for things unique to a location, such as
     narratives, and use INVENTORY to place things in multiple places.
+
+    See also INVENTORY.
 
   NAME: <STRING>
     A short descriptive name. For example: a curious brass lattice
@@ -630,6 +653,7 @@ ZONE RECORDS
       AFTER→<period>
       JITTER→<period>
       SPAWN→<boolean>
+      DUE_IN→<period> | DUE-IN→<period>
 
     For example:
 
@@ -653,6 +677,15 @@ ZONE RECORDS
     second. If SPAWN is not specified it will default to false.
 
     Just specifying SPAWN with no value is a shorthand for SPAWN→True.
+
+    The DUE_IN or DUE-IN period records the time remaining for a suspended
+    Reset event. If the item is disabled when the zone is first loaded the
+    Reset event will be resumed. This can be used to delay putting items into
+    a zone when the server is started. The DUE_IN or DUE-IN period can be
+    longer or shorter than AFTER+JITTER. See also INVENTORY and LOCATION for
+    how to load disabled items into a zone. If the item is not disabled when
+    loaded the DUE_IN or DUE-IN value is ignored. Once the resumed RESET event
+    completes the normal AFTER and JITTER values will come into effect.
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.

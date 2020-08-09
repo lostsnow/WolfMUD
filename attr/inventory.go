@@ -204,10 +204,13 @@ func (*Inventory) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (i *Inventory) Marshal() (tag string, data []byte) {
 	var refs []string
-	for _, list := range []*list{i.contents, i.narratives, i.disabled} {
+	for _, list := range []*list{i.contents, i.narratives} {
 		for n := list.head.next; n.next != nil; n = n.next {
 			refs = append(refs, n.item.UID())
 		}
+	}
+	for n := i.disabled.head.next; n.next != nil; n = n.next {
+		refs = append(refs, "!"+n.item.UID())
 	}
 	return "inventory", encode.KeywordList(refs)
 }

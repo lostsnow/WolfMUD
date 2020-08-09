@@ -190,9 +190,15 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		if i := attr.FindInventory(store[ref]); i.Found() {
 			i.Lock()
 			for _, ref := range decode.KeywordList(record["INVENTORY"]) {
+				disabled := ref[0] == '!'
+				if disabled {
+					ref = ref[1:]
+				}
 				t := store[ref]
 				i.Add(t)
-				i.Enable(t)
+				if !disabled {
+					i.Enable(t)
+				}
 			}
 			i.Unlock()
 		}
@@ -201,6 +207,7 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 	// Find and extract player as a copy - resolves any references as copies too
 	ref := decode.Keyword(jar[0]["REF"])
 	p := store[ref].DeepCopy().(*attr.Thing)
+	p.SetOrigins()
 
 	// Cleanup store
 	for ref, t := range store {

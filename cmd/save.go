@@ -125,7 +125,13 @@ func (sa save) fixInventory(jar *recordjar.Jar) {
 		if i, ok := rec["inventory"]; ok {
 			newRefs := []string{}
 			for _, ref := range decode.KeywordList(i) {
-				if _, ok := refs[ref]; ok {
+				disabled := ref[0] == '!'
+				if disabled {
+					_, ok = refs[ref[1:]]
+				} else {
+					_, ok = refs[ref]
+				}
+				if ok {
 					newRefs = append(newRefs, ref)
 				}
 			}

@@ -99,11 +99,6 @@ func (g *game) resumeResets(i has.Inventory) {
 		if i := attr.FindInventory(t); i.Found() {
 			g.resumeResets(i)
 		}
-		if r := attr.FindReset(t); r.Found() {
-			i.Disable(t)
-			attr.FindLocate(t).SetOrigin(i)
-			r.Resume()
-		}
 	}
 	for _, t := range i.Disabled() {
 		if i := attr.FindInventory(t); i.Found() {
