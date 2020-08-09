@@ -522,10 +522,8 @@ ZONE RECORDS
     suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
     period. See RESET for more details.
 
-    It is possible to put containers inside other containers. It is also
-    possible, but very confusing, to put locations inside locations or inside
-    containers. However you cannot put something or a location directly inside
-    itself.
+    It is possible to put containers inside other containers. However you
+    cannot put something or a location directly inside itself.
 
     It is also possible for players to enter containers even though it may not
     have EXITS defining it as an actual location.
