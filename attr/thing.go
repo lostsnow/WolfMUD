@@ -346,17 +346,19 @@ func (t *Thing) DeepCopy() has.Thing {
 	return NewThing(na...)
 }
 
-// SetOrigins updates the origin for the Thing to its containing Inventory and
-// recursivly sets the origins for the content of a Thing's Inventory if it has
-// one.
+// SetOrigins checks the passed Thing, and any Inventory content recursively,
+// for a Reset attribute. Any Thing found with a Reset attribute will then
+// have its origin set to that of the Thing's parent Inventory.
 func (t *Thing) SetOrigins() {
 	if t == nil {
 		return
 	}
 
-	// Set our origin to that of the parent Inventory
-	if l := FindLocate(t); l.Found() {
-		l.SetOrigin(l.Where())
+	// If Thing has a Reset then set our origin to that of the parent Inventory
+	if r := FindReset(t); r.Found() {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(l.Where())
+		}
 	}
 
 	// Find our Inventory
