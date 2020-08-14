@@ -37,11 +37,12 @@ func init() {
 // have a Reset attribute.
 type Reset struct {
 	Attribute
-	after  time.Duration
-	jitter time.Duration
-	spawn  bool
-	dueAt  time.Time     // Time a queued event is expected to fire
-	dueIn  time.Duration // Time remaining for a suspended event
+	after   time.Duration
+	jitter  time.Duration
+	spawn   bool
+	spawned bool
+	dueAt   time.Time     // Time a queued event is expected to fire
+	dueIn   time.Duration // Time remaining for a suspended event
 	event.Cancel
 }
 
@@ -55,7 +56,7 @@ var (
 // period to between after and after+jitter for when a Thing is reset or
 // respawned. If spawn is true the Thing will respawn otherwise it will reset.
 func NewReset(after time.Duration, jitter time.Duration, spawn bool) *Reset {
-	return &Reset{Attribute{}, after, jitter, spawn, time.Time{}, 0, nil}
+	return &Reset{Attribute{}, after, jitter, spawn, false, time.Time{}, 0, nil}
 }
 
 // FindReset searches the attributes of the specified Thing for attributes
@@ -120,8 +121,8 @@ func (r *Reset) Marshal() (tag string, data []byte) {
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (r *Reset) Dump(node *tree.Node) *tree.Node {
 	node = node.Append(
-		"%p %[1]T - after: %s, jitter: %s, spawn: %t",
-		r, r.after, r.jitter, r.spawn,
+		"%p %[1]T - after: %s, jitter: %s, spawn: %t, spawned: %t",
+		r, r.after, r.jitter, r.spawn, r.spawned,
 	)
 
 	var due, source string
@@ -275,6 +276,7 @@ func (r *Reset) spawnInventory(from, to has.Thing) {
 		}
 		c := t.Copy()
 		FindLocate(c).SetOrigin(toInv)
+		FindReset(c).Spawned()
 		r.spawnInventory(t, c)
 		toInv.Add(c)
 		toInv.Enable(c)
@@ -288,6 +290,7 @@ func (r *Reset) spawnInventory(from, to has.Thing) {
 		c := t.Copy()
 		FindLocate(c).SetOrigin(toInv)
 		r.spawnInventory(t, c)
+		FindReset(c).Spawned()
 		FindReset(c).Resume()
 		toInv.Add(c)
 	}
@@ -305,6 +308,19 @@ func (r *Reset) Spawnable() bool {
 // byproduct of an item spawning and hence a copy of that item.
 func (r *Reset) Unique() bool {
 	return r != nil && !r.spawn
+}
+
+// Spawned flags the Thing as being a spawned item.
+func (r *Reset) Spawned() {
+	if r == nil {
+		return
+	}
+	r.spawned = true
+}
+
+// IsSpawned returns true if the Thing has been spawned else false.
+func (r *Reset) IsSpawned() bool {
+	return r != nil && r.spawned
 }
 
 // Free makes sure references are nil'ed and queued events aborted when the

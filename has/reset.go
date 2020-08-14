@@ -31,6 +31,15 @@ type Reset interface {
 	// Spawnable returns true if the parent Thing is spawnable else false.
 	Spawnable() bool
 
+	// Spawned flags the Thing as being a spawned item.
+	//
+	// TODO(diddymus): This shouldn't be exposed in the interface and will be
+	// removed in the attribute reorganisation.
+	Spawned()
+
+	// IsSpawned returns true if the Thing has been spawned else false.
+	IsSpawned() bool
+
 	// Unique returns true if item is considered unique else false.
 	Unique() bool
 }
