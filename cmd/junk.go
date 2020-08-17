@@ -113,6 +113,9 @@ func (j junk) lockOrigins(s *state, t has.Thing) {
 	for _, c := range attr.FindInventory(t).Contents() {
 		j.lockOrigins(s, c)
 	}
+	for _, c := range attr.FindInventory(t).Disabled() {
+		j.lockOrigins(s, c)
+	}
 }
 
 // vetoed checks the content of an Inventory (recursively) of the passed Thing
