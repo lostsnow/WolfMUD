@@ -267,6 +267,7 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	switch {
 	case i.players.move(t, to.players):
 	case i.contents.move(t, to.contents):
+	case i.disabled.move(t, to.disabled):
 	case i.narratives.move(t, to.narratives):
 	default:
 		return
