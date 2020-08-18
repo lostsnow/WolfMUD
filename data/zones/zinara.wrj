@@ -920,7 +920,7 @@ OnAction: $ACT picks up a glass and wipes it with a rag.
         : EXAMINE BOTTLES
         : EXAMINE PLAYER
 
-This is you average barkeep, found in taverns and pubs all over the world.
+This is your average barkeep, found in taverns and pubs all over the world.
 Always ready to listen to a drinking patron, dispensing advice when required.
 %%
      Ref: M7
