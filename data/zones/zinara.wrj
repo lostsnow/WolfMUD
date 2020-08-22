@@ -1411,14 +1411,14 @@ This is a fine silk scarf with a colourful floral pattern on it.
 //
 %%
       Ref: L13O1
-     Name: a short sword
-  Aliases: +SHORT:SWORD
+     Name: a shortsword
+  Aliases: +SHORT:SWORD SHORTSWORD
 Wieldable: HAND
     Reset: AFTER→1m JITTER→5m SPAWN
   Cleanup: AFTER→10m JITTER→5m
  Location: L13
 
-This is a fine short sword. It has a pointy end.
+This is a fine shortsword. It has a pointy end.
 %%
       Ref: L13O2
      Name: a dagger
@@ -1440,4 +1440,14 @@ Wieldable: HAND→2
 
 This is a very large, heavy battle axe requiring two hands to wield it
 efficiently.
+%%
+      Ref: L13O4
+     Name: a longsword
+  Aliases: +LONG:SWORD LONGSWORD
+Wieldable: HAND
+    Reset: AFTER→1m JITTER→5m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L13
+
+This is a fine longsword. It has a pointy end.
 %%
