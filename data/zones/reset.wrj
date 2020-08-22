@@ -1,0 +1,205 @@
+// Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included with
+// the source code.
+%%
+      Ref: RESET
+     Zone: Reset and spawning test zone
+   Author: Andrew 'Diddymus' Rolfe
+ Disabled: TRUE
+
+A simple, two room test zone with two testers to play with items. The zone is
+designed to show up problems with spawning, reset events and data races.
+
+Note that it is recommended to disable all other zones if this zone is enabled.
+%%
+      Ref: L1
+    Start:
+     Name: Room A
+  Aliases: +ROOM:A A
+    Exits: E→L2
+Inventory: O1 O2 O3 O4 O5 O9 M1
+
+Test room 'A'.
+%%
+      Ref: L2
+     Name: Room B
+  Aliases: +ROOM:B B
+    Exits: W→L1
+Inventory: O1 O2 O3 O4 O5 O9 M1
+
+Test room 'B'
+%%
+//
+// MOBILES
+//
+%%
+      Ref: M1
+     Name: a tester
+Inventory:
+    Reset: AFTER→1s
+  OnReset: The tester walks in.
+  Aliases: TESTER
+ Holdable: HAND
+   Action: AFTER→1s JITTER→1s
+ OnAction: E
+         : E
+         : W
+         : W
+         : EXAMINE UUI
+         : EXAMINE UI
+         : EXAMINE SI
+         : EXAMINE UC
+         : EXAMINE SC
+         : EXAMINE TESTER
+         : GET UUI
+         : GET UI
+         : GET SI
+         : GET UC
+         : GET SC
+         : GET TESTER
+         : DROP UUI
+         : DROP UI
+         : DROP SI
+         : DROP UC
+         : DROP SC
+         : DROP TESTER
+         : PUT UUI UUI
+         : PUT UI UUI
+         : PUT SI UUI
+         : PUT UC UUI
+         : PUT SC UUI
+         : PUT TESTER UUI
+         : PUT UUI UI
+         : PUT UI UI
+         : PUT SI UI
+         : PUT UC UI
+         : PUT SC UI
+         : PUT TESTER UI
+         : PUT UUI SI
+         : PUT UI SI
+         : PUT SI SI
+         : PUT UC SI
+         : PUT SC SI
+         : PUT TESTER SI
+         : PUT UUI UC
+         : PUT UI UC
+         : PUT SI UC
+         : PUT UC UC
+         : PUT SC UC
+         : PUT TESTER UC
+         : PUT UUI SC
+         : PUT UI SC
+         : PUT SI SC
+         : PUT UC SC
+         : PUT SC SC
+         : PUT TESTER SC
+         : PUT UUI TESTER
+         : PUT UI TESTER
+         : PUT SI TESTER
+         : PUT UC TESTER
+         : PUT SC TESTER
+         : PUT TESTER TESTER
+         : TAKE UUI UUI
+         : TAKE UI UUI
+         : TAKE SI UUI
+         : TAKE UC UUI
+         : TAKE SC UUI
+         : TAKE TESTER UUI
+         : TAKE UUI UI
+         : TAKE UI UI
+         : TAKE SI UI
+         : TAKE UC UI
+         : TAKE SC UI
+         : TAKE TESTER UI
+         : TAKE UUI SI
+         : TAKE UI SI
+         : TAKE SI SI
+         : TAKE UC SI
+         : TAKE SC SI
+         : TAKE TESTER SI
+         : TAKE UUI UC
+         : TAKE UI UC
+         : TAKE SI UC
+         : TAKE UC UC
+         : TAKE SC UC
+         : TAKE TESTER UC
+         : TAKE UUI SC
+         : TAKE UI SC
+         : TAKE SI SC
+         : TAKE UC SC
+         : TAKE SC SC
+         : TAKE TESTER SC
+         : TAKE UUI TESTER
+         : TAKE UI TESTER
+         : TAKE SI TESTER
+         : TAKE UC TESTER
+         : TAKE SC TESTER
+         : TAKE TESTER TESTER
+         : JUNK UUI
+         : JUNK UI
+         : JUNK SI
+         : JUNK UC
+         : JUNK SC
+         : JUNK TESTER
+
+This is a tester, ready to try and break anything and everything for you.
+%%
+//
+// OBJECTS
+//
+%%
+     Ref: O1
+    Name: a unique unjunkable item
+ Aliases: UUI
+   Reset: AFTER→1s JITTER→1s
+    Veto: JUNK→The unique unjunkable item cannot be junked.
+
+A unique unjunkable item.
+%%
+     Ref: O2
+    Name: a unique item
+ Aliases: UI
+   Reset: AFTER→1s JITTER→1s
+
+A unique item.
+%%
+     Ref: O3
+    Name: a spawnable item
+ Aliases: SI
+   Reset: AFTER→1s JITTER→1s SPAWN
+
+A spawnable item.
+%%
+      Ref: O4
+     Name: a unique container
+  Aliases: UC
+    Reset: AFTER→1s JITTER→1s
+Inventory: O2 O3 O6 O7
+
+A unique container.
+%%
+      Ref: O5
+     Name: a spawnable container
+  Aliases: SC
+    Reset: AFTER→1s JITTER→1s SPAWN
+Inventory: O2 O3 O6 O7
+
+A spawnable container.
+%%
+      Ref: O6
+     Name: a unique container
+  Aliases: UC
+    Reset: AFTER→1s JITTER→1s
+Inventory: O2 O3
+
+A unique container.
+%%
+      Ref: O7
+     Name: a spawnable container
+  Aliases: SC
+    Reset: AFTER→1s JITTER→1s SPAWN
+Inventory: O2 O3
+
+A spawnable container.
+%%
