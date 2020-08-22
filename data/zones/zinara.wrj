@@ -1335,7 +1335,7 @@ Location: L73
 A soft leather belt with an ornate floral pattern carved into it. The
 fastening is a simple brass plate engraved with a flower.
 %%
-     Ref: L73O9
+     Ref: L73O10
     Name: a knotwork belt
  Aliases: +KNOTWORK:BELT +LEATHER:BELT CLOTHING CLOTHES
 Wearable: WAIST
@@ -1346,7 +1346,7 @@ Location: L73
 A soft leather belt with an ornate knotwork pattern carved into it. The buckle
 is a sculpted, ornate brass knot.
 %%
-     Ref: L73O10
+     Ref: L73O11
     Name: a cotton shirt
  Aliases: +COTTON:SHIRT +COTTON:SHIRT CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
@@ -1356,7 +1356,7 @@ Location: L73
 
 This is a rough, light cotton shirt with long sleves.
 %%
-     Ref: L73O11
+     Ref: L73O12
     Name: some cotton trousers
  Aliases: +COTTON:TROUSERS +COTTON:TROUSERS CLOTHING CLOTHES
 Wearable: UPPER_LEG→2 LOWER_LEG→2
@@ -1366,7 +1366,7 @@ Location: L73
 
 These are rough, long cotton trousers.
 %%
-     Ref: L73O12
+     Ref: L73O13
     Name: a cotton dress
  Aliases: +COTTON:DRESS +COTTON:DRESS CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
@@ -1376,7 +1376,7 @@ Location: L73
 
 This is a long, rough cotton dress.
 %%
-     Ref: L73O13
+     Ref: L73O14
     Name: a formal gown
  Aliases: +FORMAL:GOWN +FINE:GOWN CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
@@ -1386,7 +1386,7 @@ Location: L73
 
 This is a long, formal gown made from fine cotton.
 %%
-     Ref: L73O14
+     Ref: L73O15
     Name: a plain silk scarf
  Aliases: +PLAIN:SCARF +SILK:SCARF CLOTHING CLOTHES
 Wearable: NECK
@@ -1396,7 +1396,7 @@ Location: L73
 
 This is a unadorned, fine silk scarf.
 %%
-     Ref: L73O15
+     Ref: L73O16
     Name: a floral silk scarf
  Aliases: +FLORAL:SCARF +SILK:SCARF CLOTHING CLOTHES
 Wearable: NECK
