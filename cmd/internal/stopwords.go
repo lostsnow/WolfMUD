@@ -20,6 +20,8 @@ var stopWords = text.Dictionary(
 	"out",
 	"some",
 	"the",
+	"to",
+	"with",
 )
 
 // removeStopWords takes a slice of strings (words) and returns a slice of
