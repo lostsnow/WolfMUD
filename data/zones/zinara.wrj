@@ -264,7 +264,8 @@ is a narrow alley. East the street leads back into the main city.
     Ref: L27
    Name: Entrance to city gardens
 Aliases: GARDENS ENTRANCE
-  Exits: E→L26 W→L28
+   Exits: E→L26 W→L28
+ Barrier: EXIT→W DENY→CREATURE
 
 You are standing at the entrance to the city gardens. Around you flowers blossom
 and insects hum. Through an intricate iron gate to the west you see the city
@@ -274,6 +275,7 @@ gardens. East the city streets await.
    Name: Gardens
 Aliases: GARDENS
   Exits: E→L27 N→L31
+Barrier: EXIT→E DENY→CREATURE
 
 You are in a fine, formal garden. Around you small trees and shrubs grow. Here
 and there small delicate flowers display a splash of colour. To the north you
