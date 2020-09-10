@@ -18,6 +18,8 @@ func init() {
 
 type quit cmd
 
+const quitMsg = " gives a strangled cry of 'Bye Bye', slowly fades away and is gone."
+
 // The Quit command acts as a hook for processing to be done when a player
 // quits the game.
 func (q quit) process(s *state) {
@@ -30,6 +32,8 @@ func (q quit) process(s *state) {
 		return
 	}
 
+	q.suspendResets(attr.FindInventory(s.actor))
+
 	// Dispose of player's non-collectables items. Doing this before saving means
 	// the SAVE command has potentially less items to look through.
 	q.dispose(s, s.actor)
@@ -41,10 +45,13 @@ func (q quit) process(s *state) {
 	// are locking.
 	attr.FindPlayer(s.actor).SetPromptStyle(has.StyleNone)
 
+	attr.FindHealth(s.actor).AutoUpdate(false)
+
 	// Remove the player from the world
 	if s.where != nil {
 		who := attr.FindName(s.actor).Name("someone")
-		s.msg.Observer.SendInfo(who, " gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+		s.msg.Participant.SendInfo(who, quitMsg)
+		s.msg.Observer.SendInfo(who, quitMsg)
 		s.where.Disable(s.actor)
 		s.where.Remove(s.actor)
 	}
@@ -62,13 +69,49 @@ func (q quit) process(s *state) {
 // messages, we need to generate our own. This is deliberate so that all
 // non-collectable items will be forced to reset when a player quits.
 func (q quit) dispose(s *state, t has.Thing) {
-	var j junk
+	var (
+		j junk
+		b has.Body
+	)
+
 	for _, t := range attr.FindInventory(t).Contents() {
 		if !t.Collectable() {
-			s.msg.Actor.SendInfo("You junk ", attr.FindName(t).Name("something"), ".")
+
+			name := attr.FindName(t).TheName("something")
+
+			// Lazily initialise body
+			if b == nil {
+				b = attr.FindBody(s.actor)
+			}
+
+			// If item is being used force removal of it first to sync Body slots
+			if b.Using(t) {
+				s.msg.Actor.SendInfo("You stop ", b.Usage(t), " ", name, ".")
+				b.Remove(t)
+			}
+
+			s.msg.Actor.SendInfo("You junk ", name, ".")
 			j.dispose(t)
 			continue
 		}
 		q.dispose(s, t)
+	}
+}
+
+// suspendResets goes through a player's inventory recursivly and suspends any
+// in-flight resets.
+func (q quit) suspendResets(i has.Inventory) {
+	for _, t := range i.Contents() {
+		if i := attr.FindInventory(t); i.Found() {
+			q.suspendResets(i)
+		}
+	}
+	for _, t := range i.Disabled() {
+		if i := attr.FindInventory(t); i.Found() {
+			q.suspendResets(i)
+		}
+		if r := attr.FindReset(t); r.Found() {
+			r.Suspend()
+		}
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Vetoes attribute.
@@ -53,12 +54,18 @@ func NewVetoes(veto ...has.Veto) *Vetoes {
 // that implement has.Vetoes returning all that match. If no matches are found
 // an empty slice will be returned.
 func FindAllVetoes(t has.Thing) (matches []has.Vetoes) {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Vetoes); ok {
-			matches = append(matches, a)
-		}
+	vetoes := t.FindAttrs((*Vetoes)(nil))
+	matches = make([]has.Vetoes, len(vetoes))
+	for a := range vetoes {
+		matches[a] = vetoes[a].(has.Vetoes)
 	}
 	return
+}
+
+// Is returns true if passed attribute implements vetoes else false.
+func (*Vetoes) Is(a has.Attribute) bool {
+	_, ok := a.(has.Vetoes)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -96,14 +103,14 @@ func (v *Vetoes) Marshal() (tag string, data []byte) {
 	return tag, encode.KeyedStringList(pairs, '→')
 }
 
-func (v *Vetoes) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T %d vetoes:", v, len(v.vetoes)))
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (v *Vetoes) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - vetoes: %d", v, len(v.vetoes))
+	branch := node.Branch()
 	for _, veto := range v.vetoes {
-		for _, line := range veto.Dump() {
-			buff = append(buff, DumpFmt("%s", line))
-		}
+		veto.Dump(branch)
 	}
-	return buff
+	return node
 }
 
 // Check checks if any of the passed commands, issued by the passed actor, are
@@ -175,8 +182,11 @@ func NewVeto(cmd string, msg string) *Veto {
 	return &Veto{strings.ToUpper(cmd), msg}
 }
 
-func (v *Veto) Dump() (buff []string) {
-	return append(buff, DumpFmt("%p %[1]T %q:%q", v, v.Command(), v.Message()))
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (v *Veto) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - cmd: %q, msg: %q",
+		v, v.Command(), v.Message(),
+	)
 }
 
 // Command returns the command associated with the Veto.

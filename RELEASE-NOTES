@@ -6,10 +6,184 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.16 Released Thursday 10th September, 2020
+==============================================================================
+
+Added
+
+  - New Thing.Freed method added to use in place of 'len(Thing.Attrs()) == 0'
+    to reduce allocations and copying.
+  - All Attributes now have an Is method that return true if the Attribute
+    implements a particular interface - usually the interface named for the
+    attribute type.
+  - New Thing.FindAttr and Thing.FindAttrs methods which use the new Attribute
+    Is method to replace the current Find* methods.
+  - Removed Thing.Attrs method.
+  - Added Attribute.free method to free Attribute without locking.
+  - New Health attribute added. Players automatically upgraded on login.
+  - New player /PROMPT command to set/query current prompt.
+  - Experimental HIT command added for testing new Health attribute and health
+    regeneration. Can be vetoed via HIT or the more general COMBAT pseudo
+    command.
+  - New cmd.state.asParticipant method to allow an actor to script a command
+    for a participant.
+  - Players can be killed in-game, currently via the experimental HIT command.
+  - A hyphen '-' or underscore '_' can now be used in the name of a name/value
+    pair in a record jar file and will no longer be interpreted as a name/value
+    separator.
+  - A exclamation mark '!' can precede the name in a name/value pair list in a
+    record jar file and will not be treated as a name/value separator.
+  - Added a text.List convenience function for turning a []string into a string
+    that is comma separated except the last two elements which have 'and'
+    between them. For example: text.List("A", "B", "C") → "A, B and C".
+  - A new Body Attribute has been added allowing items to be worn, wielded and
+    held. Players are automatically upgraded on login.
+  - New REMOVE command to stop wearing, wielding or holding an item.
+  - New Wieldable, Wearable and Holdable Attributes added. Documentation in
+    docs/zone-files.txt updated. While Wieldable and Wearable have to be
+    defined on an item Holdable (in one hand) is applicable to all items except
+    players and mobiles. Holdable can be vetoed if something should not be
+    held. Specifically defining Holdable on an item can override the default
+    behaviour, for example to require two hands.
+  - New WEAR, WIELD and HOLD player commands added.
+  - Added Merkle's Fine Emporium (clothier, L73) with a selection of clothing
+    items that players can wear.
+  - Added a text.tree sub-package for producing textual tree graphs.
+  - Added new attr.Thing.DumpToLog helper method.
+  - Queued events now record when they are expected to fire. Queued events can
+    also be suspended and will record how long is left before they are due to
+    fire. Suspended events can be resumed to fire after the remaining time.
+  - The Action, Cleanup and Reset attributes have new Suspend and Resume
+    methods to suspend and resume their events.
+  - Added a attr.Reset.Spawnable method to check if an item is spawnable.
+  - Added a attr.Reset.Unique method to check if an item is unique.
+  - New SHOUT, TELL/TALK and WHISPER player commands added.
+  - New test zone reset.wrj added under data/zones, disabled by default. Old
+    test zone quiet.wrj removed.
+  - In the zinara.wrj zone file there are two new barriers. One to stop the
+    rabbit and frog from wandering out of the gardens, the other to stop random
+    creatures wandering into the gardens.
+
+Changed
+
+  - Lazily allocate maps in message.Buffers.Silent to reduce allocations.
+  - $CLEANUP and $RESET commands updated to use new Thing.Freed method.
+  - All Attribute Find* methods reimplemented using Thing.FindAttr and
+    Thing.FindAttrs methods. Cleaner implementation causes an average 5%
+    performance hit to in-game commands. Needs revisiting.
+  - The event package now uses a reference to attr.FindName instead of manually
+    processing the result of calling attr.Thing.Attrs - a butt ugly hack that
+    allows attr.Thing.Attrs to be removed.
+  - The frontend package now locks the outermost Inventory of the player's
+    starting position when player is placed into the world.
+  - attr.Locate now uses the sync.rwmutex from the embedded Attribute instead
+    of allocating its own.
+  - Player prompt displays current / maximum health, dependant on prompt style.
+  - Default player prompt changed from StyleBrief to StyleShort.
+  - The frontend package now uses a player's attr.Locate.Where being set to nil
+    as an signal to exit, instead of checking if the last command was 'QUIT'.
+    This allows other means of exiting, such as being killed ;)
+  - The Dragon's breath tavern and the sheltered area in the garden have been
+    reinstated as sanctuaries - no fighting/combat allowed.
+  - The city guard's peacekeeper status has been partially restored - they can
+    prevent fighting, but cannot attack players killing things in return.
+  - The message.Buffer.Deliver has been optimised, avoids copying buffers.
+  - The QUIT command has been updated to sync body slots when forcibly junking
+    non-collectable items the player cannot keep.
+  - The DROP and PUT player commands have been updated to sync body slots when
+    a worn, wielded or held item is dropped or put somewhere.
+  - The INVENTORY/INV player command shows items being worn, wielded or held.
+  - Clarify SPAWN and unique item documentation for RESET in docs/zone-files.txt
+  - In docs/zone-files.txt the section on Alias/Aliases has been rewritten and
+    now includes details of qualified and bound aliases.
+  - Cleaned up chest, pouch and ball references and moved items from the tavern
+    to the trading post in the zinara.wrj zone file.
+  - Moved the curious brass lattice from the tavern to the pawn shop in the
+    zinara.wrj zone file.
+  - Added specific Holdable definition to rabbit and frog mobiles in zinara.wrj
+    so that they can be held by players - mobiles are not normally holdable.
+  - Moved bag and sack from tavern to the trading post in zinara.wrj zone file.
+  - The EXAMINE/EXAM command has been updated so that when used on another
+    player it describes items being worn, wielded or held.
+  - attr.Thing and all Attribute switched to new debugging scheme using new
+    text.tree package. Debugging information for attributes standardised.
+  - Removed ability to dump Thing by arbitrary memory address using #DUMP.
+  - Updated #DUMP to use new debugging scheme.
+  - The attr.Thing.Copy method has been renamed attr.Thing.DeepCopy and is
+    recursive into Inventory. The attr.Thing.Copy method has been reimplemented
+    and is not recursive.
+  - Removed Thing.ClearOrigins method as no longer used.
+  - In the zinara.wrj zone file the "weapon shop" is now "bladesmith workshop"
+    and has a selection of weapons to try with the new WIELD command.
+  - The game.init method has been renamed game.enter to better reflect its
+    purpose and to avoid confusion with package init methods.
+  - Updated the meaning of what is a collectable item in  the Thing.Collectable
+    method. Updated junk.dispose method as it can no longer use the Collectable
+    method to determine if an item should be freed for garbage collection.
+  - The SAVE command now also saves a player's disabled items waiting for a reset.
+  - When a player exits the game any pending Reset events are suspended, when
+    entering the game any suspended Reset events are resumed.
+  - The attr.Inventory.Unmarshal method has been updated so that references
+    with a leading exclamation mark '!' are loaded disabled.
+  - The SAVE command cmd.save.fixInventory method, frontend.log.assemblePlayer
+    method, zone loader zone.linkupInventory and zone.linkupLocation methods
+    have been updated to understand disabled references. This means players can
+    be loaded with disabled items, usually because they are waiting for a
+    reset. Also items can be loaded disabled into zones via INVENTORY and
+    LOCATION fields. Documentation in docs/zone-files.txt updated with details.
+  - Added 'to' and 'with' as stop words in cmd.internal.stopwords so that
+    players can 'TALK with' and 'WHISPER to' other players.
+  - The street vendor in the zinara.wrj zone file now uses SHOUT instead of SAY
+    to attract potential customers.
+
+Fixed
+
+  - Don't try logging a connection error if there isn't one.
+  - Thing.Freed only needs to take a read lock instead of a read-write lock.
+  - Missing comment added to attr.Name type.
+  - In frontend.Write don't write data to client if error already raised.
+  - Always send prompt to client, even if player.PromptStyle is StyleNone, so
+    that the text colour is always reset.
+  - Set stale attr.Locate,where to nil in Inventory.Remove method.
+  - In attr.Inventory.Remove set attr.Locate.Where on Thing removed to nil so
+    that we don't end up with a stale reference.
+  - The QUIT command should also notify any participant.
+  - Extraneous colour resets sent to clients reduced.
+  - The attr.Player.Write method no longer modifies the passed []byte and now
+    conforms to the io.Writer interface.
+  - Green and red balls used as test items removed from zinara.wrj zone file.
+  - Added TAVERN qualifier to tavern door in zinara.wrj zone file.
+  - Fixed aliases for entrance to the mages tower (L48), Mage's tower (L49),
+    entrance to temple (L53), entrance to warrior's barracks (L65) and magic
+    shop (L67) in zinara.wrj zone file. Fixed aliases for track near small cave
+    (L13) in zinara_south.wrj zone file.
+  - The attr.Locate.Copy method should include the origin in the copied data.
+  - Fix attr.Thing.SetOrigins method setting origins twice.
+  - The attr.Thing.SetOrigins method should include disabled Inventory items.
+  - The cmd.junk.dispose method should also dispose of disabled items.
+  - Reimplemented Reset.Spawn to fix item respawning nil panics, items not
+    resetting due to lost Reset events and duplication of unique items.
+  - Fix clean up of Reset event if event not seen and code shortcut taken.
+  - In attr.Thing.SetOrigins only set origin for items with a Reset attribute.
+  - Fixed data race in cmd.state between cmd.newState and cmd.state.sync methods.
+  - attr.Inventory.Move should be able to move disabled items instead of
+    silently failing.
+  - In junk.lockOrigins lock origins of disabled items.
+
+Known Bugs / Issues
+
+  - If a player is wearing, wielding or holding items and completely log out of
+    the server the items will no longer be worn, wielded or held when they log
+    back in.
+  - Buying and selling are not currently implemented so items at shops, like
+    Merkle's Fine Emporium and the Bladesmith's workshop, can just be taken by
+    players so they have some items to test the new WEAR, WIELD and HOLD player
+    commands.
+
 v0.0.15 Released Thursday 10th November, 2019
 ==============================================================================
 
-Fixed:
+Fixed
 
   - Typo in data/zones/zinara.wrj for lady in pawn shop.
   - A nil panic in the JUNK command triggered by a location issuing a CLEANUP.

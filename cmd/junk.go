@@ -113,6 +113,9 @@ func (j junk) lockOrigins(s *state, t has.Thing) {
 	for _, c := range attr.FindInventory(t).Contents() {
 		j.lockOrigins(s, c)
 	}
+	for _, c := range attr.FindInventory(t).Disabled() {
+		j.lockOrigins(s, c)
+	}
 }
 
 // vetoed checks the content of an Inventory (recursively) of the passed Thing
@@ -139,9 +142,13 @@ func (j junk) dispose(t has.Thing) {
 
 	attr.FindAction(t).Abort()
 	attr.FindCleanup(t).Abort()
+	attr.FindReset(t).Abort()
 
 	// Recurse into inventories and dispose of the content
 	for _, c := range attr.FindInventory(t).Contents() {
+		j.dispose(c)
+	}
+	for _, c := range attr.FindInventory(t).Disabled() {
 		j.dispose(c)
 	}
 
@@ -150,8 +157,9 @@ func (j junk) dispose(t has.Thing) {
 	o := l.Origin()
 	r := attr.FindReset(t)
 
-	// If Thing is collectable remove it and free for garbage collection
-	if t.Collectable() {
+	// If Thing is spawned (it's a copy) or has no origin then remove it and free
+	// for garbage collection
+	if r.IsSpawned() || o == nil || !o.Found() {
 		w.Disable(t)
 		w.Remove(t)
 		t.Free()

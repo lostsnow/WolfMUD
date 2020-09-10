@@ -24,9 +24,13 @@ func init() {
 // be modified directly except for locks. The AddLocks method should be used to
 // add locks, CanLock can be called to see if a lock has already been added.
 //
-// NOTE: the where field is only set when the state is created. If the actor
-// moves to another location the where field should be updated as well. See the
-// move command for such an example.
+// Care should be taken if the state.where field is updated by a command.
+// Updating the state.where field to an Inventory not covered by a lock, via
+// AddLock, will cause the lock list to be cleared and processing for the
+// command will start over. This is due to the fact that state.sync will detect
+// the actor has moved and that the locks are now invalid - as state.were is
+// not covered by a lock. See cmd.move for an example of updating state.where
+// with command.
 //
 // TODO: Need to document msg buffers properly
 type state struct {
@@ -35,33 +39,32 @@ type state struct {
 	participant has.Thing     // The other Thing participating in the command
 	input       []string      // The original input of the actor minus cmd
 	cmd         string        // The current command being processed
-	words       []string      // Input as uppercased words, less stopwords
+	words       []string      // Input as uppercased words, less cmd & stopwords
 	ok          bool          // Flag to indicate if command was successful
 	scripting   bool          // Is state in scripting mode?
 
-	// DO NOT MANIPULATE LOCKS DIRECTLY - use AddLock and see it's comments
-	locks []has.Inventory // List of locks we want to be holding
+	// locks is the list of locks we want to be holding. locks has a specific
+	// ordering and should be added using AddLock, see it's comments.
+	locks []has.Inventory
 
 	// msg contains the message buffers for sending data to different recipients
 	msg message.Msg
 }
 
 // Parse initiates processing of the input string for the specified Thing. The
-// input string is expected to be input from a player. The actual command
-// processed will be returned. For example GET or DROP.
+// input string is expected to be input from a player.
 //
 // Parse runs with state.scripting set to false, disallowing scripting specific
 // commands from being executed by players directly.
 //
 // When sync handles a command the command may determine it needs to hold
 // additional locks. In this case sync will return false and should be called
-// again. This repeats until the list of locks is complete, the command
+// again. This repeats until the list of locks are acquired, the command
 // processed and sync returns true.
-func Parse(t has.Thing, input string) string {
+func Parse(t has.Thing, input string) {
 	s := newState(t, input)
 	for !s.sync() {
 	}
-	return s.cmd
 }
 
 // Script processes the input string the same as Parse. However Script runs
@@ -75,9 +78,7 @@ func Script(t has.Thing, input string) string {
 	return s.cmd
 }
 
-// newState returns a *state initialised with the passed Thing and input. If
-// the passed Thing is locatable the containing Inventory is added to the lock
-// list, but the lock is not taken at this point.
+// newState returns a *state initialised with the passed Thing and input.
 func newState(t has.Thing, input string) *state {
 
 	s := &state{
@@ -86,12 +87,6 @@ func newState(t has.Thing, input string) *state {
 	}
 
 	s.tokenizeInput(input)
-
-	// Need to determine the actor's current location so we can lock it. As
-	// commands frequently need to know the current location also, we stash it in
-	// the state for later reuse.
-	s.where = attr.FindLocate(t).Where()
-	s.AddLock(s.where)
 
 	return s
 }
@@ -130,24 +125,35 @@ func (s *state) tokenizeInput(input string) {
 	}
 }
 
-// sync is called to do the actual locking/unlocking for commands. Having this
-// separate from takes advantage of unwinding the locks using defer. This makes
-// sync very simple. If the list of locks before and after handling a command
-// are the same we are 'in sync' and had all the locks we needed to process the
-// command. In this case we return true. If more locks need to be acquired we
-// return false and should be called again.
-//
-// NOTE: There is usually at least one lock, added by newState, which is the
-// containing Inventory of the current actor - if it is locatable.
-//
-// NOTE: At the moment locks are only added - using AddLock. A change in the
-// lock list can therefore be detected by simply checking the length of the
-// list. If at a later time we need to be able to remove locks as well this
-// simple length check will not be sufficient.
+// sync acquires locks reuired for command processing. If the number of locks
+// before and after handling a command are the same we are 'in sync' and had
+// all the locks we needed to process the command and return true. If a command
+// required, and added via state.AddLock, additional locks then return false
+// and sync should be called again.
 func (s *state) sync() (inSync bool) {
 	for _, l := range s.locks {
 		l.Lock()
 		defer l.Unlock()
+	}
+
+	// If actor not where we think it is s.where and s.locks will be invalid, and
+	// we will be acquiring the wrong locks, so start over. On our first pass
+	// s.where will never match so this performs initialisation as well.
+	//
+	// Note: Just checking s.where is not enough. Consider a location L, with a
+	// container C and actor A. The actor is in the container which it at the
+	// location. Our Inventory hierarchy is L←C←A, s.where points to C and we
+	// lock L. If C moves to location L' our Inventory hierarchy is now L'←C←A
+	// but s.where is unchanged and still points to C but now the lock needs to
+	// be on L' and not L.
+	if l := attr.FindLocate(s.actor).Where(); s.where != l || !s.CanLock(l) {
+		s.where = l
+		for x := range s.locks {
+			s.locks[x] = nil
+		}
+		s.locks = s.locks[:0]
+		s.AddLock(l)
+		return false
 	}
 
 	s.msg.Allocate(s.where, s.locks)
@@ -225,11 +231,39 @@ func (s *state) scriptNone(input ...string) {
 	s.script(false, false, false, input...)
 }
 
-// scriptAll is a helper method that is equivalent to calling script with
+// scriptActor is a helper method that is equivalent to calling script with
 // messages suppressed for any participant or observers. Only the actor will
 // receive any messages.
 func (s *state) scriptActor(input ...string) {
 	s.script(true, false, false, input...)
+}
+
+// asParticipant executes the given input as a command for the participant
+// using the current state. It is functionally equivalent to cmd.script but
+// with the actor and participant roles temporarily reversed for the duration
+// of the command. If the current participant is nil this method will just
+// return. See cmd.script for additional information.
+//
+// BUG(diddymus): It's currently assumed the actor and participant are at the
+// same location. This is important as s.were is not updated when roles are
+// switched, swapping locations could have implications for the locks being
+// held. More investigation and testing required.
+func (s *state) asParticipant(inputs ...string) {
+
+	if s.participant == nil {
+		return
+	}
+
+	// Reverse actor and participant roles
+	s.actor, s.participant = s.participant, s.actor
+	s.msg.Actor, s.msg.Participant = s.msg.Participant, s.msg.Actor
+
+	s.script(true, true, true, inputs...)
+
+	// Restore actor and participant roles
+	s.actor, s.participant = s.participant, s.actor
+	s.msg.Actor, s.msg.Participant = s.msg.Participant, s.msg.Actor
+
 }
 
 // messenger is used to send buffered messages to the actor, participant and
@@ -271,9 +305,9 @@ func (s *state) messenger() {
 	s.msg.Deallocate()
 }
 
-// CanLock returns true if the specified Inventory is in the list of locks and
-// could be locked, otherwise false. It does NOT determine if the lock is
-// currently held or not.
+// CanLock returns true if the specified Inventory is covered in the list of
+// locks and could be locked, otherwise false. It does NOT determine if the
+// lock is currently held or not.
 func (s *state) CanLock(i has.Inventory) bool {
 
 	if i == nil {

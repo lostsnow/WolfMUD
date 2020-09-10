@@ -130,7 +130,7 @@ south, either way you see just more forest.
 %%
       Ref: L13
      Name: Track near small cave
-    Alias: CAVE, TRACK
+    Alias: CAVE TRACK
 Inventory: N1
     Exits: E→L10
 ZoneLinks: S→ZINARACAVES:L1

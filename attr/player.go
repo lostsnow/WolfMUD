@@ -15,6 +15,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Player attribute.
@@ -43,20 +44,22 @@ func NewPlayer(w io.Writer) *Player {
 	return &Player{Attribute{}, w, has.StyleBrief, &account{}}
 }
 
-func (p *Player) Dump() []string {
-	return []string{DumpFmt("%p %[1]T", p)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (p *Player) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T", p)
 }
 
 // FindPlayer searches the attributes of the specified Thing for attributes
 // that implement has.Player returning the first match it finds or a *Player
 // typed nil otherwise.
 func FindPlayer(t has.Thing) has.Player {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Player); ok {
-			return a
-		}
-	}
-	return (*Player)(nil)
+	return t.FindAttr((*Player)(nil)).(has.Player)
+}
+
+// Is returns true if passed attribute implements a player else false.
+func (*Player) Is(a has.Attribute) bool {
+	_, ok := a.(has.Player)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -73,14 +76,17 @@ func (p *Player) SetPromptStyle(new has.PromptStyle) (old has.PromptStyle) {
 }
 
 // buildPrompt creates a prompt appropriate for the current PromptStyle. This
-// is mostly useful for dynamic prompts that show player statistics.
-func (p *Player) buildPrompt() []byte {
-	switch p.PromptStyle {
-	case has.StyleBrief:
-		return []byte(text.Prompt + ">")
-	default:
-		return []byte{}
+// is mostly useful for dynamic prompts that show player stats such as health.
+func (p *Player) buildPrompt() (prompt []byte) {
+
+	h := FindHealth(p.Parent())
+	prompt = append(prompt, text.Prompt...)
+	prompt = append(prompt, h.Prompt(p.PromptStyle)...)
+	if p.PromptStyle != has.StyleNone {
+		prompt = append(prompt, '>')
 	}
+
+	return
 }
 
 // Unmarshal is used to turn the passed data into a new Player attribute. At
@@ -96,16 +102,16 @@ func (*Player) Marshal() (string, []byte) {
 	return "", []byte{}
 }
 
-// Write writes the specified byte slice to the associated client.
+// Write appends the current prompt to a copy of the passed []byte and writes
+// the resulting []byte to the Player.
 func (p *Player) Write(b []byte) (n int, err error) {
 	if p == nil {
 		return
 	}
 
-	b = append(b, p.buildPrompt()...)
-	if p != nil {
-		n, err = p.Writer.Write(b)
-	}
+	// force new slice allocation leaving the originally passed []byte untouched,
+	// as per the io.Writer documention.
+	n, err = p.Writer.Write(append(b[:len(b):len(b)], p.buildPrompt()...))
 	return
 }
 

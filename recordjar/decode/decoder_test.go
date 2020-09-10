@@ -208,8 +208,60 @@ func TestPairList(t *testing.T) {
 		{"a→z\tb→y", map[string]string{"A": "Z", "B": "Y"}},
 		{"\ta→z\tb→y\t", map[string]string{"A": "Z", "B": "Y"}},
 
+		// Test for name with leading exclamation mark '!'
+		{"!", map[string]string{"!": ""}},
+		{"!→", map[string]string{"!": ""}},
+		{"!→2", map[string]string{"!": "2"}},
+		{"!x", map[string]string{"!X": ""}},
+		{"!x→", map[string]string{"!X": ""}},
+		{"!x→2", map[string]string{"!X": "2"}},
+		{"!!x", map[string]string{"!": "X"}},
+		{"!x!y", map[string]string{"!X": "Y"}},
+
+		// Test for name with hyphen/minus
+		{"-", map[string]string{"-": ""}},
+		{"x-", map[string]string{"X-": ""}},
+		{"-x", map[string]string{"-X": ""}},
+		{"x-y", map[string]string{"X-Y": ""}},
+		{"-→z", map[string]string{"-": "Z"}},
+		{"x-→z", map[string]string{"X-": "Z"}},
+		{"-x→z", map[string]string{"-X": "Z"}},
+		{"x-y→z", map[string]string{"X-Y": "Z"}},
+		{"x→-", map[string]string{"X": "-"}},
+		{"x→y-", map[string]string{"X": "Y-"}},
+		{"x→-y", map[string]string{"X": "-Y"}},
+		{"x→y-z", map[string]string{"X": "Y-Z"}},
+
+		// Test for name with underscore
+		{"_", map[string]string{"_": ""}},
+		{"x_", map[string]string{"X_": ""}},
+		{"_x", map[string]string{"_X": ""}},
+		{"x_y", map[string]string{"X_Y": ""}},
+		{"_→z", map[string]string{"_": "Z"}},
+		{"x_→z", map[string]string{"X_": "Z"}},
+		{"_x→z", map[string]string{"_X": "Z"}},
+		{"x_y→z", map[string]string{"X_Y": "Z"}},
+		{"x→_", map[string]string{"X": "_"}},
+		{"x→y_", map[string]string{"X": "Y_"}},
+		{"x→_y", map[string]string{"X": "_Y"}},
+		{"x→y_z", map[string]string{"X": "Y_Z"}},
+
 		// Should only get first occurance of duplicate keyword
 		{"a→z a→y", map[string]string{"A": "Z"}},
+
+		// Actual body slot data
+		{"BODY HAND→2", map[string]string{"BODY": "", "HAND": "2"}},
+		{"BODY HAND !HAND", map[string]string{"BODY": "", "HAND": "", "!HAND": ""}},
+		{
+			"HEAD NECK SHOULDER→2 BACK CHEST UPPER_ARM→2 LOWER_ARM→2 HAND→2 " +
+				"FINGER→2 WAIST UPPER_LEG→2 LOWER_LEG→2 ANKLE→2 FOOT→2",
+			map[string]string{
+				"HEAD": "", "NECK": "", "SHOULDER": "2", "BACK": "", "CHEST": "",
+				"UPPER_ARM": "2", "LOWER_ARM": "2", "HAND": "2", "FINGER": "2",
+				"WAIST": "", "UPPER_LEG": "2", "LOWER_LEG": "2", "ANKLE": "2",
+				"FOOT": "2",
+			},
+		},
 
 		// Actual exit data
 		{
@@ -254,6 +306,10 @@ func BenchmarkPairList(b *testing.B) {
 		{"Door", "EXIT→E RESET→1m JITTER→1m OPEN"},
 		{"Action", "AFTER→15s JITTER→15s"},
 		{"Reset", "AFTER→0s JITTER→2m SPAWN"},
+		{"Body plain", "HEAD TORSO"},
+		{"Body !plain", "!HEAD TORSO"},
+		{"Body qty plain", "HEAD→1 TORSO→1"},
+		{"Body !qty plain", "!HEAD→1 TORSO→1"},
 	} {
 		data := []byte(test.pairs)
 		b.Run(fmt.Sprintf(test.name), func(b *testing.B) {

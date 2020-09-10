@@ -5,6 +5,10 @@
 
 package has
 
+import (
+	"code.wolfmud.org/WolfMUD.git/text/tree"
+)
+
 // Thing is used to create everything and anything in a WolfMUD world. In
 // WolfMUD everything is created by creating a Thing and adding Attributes to
 // it. Attribute define the behaviour and characteristics of specific Things.
@@ -18,10 +22,20 @@ type Thing interface {
 	// Add is used to add one or more Attribute to a Thing.
 	Add(...Attribute)
 
-	// Attrs returns a []Attribute of all the Attribute for a Thing.
-	Attrs() []Attribute
+	// FindAttr returns the first Attribute implementing the passed attribute or
+	// the passed attribute if no matches found.
+	FindAttr(Attribute) Attribute
 
-	Dump() []string
+	// FindAttrs returns all Attributes implementing the passed attribute or
+	// a nil slice if no matches found.
+	FindAttrs(cmp Attribute) []Attribute
+
+	// Dump adds information to the passed Node for debugging. The returned Node
+	// indicates where addition information can be added.
+	Dump(*tree.Node) *tree.Node
+
+	// DumpToLog calls Dump on a Thing and writes the information to the log.
+	DumpToLog(string)
 
 	// Remove is used to remove one or more Attribute from a Thing.
 	Remove(...Attribute)
@@ -29,20 +43,24 @@ type Thing interface {
 	// Free is used to clean-up/release references to all Attribute for a Thing.
 	Free()
 
-	// Copy produces another, possibly inexact, instance of a Thing. The
-	// differences may be due to unique IDs, locks and other data that should not
-	// be copied between instances. The copy will contain a copy of all of the
-	// attributes and possibly other Things associated with the Thing as well.
+	// Free returns true if Free has been called on the Thing, else false.
+	Freed() bool
+
+	// Copy returns a copy of a Thing, with attributes. The copy may be inexact
+	// due to unique IDs, locks and other data that should not be copied between
+	// instances. The copy is not recursive and does not include the content of
+	// Inventory.
 	Copy() Thing
+
+	// DeepCopy returns a copy of a Thing, with attributes, and recursing into
+	// Inventory. The copy may be inexact due to unique IDs, locks and other data
+	// that should not be copied between instances.
+	DeepCopy() Thing
 
 	// SetOrigins updates the origin for the Thing to its containing Inventory and
 	// recursivly sets the origins for the content of a Thing's Inventory if it has
 	// one.
 	SetOrigins()
-
-	// ClearOrigins sets the origin for the Thing to nil and recursivly sets the
-	// origins to nil for the content of a Thing's Inventory if it has one.
-	ClearOrigins()
 
 	// Collectable returns true if a Thing can be kept by a player, otherwise
 	// returns false.

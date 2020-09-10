@@ -20,6 +20,8 @@ var stopWords = text.Dictionary(
 	"out",
 	"some",
 	"the",
+	"to",
+	"with",
 )
 
 // removeStopWords takes a slice of strings (words) and returns a slice of
@@ -31,12 +33,13 @@ var stopWords = text.Dictionary(
 //
 //	take apple bag
 //
-func RemoveStopWords(in []string) (out []string) {
+func RemoveStopWords(in []string) []string {
+	out := make([]string, 0, len(in))
 	for _, word := range in {
 		if stopWords.Contains(word) {
 			continue
 		}
 		out = append(out, word)
 	}
-	return
+	return out
 }

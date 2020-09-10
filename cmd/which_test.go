@@ -60,6 +60,10 @@ func TestWhich(t *testing.T) {
 	observer := cmd.NewTestPlayer("an observer", "OBSERVER")
 
 	const (
+
+		// Prompt (StyleNone) shorthand
+		P = text.Prompt
+
 		// For actor
 		noFrog     = text.Bad + "You see no 'FROG' here.\n"
 		smallGreen = text.Good + "You see a small green ball here.\n"
@@ -70,10 +74,10 @@ func TestWhich(t *testing.T) {
 
 		// For observer
 		nothing = ""
-		noting  = text.Reset + "\n" + text.Info +
-			"The actor looks around taking note of various things.\n"
-		notFound = text.Reset + "\n" + text.Info +
-			"The actor looks around for something.\n"
+		noting  = "\n" + text.Info +
+			"The actor looks around taking note of various things.\n" + P
+		notFound = "\n" + text.Info +
+			"The actor looks around for something.\n" + P
 	)
 
 	for _, test := range []struct {
@@ -83,17 +87,17 @@ func TestWhich(t *testing.T) {
 	}{
 		// Tests to make sure items found from correct Inventories and colours are
 		// set correctly for good/bad outcomes.
-		{"", text.Info + "You look around for nothing in particular.\n", nothing},
-		{"ball", smallGreen, noting},
-		{"3rd ball", fewerBalls, notFound},
-		{"frog", noFrog, notFound},
-		{"small ball frog large ball", smallGreen + noFrog + largeGreen, noting},
-		{"frog ball", noFrog + smallGreen, noting},
-		{"ball frog", smallGreen + noFrog, noting},
-		{"3rd ball token", fewerBalls + token, noting},
-		{"token 3rd ball", token + fewerBalls, noting},
-		{"token", token, noting},
-		{"letter", paintedA, noting},
+		{"", text.Info + "You look around for nothing in particular.\n" + P, nothing},
+		{"ball", smallGreen + P, noting},
+		{"3rd ball", fewerBalls + P, notFound},
+		{"frog", noFrog + P, notFound},
+		{"small ball frog large ball", smallGreen + noFrog + largeGreen + P, noting},
+		{"frog ball", noFrog + smallGreen + P, noting},
+		{"ball frog", smallGreen + noFrog + P, noting},
+		{"3rd ball token", fewerBalls + token + P, noting},
+		{"token 3rd ball", token + fewerBalls + P, noting},
+		{"token", token + P, noting},
+		{"letter", paintedA + P, noting},
 	} {
 		t.Run(fmt.Sprintf("%s", test.cmd), func(t *testing.T) {
 			cmd.Parse(actor, "which "+test.cmd)

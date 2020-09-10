@@ -18,8 +18,8 @@ import (
 // correct color as well as being sent to the right players.
 func TestClose_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params    string
@@ -29,31 +29,31 @@ func TestClose_messages(t *testing.T) {
 	}{
 		{
 			"", // No item or container
-			text.Info + "What did you want to close?\n", "", "",
+			text.Info + "What did you want to close?" + P, "", "",
 		}, {
 			"door", // Single door
-			text.Good + "You close the door.\n",
-			ORI + "The actor closes a door.\n",
-			ORI + "A door closes.\n",
+			text.Good + "You close the door." + P,
+			OI + "The actor closes a door." + P,
+			OI + "A door closes." + P,
 		}, {
 			"door", // Single door - duplicate, check world reset
-			text.Good + "You close the door.\n",
-			ORI + "The actor closes a door.\n",
-			ORI + "A door closes.\n",
+			text.Good + "You close the door." + P,
+			OI + "The actor closes a door." + P,
+			OI + "A door closes." + P,
 		}, {
 			"token", // Close a non-door held item
-			text.Bad + "You see no 'TOKEN' here to close.\n", "", "",
+			text.Bad + "You see no 'TOKEN' here to close." + P, "", "",
 		}, {
 			"rock", // Close a non-door item at location
-			text.Bad + "You cannot close the rock.\n", "", "",
+			text.Bad + "You cannot close the rock." + P, "", "",
 		}, {
 			"window", // Close a non-narrative item
-			text.Good + "You close the window.\n",
-			ORI + "The actor closes a window.\n",
+			text.Good + "You close the window." + P,
+			OI + "The actor closes a window." + P,
 			"",
 		}, {
 			"trapdoor", // Close something already close
-			text.Info + "The trapdoor is already closed.\n", "", "",
+			text.Info + "The trapdoor is already closed." + P, "", "",
 		},
 	} {
 

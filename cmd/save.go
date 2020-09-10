@@ -94,8 +94,13 @@ func (sa save) process(s *state) {
 func (sa save) inventory(jar *recordjar.Jar, t has.Thing) {
 	*jar = append(*jar, t.(*attr.Thing).Marshal())
 
-	if i := attr.FindInventory(t); i.Found() {
-		for _, t := range i.Contents() {
+	i := attr.FindInventory(t)
+	if !i.Found() {
+		return
+	}
+
+	for _, list := range [][]has.Thing{i.Contents(), i.Disabled()} {
+		for _, t := range list {
 			if t.Collectable() {
 				sa.inventory(jar, t)
 			}
@@ -120,7 +125,13 @@ func (sa save) fixInventory(jar *recordjar.Jar) {
 		if i, ok := rec["inventory"]; ok {
 			newRefs := []string{}
 			for _, ref := range decode.KeywordList(i) {
-				if _, ok := refs[ref]; ok {
+				disabled := ref[0] == '!'
+				if disabled {
+					_, ok = refs[ref[1:]]
+				} else {
+					_, ok = refs[ref]
+				}
+				if ok {
 					newRefs = append(newRefs, ref)
 				}
 			}

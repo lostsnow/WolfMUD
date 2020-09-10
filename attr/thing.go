@@ -16,6 +16,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/text"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Thing is a container for Attributes. Everything in WolfMUD is constructed by
@@ -51,7 +52,7 @@ func init() {
 // new Thing has been created. A finalizer will also be registered to write a
 // message when the thing is garbage collected.
 func NewThing(a ...has.Attribute) *Thing {
-	t := &Thing{uid: <-internal.NextUID}
+	t := &Thing{uid: <-internal.NextUID, attrs: []has.Attribute{}}
 
 	t.Add(a...)
 
@@ -78,7 +79,7 @@ func (t *Thing) Free() {
 
 	t.rwmutex.Lock()
 
-	if t.uid != "" && len(t.attrs) == 0 {
+	if t.uid != "" && t.attrs == nil {
 		log.Printf("Warning, already freed: %s", t)
 	}
 
@@ -93,6 +94,14 @@ func (t *Thing) Free() {
 	}
 
 	t.rwmutex.Unlock()
+}
+
+// Freed returns true if Free has been called on the Thing, else false.
+func (t *Thing) Freed() (b bool) {
+	t.rwmutex.RLock()
+	b = t.attrs == nil
+	t.rwmutex.RUnlock()
+	return
 }
 
 // Add is used to add the passed Attributes to a Thing. When an Attribute is
@@ -128,17 +137,39 @@ func (t *Thing) Remove(a ...has.Attribute) {
 	t.rwmutex.Unlock()
 }
 
-// Attrs returns all of the Attributes a Thing has as a slice of has.Attribute.
-// This is commonly used to range over all of the Attributes of a Thing instead
-// of using a finder for a specific type of Attribute.
-func (t *Thing) Attrs() []has.Attribute {
+// FindAttr searches the attributes of the Thing for attributes that implement
+// the passed Attribute cmp returning the first match it finds or cmp
+// otherwise. The comparison is performed by calling cmp.Is on the attributes
+// of the Thing. It is usual for cmp to be a typed nil attribute and for the
+// returned attribute to be converted to the general has interface type for
+// cmp. For an example see the attr.FindName function.
+func (t *Thing) FindAttr(cmp has.Attribute) has.Attribute {
 	t.rwmutex.RLock()
-	a := make([]has.Attribute, len(t.attrs))
-	for i := range t.attrs {
-		a[i] = t.attrs[i]
+	for _, a := range t.attrs {
+		if cmp.Is(a) {
+			t.rwmutex.RUnlock()
+			return a
+		}
 	}
 	t.rwmutex.RUnlock()
-	return a
+	return cmp
+}
+
+// FindAttrs searches the attributes of the Thing for attributes that implement
+// the passed Attribute cmp returning a slice of all the matches it finds or a
+// nil slice otherwise. The comparison is performed by calling cmp.Is on the
+// attributes of the Thing. It is usual for cmp to be a typed nil attribute and
+// for the returned attribute to be converted to the general has interface
+// type for cmp. For an example see the attr.FindAllDescription function.
+func (t *Thing) FindAttrs(cmp has.Attribute) (attrs []has.Attribute) {
+	t.rwmutex.RLock()
+	for _, a := range t.attrs {
+		if cmp.Is(a) {
+			attrs = append(attrs, a)
+		}
+	}
+	t.rwmutex.RUnlock()
+	return
 }
 
 // ignoredFields is a list of known field names that should be ignored by
@@ -197,37 +228,112 @@ func (t *Thing) Marshal() recordjar.Record {
 		data []byte
 	)
 
+	t.rwmutex.RLock()
 	rec := recordjar.Record{}
 	rec["ref"] = []byte(t.UID())
-	for _, a := range t.Attrs() {
+	for _, a := range t.attrs {
 		tag, data = a.Marshal()
 		if tag == "" {
 			continue
 		}
 		rec[tag] = data
 	}
+	t.rwmutex.RUnlock()
 	return rec
 }
 
-func (t *Thing) Dump() (buff []string) {
+// DumpToLog is a convenience method for dumping the current state of a Thing
+// to the log. The information is annotated with the file and line number where
+// the dump was taken and specified label.
+//
+// NOTE: Care should be take if debugging Thing itself (Add, Remove, Free) as
+// Dump will acquire a read lock on the rwmutex.
+func (t *Thing) DumpToLog(label string) {
+	_, file, line, _ := runtime.Caller(1)
+	dbg := tree.Tree{}
+	dbg.Indent, dbg.Width, dbg.Offset = 20, 110, 13
+	t.Dump(dbg.Branch())
+	log.Printf("Debug @ %s:%d (%q)\n"+dbg.Render(), file, line, label)
+}
+
+// Dump adds Thing information to the passed tree.Node for debugging and
+// returns the new node. A new branch is created on the node which is passed to
+// each of the Thing's attributes to add their information. This may continue
+// recursivly as in the case of containers.
+//
+// NOTE: Care should be take if debugging Thing itself (Add, Remove, Free) as
+// Dump will acquire a read lock on the rwmutex.
+func (t *Thing) Dump(node *tree.Node) *tree.Node {
 	t.rwmutex.RLock()
-	buff = append(buff, DumpFmt("%s, collectable: %t, %d attributes:", t, t.Collectable(), len(t.attrs)))
+
+	// Manually try to find the Name of the Thing as FindName could panic
+	name := "???"
+	if t.attrs != nil {
+		for _, a := range t.attrs {
+			if a, ok := a.(has.Name); ok {
+				name = a.Name(name)
+			}
+		}
+	}
+
+	node = node.Append("%s (%q), collectable: %t, attributes: %d",
+		t, name, t.Collectable(), len(t.attrs),
+	)
+
+	branch := node.Branch()
 	for _, a := range t.attrs {
-		for _, a := range a.Dump() {
-			buff = append(buff, DumpFmt("%s", a))
+		dump(branch, a)
+	}
+
+	t.rwmutex.RUnlock()
+	return node
+}
+
+// dump will attempt to add the specified Attribute information to the passed
+// node. If the attempt causes a panic the error will be appended to the node
+// instead of the Attribute information.
+func dump(node *tree.Node, a has.Attribute) {
+	defer func() {
+		if r := recover(); r != nil {
+			node.Append("%p %[1]T - (error %v)", a, r)
+			return
+		}
+	}()
+	a.Dump(node)
+}
+
+// Copy returns a copy of the Thing receiver. Associated Attributes will be
+// copied. However, the copy is not recursive and will not copy the content of
+// Inventory. To make a copy that includes Inventory content the DeepCopy
+// method should be used instead.
+//
+// BUG(diddymus): This method specifically checks for a *attr.Inventory, which
+// is currently the only implementation of has.Inventory - if this changes this
+// method will need updating.
+func (t *Thing) Copy() has.Thing {
+	if t == nil {
+		return (*Thing)(nil)
+	}
+	t.rwmutex.RLock()
+	na := make([]has.Attribute, len(t.attrs), len(t.attrs))
+	for i, a := range t.attrs {
+		// If we find an inventory provide a new one, don't copy - this prevents
+		// recursive copying
+		if _, ok := a.(*Inventory); ok {
+			na[i] = NewInventory()
+		} else {
+			na[i] = a.Copy()
 		}
 	}
 	t.rwmutex.RUnlock()
-	return buff
+	return NewThing(na...)
 }
 
-func DumpFmt(format string, args ...interface{}) string {
-	return "  " + fmt.Sprintf(format, args...)
-}
-
-// Copy returns a copy of the Thing receiver. The copy will be made recursively
-// copying all associated Attribute and Thing.
-func (t *Thing) Copy() has.Thing {
+// DeepCopy returns a copy of the Thing receiver recursing into Inventory. The
+// copy will be made recursively copying all associated Attribute and Thing. To
+// make a non-recursive copy (excluding Inventory content) the Copy method
+// should be used instead.
+func (t *Thing) DeepCopy() has.Thing {
 	if t == nil {
 		return (*Thing)(nil)
 	}
@@ -240,17 +346,19 @@ func (t *Thing) Copy() has.Thing {
 	return NewThing(na...)
 }
 
-// SetOrigins updates the origin for the Thing to its containing Inventory and
-// recursivly sets the origins for the content of a Thing's Inventory if it has
-// one.
+// SetOrigins checks the passed Thing, and any Inventory content recursively,
+// for a Reset attribute. Any Thing found with a Reset attribute will then
+// have its origin set to that of the Thing's parent Inventory.
 func (t *Thing) SetOrigins() {
 	if t == nil {
 		return
 	}
 
-	// Set our origin to that of the parent Inventory
-	if l := FindLocate(t); l.Found() {
-		l.SetOrigin(l.Where())
+	// If Thing has a Reset then set our origin to that of the parent Inventory
+	if r := FindReset(t); r.Found() {
+		if l := FindLocate(t); l.Found() {
+			l.SetOrigin(l.Where())
+		}
 	}
 
 	// Find our Inventory
@@ -259,39 +367,12 @@ func (t *Thing) SetOrigins() {
 		return
 	}
 
-	// Set the origin for everything in our Inventory
+	// Set the origin for everything in our Inventory including disabled items
 	for _, t := range i.Everything() {
-		if l := FindLocate(t); l.Found() {
-			l.SetOrigin(i)
-		}
 		t.SetOrigins()
 	}
-}
-
-// ClearOrigins sets the origin for the Thing to nil and recursivly sets the
-// origins to nil for the content of a Thing's Inventory if it has one.
-func (t *Thing) ClearOrigins() {
-	if t == nil {
-		return
-	}
-
-	// Clear our origin
-	if l := FindLocate(t); l.Found() {
-		l.SetOrigin(nil)
-	}
-
-	// Find our Inventory
-	i := FindInventory(t)
-	if !i.Found() {
-		return
-	}
-
-	// Clear the origin for items in our Inventory
-	for _, t := range i.Everything() {
-		if l := FindLocate(t); l.Found() {
-			l.SetOrigin(nil)
-		}
-		t.ClearOrigins()
+	for _, t := range i.Disabled() {
+		t.SetOrigins()
 	}
 }
 
@@ -299,17 +380,7 @@ func (t *Thing) ClearOrigins() {
 // returns false. This is a helper routine so that the definition of what is
 // considered collectable can be easily changed.
 func (t *Thing) Collectable() bool {
-	o := FindLocate(t).Origin()
-
-	// Collectable if there is no origin...
-	collectable := o == nil || !o.Found()
-
-	// ...unless they are a Player
-	if collectable && FindPlayer(t).Found() {
-		collectable = false
-	}
-
-	return collectable
+	return !FindReset(t).Unique() && !FindPlayer(t).Found()
 }
 
 // UID returns the unique identifier for a specific Thing or an empty string if
@@ -342,12 +413,12 @@ func (t *Thing) NotUnique() {
 // String causes a Thing to implement the Stringer interface so that a Thing
 // can print information about itself. The format of the string is:
 //
-//  <address> <type> UID: <unique ID>
+//  <address> <type> - uid: <unique ID>
 //
-//  0xc420108630 *attr.Thing UID: #UID-6M
+//  0xc420108630 *attr.Thing - uid: #UID-6M
 //
 func (t *Thing) String() string {
-	return fmt.Sprintf("%p %[1]T %s", t, t.UID())
+	return fmt.Sprintf("%p %[1]T - uid: %s", t, t.UID())
 }
 
 // Things is a type of slice *Thing. It allows methods to be defined directly

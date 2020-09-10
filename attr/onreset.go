@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for OnReset attribute.
@@ -39,12 +40,13 @@ func NewOnReset(text string) *OnReset {
 // that implement has.OnReset returning the first match it finds or a *OnReset
 // typed nil otherwise.
 func FindOnReset(t has.Thing) has.OnReset {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.OnReset); ok {
-			return a
-		}
-	}
-	return (*OnReset)(nil)
+	return t.FindAttr((*OnReset)(nil)).(has.OnReset)
+}
+
+// Is returns true if passed attribute implements an 'on reset' else false.
+func (*OnReset) Is(a has.Attribute) bool {
+	_, ok := a.(has.OnReset)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -62,8 +64,9 @@ func (or *OnReset) Marshal() (tag string, data []byte) {
 	return "onreset", encode.String(or.text)
 }
 
-func (or *OnReset) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", or, or.text)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (or *OnReset) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", or, or.text)
 }
 
 // ResetText returns the reset or respawn message to be used for a Thing.

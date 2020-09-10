@@ -15,6 +15,12 @@ type Cleanup interface {
 	// Cleanup causes the parent Thing to be scheduled for clean up.
 	Cleanup()
 
+	// Resume a suspended Cleanup event.
+	Resume()
+
+	// Suspend a queued Cleanup event.
+	Suspend()
+
 	// Abort cancels any outstanding clean up events.
 	Abort()
 

@@ -15,6 +15,12 @@ type Action interface {
 	// Action causes the parent Thing to schedule an action message.
 	Action()
 
+	// Resume a suspended Action event.
+	Resume()
+
+	// Suspend a queued Action event.
+	Suspend()
+
 	// Abort cancels any outstanding action events.
 	Abort()
 }

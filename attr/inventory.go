@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Inventory attribute.
@@ -186,12 +187,13 @@ func (i *Inventory) Found() bool {
 // that implement has.Inventory returning the first match it finds or a
 // *Inventory typed nil otherwise.
 func FindInventory(t has.Thing) has.Inventory {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Inventory); ok {
-			return a
-		}
-	}
-	return (*Inventory)(nil)
+	return t.FindAttr((*Inventory)(nil)).(has.Inventory)
+}
+
+// Is returns true if passed attribute implements an inventory else false.
+func (*Inventory) Is(a has.Attribute) bool {
+	_, ok := a.(has.Inventory)
+	return ok
 }
 
 // Unmarshal is used to turn the passed data into a new Inventory attribute.
@@ -207,30 +209,39 @@ func (i *Inventory) Marshal() (tag string, data []byte) {
 			refs = append(refs, n.item.UID())
 		}
 	}
+	for n := i.disabled.head.next; n.next != nil; n = n.next {
+		refs = append(refs, "!"+n.item.UID())
+	}
 	return "inventory", encode.KeywordList(refs)
 }
 
-func (i *Inventory) Dump() (buff []string) {
-	buff = append(buff, "")
-	for _, list := range []*list{i.players, i.contents, i.narratives, i.disabled} {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (i *Inventory) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - lock ID: %d, items: %d",
+		i,
+		i.LockID(),
+		i.players.len+i.contents.len+i.narratives.len+i.disabled.len,
+	)
+
+	lists := node.Branch()
+
+	for _, list := range []struct {
+		label string
+		*list
+	}{
+		{"players", i.players},
+		{"contents", i.contents},
+		{"narratives", i.narratives},
+		{"disabled", i.disabled},
+	} {
+		lists.Append("%p %[1]T - (%s) len: %d", list.list, list.label, list.len)
+		branch := lists.Branch()
 		for n := list.head.next; n.next != nil; n = n.next {
-			for _, l := range n.item.Dump() {
-				buff = append(buff, DumpFmt("%s", l))
-			}
+			n.item.Dump(branch)
 		}
 	}
 
-	buff[0] = DumpFmt("%p %[1]T Lock ID: %d, %d items (players: %d, contents: %d, narratives: %d, disabled: %d):",
-		i,
-		i.LockID(),
-		i.players.len+i.contents.len+i.narratives.len,
-		i.players.len,
-		i.contents.len,
-		i.narratives.len,
-		i.disabled.len,
-	)
-
-	return buff
+	return node
 }
 
 // Move removes an enabled Thing from the receiver Inventory and puts it into
@@ -256,6 +267,7 @@ func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 	switch {
 	case i.players.move(t, to.players):
 	case i.contents.move(t, to.contents):
+	case i.disabled.move(t, to.disabled):
 	case i.narratives.move(t, to.narratives):
 	default:
 		return
@@ -287,6 +299,7 @@ func (i *Inventory) Add(t has.Thing) {
 // once a Thing is removed Thing.Free should be called to release the Thing for
 // garbage collection.
 func (i *Inventory) Remove(t has.Thing) {
+	FindLocate(t).SetWhere(nil)
 	i.disabled.remove(t)
 }
 
@@ -504,13 +517,13 @@ func (i *Inventory) Copy() has.Attribute {
 	ni := NewInventory()
 	for _, list := range []*list{i.contents, i.narratives} {
 		for n := list.head.next; n.next != nil; n = n.next {
-			c := n.item.Copy()
+			c := n.item.DeepCopy()
 			ni.Add(c)
 			ni.Enable(c)
 		}
 	}
 	for n := i.disabled.head.next; n.next != nil; n = n.next {
-		ni.Add(n.item.Copy())
+		ni.Add(n.item.DeepCopy())
 	}
 	return ni
 }

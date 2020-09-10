@@ -7,11 +7,13 @@ package attr
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Exits attribute.
@@ -136,12 +138,13 @@ func NewExits() *Exits {
 // implement has.Exits returning the first match it finds or a *Exits typed nil
 // otherwise.
 func FindExits(t has.Thing) has.Exits {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Exits); ok {
-			return a
-		}
-	}
-	return (*Exits)(nil)
+	return t.FindAttr((*Exits)(nil)).(has.Exits)
+}
+
+// Is returns true if passed attribute implements exits else false.
+func (*Exits) Is(a has.Attribute) bool {
+	_, ok := a.(has.Exits)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -171,20 +174,22 @@ func (e *Exits) Marshal() (tag string, data []byte) {
 	return tag, encode.PairList(exits, '→')
 }
 
-func (e *Exits) Dump() []string {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (e *Exits) Dump(node *tree.Node) *tree.Node {
 	buff := []byte{}
 	for i, e := range e.exits {
 		if e != nil {
-			buff = append(buff, ", "...)
-			buff = append(buff, directionNames[i]...)
-			buff = append(buff, ": "...)
-			buff = append(buff, FindName(e.Parent()).Name("Somewhere")...)
+			name := FindName(e.Parent()).Name("Somewhere")
+			where := FindInventory(e.Parent())
+			buff = append(buff,
+				fmt.Sprintf(", %s: %p %q", directionNames[i], where, name)...,
+			)
 		}
 	}
 	if len(buff) > 0 {
 		buff = buff[2:]
 	}
-	return []string{DumpFmt("%p %[1]T -> %s", e, buff)}
+	return node.Append("%p %[1]T - %s", e, buff)
 }
 
 // Return calculates the opposite/return direction for the direction given.

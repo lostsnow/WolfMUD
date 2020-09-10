@@ -18,8 +18,8 @@ import (
 // the correct color as well as being sent to the right players.
 func TestJunk_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params   string
@@ -28,44 +28,44 @@ func TestJunk_messages(t *testing.T) {
 	}{
 		{
 			"", // No item
-			text.Info + "You go to junk... something?\n", "",
+			text.Info + "You go to junk... something?" + P, "",
 		}, {
 			"frog", // Invalid item
-			text.Bad + "You see no 'FROG' to junk.\n", "",
+			text.Bad + "You see no 'FROG' to junk." + P, "",
 		}, {
 			"rock", // Junk item at location
-			text.Good + "You junk the rock.\n",
-			ORI + "You see the actor junk a rock.\n",
+			text.Good + "You junk the rock." + P,
+			OI + "You see the actor junk a rock." + P,
 		}, {
 			"smell", // Try to junk vetoed item at location
-			text.Bad + "How, exactly, would you junk a bad smell?\n", "",
+			text.Bad + "How, exactly, would you junk a bad smell?" + P, "",
 		}, {
 			"door", // Try to junk a narrative at location
-			text.Bad + "You cannot junk the door.\n", "",
+			text.Bad + "You cannot junk the door." + P, "",
 		}, {
 			"observer", // Try to junk a player at location
-			text.Bad + "The observer does not want to be junked!\n", "",
+			text.Bad + "The observer does not want to be junked!" + P, "",
 		}, {
 			"bucket", // Try to junk a container with item inside at location
-			text.Good + "You junk the bucket.\n",
-			ORI + "You see the actor junk a bucket.\n",
+			text.Good + "You junk the bucket." + P,
+			OI + "You see the actor junk a bucket." + P,
 		}, {
 			"pouch", // Try to junk a container with vetoing item inside
-			text.Bad + "The pouch seems to contain something that cannot be junked.\n", "",
+			text.Bad + "The pouch seems to contain something that cannot be junked." + P, "",
 		}, {
 			"token", // Junk held item
-			text.Good + "You junk the token.\n",
-			ORI + "You see the actor junk a token.\n",
+			text.Good + "You junk the token." + P,
+			OI + "You see the actor junk a token." + P,
 		}, {
 			"cup", // Try to junk a held container with item inside
-			text.Good + "You junk the cup.\n",
-			ORI + "You see the actor junk a cup.\n",
+			text.Good + "You junk the cup." + P,
+			OI + "You see the actor junk a cup." + P,
 		}, {
 			"mug", // Try to junk a held container with vetoing item inside
-			text.Bad + "The mug seems to contain something that cannot be junked.\n", "",
+			text.Bad + "The mug seems to contain something that cannot be junked." + P, "",
 		}, {
 			"doll", // Try to junk held, nested containers with vetoing item inside
-			text.Bad + "The russian doll seems to contain something that cannot be junked.\n", "",
+			text.Bad + "The russian doll seems to contain something that cannot be junked." + P, "",
 		},
 	} {
 

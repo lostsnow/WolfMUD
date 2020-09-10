@@ -6,6 +6,7 @@
 package cmd
 
 import (
+	"sort"
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
@@ -78,6 +79,7 @@ func (examine) process(s *state) {
 	}
 
 	isPlayer := attr.FindPlayer(what).Found()
+	body := attr.FindBody(what)
 
 	// If examining a player they become the participant
 	if isPlayer {
@@ -89,6 +91,48 @@ func (examine) process(s *state) {
 	if !isPlayer {
 		if l := attr.FindInventory(what).List(); l != "" {
 			s.msg.Actor.Append(l)
+		}
+	}
+
+	// If a player what are they holding, wielding and wearing?
+	if isPlayer {
+		list := []string{}
+		for _, what := range body.Wearing() {
+			list = append(list, attr.FindName(what).Name("something"))
+		}
+		if len(list) != 0 {
+			sort.Strings(list)
+			s.msg.Actor.Append("They are wearing ", text.List(list), ".")
+		}
+
+		// Find out what is being wielded/held
+		wielding := body.Wielding()
+		holding := body.Holding()
+
+		if len(holding)+len(wielding) != 0 {
+
+			// Labels for list of wielded/held items. If mixed usage then label each
+			// item as wielded or held. If only wielding items or only holding items
+			// label the whole list.
+			wieldLabel, holdLabel, listLabel := "", "", ""
+			switch {
+			case len(wielding) != 0 && len(holding) != 0:
+				wieldLabel, holdLabel = "wielding ", "holding "
+			case len(wielding) != 0:
+				listLabel = "wielding "
+			case len(holding) != 0:
+				listLabel = "holding "
+			}
+
+			list = list[:0]
+			for _, what := range wielding {
+				list = append(list, wieldLabel+attr.FindName(what).Name("something"))
+			}
+			for _, what := range holding {
+				list = append(list, holdLabel+attr.FindName(what).Name("something"))
+			}
+			sort.Strings(list)
+			s.msg.Actor.Append("They are ", listLabel, text.List(list), ".")
 		}
 	}
 

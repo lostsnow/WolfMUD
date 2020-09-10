@@ -14,6 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Action attribute.
@@ -31,6 +32,8 @@ type Action struct {
 	Attribute
 	after  time.Duration
 	jitter time.Duration
+	dueAt  time.Time     // Time a queued event is expected to fire
+	dueIn  time.Duration // Time remaining for a suspended event
 	event.Cancel
 }
 
@@ -43,19 +46,20 @@ var (
 // and jitter durations. The after and jitter Duration set the delay period to
 // between after and after+jitter for when a Thing performs an action.
 func NewAction(after time.Duration, jitter time.Duration) *Action {
-	return &Action{Attribute{}, after, jitter, nil}
+	return &Action{Attribute{}, after, jitter, time.Time{}, 0, nil}
 }
 
 // FindAction searches the attributes of the specified Thing for attributes
 // that implement has.Action returning the first match it finds or a *Action
 // typed nil otherwise.
 func FindAction(t has.Thing) has.Action {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Action); ok {
-			return a
-		}
-	}
-	return (*Action)(nil)
+	return t.FindAttr((*Action)(nil)).(has.Action)
+}
+
+// Is returns true if passed attribute implements an action else false.
+func (*Action) Is(a has.Attribute) bool {
+	_, ok := a.(has.Action)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -73,6 +77,8 @@ func (*Action) Unmarshal(data []byte) has.Attribute {
 			a.after = decode.Duration(data)
 		case "JITTER":
 			a.jitter = decode.Duration(data)
+		case "DUE-IN", "DUE_IN":
+			a.dueIn = decode.Duration(data)
 		default:
 			log.Printf("Action.unmarshal unknown attribute: %q: %q", field, data)
 		}
@@ -83,48 +89,100 @@ func (*Action) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (a *Action) Marshal() (tag string, data []byte) {
 	tag = "action"
-	data = encode.PairList(
-		map[string]string{
-			"after":  string(encode.Duration(a.after)),
-			"jitter": string(encode.Duration(a.jitter)),
-		},
-		'→',
-	)
+	pairs := map[string]string{
+		"after":  string(encode.Duration(a.after)),
+		"jitter": string(encode.Duration(a.jitter)),
+	}
+
+	switch {
+	case a.Cancel != nil:
+		pairs["due_In"] = string(encode.Duration(time.Until(a.dueAt)))
+	case a.dueIn > 0:
+		pairs["due_In"] = string(encode.Duration(a.dueIn))
+	}
+
+	data = encode.PairList(pairs, '→')
 	return
 }
 
-func (a *Action) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s", a, a.after, a.jitter))
-	buff = append(buff, DumpFmt("  %p %[1]T", a.Cancel))
-	return
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (a *Action) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - after: %s, jitter: %s", a, a.after, a.jitter)
+
+	var due, source string
+	if a.Cancel != nil {
+		due = time.Until(a.dueAt).String()
+		source = "at"
+	} else {
+		due = a.dueIn.String()
+		source = "in"
+	}
+	node.Branch().Append("%p %[1]T - due: %s, source: %s", a.Cancel, due, source)
+
+	return node
 }
 
-// Copy returns a copy of the Action receiver. The copy will not inherit any
-// pending action events.
+// Copy returns a copy of the Action receiver. If the Action event is currently
+// queued it will be suspended in the returned copy.
 func (a *Action) Copy() has.Attribute {
 	if a == nil {
 		return (*Action)(nil)
 	}
-	return NewAction(a.after, a.jitter)
+	na := NewAction(a.after, a.jitter)
+	if a.Cancel != nil {
+		na.dueIn = time.Until(a.dueAt)
+	} else {
+		na.dueIn = a.dueIn
+	}
+	return na
 }
 
-// Action schedules an action. If there is already an action event pending it
+// schedule queues an Action event to occur after the given delay has passed.
+// The delay will be between 'after' and 'after+jitter'. If the Action event is
+// already queued it will be cancelled and a new one queued.
+func (a *Action) schedule(after, jitter time.Duration) {
+	a.Abort()
+
+	what := a.Parent()
+	oa := FindOnAction(what)
+	if !oa.Found() {
+		return
+	}
+
+	a.dueIn = 0
+	a.Cancel, a.dueAt = event.Queue(what, "$ACTION "+oa.ActionText(), after, jitter)
+}
+
+// Action schedules an Action event. If the Action event is already queued it
 // will be cancelled and a new one queued.
 func (a *Action) Action() {
+	if a != nil {
+		a.schedule(a.after, a.jitter)
+	}
+}
+
+// Suspend a queued Action event, or do nothing if event not queued.
+func (a *Action) Suspend() {
 	if a == nil {
 		return
 	}
 
-	a.Abort()
-
-	p := a.Parent()
-	oa := FindOnAction(p)
-	if oa.Found() {
-		a.Cancel = event.Queue(p, "$ACTION "+oa.ActionText(), a.after, a.jitter)
+	if a.Cancel != nil {
+		close(a.Cancel)
+		a.Cancel = nil
+		a.dueIn = time.Until(a.dueAt)
+		a.dueAt = time.Time{}
 	}
 }
 
-// Abort cancels any pending action events.
+// Resume a suspended Action event, or do nothing if event not suspended.
+func (a *Action) Resume() {
+	if a != nil && a.dueIn != 0 {
+		a.schedule(a.dueIn, 0)
+	}
+}
+
+// Abort a queued Action event, or do nothing if event not queued.
 func (a *Action) Abort() {
 	if a == nil {
 		return
@@ -133,6 +191,7 @@ func (a *Action) Abort() {
 	if a.Cancel != nil {
 		close(a.Cancel)
 		a.Cancel = nil
+		a.dueAt = time.Time{}
 	}
 }
 
@@ -143,8 +202,8 @@ func (a *Action) Pending() bool {
 	return a.Cancel != nil
 }
 
-// Free makes sure references are nil'ed and channels closed when the Action
-// attribute is freed.
+// Free makes sure references are nil'ed and queued events aborted when the
+// Action attribute is freed.
 func (a *Action) Free() {
 	if a == nil {
 		return

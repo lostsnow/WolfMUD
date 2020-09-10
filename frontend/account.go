@@ -255,6 +255,21 @@ func (a *account) write() {
 	a.player.Add(attr.NewGender(a.gender))
 	a.player.Add(attr.NewDescription("This is an adventurer, just like you!"))
 	a.player.Add(attr.NewInventory())
+	a.player.Add(attr.NewHealth(30, 30, 2, 10))
+	a.player.Add(attr.NewBody(
+		"HEAD",
+		"FACE", "EAR", "EYE", "NOSE", "EYE", "EAR",
+		"MOUTH", "UPPER_LIP", "LOWER_LIP",
+		"NECK",
+		"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+		"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+		"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+		"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+		"BACK", "CHEST",
+		"WAIST", "PELVIS",
+		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+	))
 	a.player.Add(p)
 	cmd.Parse(a.player, "SAVE")
 

@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Description attribute.
@@ -41,19 +42,23 @@ func NewDescription(description string) *Description {
 // attributes that implement has.Description returning all that match. If no
 // matches are found an empty slice will be returned.
 func FindAllDescription(t has.Thing) (matches []has.Description) {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Description); ok {
-			matches = append(matches, a)
+	for _, a := range t.FindAttrs((*Description)(nil)) {
+		matches = append(matches, a.(has.Description))
 
-			// If type is an actual *Description move it to the front of the slice as
-			// we want main descriptions first and additional descriptions afterwards
-			if _, ok := a.(*Description); ok {
-				copy(matches[1:], matches[0:])
-				matches[0] = a
-			}
+		// If type is an actual *Description move it to the front of the slice as
+		// we want main descriptions first and additional descriptions afterwards
+		if _, ok := a.(*Description); ok {
+			copy(matches[1:], matches[0:])
+			matches[0] = a.(*Description)
 		}
 	}
 	return
+}
+
+// Is returns true if passed attribute implements a description else false.
+func (*Description) Is(a has.Attribute) bool {
+	_, ok := a.(has.Description)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -71,8 +76,9 @@ func (d *Description) Marshal() (tag string, data []byte) {
 	return "description", encode.Bytes([]byte(d.description))
 }
 
-func (d *Description) Dump() []string {
-	return []string{DumpFmt("%p %[1]T: %q", d, d.description)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (d *Description) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", d, d.description)
 }
 
 // Description returns the descriptive string of the attribute.

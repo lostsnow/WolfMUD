@@ -18,8 +18,8 @@ import (
 // the correct color as well as being sent to the right players.
 func TestExamine_messages(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params   string
@@ -28,72 +28,72 @@ func TestExamine_messages(t *testing.T) {
 	}{
 		{
 			"", // No item
-			text.Info + "You examine this and that, find nothing special.\n", "",
+			text.Info + "You examine this and that, find nothing special." + P, "",
 		}, {
 			"frog", // Invalid item
-			text.Bad + "You see no 'FROG' to examine.\n", "",
+			text.Bad + "You see no 'FROG' to examine." + P, "",
 		}, {
 			"rock", // Single simple item at location
 			text.Good + "You examine the rock." +
-				text.Reset + "\nThis is a small rock.\n",
-			ORI + "The actor studies a rock.\n",
+				text.Reset + "\nThis is a small rock." + P,
+			OI + "The actor studies a rock." + P,
 		}, {
 			"cup", // Examine empty container at location
 			text.Good + "You examine the cup." +
-				text.Reset + "\nThis is a cup. It is empty.\n",
-			ORI + "The actor studies a cup.\n",
+				text.Reset + "\nThis is a cup. It is empty." + P,
+			OI + "The actor studies a cup." + P,
 		}, {
 			"box", // Examine container with single item at location
 			text.Good + "You examine the box." +
-				text.Reset + "\nThis is a box. It contains a small green ball.\n",
-			ORI + "The actor studies a box.\n",
+				text.Reset + "\nThis is a box. It contains a small green ball." + P,
+			OI + "The actor studies a box." + P,
 		}, {
 			"bag", // Examine container with multile items at location
 			text.Good + "You examine the bag." +
 				text.Reset + "\nThis is a bag. It contains:\n" +
 				"  a small green ball\n" +
-				"  a small red ball\n",
-			ORI + "The actor studies a bag.\n",
+				"  a small red ball" + P,
+			OI + "The actor studies a bag." + P,
 		}, {
 			"token", // Single simple held item
 			text.Good + "You examine the token." +
-				text.Reset + "\nThis is a test token.\n",
-			ORI + "The actor studies a token they are carrying.\n",
+				text.Reset + "\nThis is a test token." + P,
+			OI + "The actor studies a token they are carrying." + P,
 		}, {
 			"mug", // Examine empty, held container
 			text.Good + "You examine the mug." +
-				text.Reset + "\nThis is a mug. It is empty.\n",
-			ORI + "The actor studies a mug they are carrying.\n",
+				text.Reset + "\nThis is a mug. It is empty." + P,
+			OI + "The actor studies a mug they are carrying." + P,
 		}, {
 			"pouch", // Examine held container with single item
 			text.Good + "You examine the pouch." +
-				text.Reset + "\nThis is a pouch. It contains a small green ball.\n",
-			ORI + "The actor studies a pouch they are carrying.\n",
+				text.Reset + "\nThis is a pouch. It contains a small green ball." + P,
+			OI + "The actor studies a pouch they are carrying." + P,
 		}, {
 			"bucket", // Examine held container with multiple items
 			text.Good + "You examine the bucket." +
 				text.Reset + "\nThis is a small, plastic bucket. It contains:\n" +
 				"  some sand\n" +
-				"  a pretty seashell\n",
-			ORI + "The actor studies a bucket they are carrying.\n",
+				"  a pretty seashell" + P,
+			OI + "The actor studies a bucket they are carrying." + P,
 		}, {
 			"stone", // Examine held item also at location - should pick location item
 			text.Good + "You examine the stone." +
-				text.Reset + "\nThis is a large stone.\n",
-			ORI + "The actor studies a stone.\n",
+				text.Reset + "\nThis is a large stone." + P,
+			OI + "The actor studies a stone." + P,
 		}, {
 			"door", // Examine a closed door
 			text.Good + "You examine the door." +
-				text.Reset + "\nThis is a door. It is closed.\n",
-			ORI + "The actor studies a door.\n",
+				text.Reset + "\nThis is a door. It is closed." + P,
+			OI + "The actor studies a door." + P,
 		}, {
 			"window", // Examine an open window
 			text.Good + "You examine the window." +
-				text.Reset + "\nThis is a window. It is open.\n",
-			ORI + "The actor studies a window.\n",
+				text.Reset + "\nThis is a window. It is open." + P,
+			OI + "The actor studies a window." + P,
 		}, {
 			"parchament", // Examine a vetoed item
-			text.Bad + "The text on the ancient parchament swirls before you eyes.\n",
+			text.Bad + "The text on the ancient parchament swirls before you eyes." + P,
 			"",
 		},
 	} {
@@ -247,8 +247,8 @@ func TestExamine_messages(t *testing.T) {
 // inventory is not revealed.
 func TestExamine_player(t *testing.T) {
 
-	// Observer Reset+Info shorthand
-	const ORI = text.Reset + "\n" + text.Info
+	const OI = "\n" + text.Info  // Observer Info shorthand
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
 
 	for _, test := range []struct {
 		params      string
@@ -259,9 +259,9 @@ func TestExamine_player(t *testing.T) {
 		{
 			"participant",
 			text.Good + "You examine the participant." +
-				text.Reset + "\nThis is a test player.\n",
-			ORI + "The actor studies a participant.\n",
-			ORI + "The actor studies you.\n",
+				text.Reset + "\nThis is a test player." + P,
+			OI + "The actor studies a participant." + P,
+			OI + "The actor studies you." + P,
 		},
 	} {
 

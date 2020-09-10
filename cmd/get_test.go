@@ -69,36 +69,38 @@ func getSetupWorld() (world attr.Things) {
 // correct color as well as being sent to the right players.
 func TestGet_messages(t *testing.T) {
 
+	const P = "\n" + text.Prompt // Prompt (StyleNone) shorthand
+
 	for _, test := range []struct {
 		cmd      string
 		actor    string
 		observer string
 	}{
 		// Get with no item specified
-		{"", text.Info + "You go to get... something?\n", ""},
+		{"", text.Info + "You go to get... something?" + P, ""},
 
 		// Try to get a single item
 		{
 			"ball",
-			text.Good + "You get the small green ball.\n",
-			text.Reset + "\n" + text.Info + "You see the actor get a small green ball.\n",
+			text.Good + "You get the small green ball." + P,
+			"\n" + text.Info + "You see the actor get a small green ball." + P,
 		},
 
 		// Duplicate normal get - if world not cleaned after each test it will fail
 		{
 			"ball",
-			text.Good + "You get the small green ball.\n",
-			text.Reset + "\n" + text.Info + "You see the actor get a small green ball.\n",
+			text.Good + "You get the small green ball." + P,
+			"\n" + text.Info + "You see the actor get a small green ball." + P,
 		},
 
 		// Try to get multiple items
 		{
 			"small ball large ball",
 			text.Good + "You get the small green ball.\n" +
-				text.Good + "You get the large green ball.\n",
-			text.Reset + "\n" +
+				text.Good + "You get the large green ball." + P,
+			"\n" +
 				text.Info + "You see the actor get a small green ball.\n" +
-				text.Info + "You see the actor get a large green ball.\n",
+				text.Info + "You see the actor get a large green ball." + P,
 		},
 
 		// Try to get multiple items with one being invalid - checks colour change
@@ -106,10 +108,10 @@ func TestGet_messages(t *testing.T) {
 			"small ball frog large ball",
 			text.Good + "You get the small green ball.\n" +
 				text.Bad + "You see no 'FROG' to get.\n" +
-				text.Good + "You get the large green ball.\n",
-			text.Reset + "\n" +
+				text.Good + "You get the large green ball." + P,
+			"\n" +
 				text.Info + "You see the actor get a small green ball.\n" +
-				text.Info + "You see the actor get a large green ball.\n",
+				text.Info + "You see the actor get a large green ball." + P,
 		},
 
 		// Try to get multiple items with one being a narrative - checks colour change
@@ -117,39 +119,39 @@ func TestGet_messages(t *testing.T) {
 			"small ball wall large ball",
 			text.Good + "You get the small green ball.\n" +
 				text.Bad + "If you take the wall the ceiling will crush you!\n" +
-				text.Good + "You get the large green ball.\n",
-			text.Reset + "\n" +
+				text.Good + "You get the large green ball." + P,
+			"\n" +
 				text.Info + "You see the actor get a small green ball.\n" +
-				text.Info + "You see the actor get a large green ball.\n",
+				text.Info + "You see the actor get a large green ball." + P,
 		},
 
 		// Try to get an invalid item
-		{"frog", text.Bad + "You see no 'FROG' to get.\n", ""},
+		{"frog", text.Bad + "You see no 'FROG' to get." + P, ""},
 
 		// Try to get too many of an item
-		{"3rd ball", text.Bad + "You don't see that many 'BALL' to get.\n", ""},
+		{"3rd ball", text.Bad + "You don't see that many 'BALL' to get." + P, ""},
 
 		// Try to get a narrative
 		{
 			"letter",
-			text.Bad + "For some reason you cannot get the large, painted letter 'A'.\n",
+			text.Bad + "For some reason you cannot get the large, painted letter 'A'." + P,
 			"",
 		},
 
 		// Try to get a narrative with an overriding veto message
-		{"wall", text.Bad + "If you take the wall the ceiling will crush you!\n", ""},
+		{"wall", text.Bad + "If you take the wall the ceiling will crush you!" + P, ""},
 
 		// Try to get a non-narrative with an overriding veto message
-		{"water", text.Bad + "The water runs through your fingers.\n", ""},
+		{"water", text.Bad + "The water runs through your fingers." + P, ""},
 
 		// Try to get self
-		{"actor", text.Info + "Trying to pick youreself up by your bootlaces?\n", ""},
+		{"actor", text.Info + "Trying to pick youreself up by your bootlaces?" + P, ""},
 
 		// Try to another player
-		{"observer", text.Bad + "The observer does not want to be picked up!\n", ""},
+		{"observer", text.Bad + "The observer does not want to be picked up!" + P, ""},
 
 		// Try to get an item we are already carrying
-		{"token", text.Bad + "You see no 'TOKEN' to get.\n", ""},
+		{"token", text.Bad + "You see no 'TOKEN' to get." + P, ""},
 	} {
 
 		world := getSetupWorld()
@@ -208,7 +210,7 @@ func TestGet_noInventory(t *testing.T) {
 	// Try and get an item when player has no inventory
 	cmd.Parse(actor, "get ball")
 	have := actor.Messages()
-	want := text.Bad + "You can't carry anything!\n"
+	want := text.Bad + "You can't carry anything!\n" + text.Prompt
 	if have != want {
 		t.Errorf(
 			"Actor for %+q:\nhave: %+q\nwant: %+q",

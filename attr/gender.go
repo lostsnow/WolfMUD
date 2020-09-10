@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Gender attribute.
@@ -74,12 +75,13 @@ func NewGender(gender string) *Gender {
 // that implement has.Gender returning the first match it finds or a *Gender
 // typed nil otherwise.
 func FindGender(t has.Thing) has.Gender {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Gender); ok {
-			return a
-		}
-	}
-	return (*Gender)(nil)
+	return t.FindAttr((*Gender)(nil)).(has.Gender)
+}
+
+// Is returns true if passed attribute implements gender else false.
+func (*Gender) Is(a has.Attribute) bool {
+	_, ok := a.(has.Gender)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -97,8 +99,9 @@ func (g *Gender) Marshal() (tag string, data []byte) {
 	return "gender", encode.Keyword(g.Gender())
 }
 
-func (g *Gender) Dump() []string {
-	return []string{DumpFmt("%p %[1]T: %q", g, genderName[g.gender])}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (g *Gender) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", g, genderName[g.gender])
 }
 
 // Gender returns the gender stored in the attribute as a title-cased string.

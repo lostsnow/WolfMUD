@@ -5,6 +5,10 @@
 
 package has
 
+import (
+	"code.wolfmud.org/WolfMUD.git/text/tree"
+)
+
 // Vetoes represent one or more Veto allowing commands to be vetoed for a
 // Thing. Multiple Veto can be added to veto multiple commands for different
 // reasons.
@@ -28,10 +32,12 @@ type Vetoes interface {
 // Its default implementation is the attr.Veto type.
 type Veto interface {
 
+	// Dump adds information to the passed Node for debugging. The returned Node
+	// indicates where addition information may be added.
+	Dump(*tree.Node) *tree.Node
+
 	// Command returns the command as an uppercased string that this Veto is for.
 	Command() string
-
-	Dump() []string
 
 	// Message returns the details of why the associated command was vetoed.
 	Message() string

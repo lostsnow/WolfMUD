@@ -7,9 +7,11 @@ package attr
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
+	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Name attribute.
@@ -17,6 +19,14 @@ func init() {
 	internal.AddMarshaler((*Name)(nil), "name")
 }
 
+// Initialise event finder
+func init() {
+	event.FindName = FindName
+}
+
+// Name implements an attribute for giving a Thing a short name. The name
+// should generally start with 'a', 'an' or 'some' except for proper names. For
+// example: an apple, some apples, an orange, Diddymus.
 type Name struct {
 	Attribute
 	name string
@@ -54,12 +64,13 @@ func NewName(n string) *Name {
 // implement has.Name returning the first match it finds or a *Name typed nil
 // otherwise.
 func FindName(t has.Thing) has.Name {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Name); ok {
-			return a
-		}
-	}
-	return (*Name)(nil)
+	return t.FindAttr((*Name)(nil)).(has.Name)
+}
+
+// Is returns true if passed attribute implements a name else false.
+func (*Name) Is(a has.Attribute) bool {
+	_, ok := a.(has.Name)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -77,8 +88,9 @@ func (n *Name) Marshal() (tag string, data []byte) {
 	return "name", encode.String(n.name)
 }
 
-func (n *Name) Dump() []string {
-	return []string{DumpFmt("%p %[1]T: %q", n, n.name)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (n *Name) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", n, n.name)
 }
 
 // Name returns the name stored in the attribute. If the receiver is nil or the

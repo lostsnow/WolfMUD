@@ -6,10 +6,9 @@
 package attr
 
 import (
-	"sync"
-
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Locate attribute.
@@ -27,9 +26,9 @@ func init() {
 type Locate struct {
 	Attribute
 
-	rwmutex sync.RWMutex
-	where   has.Inventory
-	origin  has.Inventory
+	// Protected by Attribute RWMutex
+	where  has.Inventory
+	origin has.Inventory
 }
 
 // Some interfaces we want to make sure we implement
@@ -41,8 +40,7 @@ var (
 // Inventory. Passing nil is a valid reference and is usually treated as being
 // nowhere.
 func NewLocate(i has.Inventory) *Locate {
-	l := &Locate{Attribute: Attribute{}}
-	l.SetWhere(i)
+	l := &Locate{Attribute: Attribute{}, where: i}
 	return l
 }
 
@@ -50,12 +48,13 @@ func NewLocate(i has.Inventory) *Locate {
 // that implement has.Locate returning the first match it finds or a *Locate
 // typed nil otherwise.
 func FindLocate(t has.Thing) has.Locate {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Locate); ok {
-			return a
-		}
-	}
-	return (*Locate)(nil)
+	return t.FindAttr((*Locate)(nil)).(has.Locate)
+}
+
+// Is returns true if passed attribute implements locate else false.
+func (*Locate) Is(a has.Attribute) bool {
+	_, ok := a.(has.Locate)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -76,19 +75,22 @@ func (*Locate) Marshal() (string, []byte) {
 	return "", []byte{}
 }
 
-func (l *Locate) Dump() (buf []string) {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (l *Locate) Dump(node *tree.Node) *tree.Node {
 	origin := "Nowhere"
 	where := "Nowhere"
 	l.rwmutex.RLock()
+	defer l.rwmutex.RUnlock()
+
 	if l.origin != nil && l.origin.Found() {
 		origin = FindName(l.origin.Parent()).Name("no name!")
 	}
 	if l.where != nil && l.where.Found() {
 		where = FindName(l.where.Parent()).Name("no name!")
 	}
-	buf = append(buf, DumpFmt("%p %[1]T -> Origin: %p %s, Where: %p %s", l, l.origin, origin, l.where, where))
-	l.rwmutex.RUnlock()
-	return
+
+	return node.Append("%p %[1]T - origin: %p %q, where: %p %q",
+		l, l.origin, origin, l.where, where)
 }
 
 // Where returns the Inventory the parent Thing is in. Returning nil is a
@@ -143,6 +145,7 @@ func (l *Locate) Copy() has.Attribute {
 	}
 	l.rwmutex.RLock()
 	nl := NewLocate(l.where)
+	nl.origin = l.origin
 	l.rwmutex.RUnlock()
 	return nl
 }
@@ -155,6 +158,6 @@ func (l *Locate) Free() {
 	l.rwmutex.Lock()
 	l.where = nil
 	l.origin = nil
+	l.Attribute.free()
 	l.rwmutex.Unlock()
-	l.Attribute.Free()
 }

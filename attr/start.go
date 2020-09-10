@@ -10,6 +10,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/attr/internal"
 	"code.wolfmud.org/WolfMUD.git/has"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Start attribute.
@@ -46,12 +47,13 @@ func NewStart() *Start {
 // implement has.Start returning the first match it finds or a *Start typed nil
 // otherwise.
 func FindStart(t has.Thing) has.Start {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Start); ok {
-			return a
-		}
-	}
-	return (*Start)(nil)
+	return t.FindAttr((*Start)(nil)).(has.Start)
+}
+
+// Is returns true if passed attribute implements a starting location else false.
+func (*Start) Is(a has.Attribute) bool {
+	_, ok := a.(has.Start)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -69,8 +71,9 @@ func (*Start) Marshal() (tag string, data []byte) {
 	return "start", data
 }
 
-func (s *Start) Dump() []string {
-	return []string{DumpFmt("%p %[1]T", s)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (s *Start) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T", s)
 }
 
 // Pick returns the Inventory of a randomly selected starting location.

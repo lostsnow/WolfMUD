@@ -14,6 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Reset attribute.
@@ -36,9 +37,12 @@ func init() {
 // have a Reset attribute.
 type Reset struct {
 	Attribute
-	after  time.Duration
-	jitter time.Duration
-	spawn  bool
+	after   time.Duration
+	jitter  time.Duration
+	spawn   bool
+	spawned bool
+	dueAt   time.Time     // Time a queued event is expected to fire
+	dueIn   time.Duration // Time remaining for a suspended event
 	event.Cancel
 }
 
@@ -52,19 +56,20 @@ var (
 // period to between after and after+jitter for when a Thing is reset or
 // respawned. If spawn is true the Thing will respawn otherwise it will reset.
 func NewReset(after time.Duration, jitter time.Duration, spawn bool) *Reset {
-	return &Reset{Attribute{}, after, jitter, spawn, nil}
+	return &Reset{Attribute{}, after, jitter, spawn, false, time.Time{}, 0, nil}
 }
 
 // FindReset searches the attributes of the specified Thing for attributes
 // that implement has.Reset returning the first match it finds or a *Reset
 // typed nil otherwise.
 func FindReset(t has.Thing) has.Reset {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Reset); ok {
-			return a
-		}
-	}
-	return (*Reset)(nil)
+	return t.FindAttr((*Reset)(nil)).(has.Reset)
+}
+
+// Is returns true if passed attribute implements a reset else false.
+func (*Reset) Is(a has.Attribute) bool {
+	_, ok := a.(has.Reset)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -84,6 +89,8 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 			r.jitter = decode.Duration(data)
 		case "SPAWN":
 			r.spawn = decode.Boolean(data)
+		case "DUE-IN", "DUE_IN":
+			r.dueIn = decode.Duration(data)
 		default:
 			log.Printf("Reset.unmarshal unknown attribute: %q: %q", field, data)
 		}
@@ -94,50 +101,102 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 // Marshal returns a tag and []byte that represents the receiver.
 func (r *Reset) Marshal() (tag string, data []byte) {
 	tag = "reset"
-	data = encode.PairList(
-		map[string]string{
-			"after":  string(encode.Duration(r.after)),
-			"jitter": string(encode.Duration(r.jitter)),
-			"spawn":  string(encode.Boolean(r.spawn)),
-		},
-		'→',
+	pairs := map[string]string{
+		"after":  string(encode.Duration(r.after)),
+		"jitter": string(encode.Duration(r.jitter)),
+		"spawn":  string(encode.Boolean(r.spawn)),
+	}
+
+	switch {
+	case r.Cancel != nil:
+		pairs["due_In"] = string(encode.Duration(time.Until(r.dueAt)))
+	case r.dueIn > 0:
+		pairs["due_In"] = string(encode.Duration(r.dueIn))
+	}
+
+	data = encode.PairList(pairs, '→')
+	return
+}
+
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (r *Reset) Dump(node *tree.Node) *tree.Node {
+	node = node.Append(
+		"%p %[1]T - after: %s, jitter: %s, spawn: %t, spawned: %t",
+		r, r.after, r.jitter, r.spawn, r.spawned,
 	)
-	return
+
+	var due, source string
+	if r.Cancel != nil {
+		due = time.Until(r.dueAt).String()
+		source = "at"
+	} else {
+		due = r.dueIn.String()
+		source = "in"
+	}
+	node.Branch().Append("%p %[1]T - due: %s, source: %s", r.Cancel, due, source)
+
+	return node
 }
 
-func (r *Reset) Dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T After: %s Jitter: %s Spawn: %t", r, r.after, r.jitter, r.spawn))
-	buff = append(buff, DumpFmt("  %p %[1]T", r.Cancel))
-	return
-}
-
-// Copy returns a copy of the Reset receiver. The copy will not inherit any
-// pending Reset events.
+// Copy returns a copy of the Reset receiver. If the Reset event is currently
+// queued it will be suspended in the returned copy.
 func (r *Reset) Copy() has.Attribute {
 	if r == nil {
 		return (*Reset)(nil)
 	}
-	return NewReset(r.after, r.jitter, r.spawn)
+	nr := NewReset(r.after, r.jitter, r.spawn)
+	if r.Cancel != nil {
+		nr.dueIn = time.Until(r.dueAt)
+	} else {
+		nr.dueIn = r.dueIn
+	}
+	return nr
 }
 
-// Reset schedules a reset of the parent Thing. If there is already a reset
-// event pending it will be cancelled and a new one queued.
+// schedule queues a Reset event to occur after the given delay has passed. The
+// delay will be between 'after' and 'after+jitter'. If the Reset event is
+// already queued it will be cancelled and a new one queued.
+func (r *Reset) schedule(after, jitter time.Duration) {
+	r.Abort()
+
+	// Schedule event, for a $RESET the actor is where the reset will take place.
+	what := r.Parent()
+	actor := FindLocate(what).Origin().Parent()
+
+	r.dueIn = 0
+	r.Cancel, r.dueAt = event.Queue(actor, "$RESET "+what.UID(), after, jitter)
+}
+
+// Reset schedules a Reset event. If the Reset event is already queued it will
+// be cancelled and a new one queued.
 func (r *Reset) Reset() {
+	if r != nil {
+		r.schedule(r.after, r.jitter)
+	}
+}
+
+// Suspend a queued Reset event, or do nothing if event not queued.
+func (r *Reset) Suspend() {
 	if r == nil {
 		return
 	}
 
-	// Cancel any outstanding reset
-	r.Abort()
-
-	// Schedule reset. For a $RESET the actor is where the reset will take place.
-	what := r.Parent()
-	actor := FindLocate(what).Where().Parent()
-	r.Cancel = event.Queue(actor, "$RESET "+what.UID(), r.after, r.jitter)
+	if r.Cancel != nil {
+		close(r.Cancel)
+		r.Cancel = nil
+		r.dueIn = time.Until(r.dueAt)
+		r.dueAt = time.Time{}
+	}
 }
 
-// Abort causes an outstanding reset event to be cancelled for the parent
-// Thing.
+// Resume a suspended Reset event, or do nothing if event not suspended.
+func (r *Reset) Resume() {
+	if r != nil && r.dueIn != 0 {
+		r.schedule(r.dueIn, 0)
+	}
+}
+
+// Abort a queued Reset event, or do nothing if event not queued.
 func (r *Reset) Abort() {
 	if r == nil {
 		return
@@ -146,6 +205,7 @@ func (r *Reset) Abort() {
 	if r.Cancel != nil {
 		close(r.Cancel)
 		r.Cancel = nil
+		r.dueAt = time.Time{}
 	}
 }
 
@@ -156,49 +216,119 @@ func (r *Reset) Pending() bool {
 	return r.Cancel != nil
 }
 
-// Spawn returns a non-spawnable copy of a Thing and schedules the original
-// Thing to reset if Reset.spawn is true. Otherwise it returns nil.
+// Spawn returns a non-spawnable copy of a spawnable Thing and schedules the
+// original Thing to reset if Reset.spawn is true. Otherwise it returns nil.
+//
+// If a new item is spawned then the Inventory of the original is processed.
+// Unique and non-spawnable items are moved from the original to the copy.
+// Copies of spawnable content are made and the original spawnable content is
+// disabled and a reset scheduled. This processing is recursive.
 func (r *Reset) Spawn() has.Thing {
 
-	// If no Reset or not spawnable return nil
 	if r == nil || !r.spawn {
 		return nil
 	}
 
-	// Make a copy of original Thing, clear the origins of it and it's content so
-	// that it will all be disposed of when cleaned up - it is only the original
-	// that respawns.
+	// Spawnable so make a copy of original Thing, disable original and register
+	// original for a reset
 	p := r.Parent()
 	c := p.Copy()
-	c.ClearOrigins()
-
-	// Disable original Thing and register a reset for it
-	o := FindLocate(p).Origin()
-	o.Disable(p)
+	FindLocate(p).Origin().Disable(p)
 	r.Reset()
 
-	// Remove reset attribute from copied Thing
+	// Remove reset attribute from copy and clear origin - only originals respawn
 	R := FindReset(c)
 	c.Remove(R)
 	R.Free()
+	l := FindLocate(c)
+	l.SetOrigin(nil)
+
+	r.spawnInventory(p, c)
 
 	// Add copy back into the world
-	l := FindLocate(c)
 	l.Where().Add(c)
 	l.Where().Enable(c)
 
 	return c
 }
 
-// Free makes sure references are nil'ed and channels closed when the Reset
-// attribute is freed.
+// spawnInventory recursively spawns the content of the Inventory from one
+// Thing to another. Spawning will either move non-spawnable items or copy
+// spawnable items. If a disabled item is copied it's reset is rescheduled.
+//
+// Note that we can't use Thing.DeepCopy as we need to selectively move or copy
+// items to the spawned Thing, and possibly reschedule a Reset for copied
+// disabled things.
+func (r *Reset) spawnInventory(from, to has.Thing) {
+
+	// If original has no Inventory nothing to do
+	fromInv := FindInventory(from)
+	if !fromInv.Found() {
+		return
+	}
+
+	toInv := FindInventory(to)
+
+	for _, t := range fromInv.Contents() {
+		if !FindReset(t).Spawnable() {
+			fromInv.Move(t, toInv)
+			continue
+		}
+		c := t.Copy()
+		FindLocate(c).SetOrigin(toInv)
+		FindReset(c).Spawned()
+		r.spawnInventory(t, c)
+		toInv.Add(c)
+		toInv.Enable(c)
+	}
+
+	for _, t := range fromInv.Disabled() {
+		if !FindReset(t).Spawnable() {
+			fromInv.Move(t, toInv)
+			continue
+		}
+		c := t.Copy()
+		FindLocate(c).SetOrigin(toInv)
+		r.spawnInventory(t, c)
+		FindReset(c).Spawned()
+		FindReset(c).Resume()
+		toInv.Add(c)
+	}
+}
+
+// Spawnable returns true if the parent Thing is spawnable else false.
+func (r *Reset) Spawnable() bool {
+	return r != nil && r.spawn
+}
+
+// Unique returns true if item is considered unique else false. For an item to
+// be unique it must be resetable and must not be spawnable.
+//
+// NOTE: An item without a reset is technically not unique as it is the
+// byproduct of an item spawning and hence a copy of that item.
+func (r *Reset) Unique() bool {
+	return r != nil && !r.spawn
+}
+
+// Spawned flags the Thing as being a spawned item.
+func (r *Reset) Spawned() {
+	if r == nil {
+		return
+	}
+	r.spawned = true
+}
+
+// IsSpawned returns true if the Thing has been spawned else false.
+func (r *Reset) IsSpawned() bool {
+	return r != nil && r.spawned
+}
+
+// Free makes sure references are nil'ed and queued events aborted when the
+// Reset attribute is freed.
 func (r *Reset) Free() {
 	if r == nil {
 		return
 	}
-	if r.Cancel != nil {
-		close(r.Cancel)
-		r.Cancel = nil
-	}
+	r.Abort()
 	r.Attribute.Free()
 }

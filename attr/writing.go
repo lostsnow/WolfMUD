@@ -10,6 +10,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Writing attribute.
@@ -47,12 +48,13 @@ func NewWriting(w string) *Writing {
 // that implement has.Writing returning the first match it finds or a *Writing
 // typed nil otherwise.
 func FindWriting(t has.Thing) has.Writing {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Writing); ok {
-			return a
-		}
-	}
-	return (*Writing)(nil)
+	return t.FindAttr((*Writing)(nil)).(has.Writing)
+}
+
+// Is returns true if passed attribute implements writing else false.
+func (*Writing) Is(a has.Attribute) bool {
+	_, ok := a.(has.Writing)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -70,8 +72,9 @@ func (w *Writing) Marshal() (tag string, data []byte) {
 	return "writing", encode.String(w.writing)
 }
 
-func (w *Writing) Dump() []string {
-	return []string{DumpFmt("%p %[1]T %q", w, w.writing)}
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (w *Writing) Dump(node *tree.Node) *tree.Node {
+	return node.Append("%p %[1]T - %q", w, w.writing)
 }
 
 // Writing returns the text that has been written.

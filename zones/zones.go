@@ -329,23 +329,35 @@ func (z *zone) linkupStoreLocation() {
 //
 //	Inventory: O1 O2
 //
-// This says put Things with references O1 and O2 into this inventory.
+// This says put Things with references O1 and O2 into this Inventory.
+//
+// If the reference has a leading exclamation mark '!' the Thing will be added
+// to the Inventory disabled and if there is a suspended reset event it will
+// be resumed.
 func (z *zone) linkupInventory() {
 	log.Printf("  Copying (Inventory)")
 	for _, l := range z.locations {
 		i := attr.FindInventory(l)
 		i.Lock()
 		for _, iref := range decode.KeywordList(l.Record["INVENTORY"]) {
+			disabled := iref[0] == '!'
+			if disabled {
+				iref = iref[1:]
+			}
 			s, ok := z.store[iref]
 			if !ok {
 				log.Printf("Invalid Inventory reference: ref not found %s", iref)
 				continue
 			}
-			t := s.Copy()
+			t := s.DeepCopy()
 			i.Add(t)
-			i.Enable(t)
 			t.SetOrigins()
-			attr.FindAction(t).Action()
+			if disabled {
+				attr.FindReset(t).Resume()
+			} else {
+				i.Enable(t)
+				attr.FindAction(t).Action()
+			}
 		}
 		i.Unlock()
 	}
@@ -358,10 +370,18 @@ func (z *zone) linkupInventory() {
 //
 // This says that the Thing with the location field should be put into the
 // Inventory that have the references L1 and L2.
+//
+// If the reference has a leading exclamation mark '!' the Thing will be added
+// to the Inventory disabled and if there is a suspended reset event it will
+// be resumed.
 func (z *zone) linkupLocation() {
 	log.Printf("  Copying (Location)")
 	for _, s := range z.store {
 		for _, ref := range decode.KeywordList(s.Record["LOCATION"]) {
+			disabled := ref[0] == '!'
+			if disabled {
+				ref = ref[1:]
+			}
 			l, ok := z.locations[ref]
 			if !ok {
 				if _, ok = z.store[ref]; !ok {
@@ -369,13 +389,17 @@ func (z *zone) linkupLocation() {
 				}
 				continue
 			}
-			t := s.Copy()
+			t := s.DeepCopy()
 			i := attr.FindInventory(l)
 			i.Lock()
 			i.Add(t)
-			i.Enable(t)
 			t.SetOrigins()
-			attr.FindAction(t).Action()
+			if disabled {
+				attr.FindReset(t).Resume()
+			} else {
+				i.Enable(t)
+				attr.FindAction(t).Action()
+			}
 			i.Unlock()
 		}
 	}

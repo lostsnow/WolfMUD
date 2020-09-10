@@ -14,6 +14,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for Door attribute.
@@ -94,6 +95,7 @@ type state struct {
 	initOpen  bool          // Initial state
 	open      bool          // Current state
 	otherSide bool          // Does door have 'other side' yet?
+	due       time.Time
 	event.Cancel
 }
 
@@ -114,8 +116,9 @@ var (
 //
 // This actually only creates one side of a door. To create the 'other side' of
 // the door Door.OtherSide should be called.
-func NewDoor(direction byte, open bool, reset time.Duration, jitter time.Duration) *Door {
-	return &Door{Attribute{}, direction, &state{reset, jitter, open, open, false, nil}}
+func NewDoor(direction byte, open bool, reset, jitter time.Duration) *Door {
+	s := &state{reset, jitter, open, open, false, time.Time{}, nil}
+	return &Door{Attribute{}, direction, s}
 }
 
 // OtherSide creates the 'other side' of a Door and places it in the World. The
@@ -148,7 +151,7 @@ func (d *Door) OtherSide() {
 	n := FindName(p).Name("'door'")
 
 	// Create 'other side' of the door as a duplicate Thing
-	t := p.Copy()
+	t := p.DeepCopy()
 
 	// Find the door on the 'other side'
 	o := FindDoor(t).(*Door)
@@ -195,12 +198,13 @@ func (d *Door) OtherSide() {
 // implement has.Door returning the first match it finds or a *Door typed nil
 // otherwise.
 func FindDoor(t has.Thing) has.Door {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.Door); ok {
-			return a
-		}
-	}
-	return (*Door)(nil)
+	return t.FindAttr((*Door)(nil)).(has.Door)
+}
+
+// Is returns true if passed attribute implements a door else false.
+func (*Door) Is(a has.Attribute) bool {
+	_, ok := a.(has.Door)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -248,19 +252,27 @@ func (d *Door) Marshal() (tag string, data []byte) {
 	return
 }
 
-func (d *Door) Dump() (buff []string) {
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (d *Door) Dump(node *tree.Node) *tree.Node {
 	e := NewExits()
-	buff = append(buff, DumpFmt("%p %[1]T Exit: %q", d, e.ToName(d.direction)))
-	for _, line := range d.state.dump() {
-		buff = append(buff, DumpFmt("%s", line))
-	}
-	return
+	node = node.Append("%p %[1]T - exit: %q", d, e.ToName(d.direction))
+	d.state.dump(node.Branch())
+	return node
 }
 
-func (s *state) dump() (buff []string) {
-	buff = append(buff, DumpFmt("%p %[1]T Reset: %q Jitter: %q Init: %t Open: %t", s, s.reset, s.jitter, s.initOpen, s.open))
-	buff = append(buff, DumpFmt("%p %[1]T", s.Cancel))
-	return
+// dump adds the shared door state information to the passed tree.Node for
+// debugging.
+func (s *state) dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - reset: %q, jitter: %q, initially open: %t, open: %t",
+		s, s.reset, s.jitter, s.initOpen, s.open,
+	)
+	dueIn := time.Until(s.due).Truncate(time.Second)
+	if s.Cancel != nil && dueIn > 0 {
+		node.Branch().Append("%p %[1]T - due: %s", s.Cancel, dueIn)
+	} else {
+		node.Branch().Append("%p %[1]T - due: expired", s.Cancel)
+	}
+	return node
 }
 
 // Direction returns the direction of the exit being blocked. The returned
@@ -336,7 +348,7 @@ func (d *Door) Open() {
 
 	if d.reset+d.jitter != 0 && d.open != d.initOpen {
 		t := d.Parent()
-		d.Cancel = event.Queue(t, "CLOSE "+t.UID(), d.reset, d.jitter)
+		d.Cancel, d.due = event.Queue(t, "CLOSE "+t.UID(), d.reset, d.jitter)
 	}
 }
 
@@ -358,7 +370,7 @@ func (d *Door) Close() {
 
 	if d.reset+d.jitter != 0 && d.open != d.initOpen {
 		t := d.Parent()
-		d.Cancel = event.Queue(t, "OPEN "+t.UID(), d.reset, d.jitter)
+		d.Cancel, d.due = event.Queue(t, "OPEN "+t.UID(), d.reset, d.jitter)
 	}
 }
 

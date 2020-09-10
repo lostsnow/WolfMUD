@@ -90,12 +90,24 @@ FIELD DATA TYPES
 
   PAIR LIST
     The data is a white space separated list of pairs. Each pair is separated
-    by a non-digit or non-letter character. For example:
+    by a non-digit, non-letter, non-hyphen/minus '-' or non-underscore '_'
+    character. That is, the keyword before the separator may contain digits,
+    letters, hyphen/minus or an underscore.
+
+    For example:
 
       Exits: E→L3 SE→L4 S→L2
 
     There are three pairs: E→L3, SE→L4 and S→L2. Each pair is separated by '→'
-    which is a non-digit and non-numeric.
+    which is the first character not valid in a keyword.
+
+    The names are not case sensitive.
+
+    Under certain circumstances a keyword may contain a leading exclamation
+    mark '!', which will not be identified as a keyword/value delimiter. A
+    keyword with a leading exclamation mark is distinct from one without. For
+    example '!KEYWORD' is separate from 'KEYWORD'. The record sections that
+    follow will detail when a leading exclamation mark is valid for a keyword.
 
   STRING LIST
     The data is separated into strings using a colon (:) as a separator. For
@@ -109,8 +121,10 @@ FIELD DATA TYPES
   KEYED STRING LIST
     The data is separated into keyword and string pairs, each pair separated
     by a colon. To help with readability the colon may start on a new line.
-    The keyword should be a single word followed by a non-letter, non-numeric
-    separator. For example:
+    The keyword should be a single word followed by a non-digit, non-letter,
+    non-hyphen/minus '-' or non-underscore '_' separator. That is, the keyword
+    before the separator may contain digits, letters, hyphen/minus or an
+    underscore. For example:
 
       Vetoes: GET→You cannot get it!
             : EXAMINE→You go to examine it, as it seems to be a very curious
@@ -120,7 +134,7 @@ FIELD DATA TYPES
     This defines three vetoes, each separated by a colon. Each veto is a
     keyword - here GET, EXAMINE and PUT - each followed by a string. The
     keywords and strings are separated using the '→' character, but any
-    non-letter or non-numeric can be used.
+    non-digit, non-letter, non-hyphen/minus or non-underscore can be used.
 
 ZONE HEADER RECORD
 
@@ -176,27 +190,83 @@ ZONE RECORDS
 
   ALIAS: <KEYWORD LIST>
   ALIASES: <KEYWORD LIST>
-    A list of keywords used by players to interact with something. For
-    example: LATTICE
-
-    Anything can have more than one alias. This allows aliases to be used to
-    group related things together. For example, barriers use aliases to
-    determine who can pass through the barrier. By grouping all non-player
-    characters with the alias "NPC" we can prevent mobiles from wandering off
-    into areas they shouldn't. However, by specifying a specifically allowed
-    alias we can let certain mobiles through, even if they are non-player
-    characters. For example:
+    A list of keywords used by players to refer to an item. To illustrate
+    aliases the following definition of a sword will be used:
 
       %%
-            Ref: B1
-      Narrative:
-        Barrier: EXIT→East DENY→NPC,CREATURE ALLOW→GUARD,WARDEN
+          Ref: O1
+         Name: a wooden shortsword
+      Aliases: SWORD SHORTSWORD WEAPONS
+        Reset: AFTER→1m JITTER→1m
+      Cleanup: AFTER→10m JITTER→5m
+
+      This is a shortsword made of wood for use in training.
       %%
 
-    Here we define a barrier that prevents anything with an alias of NPC or
-    CREATURE from passing through - two general groups. However any mobile
-    also tagged with GUARD or WARDEN can still pass through. GUARD would be a
-    sub-group for all guards, and there would probably only be one warden.
+    The aliases 'SWORD', 'SHORTSWORD' and 'WEAPONS' allow the item to be
+    specified on commands used by players. For example 'GET SWORD', 'EXAMINE
+    SHORTSWORD', 'DROP ALL WEAPONS'.
+
+    When defining items it is a good idea to have at least one general
+    category for the item, in this case 'WEAPONS'. This allows a player to
+    easily refer to groups of items in a command such as 'DROP ALL WEAPONS'.
+
+    Alias Qualifiers
+    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    Aliases may be defined with one or more optional qualifiers using the plus
+    '+' symbol. The above example could be improved by using the '+SHORT' and
+    '+WOODEN' qualifiers:
+
+      Aliases: +WOODEN +SHORT SWORD SHORTSWORD
+
+    This is most useful when there are similar items and the player wants to
+    target a specific one easily - for example a shortsword and a longsword.
+    With the revised aliases definition a player could use any of the
+    following commands:
+
+      GET SWORD
+      GET SHORTSWORD
+      GET WOODEN SWORD
+      GET WOODEN SHORTSWORD
+      GET SHORT SWORD
+      GET WOODEN SHORT SWORD
+      GET SHORT WOODEN SWORD
+
+    Bound Qualifiers
+    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    An alias qualifier may be bound to a specific alias by specifying the
+    qualifier, a colon ':' and then the alias the qualifier is bound to. The
+    alias for a bound qualifier does not have to be specified separately.
+
+    One drawback to the above revised aliases definition is that it also
+    allows the player to specify commands like the following:
+
+      GET SHORT SHORTSWORD
+      GET SHORT WOODEN SHORTSWORD
+
+    This may, or may not, be desirable. If it is not then bound qualifiers can
+    be used to specify that a qualifier can only be used with a specific
+    alias. A better aliases definition for the shortsword would be:
+
+      Aliases: +WOODEN +SHORT:SWORD SHORTSWORD
+
+    The bound qualifier here is '+SHORT:SWORD'. This specifies that the
+    qualifier 'SHORT' is only valid when used with the alias 'SWORD'. As a
+    result the command 'GET SHORT SHORTSWORD' would not be recognised as
+    'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'.
+
+    When a bound alias is used the alias does not have to be defined
+    separately. In the above example the bound alias '+SHORT:SWORD' will
+    define the alias 'SWORD' automatically, although it can still be specified
+    for clarity if needed.
+
+    It should be noted that the qualifier 'WOODEN' is still unbound and so
+    'GET WOODEN SWORD', 'GET WOODEN SHORTSWORD', 'GET WOODEN SHORT SWORD' and
+    'GET SHORT WOODEN SWORD' are all valid.
+
+    A good use of qualifiers, bound or unbound, is when differentiating items
+    by size, colour or material. It should also be noted that all players have
+    the 'PLAYER' group alias automatically.
 
   BARRIER: <PAIR LIST>
     BARRIER is used to conditionally block movement of a mobile in a specific
@@ -263,6 +333,56 @@ ZONE RECORDS
       "You cannot go <dir> <name> is blocking your way."
 
     See also the section on ALIASES.
+
+  BODY: <PAIR LIST>
+    BODY is used to specify the body slots of players and mobiles. Body slots
+    determine which items can be held, worn or wielded. Each pair in the list
+    defines a slot name as the keyword followed by an optional quantity. For
+    example:
+
+      BODY: TORSO HAND→2
+
+    This defines a body with one TORSO slot and two HAND slots. A currently
+    unavailable slot can be defined by prefixing the slot name with an
+    exclamation mark '!'. For example:
+
+      BODY: TORSO HAND !HAND
+
+    We now have the same body as before but with a hand missing. By marking a
+    slot as unavailable it is possible to use magic, healing or prosthetics to
+    restore it. Note that if a player has a missing hand then they would be
+    limited to single handed weapons - so no bows for example. It should also
+    be noted that a mythical creature with four arms/hands would be able to
+    use two bows or a bow and two single handed weapons - simply by having the
+    approbate body slots available.
+
+    A body can be defined using only a few general slots. For example a
+    minimal body would be:
+
+      BODY: TORSO HAND→2
+
+    This would allow basic armour/clothing to be worn using the TORSO slot. It
+    would also allow items to be held, worn or wielded in the HAND slots.
+    Having two hands automatically allows for single or dual wielding weapons
+    as well as the wielding of two handed weapons like bows.
+
+    A body can also be defined with a wide array of slots available, allowing
+    more customisation for players. Currently the default, humanoid body is
+    defined as:
+
+      Body: HEAD FACE EAR→2 EYE→2 NOSE MOUTH UPPER_LIP LOWER_LIP NECK
+            SHOULDER→2 UPPER_ARM→2 ELBOW→2 LOWER_ARM→2 WRIST→2 HAND→2 FINGER→8
+            THUMB→2 CHEST BACK WAIST PELVIS UPPER_LEG→2 KNEE→2 LOWER_LEG→2
+            ANKLE→2 FOOT→2
+
+    The only constraint is that the slot name: HEAD, HAND, etc. used in
+    defining body slots matches the slot names used for the HOLDABLE, WEARABLE
+    and WIELDABLE fields when defining items. All of the defined slots do not
+    have to be used. For example there may be no holdable, wearable or
+    wieldable items that currently use the MOUTH, UPPER_LIP or LOWER_LIP
+    slots.
+
+    See also HOLDABLE, WEARABLE and WIELDABLE for more details.
 
   CLEANUP: <PAIR LIST>
     CLEANUP is used to specify how long to wait after an item is dropped
@@ -356,22 +476,59 @@ ZONE RECORDS
     If an EXITS field is added to something an inventory will be automatically
     added as well even if there is no specific INVENTORY field.
 
+  HOLDABLE: <PAIR LIST>
+    The HOLDABLE field specifies that an item can be held and the BODY slots
+    required to do so. Unlike WEARABLE and WIELDABLE any item, except players
+    and mobiles - i.e. items with a BODY field defined, can be held as if they
+    were defined with:
+
+      HOLDABLE: HAND
+
+    This can be overridden by adding a specific HOLDABLE field. For example if
+    an item requires two hands to hold it the definition would be:
+
+      HOLDABLE: HAND→2
+
+    A specific HOLDABLE field can also be added to mobiles, maybe so that
+    small creatures can be held. In this case the HOLDABLE could be for one
+    hand or two depending on the size of the mobile.
+
+    If an item should not be held at all then the HOLD command can be vetoed:
+
+      VETO: HOLD→You cannot hold that in your hand.
+
+    This will allow overriding the default HOLDABLE ability of an item.
+
+    For the item to be successfully held the BODY slots must be available to
+    the holder and must also be free - not holding, wearing or wielding other
+    items in the required slots.
+
+    See also: BODY, WEARABLE and WIELDABLE for more details.
+
   INVENTORY: <KEYWORD LIST>
     The INVENTORY field defines something as being a container or location. It
     may be followed by a list of space separated references. Each reference
     will be looked up and the something it uniquely references will be placed
     into the inventory. The same reference may appear in multiple INVENTORY in
     which case a copy of the original something will be made. As an example:
-    INVENTORY: O1 - this says to put the something defined as O1 into this
-    inventory. See also LOCATION.
 
-    It is possible to put containers inside other containers. It is also
-    possible, but very confusing, to put locations inside locations or inside
-    containers. However you cannot put something or a location directly inside
-    itself.
+      INVENTORY: O1
+
+    This says to put the item with the reference (REF) O1 into this inventory.
+
+    If the item reference is prefixed with an exclamation mark '!' the item
+    will initially be added to the Inventory in a disabled, out of play state.
+    The item can be enabled and put into play by a suspended RESET event. A
+    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
+    period. See RESET for more details.
+
+    It is possible to put containers inside other containers. However you
+    cannot put something or a location directly inside itself.
 
     It is also possible for players to enter containers even though it may not
     have EXITS defining it as an actual location.
+
+    See also LOCATION.
 
   LOCATION: <KEYWORD LIST>
     LOCATION fields are used to put something into one or more inventories.
@@ -379,11 +536,24 @@ ZONE RECORDS
     says 'put this item there and there'. Both LOCATION and INVENTORY have the
     same effect but LOCATION allows where something is put to be defined with
     the actual something, whereas INVENTORY allows you to define what is at a
-    location with the location.
+    location with the location. For example:
+
+      LOCATION: L1 L2
+
+    This says to put copies of the item the LOCATION field is defined on into
+    the inventories of the things with references (REF) of L1 and L2.
+
+    If the inventory reference is prefixed with an exclamation mark '!' the item
+    will initially be added to the Inventory in a disabled, out of play state.
+    The item can be enabled and put into play by a suspended RESET event. A
+    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
+    period. See RESET for more details.
 
     When deciding whether to use LOCATION or INVENTORY to place things as a
     rule of thumb use LOCATION for things unique to a location, such as
     narratives, and use INVENTORY to place things in multiple places.
+
+    See also INVENTORY.
 
   NAME: <STRING>
     A short descriptive name. For example: a curious brass lattice
@@ -481,22 +651,39 @@ ZONE RECORDS
       AFTER→<period>
       JITTER→<period>
       SPAWN→<boolean>
+      DUE_IN→<period> | DUE-IN→<period>
 
     For example:
 
       RESET: AFTER→2m JITTER→1m SPAWN→true
 
     AFTER and JITTER specify the reset or respawn period to be between AFTER
-    and AFTER+JITTER. If SPAWN is false this is the period after which the
-    item will be reset and placed back into the game after being disposed of.
-    If SPAWN is true it is the period after which a new copy of the item will
-    appear in the game - with or without the previous copy being disposed of
-    first.
+    and AFTER+JITTER. If SPAWN is false, or omitted, the item is considered
+    unique, unless more than one is defined.
+
+    If an item is unique AFTER+JITTER is the period after which the item will
+    be reset and placed back into the game after being disposed of. Unique
+    items cannot be kept by players and a reset of the item will be forced
+    whenever the player logs out.
+
+    If an item is not unique AFTER+JITTER is the period after which a new copy
+    of the item will appear in the game - with or without the previous copy
+    being disposed of first. Non-unique items may be kept and collected by
+    players.
 
     If AFTER and JITTER are not specified the minimum reset period will be 1
     second. If SPAWN is not specified it will default to false.
 
     Just specifying SPAWN with no value is a shorthand for SPAWN→True.
+
+    The DUE_IN or DUE-IN period records the time remaining for a suspended
+    Reset event. If the item is disabled when the zone is first loaded the
+    Reset event will be resumed. This can be used to delay putting items into
+    a zone when the server is started. The DUE_IN or DUE-IN period can be
+    longer or shorter than AFTER+JITTER. See also INVENTORY and LOCATION for
+    how to load disabled items into a zone. If the item is not disabled when
+    loaded the DUE_IN or DUE-IN value is ignored. Once the resumed RESET event
+    completes the normal AFTER and JITTER values will come into effect.
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.
@@ -531,6 +718,39 @@ ZONE RECORDS
     PUTIN might be a vending machine you can only take things from. An example
     of TAKEOUT might be a rubbish bin you can only put things into but not
     remove.
+
+    Another pseudo command the can be vetoed is COMBAT which covers any form
+    of fighting, but not necessarily every way of harming another player.
+
+  WEARABLE: <PAIR LIST>
+    The WEARABLE field specifies that an item can be worn and the BODY slots
+    required to do so. For example a short sleeved jerkin that can be worn
+    might be specified with:
+
+      WEARABLE: CHEST BACK UPPER_ARM→2
+
+    For the item to be successfully worn the BODY slots must be available to
+    the wearer and must also be free - not holding, wearing or wielding other
+    items in the required slots.
+
+    See also: BODY, HOLDABLE and WIELDABLE for more details.
+
+  WIELDABLE: <PAIR LIST>
+    The WIELDABLE field specifies that an item can be wielded as a weapon and
+    the BODY slots required to do so. For example a sword that can be wielded
+    in one hand would be specified with:
+
+      WIELDABLE: HAND
+
+    While a bow that requires two hands would be specified as:
+
+      WIELDABLE: HAND→2
+
+    For the item to be successfully wielded the BODY slots must be available
+    to the wielder and must also be free - not holding, wearing or wielding
+    other items in the required slots.
+
+    See also: BODY, HOLDABLE and WEARABLE for more details.
 
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored

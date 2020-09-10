@@ -15,10 +15,31 @@ type Reset interface {
 	// Reset causes the parent Thing to be scheduled for a reset.
 	Reset()
 
+	// Resume a suspended Reset event.
+	Resume()
+
+	// Suspend a queued Reset event.
+	Suspend()
+
 	// Abort cancels any outstanding reset events.
 	Abort()
 
 	// Spawn returns a non-spawnable copy of the parent Thing and schedules the
 	// original to be respawned.
 	Spawn() Thing
+
+	// Spawnable returns true if the parent Thing is spawnable else false.
+	Spawnable() bool
+
+	// Spawned flags the Thing as being a spawned item.
+	//
+	// TODO(diddymus): This shouldn't be exposed in the interface and will be
+	// removed in the attribute reorganisation.
+	Spawned()
+
+	// IsSpawned returns true if the Thing has been spawned else false.
+	IsSpawned() bool
+
+	// Unique returns true if item is considered unique else false.
+	Unique() bool
 }

@@ -190,9 +190,15 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		if i := attr.FindInventory(store[ref]); i.Found() {
 			i.Lock()
 			for _, ref := range decode.KeywordList(record["INVENTORY"]) {
+				disabled := ref[0] == '!'
+				if disabled {
+					ref = ref[1:]
+				}
 				t := store[ref]
 				i.Add(t)
-				i.Enable(t)
+				if !disabled {
+					i.Enable(t)
+				}
 			}
 			i.Unlock()
 		}
@@ -200,7 +206,8 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 
 	// Find and extract player as a copy - resolves any references as copies too
 	ref := decode.Keyword(jar[0]["REF"])
-	p := store[ref].Copy().(*attr.Thing)
+	p := store[ref].DeepCopy().(*attr.Thing)
+	p.SetOrigins()
 
 	// Cleanup store
 	for ref, t := range store {
@@ -215,6 +222,29 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 		aliases = append(aliases, "PLAYER")
 		p.Add(attr.NewAlias(aliases...))
 		p.Remove(a)
+	}
+
+	// Upgrade legacy player if no health attribute yet
+	if !attr.FindHealth(p).Found() {
+		p.Add(attr.NewHealth(30, 30, 2, 10))
+	}
+
+	// Upgrade legacy player if no body attribute yet
+	if !attr.FindBody(p).Found() {
+		p.Add(attr.NewBody(
+			"HEAD",
+			"FACE", "EAR", "EYE", "NOSE", "EYE", "EAR",
+			"MOUTH", "UPPER_LIP", "LOWER_LIP",
+			"NECK",
+			"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+			"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+			"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+			"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+			"BACK", "CHEST",
+			"WAIST", "PELVIS",
+			"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+			"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+		))
 	}
 
 	return p

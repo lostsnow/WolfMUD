@@ -7,6 +7,7 @@ package cmd
 
 import (
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Syntax: ( INVENTORY | INV )
@@ -25,11 +26,16 @@ func (inventory) process(s *state) {
 		return
 	}
 
-	s.msg.Actor.Send("You are currently carrying:")
+	s.msg.Actor.Send("You currently have:")
+
+	b := attr.FindBody(s.actor)
 
 	// List what we are carrying
-	for _, i := range inv {
-		s.msg.Actor.Send("  ", attr.FindName(i).Name("something"))
+	for _, what := range inv {
+		s.msg.Actor.Send("  ", attr.FindName(what).Name("something"))
+		if b.Using(what) {
+			s.msg.Actor.Append(" - ", text.Green, b.Usage(what), text.Reset)
+		}
 	}
 
 	who := attr.FindName(s.actor).Name("Someone")

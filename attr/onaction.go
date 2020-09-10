@@ -12,6 +12,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
+	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
 
 // Register marshaler for OnAction attribute.
@@ -40,12 +41,13 @@ func NewOnAction(actions []string) *OnAction {
 // that implement has.OnAction returning the first match it finds or a
 // *OnAction typed nil otherwise.
 func FindOnAction(t has.Thing) has.OnAction {
-	for _, a := range t.Attrs() {
-		if a, ok := a.(has.OnAction); ok {
-			return a
-		}
-	}
-	return (*OnAction)(nil)
+	return t.FindAttr((*OnAction)(nil)).(has.OnAction)
+}
+
+// Is returns true if passed attribute implements an 'on action' else false.
+func (*OnAction) Is(a has.Attribute) bool {
+	_, ok := a.(has.OnAction)
+	return ok
 }
 
 // Found returns false if the receiver is nil otherwise true.
@@ -63,12 +65,14 @@ func (oa *OnAction) Marshal() (tag string, data []byte) {
 	return "onaction", encode.StringList(oa.actions)
 }
 
-func (oa *OnAction) Dump() (buf []string) {
-	buf = append(buf, DumpFmt("%p %[1]T %d actions:", oa, len(oa.actions)))
+// Dump adds attribute information to the passed tree.Node for debugging.
+func (oa *OnAction) Dump(node *tree.Node) *tree.Node {
+	node = node.Append("%p %[1]T - actions %d:", oa, len(oa.actions))
+	branch := node.Branch()
 	for i, action := range oa.actions {
-		buf = append(buf, DumpFmt("  #%d: %q", i, action))
+		branch = branch.Append("#%d: %q", i, action)
 	}
-	return
+	return node
 }
 
 // ActionText returns a random action message for a Thing. The message is
