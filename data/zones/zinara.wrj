@@ -66,7 +66,7 @@ regular casks of beer, ale, mead, cider and wine behind the bar.
    Name: Street between tavern and bakers
 Aliases: TAVERN BAKERS STREET
   Exits: N→L14 E→L6 S→L7 W→L3
-  Barrier: EXIT→W DENY→CREATURE
+Barrier: EXIT→W DENY→CREATURE
 
 You are on a well kept cobbled street. Buildings loom up on either side of you.
 To the east the smells of a bakery taunt you. To the west the entrance to a
