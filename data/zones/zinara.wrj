@@ -967,10 +967,10 @@ This is a giant spider. It's black, hairy and looks very dangerous.
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
         : $ACT saunters around a bit.
-        : SAY Burgers ina bun, get 'em while they're hot.
-        : SAY Sausages ina bun, get 'em while they're hot.
-        : SAY Meat ona stick, get 'em while they're hot.
-        : SAY Hot food! Hot food!
+        : SHOUT Burgers ina bun, get 'em while they're hot.
+        : SHOUT Sausages ina bun, get 'em while they're hot.
+        : SHOUT Meat ona stick, get 'em while they're hot.
+        : SHOUT Hot food! Hot food!
 
 This is a typical, shifty looking street vendor.
 %%
