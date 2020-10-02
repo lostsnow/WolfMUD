@@ -15,6 +15,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 	"code.wolfmud.org/WolfMUD.git/text"
 	"code.wolfmud.org/WolfMUD.git/text/tree"
 )
@@ -24,6 +25,7 @@ import (
 // functionality. Concurrent access to a Thing is safe.
 type Thing struct {
 	uid string
+	ref string
 
 	rwmutex sync.RWMutex
 	attrs   []has.Attribute
@@ -176,7 +178,7 @@ func (t *Thing) FindAttrs(cmp has.Attribute) (attrs []has.Attribute) {
 // Unmarshal as there is no corresponding Attribute to unmarshal the field's
 // data. If the field isn't ignored we just get extra warnings in the log when
 // unmarshaling is attempted.
-var ignoredFields = text.Dictionary("ref", "location", "zonelinks")
+var ignoredFields = text.Dictionary("location", "zonelinks")
 
 // Unmarshal unmarshals a Thing from a recordjar record containing all of the
 // Attribute to be added. The recno is the record number in the recordjar for
@@ -196,6 +198,12 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 		// Some known fields without attributes or marshalers we don't want to
 		// try and unmarshal so we ignore.
 		if ignoredFields.Contains(field) {
+			continue
+		}
+
+		// The REF field does not have an Unmarshaler, handle manually
+		if field == "REF" {
+			t.ref = decode.Keyword(data)
 			continue
 		}
 
@@ -276,8 +284,8 @@ func (t *Thing) Dump(node *tree.Node) *tree.Node {
 		}
 	}
 
-	node = node.Append("%s (%q), collectable: %t, attributes: %d",
-		t, name, t.Collectable(), len(t.attrs),
+	node = node.Append("%s (%q), ref: %q, collectable: %t, attributes: %d",
+		t, name, t.ref, t.Collectable(), len(t.attrs),
 	)
 
 	branch := node.Branch()
@@ -326,7 +334,9 @@ func (t *Thing) Copy() has.Thing {
 		}
 	}
 	t.rwmutex.RUnlock()
-	return NewThing(na...)
+	nt := NewThing(na...)
+	nt.ref = t.ref
+	return nt
 }
 
 // DeepCopy returns a copy of the Thing receiver recursing into Inventory. The
@@ -343,7 +353,9 @@ func (t *Thing) DeepCopy() has.Thing {
 		na[i] = a.Copy()
 	}
 	t.rwmutex.RUnlock()
-	return NewThing(na...)
+	nt := NewThing(na...)
+	nt.ref = t.ref
+	return nt
 }
 
 // SetOrigins checks the passed Thing, and any Inventory content recursively,
@@ -419,6 +431,13 @@ func (t *Thing) NotUnique() {
 //
 func (t *Thing) String() string {
 	return fmt.Sprintf("%p %[1]T - uid: %s", t, t.UID())
+}
+
+// Ref returns the value of the REF field found when unmarshaling the Thing.
+// The value is not unique, if a Thing is copied the copy will have the same
+// reference as the original. The reference may be the empty string.
+func (t *Thing) Ref() string {
+	return t.ref
 }
 
 // Things is a type of slice *Thing. It allows methods to be defined directly

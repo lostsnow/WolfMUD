@@ -72,4 +72,7 @@ type Thing interface {
 
 	// Mark a Thing as no longer being unique.
 	NotUnique()
+
+	// Ref returns the reference the Thing had when unmarshaled.
+	Ref() string
 }
