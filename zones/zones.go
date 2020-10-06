@@ -187,7 +187,7 @@ func loadZone(path string) zone {
 			z.locations[ref] = taggedThing{t, record}
 		} else {
 			if _, ok := z.store[ref]; ok {
-				log.Printf("[Record %d] Warning: overwriting duplicate reference reference %s", i, ref)
+				log.Printf("[Record %d] Warning: overwriting duplicate reference %s", i, ref)
 			}
 			z.store[ref] = taggedThing{t, record}
 			z.store[ref].Thing.NotUnique()
