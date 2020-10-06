@@ -78,24 +78,22 @@ func (examine) process(s *state) {
 		s.msg.Actor.Append(a.Description())
 	}
 
-	isPlayer := attr.FindPlayer(what).Found()
 	body := attr.FindBody(what)
-
-	// If examining a player they become the participant
-	if isPlayer {
-		s.participant = what
-	}
 
 	// BUG(diddymus): If you examine another player you can see their inventory
 	// items. For now we only describe the inventory if not examining a player.
-	if !isPlayer {
+	if !body.Found() {
 		if l := attr.FindInventory(what).List(); l != "" {
 			s.msg.Actor.Append(l)
 		}
 	}
 
 	// If a player what are they holding, wielding and wearing?
-	if isPlayer {
+	if body.Found() {
+
+		// Examining someone/something with a body they become the participant
+		s.participant = what
+
 		list := []string{}
 		for _, what := range body.Wearing() {
 			list = append(list, attr.FindName(what).Name("something"))
