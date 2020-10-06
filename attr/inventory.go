@@ -344,6 +344,23 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
+// SearchByRef returns the first Inventory Thing that matches the reference
+// passed. If no matches are found returns nil.
+func (i *Inventory) SearchByRef(ref string) has.Thing {
+	if i == nil {
+		return nil
+	}
+
+	for _, list := range []*list{i.players, i.contents, i.narratives} {
+		for n := list.tail.prev; n.prev != nil; n = n.prev {
+			if n.item.Ref() == ref {
+				return n.item
+			}
+		}
+	}
+	return nil
+}
+
 // Players returns a list of Players in an Inventory. The players may be
 // indirectly manipulated through the slice. Players should be added to, or
 // removed from the Inventory using the Add and Remove methods.

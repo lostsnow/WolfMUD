@@ -53,6 +53,10 @@ type Inventory interface {
 	// If there are no matches nil is returned.
 	Search(alias string) Thing
 
+	// SearchByRef returns the first Thing in an Inventory that has a matching
+	// reference. If there are no matches returns nil.
+	SearchByRef(ref string) Thing
+
 	// Move removes a Thing from the receiver Inventory and places it into the
 	// passed Inventory.
 	Move(Thing, Inventory)
