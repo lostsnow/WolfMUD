@@ -227,6 +227,27 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 	return
 }
 
+// Load provides a hook to perform additional processing and configuration of a
+// Thing by calling the, non-exported, load method on all attributes that
+// define it. Load processes any Inventory recursivly, depth first. Load is
+// called just before the thing is added to the game world - once a Thing has
+// been unmarshaled, the deep copy made to resolve references and origins set.
+// This means attributes can call Parent and reference other attributes of a
+// Thing, which cannot be done during unmarshaling.
+//
+// Any attribute may implement a load method which should take no parameters
+// and returns nothing.
+func (t *Thing) Load() {
+	for _, a := range t.attrs {
+		if pu, ok := a.(interface{ load() }); ok {
+			for _, t := range FindInventory(t).Contents() {
+				t.Load()
+			}
+			pu.load()
+		}
+	}
+}
+
 // Marshal marshals a Thing to a recordjar record containing all of the
 // Attribute details.
 func (t *Thing) Marshal() recordjar.Record {
@@ -248,6 +269,24 @@ func (t *Thing) Marshal() recordjar.Record {
 	}
 	t.rwmutex.RUnlock()
 	return rec
+}
+
+// Save provides a hook to perform additional processing and teardown of a
+// Thing by calling the, non-exported, save method on all attributes that
+// define it. Save processes any Inventory recursivly, depth first. Save is
+// called just before the Thing is removed from the game world and marshaled.
+//
+// Any attribute may implement a save method which should take no parameters
+// and returns nothing.
+func (t *Thing) Save() {
+	for _, a := range t.attrs {
+		if pu, ok := a.(interface{ save() }); ok {
+			for _, t := range FindInventory(t).Contents() {
+				t.Save()
+			}
+			pu.save()
+		}
+	}
 }
 
 // DumpToLog is a convenience method for dumping the current state of a Thing

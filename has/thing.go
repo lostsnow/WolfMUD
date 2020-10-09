@@ -30,6 +30,14 @@ type Thing interface {
 	// a nil slice if no matches found.
 	FindAttrs(cmp Attribute) []Attribute
 
+	// Load provides a hook to perform additional processing and configuration of
+	// a Thing after unmarshaling.
+	Load()
+
+	// Save provides a hook to perform additional processing and tear down of a
+	// Thing before marshaling.
+	Save()
+
 	// Dump adds information to the passed Node for debugging. The returned Node
 	// indicates where addition information can be added.
 	Dump(*tree.Node) *tree.Node
