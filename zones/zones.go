@@ -352,6 +352,7 @@ func (z *zone) linkupInventory() {
 			t := s.DeepCopy()
 			i.Add(t)
 			t.SetOrigins()
+			t.Load()
 			if disabled {
 				attr.FindReset(t).Resume()
 			} else {
@@ -394,6 +395,7 @@ func (z *zone) linkupLocation() {
 			i.Lock()
 			i.Add(t)
 			t.SetOrigins()
+			t.Load()
 			if disabled {
 				attr.FindReset(t).Resume()
 			} else {
