@@ -27,6 +27,8 @@ type save cmd
 
 func (sa save) process(s *state) {
 
+	s.actor.Save()
+
 	// Make sure actor is a player
 	p := attr.FindPlayer(s.actor)
 	if !p.Found() {
