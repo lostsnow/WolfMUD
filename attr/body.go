@@ -191,6 +191,39 @@ func (b *Body) Marshal() (tag string, data []byte) {
 	return "body", encode.PairList(slots, '→')
 }
 
+// save pre-marshal hook to make sure Holding, Wearing and Wielding attributes
+// are present so that they are saved.
+func (b *Body) save() {
+	if b == nil {
+		return
+	}
+
+	p := b.Parent()
+	isHolding := FindHolding(p).Found()
+	isWearing := FindWearing(p).Found()
+	isWielding := FindWielding(p).Found()
+
+	for _, slot := range b.slots {
+
+		// Bail out early if we know we have all the attributes
+		if isHolding && isWearing && isWielding {
+			break
+		}
+
+		switch {
+		case slot.usage&holding != 0 && !isHolding:
+			isHolding = true
+			p.Add(NewHolding())
+		case slot.usage&wearing != 0 && !isWearing:
+			isWearing = true
+			p.Add(NewWearing())
+		case slot.usage&wielding != 0 && !isWielding:
+			isWielding = true
+			p.Add(NewWielding())
+		}
+	}
+}
+
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (b *Body) Dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T", b)
