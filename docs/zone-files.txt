@@ -505,6 +505,22 @@ ZONE RECORDS
 
     See also: BODY, WEARABLE and WIELDABLE for more details.
 
+  HOLDING: <KEYWORD LIST>
+    The HOLDING field specifies items that should be held by a mobile when the
+    mobile is initially loaded. The HOLDING field should be followed by a list
+    of references to the items to be held. For example:
+
+      HOLDING: O1 O2
+
+    Where O1 and O2 are items that are in the mobile's inventory and can be
+    held, and have 'Ref: O1' and 'Ref: O2' defined.
+
+    For items to be successfully held the item needs to be HOLDABLE, in the
+    mobile's inventory and the mobile should have a BODY defined with the BODY
+    parts required to hold the items.
+
+    See also: BODY, HOLDABLE, WEARING, WIELDING for more details.
+
   INVENTORY: <KEYWORD LIST>
     The INVENTORY field defines something as being a container or location. It
     may be followed by a list of space separated references. Each reference
@@ -735,6 +751,22 @@ ZONE RECORDS
 
     See also: BODY, HOLDABLE and WIELDABLE for more details.
 
+  WEARING: <KEYWORD LIST>
+    The WEARING field specifies items that should be worn by a mobile when the
+    mobile is initially loaded. The WEARING field should be followed by a list
+    of references to the items to be worn. For example:
+
+      WEARING: O1 O2
+
+    Where O1 and O2 are items that are in the mobile's inventory and can be
+    worn, and have 'Ref: O1' and 'Ref: O2' defined.
+
+    For items to be successfully worn the item needs to be WEARABLE, in the
+    mobile's inventory and the mobile should have a BODY defined with the BODY
+    parts required to wear the items.
+
+    See also: BODY, WEARABLE, HOLDING, WIELDING for more details.
+
   WIELDABLE: <PAIR LIST>
     The WIELDABLE field specifies that an item can be wielded as a weapon and
     the BODY slots required to do so. For example a sword that can be wielded
@@ -751,6 +783,22 @@ ZONE RECORDS
     other items in the required slots.
 
     See also: BODY, HOLDABLE and WEARABLE for more details.
+
+  WIELDING: <KEYWORD LIST>
+    The WIELDING field specifies items that should be wielded by a mobile when
+    the mobile is initially loaded. The WIELDING field should be followed by a
+    list of references to the items to be wielded. For example:
+
+      WIELDING: O1 O2
+
+    Where O1 and O2 are items that are in the mobile's inventory and can be
+    wielded, and have 'Ref: O1' and 'Ref: O2' defined.
+
+    For items to be successfully wielded the item needs to be WIELDABLE, in
+    the mobile's inventory and the mobile should have a BODY defined with the
+    BODY parts required to wield the items.
+
+    See also: BODY, WIELDABLE, HOLDING, WEARING for more details.
 
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored
