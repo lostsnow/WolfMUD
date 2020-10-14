@@ -925,20 +925,27 @@ OnAction: $ACT picks up a glass and wipes it with a rag.
 This is your average barkeep, found in taverns and pubs all over the world.
 Always ready to listen to a drinking patron, dispensing advice when required.
 %%
-     Ref: M7
-    Name: a sweet flower girl
-   Reset: AFTER→1s
- OnReset: A flower girl walks in.
- Aliases: FLOWERGIRL GIRL NPC
-  Action: AFTER→30s JITTER→30s
-OnAction: $ACT looks around for someone to sell flowers to.
-        : $ACT looks at you with pleading eyes.
-        : $ACT holds out some flowers for you to see.
-        : SAY Buy a flower? Very cheap.
-        : N
-        : S
-        : E
-        : W
+      Ref: M7
+     Name: a sweet flower girl
+    Reset: AFTER→1s
+  OnReset: A flower girl walks in.
+  Aliases: FLOWERGIRL GIRL NPC
+   Action: AFTER→30s JITTER→30s
+ OnAction: $ACT looks around for someone to sell flowers to.
+         : $ACT looks at you with pleading eyes.
+         : $ACT holds out some flowers for you to see.
+         : SAY Buy a flower? Very cheap.
+         : N
+         : S
+         : E
+         : W
+     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+           UPPER_LIP→1 WAIST→1 WRIST→2
+Inventory: L73O13 O13
+  Wearing: L73O13
+  Holding: O13
 
 This is a sweet little girl selling flowers to make some money.
 %%
@@ -1275,6 +1282,14 @@ This is a small child's toy doll.
 Wearable: TINY_BODY
 
 This is a tiny doll's dress.
+%%
+     Ref: O13
+    Name: a small bunch of flowers
+ Aliases: +BUNCH:FLOWERS
+   Reset: AFTER→1m JITTER→1m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+
+This is a small bunch of wild flowers.
 %%
 //
 // STOCK FOR MERKLE'S FINE EMPORIUM
