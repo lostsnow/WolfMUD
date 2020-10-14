@@ -993,44 +993,58 @@ OnAction: $ACT watches you suspiciously.
 This is one of the gate wardens of the city. His duty is to keep out all
 undesirables from the city.
 %%
-     Ref: M11
-    Name: a city guard
-   Reset: AFTER→1m
- OnReset: A city guard walks into view.
- Aliases: CITYGUARD GUARD WOMAN NPC
-  Action: AFTER→15s JITTER→15s
-OnAction: $ACT watches you suspiciously.
-        : $ACT paces up and down a bit.
-        : $ACT cocks one ear, listening for trouble.
-        : SAY Mind how you go and keep out of trouble.
-        : SAY I'm watching you.
-        : N
-        : S
-        : E
-        : W
-        : EXAMINE PLAYER
-    Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+      Ref: M11
+     Name: a city guard
+    Reset: AFTER→1m
+  OnReset: A city guard walks into view.
+  Aliases: CITYGUARD GUARD WOMAN NPC
+   Action: AFTER→15s JITTER→15s
+ OnAction: $ACT watches you suspiciously.
+         : $ACT paces up and down a bit.
+         : $ACT cocks one ear, listening for trouble.
+         : SAY Mind how you go and keep out of trouble.
+         : SAY I'm watching you.
+         : N
+         : S
+         : E
+         : W
+         : EXAMINE PLAYER
+     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+           UPPER_LIP→1 WAIST→1 WRIST→2
+Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
+ Wielding: L13O1
+  Wearing: L11O1 L11O2 L73O1 L73O7
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
 %%
-     Ref: M12
-    Name: a city guard
-   Reset: AFTER→1m
- OnReset: A city guard walks into view.
- Aliases: CITYGUARD GUARD MAN NPC
-  Action: AFTER→15s JITTER→15s
-OnAction: $ACT watches you suspiciously.
-        : $ACT paces up and down a bit.
-        : $ACT cocks one ear, listening for trouble.
-        : SAY Mind how you go and keep out of trouble.
-        : SAY I'm watching you.
-        : N
-        : S
-        : E
-        : W
-        : EXAMINE PLAYER
-    Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+      Ref: M12
+     Name: a city guard
+    Reset: AFTER→1m
+  OnReset: A city guard walks into view.
+  Aliases: CITYGUARD GUARD MAN NPC
+   Action: AFTER→15s JITTER→15s
+ OnAction: $ACT watches you suspiciously.
+         : $ACT paces up and down a bit.
+         : $ACT cocks one ear, listening for trouble.
+         : SAY Mind how you go and keep out of trouble.
+         : SAY I'm watching you.
+         : N
+         : S
+         : E
+         : W
+         : EXAMINE PLAYER
+     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+           UPPER_LIP→1 WAIST→1 WRIST→2
+Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
+ Wielding: L13O1
+  Wearing: L11O1 L11O2 L73O1 L73O7
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
