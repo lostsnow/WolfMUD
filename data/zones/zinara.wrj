@@ -1453,3 +1453,32 @@ Wieldable: HAND
 
 This is a fine longsword. It has a pointy end.
 %%
+//
+// STOCK FOR ARMOURER
+//
+%%
+     Ref: L11O1
+    Name: a steel cuirass
+ Aliases: +STEEL:CUIRASS
+Wearable: CHEST BACK
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L11
+
+This is a heavy steel cuirass, consisting of two halves. One half is the
+breastplate and the other a backplate, each have a sloft leather lining. The
+two halves are held together with tough leather straps that buckle at the
+shoulders and sides.
+%%
+     Ref: L11O2
+    Name: a steel helmet
+ Aliases: +STEEL:HELMET
+Wearable: HEAD
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L11
+
+This steel helmet is open at the front and sides, with a neck guard at the
+rear. It has no plume, but a soft leather lining and a bronze inlay runing
+around the edges.
+%%
