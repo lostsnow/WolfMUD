@@ -1241,6 +1241,27 @@ Inventory:
 
 This is a small bag, handy for carrying things in.
 %%
+      Ref: O11
+     Name: a small doll
+  Aliases: DOLL
+    Reset: AFTER→1m JITTER→1m SPAWN
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L8
+     Body: TINY_BODY
+Inventory: O12
+  Wearing: O12
+
+This is a small child's toy doll.
+%%
+     Ref: O12
+    Name: a doll's dress
+ Aliases: +DOLL:DRESS
+   Reset: AFTER→1m JITTER→1m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Wearable: TINY_BODY
+
+This is a tiny doll's dress.
+%%
 //
 // STOCK FOR MERKLE'S FINE EMPORIUM
 //
