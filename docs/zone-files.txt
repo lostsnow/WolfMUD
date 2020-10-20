@@ -667,11 +667,12 @@ ZONE RECORDS
       AFTER→<period>
       JITTER→<period>
       SPAWN→<boolean>
+      WAIT→<boolean>
       DUE_IN→<period> | DUE-IN→<period>
 
     For example:
 
-      RESET: AFTER→2m JITTER→1m SPAWN→true
+      RESET: AFTER→2m JITTER→1m SPAWN WAIT
 
     AFTER and JITTER specify the reset or respawn period to be between AFTER
     and AFTER+JITTER. If SPAWN is false, or omitted, the item is considered
@@ -691,6 +692,22 @@ ZONE RECORDS
     second. If SPAWN is not specified it will default to false.
 
     Just specifying SPAWN with no value is a shorthand for SPAWN→True.
+
+    WAIT can be specified on a container to cause the container to delay
+    resetting and wait until its content is also ready to reset. WAIT only has
+    an effect when specified on a container - any item with an inventory. WAIT
+    also only effects original containers and content that have not spawned
+    yet. Once a container has spawned, due to being picked up, it will behave
+    as if WAIT had not been specified. Containers with WAIT specified may be
+    nested, like any other container. Specifying WAIT on a non-container has
+    no effect. If omitted WAIT defaults to false. Specifying WAIT on it's own
+    is shorthand for WAIT→true.
+
+    NOTE: A container with WAIT specified will not wait for unique items
+    before it resets - unless a unique item happens to have a pending reset
+    already. A unique container will wait for its content, but if nested will
+    not be waited on - unless the unique container happens to have a reset
+    pending already.
 
     The DUE_IN or DUE-IN period records the time remaining for a suspended
     Reset event. If the item is disabled when the zone is first loaded the

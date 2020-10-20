@@ -23,18 +23,18 @@ type reset cmd
 
 func (reset) process(s *state) {
 
-	// The reference to the Actor may be stale and already freed due to event
-	// queuing. This can occur with nested containers where the parent gets
-	// cleaned up or reset. If actor is already freed just return.
+	var (
+		what  has.Thing     // What we are resetting
+		where has.Inventory // Container inventory we are resetting into
+	)
+
+	// Check container to reset into still valid, it may have been disposed of
 	if s.actor.Freed() {
 		return
 	}
 
-	// Find where reset will happen. We cannot use s.where as we want the actor's
-	// inventory, not where the actor is. If we can't find where, maybe we are in
-	// a container that has already been reset, all we can do is exit.
-	where := attr.FindInventory(s.actor)
-	if !where.Found() {
+	// Find container's Inventory we will be resetting into, if not found bail
+	if where = attr.FindInventory(s.actor); !where.Found() {
 		return
 	}
 
@@ -45,28 +45,41 @@ func (reset) process(s *state) {
 	}
 
 	// Find disabled Thing to be reset, if not found just return
-	var what has.Thing
-	for _, t := range where.Disabled() {
-		if t.UID() == s.words[0] {
-			what = t
-			break
-		}
-	}
-	if what == nil {
+	if what = where.SearchDisabled(s.words[0]); what == nil {
 		return
 	}
 
-	or := attr.FindOnReset(what)
-	msg := or.ResetText()
+	r := attr.FindReset(what)
 
-	to, p := where, where.Parent()
-	e := attr.FindExits(p)
+	// If we are resetting an original container (not spawned) should we wait for
+	// its Inventory content to reset first? If so reschedule reset if content
+	// not ready.
+	if r.Found() && !r.IsSpawned() && r.Wait() {
+		if i := attr.FindInventory(what); i.Found() && len(i.Disabled()) > 0 {
+			r.Reset()
+			return
+		}
+	}
 
-	// Reset will not be seen if it does not happen in a location and we have no
-	// message. The reset will also not be seen if we specifically have an empty
-	// message. In both cases just silently reset the Thing.
-	if (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
-		attr.FindReset(what).Abort()
+	var (
+		or    = attr.FindOnReset(what)
+		msg   = or.ResetText()
+		to, p = where, where.Parent()
+		e     = attr.FindExits(p)
+	)
+
+	// Is the container we are resetting into disabled?
+	whereDisabled := s.where != nil && s.where.SearchDisabled(s.actor.UID()) != nil
+
+	// Reset will not be seen by players if:
+	//
+	//	- The container it happens in is disabled
+	//	- The reset is not at a location and there is no specific reset message
+	//	- If the reset message is disabled by a specific empty message
+	//
+	// If the reset is not seen by players then silently reset the Thing.
+	if whereDisabled || (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
+		r.Abort()
 		where.Enable(what)
 		s.ok = true
 		return
