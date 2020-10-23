@@ -156,6 +156,11 @@ func (s *state) sync() (inSync bool) {
 		return false
 	}
 
+	// If final location of actor is nowhere then nothing to process
+	if s.where == nil {
+		return true
+	}
+
 	s.msg.Allocate(s.where, s.locks)
 	l := len(s.locks)
 

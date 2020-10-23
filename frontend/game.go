@@ -77,15 +77,11 @@ func (g *game) enter() {
 // in the game. When the player is no longer in the world the frontend.buf
 // buffer is restored - see enter.
 func (g *game) process() {
-	l := attr.FindLocate(g.player)
 
-	// Only pass command to game parser if still in the world
-	if l.Where() != nil {
-		cmd.Parse(g.player, string(g.input))
-	}
+	cmd.Parse(g.player, string(g.input))
 
 	// If no longer in the world switch to frontend main menu
-	if l.Where() == nil {
+	if attr.FindLocate(g.player).Where() == nil {
 		g.buf = message.AcquireBuffer()
 		g.buf.OmitLF(true)
 		NewMenu(g.frontend)
