@@ -344,6 +344,20 @@ func (i *Inventory) Search(alias string) has.Thing {
 	return nil
 }
 
+// SearchDisabled returns the first disabled Inventory Thing that matches the
+// alias passed. If no matches are found nil is returned.
+func (i *Inventory) SearchDisabled(alias string) has.Thing {
+	if i == nil {
+		return nil
+	}
+	for n := i.disabled.tail.prev; n.prev != nil; n = n.prev {
+		if FindAlias(n.item).HasAlias(alias) {
+			return n.item
+		}
+	}
+	return nil
+}
+
 // SearchByRef returns the first Inventory Thing that matches the reference
 // passed. If no matches are found returns nil.
 func (i *Inventory) SearchByRef(ref string) has.Thing {
