@@ -249,7 +249,7 @@ func (i *Inventory) Dump(node *tree.Node) *tree.Node {
 // updated to reflect the new Inventory it is in.
 func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 
-	if t == nil {
+	if t == nil || i == where {
 		return
 	}
 
