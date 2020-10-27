@@ -291,6 +291,20 @@ func (b *Body) Remove(t has.Thing) {
 	}
 }
 
+// RemoveAll frees up all available Body slots and stops using any Thing that
+// are currently in use.
+func (b *Body) RemoveAll() {
+	if b == nil {
+		return
+	}
+	for x := range b.slots {
+		if b.slots[x].usage&inUse != 0 {
+			b.slots[x].used = nil
+			b.slots[x].usage &^= inUse
+		}
+	}
+}
+
 // Wielding returns a unique slice of Things, even if they take up more than
 // one Body slot, currently being wielded by the Body. If nothing is being
 // wielded an empty slice will be returned.
@@ -478,9 +492,7 @@ func (b *Body) Free() {
 	if b == nil {
 		return
 	}
-	for x := range b.slots {
-		b.slots[x].used = nil
-	}
+	b.RemoveAll()
 	b.slots = nil
 	b.Attribute.Free()
 }
