@@ -41,6 +41,7 @@ type Reset struct {
 	jitter  time.Duration
 	spawn   bool
 	spawned bool
+	wait    bool
 	dueAt   time.Time     // Time a queued event is expected to fire
 	dueIn   time.Duration // Time remaining for a suspended event
 	event.Cancel
@@ -55,8 +56,16 @@ var (
 // them back into the game world. The after and jitter Duration set the delay
 // period to between after and after+jitter for when a Thing is reset or
 // respawned. If spawn is true the Thing will respawn otherwise it will reset.
-func NewReset(after time.Duration, jitter time.Duration, spawn bool) *Reset {
-	return &Reset{Attribute{}, after, jitter, spawn, false, time.Time{}, 0, nil}
+// If wait is true the Thing will wait until child inventory Thing are ready to
+// reset before resetting.
+func NewReset(after, jitter time.Duration, spawn, wait bool) *Reset {
+	return &Reset{
+		Attribute: Attribute{},
+		after:     after,
+		jitter:    jitter,
+		spawn:     spawn,
+		wait:      wait,
+	}
 }
 
 // FindReset searches the attributes of the specified Thing for attributes
@@ -79,7 +88,7 @@ func (r *Reset) Found() bool {
 
 // Unmarshal is used to turn the passed data into a new Reset attribute.
 func (*Reset) Unmarshal(data []byte) has.Attribute {
-	r := NewReset(0, 0, false)
+	r := NewReset(0, 0, false, false)
 	for field, data := range decode.PairList(data) {
 		data := []byte(data)
 		switch field {
@@ -91,6 +100,8 @@ func (*Reset) Unmarshal(data []byte) has.Attribute {
 			r.spawn = decode.Boolean(data)
 		case "DUE-IN", "DUE_IN":
 			r.dueIn = decode.Duration(data)
+		case "WAIT":
+			r.wait = decode.Boolean(data)
 		default:
 			log.Printf("Reset.unmarshal unknown attribute: %q: %q", field, data)
 		}
@@ -105,6 +116,7 @@ func (r *Reset) Marshal() (tag string, data []byte) {
 		"after":  string(encode.Duration(r.after)),
 		"jitter": string(encode.Duration(r.jitter)),
 		"spawn":  string(encode.Boolean(r.spawn)),
+		"wait":   string(encode.Boolean(r.wait)),
 	}
 
 	switch {
@@ -121,8 +133,8 @@ func (r *Reset) Marshal() (tag string, data []byte) {
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (r *Reset) Dump(node *tree.Node) *tree.Node {
 	node = node.Append(
-		"%p %[1]T - after: %s, jitter: %s, spawn: %t, spawned: %t",
-		r, r.after, r.jitter, r.spawn, r.spawned,
+		"%p %[1]T - after: %s, jitter: %s, spawn: %t, spawned: %t, wait: %t",
+		r, r.after, r.jitter, r.spawn, r.spawned, r.wait,
 	)
 
 	var due, source string
@@ -144,7 +156,7 @@ func (r *Reset) Copy() has.Attribute {
 	if r == nil {
 		return (*Reset)(nil)
 	}
-	nr := NewReset(r.after, r.jitter, r.spawn)
+	nr := NewReset(r.after, r.jitter, r.spawn, r.wait)
 	if r.Cancel != nil {
 		nr.dueIn = time.Until(r.dueAt)
 	} else {
@@ -214,6 +226,12 @@ func (r *Reset) Abort() {
 // acting on it as the event could fire between the two actions.
 func (r *Reset) Pending() bool {
 	return r.Cancel != nil
+}
+
+// Wait returns true if the Thing should wait for it's Inventory items to reset
+// before it resets, else false.
+func (r *Reset) Wait() bool {
+	return r != nil && r.wait
 }
 
 // Spawn returns a non-spawnable copy of a spawnable Thing and schedules the

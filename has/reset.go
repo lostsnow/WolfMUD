@@ -24,6 +24,10 @@ type Reset interface {
 	// Abort cancels any outstanding reset events.
 	Abort()
 
+	// Wait returns true if the Thing should wait for it's Inventory items to
+	// reset before it resets, else false.
+	Wait() bool
+
 	// Spawn returns a non-spawnable copy of the parent Thing and schedules the
 	// original to be respawned.
 	Spawn() Thing
