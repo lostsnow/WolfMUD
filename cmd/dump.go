@@ -51,6 +51,9 @@ func (dump) process(s *state) {
 	// If we can, search where we are
 	if s.where != nil {
 		what = s.where.Search(name)
+		if what == nil {
+			what = s.where.SearchDisabled(name)
+		}
 	}
 
 	// If item still not found try our own inventory
