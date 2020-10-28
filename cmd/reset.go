@@ -80,6 +80,7 @@ func (reset) process(s *state) {
 	// If the reset is not seen by players then silently reset the Thing.
 	if whereDisabled || (!e.Found() && !or.Found()) || (or.Found() && msg == "") {
 		r.Abort()
+		what.ResetHooks()
 		where.Enable(what)
 		s.ok = true
 		return
@@ -127,6 +128,7 @@ func (reset) process(s *state) {
 	}
 
 	attr.FindReset(what).Abort()
+	what.ResetHooks()
 	where.Enable(what)
 	attr.FindAction(what).Action()
 
