@@ -92,6 +92,30 @@ func (w *Wielding) load() {
 	}
 }
 
+// resetHook to cause items to be wielded when a Thing is reset.
+func (w *Wielding) resetHook() {
+
+	var (
+		t has.Thing
+		b has.Body
+		i has.Inventory
+	)
+
+	p := w.Parent()
+	if b = FindBody(p); !b.Found() {
+		return
+	}
+	if i = FindInventory(p); !i.Found() {
+		return
+	}
+
+	for _, ref := range w.refs {
+		if t = i.SearchByRef(ref); t != nil {
+			b.Wield(FindWieldable(t))
+		}
+	}
+}
+
 // Marshal returns a tag and []byte that represents the receiver.
 func (w *Wielding) Marshal() (tag string, data []byte) {
 	refs := []string{}

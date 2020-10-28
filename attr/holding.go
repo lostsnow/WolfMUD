@@ -92,6 +92,30 @@ func (h *Holding) load() {
 	}
 }
 
+// resetHook to cause items to be held when a Thing is reset.
+func (h *Holding) resetHook() {
+
+	var (
+		t has.Thing
+		b has.Body
+		i has.Inventory
+	)
+
+	p := h.Parent()
+	if b = FindBody(p); !b.Found() {
+		return
+	}
+	if i = FindInventory(p); !i.Found() {
+		return
+	}
+
+	for _, ref := range h.refs {
+		if t = i.SearchByRef(ref); t != nil {
+			b.Hold(FindHoldable(t))
+		}
+	}
+}
+
 // Marshal returns a tag and []byte that represents the receiver.
 func (h *Holding) Marshal() (tag string, data []byte) {
 	refs := []string{}
