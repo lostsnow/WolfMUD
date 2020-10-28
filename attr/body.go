@@ -260,21 +260,21 @@ func (s slot) Dump(node *tree.Node) *tree.Node {
 // successfully wielded Body slots will be allocated to the Wieldable and the
 // slots marked as 'wielding', on failure no slots are allocated.
 func (b *Body) Wield(w has.Wieldable) bool {
-	return b.use(w, wielding)
+	return b != nil && b.use(w, wielding)
 }
 
 // Wear returns true if the Wearable is successfully worn else false. If
 // successfully worn Body slots will be allocated to the Wearable and the slots
 // marked as 'wearing', on failure no slots are allocated.
 func (b *Body) Wear(w has.Wearable) bool {
-	return b.use(w, wearing)
+	return b != nil && b.use(w, wearing)
 }
 
 // Hold returns true if the Holdable is successfully held else false. If
 // successfully held Body slots will be allocated to the Holdable and the slots
 // marked as 'holding', on failure no slots are allocated.
 func (b *Body) Hold(h has.Holdable) bool {
-	return b.use(h, holding)
+	return b != nil && b.use(h, holding)
 }
 
 // Remove the passed Thing from all Body slots allocated to it. Cleared Body
