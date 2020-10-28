@@ -248,6 +248,20 @@ func (t *Thing) Load() {
 	}
 }
 
+// ResetHooks calls any resetHook methods on Thing attributes providing a hook
+// into the reset process of a Thing just before the Thing is enabled. Any
+// Inventory of the Thing are processed recursivly, depth first.
+func (t *Thing) ResetHooks() {
+	for _, a := range t.attrs {
+		if a, ok := a.(interface{ resetHook() }); ok {
+			for _, t := range FindInventory(t).Contents() {
+				t.ResetHooks()
+			}
+			a.resetHook()
+		}
+	}
+}
+
 // Marshal marshals a Thing to a recordjar record containing all of the
 // Attribute details.
 func (t *Thing) Marshal() recordjar.Record {

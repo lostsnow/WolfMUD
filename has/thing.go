@@ -34,6 +34,11 @@ type Thing interface {
 	// a Thing after unmarshaling.
 	Load()
 
+	// ResetHooks calls any resetHook methods on attributes of a Thing, and
+	// recursively into any Inventory - depth first, providing a hook into the
+	// reset process of a Thing.
+	ResetHooks()
+
 	// Save provides a hook to perform additional processing and tear down of a
 	// Thing before marshaling.
 	Save()
