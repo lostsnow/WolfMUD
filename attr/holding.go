@@ -62,9 +62,9 @@ func (*Holding) Unmarshal(data []byte) has.Attribute {
 	return NewHolding(decode.KeywordList(data)...)
 }
 
-// load post-unmarshal hook to actually cause items to be held when a Thing is
-// loaded and unmarshaled.
-func (h *Holding) load() {
+// loadHook to hold items specified by Holding attribute once a Thing has been
+// unmarshaled and we have access to Inventory content.
+func (h *Holding) loadHook() {
 	p := h.Parent()
 	b := FindBody(p)
 	if !b.Found() {

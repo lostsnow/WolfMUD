@@ -191,9 +191,9 @@ func (b *Body) Marshal() (tag string, data []byte) {
 	return "body", encode.PairList(slots, '→')
 }
 
-// save pre-marshal hook to make sure Holding, Wearing and Wielding attributes
-// are present so that they are saved.
-func (b *Body) save() {
+// saveHook is a pre-marshal hook to make sure Holding, Wearing and Wielding
+// attributes are present so that they are saved.
+func (b *Body) saveHook() {
 	if b == nil {
 		return
 	}

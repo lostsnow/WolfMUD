@@ -227,23 +227,18 @@ func (t *Thing) Unmarshal(recno int, record recordjar.Record) {
 	return
 }
 
-// Load provides a hook to perform additional processing and configuration of a
-// Thing by calling the, non-exported, load method on all attributes that
-// define it. Load processes any Inventory recursivly, depth first. Load is
-// called just before the thing is added to the game world - once a Thing has
-// been unmarshaled, the deep copy made to resolve references and origins set.
-// This means attributes can call Parent and reference other attributes of a
-// Thing, which cannot be done during unmarshaling.
-//
-// Any attribute may implement a load method which should take no parameters
-// and returns nothing.
-func (t *Thing) Load() {
+// LoadHooks calls any loadHook methods on Thing attributes providing a hook
+// into the post-unmarshaling process of a Thing just before the Thing is
+// enabled. Any Inventory of the Thing are processed recursivly, depth first.
+// The loadHook can call Parent and reference other attributes which cannot be
+// done during unmarshaling.
+func (t *Thing) LoadHooks() {
 	for _, a := range t.attrs {
-		if pu, ok := a.(interface{ load() }); ok {
+		if a, ok := a.(interface{ loadHook() }); ok {
 			for _, t := range FindInventory(t).Contents() {
-				t.Load()
+				t.LoadHooks()
 			}
-			pu.load()
+			a.loadHook()
 		}
 	}
 }
@@ -285,20 +280,16 @@ func (t *Thing) Marshal() recordjar.Record {
 	return rec
 }
 
-// Save provides a hook to perform additional processing and teardown of a
-// Thing by calling the, non-exported, save method on all attributes that
-// define it. Save processes any Inventory recursivly, depth first. Save is
-// called just before the Thing is removed from the game world and marshaled.
-//
-// Any attribute may implement a save method which should take no parameters
-// and returns nothing.
-func (t *Thing) Save() {
+// SaveHooks calls any saveHook methods on Thing attributes providing a hook
+// into the pre-marshaling process of a Thing just before the Thing is
+// marshaled. Any Inventory of the Thing are processed recursivly, depth first.
+func (t *Thing) SaveHooks() {
 	for _, a := range t.attrs {
-		if pu, ok := a.(interface{ save() }); ok {
+		if a, ok := a.(interface{ saveHook() }); ok {
 			for _, t := range FindInventory(t).Contents() {
-				t.Save()
+				t.SaveHooks()
 			}
-			pu.save()
+			a.saveHook()
 		}
 	}
 }

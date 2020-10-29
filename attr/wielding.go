@@ -62,9 +62,9 @@ func (*Wielding) Unmarshal(data []byte) has.Attribute {
 	return NewWielding(decode.KeywordList(data)...)
 }
 
-// load post-unmarshal hook to actually cause items to be wielded when a Thing
-// is loaded and unmarshaled.
-func (w *Wielding) load() {
+// loadHook to wield items specified by Wielding attribute once a Thing has
+// been unmarshaled and we have access to Inventory content.
+func (w *Wielding) loadHook() {
 	p := w.Parent()
 	b := FindBody(p)
 	if !b.Found() {

@@ -30,18 +30,20 @@ type Thing interface {
 	// a nil slice if no matches found.
 	FindAttrs(cmp Attribute) []Attribute
 
-	// Load provides a hook to perform additional processing and configuration of
-	// a Thing after unmarshaling.
-	Load()
+	// LoadHooks calls any loadHook methods on attributes of a Thing, and
+	// recursively into any Inventory - depth first, providing a hook into the
+	// post-unmarshaling process of a Thing.
+	LoadHooks()
 
 	// ResetHooks calls any resetHook methods on attributes of a Thing, and
 	// recursively into any Inventory - depth first, providing a hook into the
 	// reset process of a Thing.
 	ResetHooks()
 
-	// Save provides a hook to perform additional processing and tear down of a
-	// Thing before marshaling.
-	Save()
+	// SaveHooks calls any saveHook methods on attributes of a Thing, and
+	// recursively into any Inventory - depth first, providing a hook into the
+	// pre-marshaling process of a Thing.
+	SaveHooks()
 
 	// Dump adds information to the passed Node for debugging. The returned Node
 	// indicates where addition information can be added.

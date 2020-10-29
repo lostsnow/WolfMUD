@@ -62,9 +62,9 @@ func (*Wearing) Unmarshal(data []byte) has.Attribute {
 	return NewWearing(decode.KeywordList(data)...)
 }
 
-// load post-unmarshal hook to actually cause items to be worn when a Thing is
-// loaded and unmarshaled.
-func (w *Wearing) load() {
+// loadHook to wear items specified by Wearing attribute once a Thing has been
+// unmarshaled and we have access to Inventory content.
+func (w *Wearing) loadHook() {
 	p := w.Parent()
 	b := FindBody(p)
 	if !b.Found() {

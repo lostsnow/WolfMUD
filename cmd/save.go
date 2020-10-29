@@ -27,14 +27,14 @@ type save cmd
 
 func (sa save) process(s *state) {
 
-	s.actor.Save()
-
 	// Make sure actor is a player
 	p := attr.FindPlayer(s.actor)
 	if !p.Found() {
 		s.msg.Actor.SendBad("You are beyond saving.")
 		return
 	}
+
+	s.actor.SaveHooks()
 
 	// Setup account header
 	acct := p.(*attr.Player).Account()
