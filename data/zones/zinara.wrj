@@ -1002,7 +1002,7 @@ undesirables from the city.
 %%
       Ref: M11
      Name: a city guard
-    Reset: AFTER→1m
+    Reset: AFTER→1m WAIT
   OnReset: A city guard walks into view.
   Aliases: CITYGUARD GUARD WOMAN NPC
    Action: AFTER→15s JITTER→15s
@@ -1030,7 +1030,7 @@ doers.
 %%
       Ref: M12
      Name: a city guard
-    Reset: AFTER→1m
+    Reset: AFTER→1m WAIT
   OnReset: A city guard walks into view.
   Aliases: CITYGUARD GUARD MAN NPC
    Action: AFTER→15s JITTER→15s
