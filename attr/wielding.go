@@ -65,30 +65,32 @@ func (*Wielding) Unmarshal(data []byte) has.Attribute {
 // loadHook to wield items specified by Wielding attribute once a Thing has
 // been unmarshaled and we have access to Inventory content.
 func (w *Wielding) loadHook() {
+
+	var (
+		t    has.Thing
+		b    has.Body
+		what has.Wieldable
+	)
+
 	p := w.Parent()
-	b := FindBody(p)
-	if !b.Found() {
-		log.Printf("  %q, ref: %q - body not found, cannot wield items",
-			FindName(p).Name("Someone"), p.Ref())
+	pName := FindName(p).Name("Something")
+
+	if b = FindBody(p); !b.Found() {
+		log.Printf("  %q, ref: %q - body not found, cannot wield items", pName, p.Ref())
 		return
 	}
-
-	var t has.Thing
-	var W has.Wieldable
 
 	i := FindInventory(p)
 	for _, ref := range w.refs {
 		if t = i.SearchByRef(ref); t == nil {
-			log.Printf("  %q, ref: %q - ref: %q, wieldable item not found",
-				FindName(p).Name("Someone"), p.Ref(), ref)
+			log.Printf("  %q, ref: %q, wieldable item not found in inventory, ref: %q", pName, p.Ref(), ref)
 			continue
 		}
-		if W = FindWieldable(t); !W.Found() {
-			log.Printf("  %q, ref: %q - %q, ref: %q, not a wieldable item",
-				FindName(p).Name("Someone"), p.Ref(), FindName(t).Name("Something"), ref)
+		if what = FindWieldable(t); !what.Found() {
+			log.Printf("  %q, ref: %q - %q, not a wieldable item, ref: %q", pName, p.Ref(), FindName(t).Name("Something"), ref)
 			continue
 		}
-		b.Wield(W)
+		b.Wield(what)
 	}
 }
 

@@ -65,30 +65,32 @@ func (*Wearing) Unmarshal(data []byte) has.Attribute {
 // loadHook to wear items specified by Wearing attribute once a Thing has been
 // unmarshaled and we have access to Inventory content.
 func (w *Wearing) loadHook() {
+
+	var (
+		t    has.Thing
+		b    has.Body
+		what has.Wearable
+	)
+
 	p := w.Parent()
-	b := FindBody(p)
-	if !b.Found() {
-		log.Printf("  %q, ref: %q - body not found, cannot wear items",
-			FindName(p).Name("Someone"), p.Ref())
+	pName := FindName(p).Name("Something")
+
+	if b = FindBody(p); !b.Found() {
+		log.Printf("  %q, ref: %q - body not found, cannot wear items", pName, p.Ref())
 		return
 	}
-
-	var t has.Thing
-	var W has.Wearable
 
 	i := FindInventory(p)
 	for _, ref := range w.refs {
 		if t = i.SearchByRef(ref); t == nil {
-			log.Printf("  %q, ref: %q - ref: %q, wearable item not found",
-				FindName(p).Name("Someone"), p.Ref(), ref)
+			log.Printf("  %q, ref: %q, wearable item not found in inventory, ref: %q", pName, p.Ref(), ref)
 			continue
 		}
-		if W = FindWearable(t); !W.Found() {
-			log.Printf("  %q, ref: %q - %q, ref: %q, not a wearable item",
-				FindName(p).Name("Someone"), p.Ref(), FindName(t).Name("Something"), ref)
+		if what = FindWearable(t); !what.Found() {
+			log.Printf("  %q, ref: %q - %q, not a wearable item, ref: %q", pName, p.Ref(), FindName(t).Name("Something"), ref)
 			continue
 		}
-		b.Wear(W)
+		b.Wear(what)
 	}
 }
 

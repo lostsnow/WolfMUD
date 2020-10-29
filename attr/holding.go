@@ -65,30 +65,32 @@ func (*Holding) Unmarshal(data []byte) has.Attribute {
 // loadHook to hold items specified by Holding attribute once a Thing has been
 // unmarshaled and we have access to Inventory content.
 func (h *Holding) loadHook() {
+
+	var (
+		t    has.Thing
+		b    has.Body
+		what has.Holdable
+	)
+
 	p := h.Parent()
-	b := FindBody(p)
-	if !b.Found() {
-		log.Printf("  %q, ref: %q - body not found, cannot hold items",
-			FindName(p).Name("Someone"), p.Ref())
+	pName := FindName(p).Name("Something")
+
+	if b = FindBody(p); !b.Found() {
+		log.Printf("  %q, ref: %q - body not found, cannot hold items", pName, p.Ref())
 		return
 	}
-
-	var t has.Thing
-	var H has.Holdable
 
 	i := FindInventory(p)
 	for _, ref := range h.refs {
 		if t = i.SearchByRef(ref); t == nil {
-			log.Printf("  %q, ref: %q - ref: %q, holdable item not found",
-				FindName(p).Name("Someone"), p.Ref(), ref)
+			log.Printf("  %q, ref: %q, holdable item not found in inventory, ref: %q", pName, p.Ref(), ref)
 			continue
 		}
-		if H = FindHoldable(t); !H.Found() {
-			log.Printf("  %q, ref: %q - %q, ref: %q, not a holdable item",
-				FindName(p).Name("Someone"), p.Ref(), FindName(t).Name("Something"), ref)
+		if what = FindHoldable(t); !what.Found() {
+			log.Printf("  %q, ref: %q - %q, not a holdable item, ref: %q", pName, p.Ref(), FindName(t).Name("Something"), ref)
 			continue
 		}
-		b.Hold(H)
+		b.Hold(what)
 	}
 }
 
