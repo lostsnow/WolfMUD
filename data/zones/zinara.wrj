@@ -1403,7 +1403,7 @@ is a sculpted, ornate brass knot.
 %%
      Ref: L73O11
     Name: a cotton shirt
- Aliases: +COTTON:SHIRT +COTTON:SHIRT CLOTHING CLOTHES
+ Aliases: +COTTON:SHIRT CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
    Reset: AFTER→1m JITTER→5m SPAWN
  Cleanup: AFTER→10m JITTER→5m
@@ -1413,7 +1413,7 @@ This is a rough, light cotton shirt with long sleves.
 %%
      Ref: L73O12
     Name: some cotton trousers
- Aliases: +COTTON:TROUSERS +COTTON:TROUSERS CLOTHING CLOTHES
+ Aliases: +COTTON:TROUSERS CLOTHING CLOTHES
 Wearable: UPPER_LEG→2 LOWER_LEG→2
    Reset: AFTER→1m JITTER→5m SPAWN
  Cleanup: AFTER→10m JITTER→5m
@@ -1423,7 +1423,7 @@ These are rough, long cotton trousers.
 %%
      Ref: L73O13
     Name: a cotton dress
- Aliases: +COTTON:DRESS +COTTON:DRESS CLOTHING CLOTHES
+ Aliases: +COTTON:DRESS CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
    Reset: AFTER→1m JITTER→5m SPAWN
  Cleanup: AFTER→10m JITTER→5m
