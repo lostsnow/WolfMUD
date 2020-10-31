@@ -156,6 +156,14 @@ func (s *state) sync() (inSync bool) {
 		return false
 	}
 
+	// If final location of actor is nowhere and actor is not a location then
+	// nothing to process. Locations themselves are always nowhere - they are the
+	// top of the Inventory tree, but they can process events like resets and
+	// clean-ups.
+	if s.where == nil && !attr.FindExits(s.actor).Found() {
+		return true
+	}
+
 	s.msg.Allocate(s.where, s.locks)
 	l := len(s.locks)
 

@@ -208,6 +208,7 @@ func (l *login) assemblePlayer(jar recordjar.Jar) *attr.Thing {
 	ref := decode.Keyword(jar[0]["REF"])
 	p := store[ref].DeepCopy().(*attr.Thing)
 	p.SetOrigins()
+	p.LoadHooks()
 
 	// Cleanup store
 	for ref, t := range store {

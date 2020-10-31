@@ -925,20 +925,27 @@ OnAction: $ACT picks up a glass and wipes it with a rag.
 This is your average barkeep, found in taverns and pubs all over the world.
 Always ready to listen to a drinking patron, dispensing advice when required.
 %%
-     Ref: M7
-    Name: a sweet flower girl
-   Reset: AFTER→1s
- OnReset: A flower girl walks in.
- Aliases: FLOWERGIRL GIRL NPC
-  Action: AFTER→30s JITTER→30s
-OnAction: $ACT looks around for someone to sell flowers to.
-        : $ACT looks at you with pleading eyes.
-        : $ACT holds out some flowers for you to see.
-        : SAY Buy a flower? Very cheap.
-        : N
-        : S
-        : E
-        : W
+      Ref: M7
+     Name: a sweet flower girl
+    Reset: AFTER→1s WAIT
+  OnReset: A flower girl walks in.
+  Aliases: FLOWERGIRL GIRL NPC
+   Action: AFTER→30s JITTER→30s
+ OnAction: $ACT looks around for someone to sell flowers to.
+         : $ACT looks at you with pleading eyes.
+         : $ACT holds out some flowers for you to see.
+         : SAY Buy a flower? Very cheap.
+         : N
+         : S
+         : E
+         : W
+     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+           UPPER_LIP→1 WAIST→1 WRIST→2
+Inventory: M7O1 M7O2
+  Wearing: M7O2
+  Holding: M7O1
 
 This is a sweet little girl selling flowers to make some money.
 %%
@@ -993,44 +1000,58 @@ OnAction: $ACT watches you suspiciously.
 This is one of the gate wardens of the city. His duty is to keep out all
 undesirables from the city.
 %%
-     Ref: M11
-    Name: a city guard
-   Reset: AFTER→1m
- OnReset: A city guard walks into view.
- Aliases: CITYGUARD GUARD WOMAN NPC
-  Action: AFTER→15s JITTER→15s
-OnAction: $ACT watches you suspiciously.
-        : $ACT paces up and down a bit.
-        : $ACT cocks one ear, listening for trouble.
-        : SAY Mind how you go and keep out of trouble.
-        : SAY I'm watching you.
-        : N
-        : S
-        : E
-        : W
-        : EXAMINE PLAYER
-    Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+      Ref: M11
+     Name: a city guard
+    Reset: AFTER→1m WAIT
+  OnReset: A city guard walks into view.
+  Aliases: CITYGUARD GUARD WOMAN NPC
+   Action: AFTER→15s JITTER→15s
+ OnAction: $ACT watches you suspiciously.
+         : $ACT paces up and down a bit.
+         : $ACT cocks one ear, listening for trouble.
+         : SAY Mind how you go and keep out of trouble.
+         : SAY I'm watching you.
+         : N
+         : S
+         : E
+         : W
+         : EXAMINE PLAYER
+     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+           UPPER_LIP→1 WAIST→1 WRIST→2
+Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
+ Wielding: L13O1
+  Wearing: L11O1 L11O2 L73O1 L73O7
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
 %%
-     Ref: M12
-    Name: a city guard
-   Reset: AFTER→1m
- OnReset: A city guard walks into view.
- Aliases: CITYGUARD GUARD MAN NPC
-  Action: AFTER→15s JITTER→15s
-OnAction: $ACT watches you suspiciously.
-        : $ACT paces up and down a bit.
-        : $ACT cocks one ear, listening for trouble.
-        : SAY Mind how you go and keep out of trouble.
-        : SAY I'm watching you.
-        : N
-        : S
-        : E
-        : W
-        : EXAMINE PLAYER
-    Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+      Ref: M12
+     Name: a city guard
+    Reset: AFTER→1m WAIT
+  OnReset: A city guard walks into view.
+  Aliases: CITYGUARD GUARD MAN NPC
+   Action: AFTER→15s JITTER→15s
+ OnAction: $ACT watches you suspiciously.
+         : $ACT paces up and down a bit.
+         : $ACT cocks one ear, listening for trouble.
+         : SAY Mind how you go and keep out of trouble.
+         : SAY I'm watching you.
+         : N
+         : S
+         : E
+         : W
+         : EXAMINE PLAYER
+     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+           UPPER_LIP→1 WAIST→1 WRIST→2
+Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
+ Wielding: L13O1
+  Wearing: L11O1 L11O2 L73O1 L73O7
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
@@ -1241,6 +1262,38 @@ Inventory:
 
 This is a small bag, handy for carrying things in.
 %%
+      Ref: O11
+     Name: a small doll
+  Aliases: DOLL
+    Reset: AFTER→1m JITTER→1m SPAWN WAIT
+  Cleanup: AFTER→10m JITTER→5m
+ Location: L8
+     Body: TINY_BODY TINY_HEAD
+Inventory: O12 O13
+  Wearing: O12 O13
+
+This is a small child's toy doll.
+%%
+     Ref: O12
+    Name: a tiny dress
+ Aliases: +DOLL:DRESS +TINY:DRESS
+   Reset: AFTER→1m JITTER→1m SPAWN
+ OnReset: Did the doll just giggle?
+ Cleanup: AFTER→10m JITTER→5m
+Wearable: TINY_BODY
+
+This is a tiny doll's dress.
+%%
+     Ref: O13
+    Name: a tiny hat
+ Aliases: +DOLL:HAT +TINY:HAT
+   Reset: AFTER→1m JITTER→1m SPAWN
+ OnReset: You're sure the doll just sighed.
+ Cleanup: AFTER→10m JITTER→5m
+Wearable: TINY_HEAD
+
+This is a tiny doll's hat.
+%%
 //
 // STOCK FOR MERKLE'S FINE EMPORIUM
 //
@@ -1350,7 +1403,7 @@ is a sculpted, ornate brass knot.
 %%
      Ref: L73O11
     Name: a cotton shirt
- Aliases: +COTTON:SHIRT +COTTON:SHIRT CLOTHING CLOTHES
+ Aliases: +COTTON:SHIRT CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
    Reset: AFTER→1m JITTER→5m SPAWN
  Cleanup: AFTER→10m JITTER→5m
@@ -1360,7 +1413,7 @@ This is a rough, light cotton shirt with long sleves.
 %%
      Ref: L73O12
     Name: some cotton trousers
- Aliases: +COTTON:TROUSERS +COTTON:TROUSERS CLOTHING CLOTHES
+ Aliases: +COTTON:TROUSERS CLOTHING CLOTHES
 Wearable: UPPER_LEG→2 LOWER_LEG→2
    Reset: AFTER→1m JITTER→5m SPAWN
  Cleanup: AFTER→10m JITTER→5m
@@ -1370,7 +1423,7 @@ These are rough, long cotton trousers.
 %%
      Ref: L73O13
     Name: a cotton dress
- Aliases: +COTTON:DRESS +COTTON:DRESS CLOTHING CLOTHES
+ Aliases: +COTTON:DRESS CLOTHING CLOTHES
 Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
    Reset: AFTER→1m JITTER→5m SPAWN
  Cleanup: AFTER→10m JITTER→5m
@@ -1452,4 +1505,56 @@ Wieldable: HAND
  Location: L13
 
 This is a fine longsword. It has a pointy end.
+%%
+//
+// STOCK FOR ARMOURER
+//
+%%
+     Ref: L11O1
+    Name: a steel cuirass
+ Aliases: +STEEL:CUIRASS
+Wearable: CHEST BACK
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L11
+
+This is a heavy steel cuirass, consisting of two halves. One half is the
+breastplate and the other a backplate, each have a sloft leather lining. The
+two halves are held together with tough leather straps that buckle at the
+shoulders and sides.
+%%
+     Ref: L11O2
+    Name: a steel helmet
+ Aliases: +STEEL:HELMET
+Wearable: HEAD
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L11
+
+This steel helmet is open at the front and sides, with a neck guard at the
+rear. It has no plume, but a soft leather lining and a bronze inlay runing
+around the edges.
+%%
+//
+// ITEMS FOR FLOWER GIRL
+//
+%%
+     Ref: M7O1
+    Name: a small bunch of flowers
+ Aliases: +BUNCH:FLOWERS
+   Reset: AFTER→1m JITTER→1m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+
+This is a small bunch of wild flowers.
+%%
+     Ref: M7O2
+    Name: a tatty cotton dress
+ Aliases: +COTTON:DRESS +TATTY:DRESS CLOTHING CLOTHES
+Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
+   Reset: AFTER→1m JITTER→5m SPAWN
+ Cleanup: AFTER→10m JITTER→5m
+Location: L73
+
+This is a long, rough cotton dress. It's seen better days and is now faded and
+dirty with quite a few holes, some of which have been patched in the past.
 %%

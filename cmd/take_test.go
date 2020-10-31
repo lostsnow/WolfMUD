@@ -343,7 +343,7 @@ func TestTake_spawnable(t *testing.T) {
 	ball := attr.NewThing(
 		attr.NewName("a small green ball"),
 		attr.NewAlias("+SMALL", "+GREEN", "BALL"),
-		attr.NewReset(time.Hour, 0, true),
+		attr.NewReset(time.Hour, 0, true, false),
 	)
 	uid := ball.UID()
 

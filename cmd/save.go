@@ -34,6 +34,8 @@ func (sa save) process(s *state) {
 		return
 	}
 
+	s.actor.SaveHooks()
+
 	// Setup account header
 	acct := p.(*attr.Player).Account()
 	header := acct.Marshal()

@@ -505,6 +505,22 @@ ZONE RECORDS
 
     See also: BODY, WEARABLE and WIELDABLE for more details.
 
+  HOLDING: <KEYWORD LIST>
+    The HOLDING field specifies items that should be held by a mobile when the
+    mobile is initially loaded. The HOLDING field should be followed by a list
+    of references to the items to be held. For example:
+
+      HOLDING: O1 O2
+
+    Where O1 and O2 are items that are in the mobile's inventory and can be
+    held, and have 'Ref: O1' and 'Ref: O2' defined.
+
+    For items to be successfully held the item needs to be HOLDABLE, in the
+    mobile's inventory and the mobile should have a BODY defined with the BODY
+    parts required to hold the items.
+
+    See also: BODY, HOLDABLE, WEARING, WIELDING for more details.
+
   INVENTORY: <KEYWORD LIST>
     The INVENTORY field defines something as being a container or location. It
     may be followed by a list of space separated references. Each reference
@@ -651,11 +667,12 @@ ZONE RECORDS
       AFTER→<period>
       JITTER→<period>
       SPAWN→<boolean>
+      WAIT→<boolean>
       DUE_IN→<period> | DUE-IN→<period>
 
     For example:
 
-      RESET: AFTER→2m JITTER→1m SPAWN→true
+      RESET: AFTER→2m JITTER→1m SPAWN WAIT
 
     AFTER and JITTER specify the reset or respawn period to be between AFTER
     and AFTER+JITTER. If SPAWN is false, or omitted, the item is considered
@@ -675,6 +692,22 @@ ZONE RECORDS
     second. If SPAWN is not specified it will default to false.
 
     Just specifying SPAWN with no value is a shorthand for SPAWN→True.
+
+    WAIT can be specified on a container to cause the container to delay
+    resetting and wait until its content is also ready to reset. WAIT only has
+    an effect when specified on a container - any item with an inventory. WAIT
+    also only effects original containers and content that have not spawned
+    yet. Once a container has spawned, due to being picked up, it will behave
+    as if WAIT had not been specified. Containers with WAIT specified may be
+    nested, like any other container. Specifying WAIT on a non-container has
+    no effect. If omitted WAIT defaults to false. Specifying WAIT on it's own
+    is shorthand for WAIT→true.
+
+    NOTE: A container with WAIT specified will not wait for unique items
+    before it resets - unless a unique item happens to have a pending reset
+    already. A unique container will wait for its content, but if nested will
+    not be waited on - unless the unique container happens to have a reset
+    pending already.
 
     The DUE_IN or DUE-IN period records the time remaining for a suspended
     Reset event. If the item is disabled when the zone is first loaded the
@@ -735,6 +768,22 @@ ZONE RECORDS
 
     See also: BODY, HOLDABLE and WIELDABLE for more details.
 
+  WEARING: <KEYWORD LIST>
+    The WEARING field specifies items that should be worn by a mobile when the
+    mobile is initially loaded. The WEARING field should be followed by a list
+    of references to the items to be worn. For example:
+
+      WEARING: O1 O2
+
+    Where O1 and O2 are items that are in the mobile's inventory and can be
+    worn, and have 'Ref: O1' and 'Ref: O2' defined.
+
+    For items to be successfully worn the item needs to be WEARABLE, in the
+    mobile's inventory and the mobile should have a BODY defined with the BODY
+    parts required to wear the items.
+
+    See also: BODY, WEARABLE, HOLDING, WIELDING for more details.
+
   WIELDABLE: <PAIR LIST>
     The WIELDABLE field specifies that an item can be wielded as a weapon and
     the BODY slots required to do so. For example a sword that can be wielded
@@ -751,6 +800,22 @@ ZONE RECORDS
     other items in the required slots.
 
     See also: BODY, HOLDABLE and WEARABLE for more details.
+
+  WIELDING: <KEYWORD LIST>
+    The WIELDING field specifies items that should be wielded by a mobile when
+    the mobile is initially loaded. The WIELDING field should be followed by a
+    list of references to the items to be wielded. For example:
+
+      WIELDING: O1 O2
+
+    Where O1 and O2 are items that are in the mobile's inventory and can be
+    wielded, and have 'Ref: O1' and 'Ref: O2' defined.
+
+    For items to be successfully wielded the item needs to be WIELDABLE, in
+    the mobile's inventory and the mobile should have a BODY defined with the
+    BODY parts required to wield the items.
+
+    See also: BODY, WIELDABLE, HOLDING, WEARING for more details.
 
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored

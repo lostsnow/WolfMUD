@@ -31,6 +31,10 @@ type Body interface {
 	// slots will also have the usage flags cleared.
 	Remove(Thing)
 
+	// RemoveAll frees up all available Body slots and stops using any Thing that
+	// are currently in use.
+	RemoveAll()
+
 	// Wielding returns a unique slice of Things currently being wielded by the
 	// Body or an empty slice.
 	Wielding() []Thing

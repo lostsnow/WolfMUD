@@ -187,7 +187,7 @@ func loadZone(path string) zone {
 			z.locations[ref] = taggedThing{t, record}
 		} else {
 			if _, ok := z.store[ref]; ok {
-				log.Printf("[Record %d] Warning: overwriting duplicate reference reference %s", i, ref)
+				log.Printf("[Record %d] Warning: overwriting duplicate reference %s", i, ref)
 			}
 			z.store[ref] = taggedThing{t, record}
 			z.store[ref].Thing.NotUnique()
@@ -352,6 +352,7 @@ func (z *zone) linkupInventory() {
 			t := s.DeepCopy()
 			i.Add(t)
 			t.SetOrigins()
+			t.LoadHooks()
 			if disabled {
 				attr.FindReset(t).Resume()
 			} else {
@@ -394,6 +395,7 @@ func (z *zone) linkupLocation() {
 			i.Lock()
 			i.Add(t)
 			t.SetOrigins()
+			t.LoadHooks()
 			if disabled {
 				attr.FindReset(t).Resume()
 			} else {

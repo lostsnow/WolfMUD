@@ -249,7 +249,7 @@ func (i *Inventory) Dump(node *tree.Node) *tree.Node {
 // updated to reflect the new Inventory it is in.
 func (i *Inventory) Move(t has.Thing, where has.Inventory) {
 
-	if t == nil {
+	if t == nil || i == where {
 		return
 	}
 
@@ -337,6 +337,37 @@ func (i *Inventory) Search(alias string) has.Thing {
 	for _, list := range []*list{i.players, i.contents, i.narratives} {
 		for n := list.tail.prev; n.prev != nil; n = n.prev {
 			if FindAlias(n.item).HasAlias(alias) {
+				return n.item
+			}
+		}
+	}
+	return nil
+}
+
+// SearchDisabled returns the first disabled Inventory Thing that matches the
+// alias passed. If no matches are found nil is returned.
+func (i *Inventory) SearchDisabled(alias string) has.Thing {
+	if i == nil {
+		return nil
+	}
+	for n := i.disabled.tail.prev; n.prev != nil; n = n.prev {
+		if FindAlias(n.item).HasAlias(alias) {
+			return n.item
+		}
+	}
+	return nil
+}
+
+// SearchByRef returns the first Inventory Thing that matches the reference
+// passed. If no matches are found returns nil.
+func (i *Inventory) SearchByRef(ref string) has.Thing {
+	if i == nil {
+		return nil
+	}
+
+	for _, list := range []*list{i.players, i.contents, i.narratives} {
+		for n := list.tail.prev; n.prev != nil; n = n.prev {
+			if n.item.Ref() == ref {
 				return n.item
 			}
 		}

@@ -191,6 +191,39 @@ func (b *Body) Marshal() (tag string, data []byte) {
 	return "body", encode.PairList(slots, '→')
 }
 
+// saveHook is a pre-marshal hook to make sure Holding, Wearing and Wielding
+// attributes are present so that they are saved.
+func (b *Body) saveHook() {
+	if b == nil {
+		return
+	}
+
+	p := b.Parent()
+	isHolding := FindHolding(p).Found()
+	isWearing := FindWearing(p).Found()
+	isWielding := FindWielding(p).Found()
+
+	for _, slot := range b.slots {
+
+		// Bail out early if we know we have all the attributes
+		if isHolding && isWearing && isWielding {
+			break
+		}
+
+		switch {
+		case slot.usage&holding != 0 && !isHolding:
+			isHolding = true
+			p.Add(NewHolding())
+		case slot.usage&wearing != 0 && !isWearing:
+			isWearing = true
+			p.Add(NewWearing())
+		case slot.usage&wielding != 0 && !isWielding:
+			isWielding = true
+			p.Add(NewWielding())
+		}
+	}
+}
+
 // Dump adds attribute information to the passed tree.Node for debugging.
 func (b *Body) Dump(node *tree.Node) *tree.Node {
 	node = node.Append("%p %[1]T", b)
@@ -227,21 +260,21 @@ func (s slot) Dump(node *tree.Node) *tree.Node {
 // successfully wielded Body slots will be allocated to the Wieldable and the
 // slots marked as 'wielding', on failure no slots are allocated.
 func (b *Body) Wield(w has.Wieldable) bool {
-	return b.use(w, wielding)
+	return b != nil && b.use(w, wielding)
 }
 
 // Wear returns true if the Wearable is successfully worn else false. If
 // successfully worn Body slots will be allocated to the Wearable and the slots
 // marked as 'wearing', on failure no slots are allocated.
 func (b *Body) Wear(w has.Wearable) bool {
-	return b.use(w, wearing)
+	return b != nil && b.use(w, wearing)
 }
 
 // Hold returns true if the Holdable is successfully held else false. If
 // successfully held Body slots will be allocated to the Holdable and the slots
 // marked as 'holding', on failure no slots are allocated.
 func (b *Body) Hold(h has.Holdable) bool {
-	return b.use(h, holding)
+	return b != nil && b.use(h, holding)
 }
 
 // Remove the passed Thing from all Body slots allocated to it. Cleared Body
@@ -252,6 +285,20 @@ func (b *Body) Remove(t has.Thing) {
 	}
 	for x, s := range b.slots {
 		if s.used == t {
+			b.slots[x].used = nil
+			b.slots[x].usage &^= inUse
+		}
+	}
+}
+
+// RemoveAll frees up all available Body slots and stops using any Thing that
+// are currently in use.
+func (b *Body) RemoveAll() {
+	if b == nil {
+		return
+	}
+	for x := range b.slots {
+		if b.slots[x].usage&inUse != 0 {
 			b.slots[x].used = nil
 			b.slots[x].usage &^= inUse
 		}
@@ -445,9 +492,7 @@ func (b *Body) Free() {
 	if b == nil {
 		return
 	}
-	for x := range b.slots {
-		b.slots[x].used = nil
-	}
+	b.RemoveAll()
 	b.slots = nil
 	b.Attribute.Free()
 }
