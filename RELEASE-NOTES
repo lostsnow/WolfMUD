@@ -6,6 +6,63 @@ detailed information on changes please see the WolfMUD git repository:
              git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
 
 
+v0.0.17 Released Saturday 31st October, 2020
+==============================================================================
+
+Added
+
+  - New ref field added to Thing to store the original reference from the
+    record jar. Accessed via a new Thing.Ref method.
+  - New Inventory.SearchByRef method to search Inventory by Thing ref.
+  - New LoadHooks and SaveHooks methods added to Thing to provide hooks into
+    the post-unmarshaling and pre-marshaling processes.
+  - New ResetHooks added to Thing to provide hooks into the reset process.
+  - New Holding, Wearing and Wielding attributes to record what items a player
+    or mobile is using and how the items are being used.
+  - New saveHook added to Body attribute to make Holding, Wearing and Wielding
+    attributes available for saving to a record jar.
+  - Added a cuirass (ref: L11O1) and helmet (ref: L11O2) to stock inventory for
+    armourer in data/zones/zinara.wrj.
+  - Toy doll (ref: O11) wearing a dress (ref: O12) and hat (ref: O13) added to
+    pawn shop (ref: L8) in zinara.wrj - for testing and experimenting with
+    returning containers to their initial state including used items. Toy doll
+    has WAIT set on Reset.
+  - New WAIT value added to Reset attributes that cause mobiles/containers to
+    wait for their inventory items to be ready before resetting.
+  - New Inventory.SearchDisabled method added to search an Inventory disable
+    list for a Thing matching an alias.
+  - The Body attribute has a new RemoveAll method to unconditionally remove all
+    items being used.
+
+Changed
+
+  - Loading players calls post-unmarshaling LoadHooks on Thing.
+  - Saving players via QUIT command calls pre-marshaling SaveHooks on Thing.
+  - The EXAMINE/EXAM command now details items being used by players and
+    mobiles.
+  - City guards (ref: M11 & M12) updated to wield a shortsword (ref: L13O1) and
+    wear a helmet (ref: L11O2), cuirass (ref: L11O3), leather breeches (ref:
+    L73O1) and boots (ref: L73O7). Mobiles have WAIT set on reset.
+  - Sweet flower girl (ref: M7) updated to wear a dress (ref: M7O2) and hold a
+    bunch of wild flowers (ref: M7O1).  Mobile also has WAIT set on reset.
+  - Optimised Inventory move when from and to Inventory are the same.
+  - The $RESET command now implements waiting for mobiles/containers with the
+    new Reset WAIT value set.
+  - The $RESET command now calls Thing.ResetHooks to provide access to the
+    resetting process.
+  - #DUMP/#UDUMP/#LDUMP can now be used directly on disabled items.
+  - The JUNK command will now synchronise body slots when items are junked.
+
+Fixed
+
+  - Duplicate 'reference' removed from message text in zones.loadZone when
+    overwriting duplicate references.
+  - Data race fixed when player killed just as they submit a command for
+    parsing.
+  - The Body attribute Hold, Wear & Wield methods now check for Body being nil.
+  - In data/zones/zinara.wrj remove duplicate aliases on the cotton shirt (ref:
+    L73O11), cotton trousers (ref: L73O12) and cotton dress (ref: L73O13).
+
 v0.0.16 Released Thursday 10th September, 2020
 ==============================================================================
 
