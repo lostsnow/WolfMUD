@@ -160,6 +160,8 @@ func loadZone(path string) zone {
 
 	log.Printf("Loading %s: %s (%s)", filename, z.name, z.ref)
 
+	PreProcessor(jar)
+
 	// Go through the records in the jar. For each record unmarshal a Thing and
 	// store it with its record as a taggedThing in either zone.locations or
 	// zone.store
