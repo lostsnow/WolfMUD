@@ -136,6 +136,107 @@ FIELD DATA TYPES
     keywords and strings are separated using the '→' character, but any
     non-digit, non-letter, non-hyphen/minus or non-underscore can be used.
 
+AT REFERENCE / @REF
+
+  When specifying the data for a field a special @ref may be used to refer to
+  the same field, but defined in another record. For example a standard,
+  humanoid body could be defined as:
+
+    %%
+     Ref: STD_HUMANOID
+    Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
+          HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
+          NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
+          UPPER_LIP→1 WAIST→1 WRIST→2
+    %%
+
+  The standard body can then be referenced using an @ref:
+
+    %%
+      Ref: M1
+     Name: Alice
+    Alias: ALICE
+     Body: @STD_HUMANOID
+
+    This is Alice.
+    %%
+
+  The @ref '@STD_HUMANOID' says to copy the data from the Body field at the
+  reference 'STD_HUMANOID' and replace @STD_HUMANOID with the copied data.
+
+  The data copied will only replace the @ref. This allows other data to be
+  specified for the field. For example we might define some standard events
+  with short durations:
+
+    %%
+        Ref: SHORT
+      Reset: AFTER→30s JITTER→30s
+      After: AFTER→30s JITTER→30s
+    Cleanup: AFTER→30s JITTER→30s
+    %%
+
+  We can then specify an @ref that references an event, in this case Reset,
+  and also specify additional values such as SPAWN:
+
+    Reset: @SHORT SPAWN
+
+  This would be expanded to:
+
+    Reset: AFTER→30s JITTER→30s SPAWN
+
+  A field may specify more than one @ref. For example, we might define some
+  default groups of actions:
+
+    %%
+         Ref: ACT1
+    OnAction: $ACT starts to whistle a little ditty.
+            : SAY Nice weather for it...
+            : SAY Now let me see...
+            : SAY Can I help you with something?
+    %%
+         Ref: ACT2
+    OnAction: $ACT watches you suspiciously.
+            : $ACT smiles and nods.
+            : $ACT looks at you, then quickly looks away again.
+    %%
+
+  We can then pick and choose which groups to use, and/or supplement them:
+
+    OnAction: @ACT1
+
+    OnAction: @ACT1
+            : @ACT2
+
+    OnAction: @ACT1
+            : @ACT2
+            : $ACT starts sweeping the floor.
+
+  An @ref may be nested, that is an @ref may refer to a definition that also
+  contains an @ref. For example:
+
+    %%
+      Ref: RESET
+    Reset: AFTER→1m JITTER→1m
+    %%
+      Ref: RESET_SPAWN
+    Reset: @RESET SPAWN
+    %%
+      Ref: BALL
+     Name: a ball
+    Alias: BALL
+    Reset: @RESET_SPAWN
+
+    This is a ball.
+    %%
+
+  Here the definition of a ball has an @ref of @RESET_SPAWN for the Reset
+  field. The Reset field for RESET_SPAWN uses an @ref of @RESET followed by
+  SPAWN. This means that the Reset field on the ball expands to:
+
+    Reset: AFTER→1m JITTER→1m SPAWN
+
+  See also: REF
+
 ZONE HEADER RECORD
 
   The zone header record is optional. If present it can contain the following
