@@ -39,7 +39,8 @@ var splitLine = regexp.MustCompile(text.Uncomment(`
 `))
 
 const (
-	maxLineWidth = 78 // Maximum length of a line in a .wrj file
+	maxLineWidth = 78          // Maximum length of a line in a .wrj file
+	FTSection    = "FREE TEXT" // Internal (due to space) freetext field for reading
 )
 
 var (
@@ -92,6 +93,20 @@ func Read(in io.Reader, freetext string) (j Jar) {
 	// Setup an initially empty record for the Jar
 	r := Record{}
 
+	// mergeFreeText is a helper for merging an actual, named freetext field
+	// with an unnamed freetext section.
+	mergeFreeText := func() {
+		if _, ok = r[FTSection]; ok {
+			if _, ok = r[freetext]; ok {
+				r[freetext] = append(r[freetext], '\n')
+				r[freetext] = append(r[freetext], r[FTSection]...)
+			} else {
+				r[freetext] = r[FTSection]
+			}
+			delete(r, FTSection)
+		}
+	}
+
 	for err == nil {
 		line, err = b.ReadBytes('\n')
 
@@ -111,7 +126,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		noLine = noName && noData
 
 		// Ignore comments found outside of free text section
-		if noName && field != freetext && bytes.HasPrefix(data, comment) {
+		if noName && field != FTSection && bytes.HasPrefix(data, comment) {
 			continue
 		}
 
@@ -120,8 +135,9 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// separator appears after a free text section there must be no leading
 		// white-space before it otherwise it will be taken for free text.
 		if noName && bytes.Equal(data, rSeparator) {
-			if field != freetext || (field == freetext && !startWS) {
+			if field != FTSection || (field == FTSection && !startWS) {
 				if len(r) > 0 {
+					mergeFreeText()
 					j = append(j, r)
 					r = Record{}
 				}
@@ -132,7 +148,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 		// If we get a new name and not inside a free text section then store new
 		// name as the current field being processed
-		if !noName && field != freetext {
+		if !noName && field != FTSection {
 			field = name
 		}
 
@@ -142,23 +158,23 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// free text section. This lets us have a record that has only a free text
 		// section and can start with a blank line, which is not counted as a
 		// separator line.
-		if noLine && field != freetext {
+		if noLine && field != FTSection {
 			if field == "" {
-				r[freetext] = []byte{}
+				r[FTSection] = []byte{}
 			}
-			field = freetext
+			field = FTSection
 			continue
 		}
 
 		// Handle data as free text if already processing the free text section, or
 		// we have no field - in which case assume we are starting a free text
 		// section
-		if field == freetext || field == "" {
-			if _, ok := r[freetext]; ok {
-				r[freetext] = append(r[freetext], '\n')
+		if field == FTSection || field == "" {
+			if _, ok := r[FTSection]; ok {
+				r[FTSection] = append(r[FTSection], '\n')
 			}
-			r[freetext] = append(r[freetext], line...)
-			field = freetext
+			r[FTSection] = append(r[FTSection], line...)
+			field = FTSection
 			continue
 		}
 
@@ -171,6 +187,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 	// Append last record to the Jar if we have one
 	if len(r) > 0 {
+		mergeFreeText()
 		j = append(j, r)
 		r = Record{}
 	}

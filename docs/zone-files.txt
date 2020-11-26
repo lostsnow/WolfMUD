@@ -507,6 +507,25 @@ ZONE RECORDS
     Custom messages can be displayed when an item is cleaned up. See
     ONCLEANUP for more details.
 
+  DESCRIPTION: <STRING>
+    A DESCRIPTION provides the descriptive text for a location, mobile or
+    item. The description may continue over more than one line however
+    white-space formatting is not preserved. For example:
+
+      DESCRIPTION: This is a finely crafted, intricate lattice of fine brass
+                   wires forming a roughly ball shaped curiosity.
+
+    The FREE TEXT BLOCK may be used in place of DESCRIPTION and provides more
+    flexible formatting options. If both a DESCRIPTION and FREE TEXT BLOCK are
+    specified for a record then the FREE TEXT BLOCK will be appended to the
+    DESCRIPTION and the FREE TEXT BLOCK will retain any formatting.
+
+    An @REF may be used within the DESCRIPTION field. It will automatically
+    refer to the either a literal DESCRIPTION field, a FREE TEXT BLOCK or the
+    concatenation of the two depending on what has been specified.
+
+    See also: FREE TEXT BLOCK and @REF
+
   DOOR: <PAIR LIST>
     A DOOR field defines anything door-like that can block a direction of
     travel. For example a door, a gate, a panel or a bookcase. The pairs
@@ -947,13 +966,25 @@ ZONE RECORDS
     INVENTORY field for the target.
 
   FREE TEXT BLOCK
-    The free text block is used to define descriptions for things. It's start
+    The FREE TEXT BLOCK is used to define descriptions for things. It's start
     is signified by a single blank line separating it from preceding fields.
-    The end of the free text block is signified by either a record separator
+    The end of the FREE TEXT BLOCK is signified by either a record separator
     consisting of a line with only two percent signs '%%' or the end of the
-    file is reached. If a record consists of a description only and no fields
-    the preceding blank line is not required. Within a free text block blank
-    lines and leading white space is preserved.
+    file is reached. If a record consists of a FREE TEXT BLOCK only and no
+    fields then the preceding blank line is not required. Within a FREE TEXT
+    BLOCK blank lines and leading white space is preserved.
+
+    For short descriptions that do not require any formatting it may be
+    preferable to use a DESCRIPTION field instead. If both a FREE TEXT BLOCK
+    and a DESCRIPTION are specified for a record then the FREE TEXT BLOCK will
+    be appended to the DESCRIPTION and the FREE TEXT BLOCK will retain any
+    formatting.
+
+    An @REF may be used within the FREE TEXT BLOCK. It will automatically
+    refer to the either a literal DESCRIPTION field, a FREE TEXT BLOCK or the
+    concatenation of the two depending on what has been specified.
+
+    See also: DESCRIPTION and @REF
 
 SEE ALSO
 

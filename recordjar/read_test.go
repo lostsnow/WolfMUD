@@ -377,6 +377,9 @@ func TestRead_freetext(t *testing.T) {
 		{"ft-embed-comment.wrj", "The quick brown fox\n\n// Not a comment\n\njumps over the lazy dog."},
 		{"ft-indent-tab.wrj", "\tThe quick brown fox\n\tjumps over the lazy dog."},
 		{"ft-embed-blank-indent-tab.wrj", "\tThe quick brown fox\n\n\tjumps over the lazy dog."},
+		{"ft-as-field.wrj", "The quick brown fox jumps over the lazy dog."},
+		{"ft-also-as-field.wrj", "The quick brown fox jumps\nover the lazy dog."},
+		{"ft-also-as-field-cont.wrj", "The quick brown fox jumps\nover the lazy dog."},
 	} {
 		t.Run(test.filename, func(t *testing.T) {
 			f, err := os.Open(filepath.Join("testdata", test.filename))
