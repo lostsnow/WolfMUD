@@ -139,8 +139,8 @@
 //   - Leading white space
 //   - Line breaks before lines with leading white space
 //
-// leading white space characters. An example with line numbers, which are for
-// illustration only and not part of the record:
+// An example with line numbers, which are for illustration only and not part
+// of the record:
 //
 //
 //    1  %%
