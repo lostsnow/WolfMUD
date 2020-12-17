@@ -1,7 +1,7 @@
-// Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
-// Use of this file is governed by the license in the LICENSE file included with
-// the source code.
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
 %%
       Ref: ZINARA
      Zone: City of Zinara
@@ -11,27 +11,26 @@
 This is the city of Zinara.
 %%
       Ref: L1
-    Start:
      Name: Fireplace
   Aliases: TAVERN FIREPLACE
+    Start:
     Exits: E→L3 SE→L4 S→L2
-Inventory: L1N1A L1N1B
+Inventory: L1N1 L1N2
      Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
            not fight.
 
 You are in the corner of the common room in the dragon's breath tavern. A fire
 burns merrily in an ornate fireplace, giving comfort to weary travellers. The
 fire causes shadows to flicker and dance around the room, changing darkness to
-light and back again. To the south the common room continues and east the common
-room leads to the tavern entrance.
+light and back again. To the south the common room continues and east the
+common room leads to the tavern entrance.
 %%
       Ref: L2
      Name: Common room
   Aliases: TAVERN COMMON
     Exits: N→L1 NE→L3 E→L4
 Inventory: L2N1 L2N2 L2N3 M4
-     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
-           not fight.
+     Veto: @L1
 
 You are in a small, cosy common room in the dragon's breath tavern. Looking
 around you see a few chairs and tables for patrons. In one corner there is a
@@ -43,8 +42,7 @@ is the glow of a fire.
   Aliases: TAVERN ENTRANCE
     Exits: E→L5 S→L4 SW→L2 W→L1
 Inventory: L3N1
-     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
-           not fight.
+     Veto: @L1
 
 You are in the entryway to the dragon's breath tavern. To the west you see an
 inviting fireplace and south an even more inviting bar. Eastward a door leads
@@ -55,12 +53,11 @@ out into the street.
   Aliases: TAVERN BAR
     Exits: N→L3 NW→L1 W→L2
 Inventory: L4N1 L4N2 M6
-     Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and heal,
-           not fight.
+     Veto: @L1
 
-You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with
-many bottles in a dizzying array of sizes, shapes and colours. There are also
-regular casks of beer, ale, mead, cider and wine behind the bar.
+You are at the tavern's very sturdy bar. Behind the bar are shelves stacked
+with many bottles in a dizzying array of sizes, shapes and colours. There are
+also regular casks of beer, ale, mead, cider and wine behind the bar.
 %%
     Ref: L5
    Name: Street between tavern and bakers
@@ -68,40 +65,38 @@ Aliases: TAVERN BAKERS STREET
   Exits: N→L14 E→L6 S→L7 W→L3
 Barrier: EXIT→W DENY→CREATURE
 
-You are on a well kept cobbled street. Buildings loom up on either side of you.
-To the east the smells of a bakery taunt you. To the west the entrance to a
-tavern. A sign outside the tavern proclaims it to be the "Dragon's Breath". The
-street continues to the north and south.
+You are on a well kept cobbled street. Buildings loom up on either side of
+you. To the east the smells of a bakery taunt you. To the west the entrance to
+a tavern. A sign outside the tavern proclaims it to be the "Dragon's Breath".
+The street continues to the north and south.
 %%
-      Ref: L6
-     Name: Bakery
-  Aliases: BAKERY
-    Exits: W→L5
-Inventory: M13
+    Ref: L6
+   Name: Bakery
+Aliases: BAKERY
+  Exits: W→L5
 
-You are standing in a bakery. Low trestle tables show an array of fresh breads,
-biscuits and pastries. The amazing smells wafting around are sadly beyond
-description.
+You are standing in a bakery. Low trestle tables show an array of fresh
+breads, biscuits and pastries. The amazing smells wafting around are sadly
+beyond description.
 %%
-      Ref: L7
-     Name: Street outside pawn shop
-  Aliases: PAWNSHOP STREET
-    Exits: N→L5 E→L8 S→L9
-Inventory: M7
+    Ref: L7
+   Name: Street outside pawn shop
+Aliases: PAWNSHOP STREET
+  Exits: N→L5 E→L8 S→L9
 
 You are on a well kept cobbled street that runs to the north and south. To the
-east you see a small pawn shop. Southward you see a large fountain in the middle
-of the street. From the north you detect the smells of a bakery.
+east you see a small pawn shop. Southward you see a large fountain in the
+middle of the street. From the north you detect the smells of a bakery.
 %%
-      Ref: L8
-     Name: Pawn shop
-  Aliases: PAWNSHOP
-    Exits: W→L7
-Inventory: M16
+    Ref: L8
+   Name: Pawn shop
+Aliases: PAWNSHOP
+  Exits: W→L7
 
-You are in small pawn shop. All around you every surface, flat or otherwise, is
-covered in junk covered in layers of dust. Now and again you hear soft tinkling
-and creaking as items shift and settle sending tiny dust motes into the air.
+You are in small pawn shop. All around you every surface, flat or otherwise,
+is covered in junk covered in layers of dust. Now and again you hear soft
+tinkling and creaking as items shift and settle sending tiny dust motes into
+the air.
 %%
     Ref: L9
    Name: Fountain square
@@ -109,8 +104,8 @@ Aliases: FOUNTAIN SQUARE
   Exits: N→L7 E→L12 S→L50 W→L10
 
 You are in a small square at the crossing of two roads. In the centre of the
-square a magnificent fountain has been erected, providing fresh water to any who
-want it. From here the streets lead off in all directions.
+square a magnificent fountain has been erected, providing fresh water to any
+who want it. From here the streets lead off in all directions.
 %%
     Ref: L10
    Name: Street outside armourer
@@ -120,11 +115,10 @@ Aliases: ARMOURER STREET
 You are on a well kept cobbled street that runs east to west. To the east you
 see a large fountain in the street. To the south you see an armoury.
 %%
-      Ref: L11
-     Name: Armoury
-  Aliases: ARMOURY
-    Exits: N→L10
-Inventory: M15
+    Ref: L11
+   Name: Armoury
+Aliases: ARMOURY
+  Exits: N→L10
 
 You are in a small armoury. In the centre of the floor are several stands
 supporting complete suits of armour. Shelving along the walls display various
@@ -136,24 +130,23 @@ hooks are displayed various plain helmets and fancy helms in different styles.
 Aliases: STREET
   Exits: S→L13 W→L9 E→L21
 
-You are on a well kept, cobbled, wide street that runs east to west. To the west
-you see a large fountain in the street. To the south is a shop selling weapons.
+You are on a well kept, cobbled, wide street that runs east to west. To the
+west you see a large fountain in the street. To the south is a shop selling
+weapons.
 %%
-      Ref: L13
-     Name: Bladesmith workshop
-  Aliases: BLADESMITH WORKSHOP
-    Exits: N→L12
-Inventory: M14
+    Ref: L13
+   Name: Bladesmith workshop
+Aliases: BLADESMITH WORKSHOP
+  Exits: N→L12
 
 You are in a small workshop that makes and sells weapons. Against the walls
 are racks holding large swords and polearms. Smaller hand weapons are
 displayed on some trestle tables.
 %%
-      Ref: L14
-     Name: Crossroads
-  Aliases: CROSSROADS
-    Exits: N→L45 E→L15 S→L5 W→L17
-Inventory: M9 M11
+    Ref: L14
+   Name: Crossroads
+Aliases: CROSSROADS
+  Exits: N→L45 E→L15 S→L5 W→L17
 
 You are at the crossing of two streets. One street runs east to west and the
 other north to south.
@@ -165,13 +158,13 @@ Aliases: TRADINGPOST STREET
 
 You are on a street running east to west. To north is a large trading post.
 %%
-      Ref: L16
-     Name: Trading post
-  Aliases: TRADINGPOST SHOP
-    Exits: S→L15
-Inventory: M17
+    Ref: L16
+   Name: Trading post
+Aliases: TRADINGPOST SHOP
+  Exits: S→L15
 
-You are standing in a large trading post. The only exit is west into the street.
+You are standing in a large trading post. The only exit is west into the
+street.
 %%
     Ref: L17
    Name: Street outside guard house
@@ -198,42 +191,41 @@ the city's river. South a path leads along the riverbank. West the street goes
 back into the city.
 %%
     Ref: L20
-  Start:
    Name: North bridge
 Aliases: NORTHBRIDGE
+  Start:
   Exits: W→L19
 
 You are standing on the west side of an incomplete bridge. By the looks of it
 the city wants to expand onto the far banks of the river. Down river to the
 south you see another bridge in a similar state of construction.
 %%
-      Ref: L21
-     Name: Street by south bridge
-  Aliases: STREET
-    Exits: N→L44 E→L22 W→L12
-Inventory: M12
+    Ref: L21
+   Name: Street by south bridge
+Aliases: STREET
+  Exits: N→L44 E→L22 W→L12
 
 You are at a junction in the street. To the east you see the south bridge over
 the city's river. North a path leads along the riverbank. West the street goes
 back into the city.
 %%
     Ref: L22
-  Start:
    Name: South bridge
 Aliases: SOUTHBRIDGE
+  Start:
   Exits: W→L21
 
 You are standing on the west side of an incomplete bridge. By the looks of it
-the city wants to expand onto the far banks of the river. Up river to the north
-you see another bridge in a similar state of construction.
+the city wants to expand onto the far banks of the river. Up river to the
+north you see another bridge in a similar state of construction.
 %%
     Ref: L23
    Name: Money changer's office
 Aliases: MONEYCHANGER SHOP
   Exits: N→L24
 
-You are standing in the small office of a money changer. The only exit is north
-into the street.
+You are standing in the small office of a money changer. The only exit is
+north into the street.
 %%
     Ref: L24
    Name: Street outside money changer
@@ -249,27 +241,26 @@ Aliases: STREET
   Exits: N→L38 E→L17 W→L26
 Barrier: EXIT→N DENY→CREATURE
 
-You are on a street that runs to the east and to the west. To the north looms a
-dark alley.
+You are on a street that runs to the east and to the west. To the north looms
+a dark alley.
 %%
-      Ref: L26
-     Name: Street outside city gardens
-  Aliases: STREET
-    Exits: E→L25 W→L27 S→L58
-Inventory: M12
+    Ref: L26
+   Name: Street outside city gardens
+Aliases: STREET
+  Exits: E→L25 W→L27 S→L58
 
-You are at the end of a street that leads west to the city gardens. To the south
-is a narrow alley. East the street leads back into the main city.
+You are at the end of a street that leads west to the city gardens. To the
+south is a narrow alley. East the street leads back into the main city.
 %%
     Ref: L27
    Name: Entrance to city gardens
 Aliases: GARDENS ENTRANCE
-   Exits: E→L26 W→L28
- Barrier: EXIT→W DENY→CREATURE
+  Exits: E→L26 W→L28
+Barrier: EXIT→W DENY→CREATURE
 
-You are standing at the entrance to the city gardens. Around you flowers blossom
-and insects hum. Through an intricate iron gate to the west you see the city
-gardens. East the city streets await.
+You are standing at the entrance to the city gardens. Around you flowers
+blossom and insects hum. Through an intricate iron gate to the west you see
+the city gardens. East the city streets await.
 %%
     Ref: L28
    Name: Gardens
@@ -286,8 +277,7 @@ streets of the city.
    Name: Quiet sheltered area
 Aliases: GARDENS SHELTERED
   Exits: S→L30
-   Veto: COMBAT→The surroundings are so peaceful that you cannot bring
-         yourself to harm anything here.
+   Veto: @PEACEFUL
 
 You are in a small quiet area of the garden. Tall bushes have grown up over a
 trellis work to provide a small shaded area to come and sit in. The only exit
@@ -307,8 +297,8 @@ gardens stretch out to the north, south and west.
     Exits: N→L30 S→L28 W→L32
 Inventory: L31N1
 
-You are standing next to a small fish pond. Paths lead off north, south and west
-deeper into the gardens.
+You are standing next to a small fish pond. Paths lead off north, south and
+west deeper into the gardens.
 %%
     Ref: L32
    Name: Gardens
@@ -328,13 +318,11 @@ You are in a fine, formal garden. Around you small trees and shrubs grow. Here
 and there small delicate flowers display a splash of colour. The gardens
 continue east, west and south.
 %%
-      Ref: L34
-     Name: Quiet sheltered area
-  Aliases: GARDENS SHELTERED
-    Exits: E→L33
-Inventory: M1
-     Veto: COMBAT→The surroundings are so peaceful that you cannot bring
-           yourself to harm anything here.
+    Ref: L34
+   Name: Quiet sheltered area
+Aliases: GARDENS SHELTERED
+  Exits: E→L33
+   Veto: @PEACEFUL
 
 You are in a small quiet area of the garden. Tall bushes have grown up over a
 trellis work to provide a small shaded area to come and sit in. The only exit
@@ -345,56 +333,53 @@ from this area is eastward.
 Aliases: GARDENS PATH
   Exits: N→L32 S→L36
 
-You find yourself on a narrow gravel path leading between some bushes. The path
-continues south or you can go north into the gardens.
+You find yourself on a narrow gravel path leading between some bushes. The
+path continues south or you can go north into the gardens.
 %%
       Ref: L36
      Name: Secluded path by shed
   Aliases: GARDENS PATH SECLUDED
     Exits: N→L35 S→L37
-Inventory: L36N1 L36N2 L36N3 M3
+Inventory: L36N1 L36N2 L36N3
 
-You are on a small secluded gravel path screened off from the formal gardens by
-large bushes. To the south is a small shed with its door facing you. A rock has
-been positioned by the shed, from the looks of it by someone who thought it was
-artistic. The gravel path you are on leads northward.
+You are on a small secluded gravel path screened off from the formal gardens
+by large bushes. To the south is a small shed with its door facing you. A rock
+has been positioned by the shed, from the looks of it by someone who thought
+it was artistic. The gravel path you are on leads northward.
 %%
       Ref: L37
      Name: Garden shed
   Aliases: GARDENS SHED
     Exits: N→L36
-Inventory: L37N1 L37N2 M8
+Inventory: L37N1 L37N2
 
-You are in a small garden shed. The only exit appears to be through the door to
-the north.
+You are in a small garden shed. The only exit appears to be through the door
+to the north.
 %%
-      Ref: L38
-     Name: Dim alley
-  Aliases: ALLEY
-    Exits: N→L39 S→L25
-Inventory: L38N1
-  Barrier: EXIT→S DENY→CREATURE
+    Ref: L38
+   Name: Dim alley
+Aliases: ALLEY
+  Exits: N→L39 S→L25
+Barrier: EXIT→S DENY→CREATURE
 
 You are in a dim alley full of rubbish. The alley continues northward. To the
 south it leads into the street.
 %%
-      Ref: L39
-     Name: Dim alley
-  Aliases: ALLEY
-    Exits: N→L40 S→L38
-Inventory: L39N1 M5
+    Ref: L39
+   Name: Dim alley
+Aliases: ALLEY
+  Exits: N→L40 S→L38
 
 You are in a dim alley full of rubbish. The alley continues north and south.
 %%
-      Ref: L40
-     Name: Bend in dim alley
-  Aliases: ALLEY
-    Exits: S→L39 W→L41
-Inventory: L40N1
-  Barrier: EXIT→W DENY→CREATURE
+    Ref: L40
+   Name: Bend in dim alley
+Aliases: ALLEY
+  Exits: S→L39 W→L41
+Barrier: EXIT→W DENY→CREATURE
 
-You are in a dim alley full of rubbish. Here the alley bends to the south and to
-the west.
+You are in a dim alley full of rubbish. Here the alley bends to the south and
+to the west.
 %%
     Ref: L41
    Name: Rogue's den entrance
@@ -409,30 +394,30 @@ see a small trap door.
 Aliases: DEN
   Exits: U→L41
 
-You are in a large dim room. In the shadows you catch glimpses of things moving
-around.
+You are in a large dim room. In the shadows you catch glimpses of things
+moving around.
 %%
-    Ref: L43
-   Name: River path
-  Alias: RIVERPATH
-  Exits: N→L19 S→L44
+  Ref: L43
+ Name: River path
+Alias: RIVERPATH
+Exits: N→L19 S→L44
 
 You are on a wide path running north and south along the west river bank.
 %%
-    Ref: L44
-   Name: River path
-  Alias: RIVERPATH
-  Exits: N→L43 S→L21
+  Ref: L44
+ Name: River path
+Alias: RIVERPATH
+Exits: N→L43 S→L21
 
 You are on a wide path running north and south along the west river bank.
 %%
-    Ref: L45
-   Name: Street
-  Alias: STREET
-  Exits: N→L46 S→L14
+  Ref: L45
+ Name: Street
+Alias: STREET
+Exits: N→L46 S→L14
 
-You are in the street. To the south you see a crossroads and north a tall tower
-rises up above the city streets.
+You are in the street. To the south you see a crossroads and north a tall
+tower rises up above the city streets.
 %%
     Ref: L46
    Name: Street outside mage's tower
@@ -440,42 +425,43 @@ rises up above the city streets.
   Exits: N→L55 E→L48 S→L45
 Barrier: EXIT→E DENY→CREATURE
 
-You are on a street that runs north and south. To the east there is an entrance
-to the mage's tower.
+You are on a street that runs north and south. To the east there is an
+entrance to the mage's tower.
 %%
 // What happened to L47 ?
 %%
-    Ref: L48
-   Name: Entrance to mage's tower
-  Alias: ENTRANCE TOWER
-  Exits: N→L49 W→L46
+  Ref: L48
+ Name: Entrance to mage's tower
+Alias: ENTRANCE TOWER
+Exits: N→L49 W→L46
 
-You are standing at the entrance to the mage's tower. In front of you stand two
-huge gates. West the street beckons. Northward the mysteries of the Tower await.
+You are standing at the entrance to the mage's tower. In front of you stand
+two huge gates. West the street beckons. Northward the mysteries of the Tower
+await.
 %%
-    Ref: L49
-   Name: Mage's tower
-  Alias: TOWER HALL
-  Exits: S→L48
+  Ref: L49
+ Name: Mage's tower
+Alias: TOWER HALL
+Exits: S→L48
 
-You are standing in a great hall at the base of the mage's tower. The only exit
-you can see lies south.
+You are standing in a great hall at the base of the mage's tower. The only
+exit you can see lies south.
 %%
-    Ref: L50
-   Name: Street
-  Alias: STREET
-  Exits: N→L9 S→L51
+  Ref: L50
+ Name: Street
+Alias: STREET
+Exits: N→L9 S→L51
 
 You are on a street that runs north and south. To the north there is a large
 fountain in the street.
 %%
-    Ref: L51
-   Name: Street outside magic shop
-  Alias: STREET
-  Exits: N→L50 E→L67 S→L52
+  Ref: L51
+ Name: Street outside magic shop
+Alias: STREET
+Exits: N→L50 E→L67 S→L52
 
-You are on a street that runs north and south. To the east is a rather small and
-shabby magic shop.
+You are on a street that runs north and south. To the east is a rather small
+and shabby magic shop.
 %%
     Ref: L52
    Name: Street outside temple
@@ -483,187 +469,187 @@ shabby magic shop.
   Exits: N→L51 S→L68 W→L53
 Barrier: EXIT→W DENY→CREATURE
 
-You are on a street that runs north and south. To the west is the entrance to a
-modest temple.
+You are on a street that runs north and south. To the west is the entrance to
+a modest temple.
 %%
-    Ref: L53
-   Name: Entrance to temple
-  Alias: ENTRANCE TEMPLE
-  Exits: E→L52 W→L54
+  Ref: L53
+ Name: Entrance to temple
+Alias: ENTRANCE TEMPLE
+Exits: E→L52 W→L54
 
 You are standing at the entrance to a modest temple. West there is a large set
 of double doors. East lies the street.
 %%
-    Ref: L54
-   Name: Cleric's temple
-  Alias: TEMPLE
-  Exits: E→L53
+  Ref: L54
+ Name: Cleric's temple
+Alias: TEMPLE
+Exits: E→L53
 
-You are standing in a temple. The smell of incense is pungent and now and again
-you hear faint chanting.
+You are standing in a temple. The smell of incense is pungent and now and
+again you hear faint chanting.
 %%
-    Ref: L55
-   Name: Street
-  Alias: STREET
-  Exits: N→L56 S→L46
+  Ref: L55
+ Name: Street
+Alias: STREET
+Exits: N→L56 S→L46
 
 You are on a street running from north to south. To the south you see a tall
 tower rising above the city.
 %%
-    Ref: L56
-   Name: Street near north gate
-  Alias: STREET
-  Exits: N→L57 S→L55
+  Ref: L56
+ Name: Street near north gate
+Alias: STREET
+Exits: N→L57 S→L55
 
-You are on a street that runs from the northern city gates south into the city.
+You are on a street that runs from the northern city gates south into the
+city.
 %%
-      Ref: L57
-     Name: North gate of Zinara
-    Alias: NORTHGATE
-    Exits: S→L56 W→L70
-Inventory: M10
-  Barrier: EXIT→S DENY→GATEWARDEN
+    Ref: L57
+   Name: North gate of Zinara
+  Alias: NORTHGATE
+  Exits: S→L56 W→L70
+Barrier: EXIT→S DENY→GATEWARDEN
 
 You are standing before the huge northern gates of the city of Zinara. To the
 west you see a small gate house, south the way leads into the city.
 %%
-    Ref: L58
-   Name: Alley
-  Alias: ALLEY
-  Exits: N→L26 S→L59
+  Ref: L58
+ Name: Alley
+Alias: ALLEY
+Exits: N→L26 S→L59
 
 You are in a narrow alley that continues south. North you see a street beyond
 the alley's end.
 %%
-    Ref: L59
-   Name: Alley
-  Alias: ALLEY
-  Exits: N→L58 S→L60
+  Ref: L59
+ Name: Alley
+Alias: ALLEY
+Exits: N→L58 S→L60
 
 You are in a narrow alley that continues north. South you see a street beyond
 the alley's end.
 %%
-    Ref: L60
-   Name: Street outside Merkle's Fine Emporium
-  Alias: STREET
-  Exits: N→L59 E→L24 S→L73 W→L61
+  Ref: L60
+ Name: Street outside Merkle's Fine Emporium
+Alias: STREET
+Exits: N→L59 E→L24 S→L73 W→L61
 
 You are on a street that runs east and west. To the north you can see a narrow
 alley. To the south is a clothier's shop with a sign proclaiming it to be
 "Merkle's Fine Emporium".
 %%
-      Ref: L61
-     Name: Street outside warrior's barracks
-    Alias: STREET
-    Exits: N→L65 E→L60 W→L62
-  Barrier: EXIT→N DENY→CREATURE
-Inventory: M12
-
-You are on a street outside the warrior's barracks. The entrance to the barracks
-is north while the street outside runs east and west.
-%%
-    Ref: L62
-   Name: Street
+    Ref: L61
+   Name: Street outside warrior's barracks
   Alias: STREET
-  Exits: E→L61 W→L63
+  Exits: N→L65 E→L60 W→L62
+Barrier: EXIT→N DENY→CREATURE
+
+You are on a street outside the warrior's barracks. The entrance to the
+barracks is north while the street outside runs east and west.
+%%
+  Ref: L62
+ Name: Street
+Alias: STREET
+Exits: E→L61 W→L63
 
 You are on a street running east and west.
 %%
-    Ref: L63
-   Name: Street near west gate
-  Alias: STREET
-  Exits: E→L62 W→L64
+  Ref: L63
+ Name: Street near west gate
+Alias: STREET
+Exits: E→L62 W→L64
 
 You are on a street that runs from the western city gates east into the city.
 %%
-      Ref: L64
-     Name: West gate of Zinara
-    Alias: WESTGATE
-    Exits: E→L63 S→L72
-  Barrier: EXIT→E DENY→GATEWARDEN
-Inventory: M10
+    Ref: L64
+   Name: West gate of Zinara
+  Alias: WESTGATE
+  Exits: E→L63 S→L72
+Barrier: EXIT→E DENY→GATEWARDEN
 
 You are standing before the huge western gates of the city of Zinara. To the
 south you see a small gate house, east the way leads into the city.
 %%
-    Ref: L65
-   Name: Entrance to warrior's barracks
-  Alias: BARRACKS ENTRANCE
-  Exits: N→L66 S→L61
+  Ref: L65
+ Name: Entrance to warrior's barracks
+Alias: BARRACKS ENTRANCE
+Exits: N→L66 S→L61
 
-You are standing at the entrance to the warrior's barracks. North there is a set
-of large iron bound doors. South lies the street.
+You are standing at the entrance to the warrior's barracks. North there is a
+set of large iron bound doors. South lies the street.
 %%
-    Ref: L66
-   Name: Warrior's barracks
-  Alias: BARRACKS
-  Exits: S→L65
+  Ref: L66
+ Name: Warrior's barracks
+Alias: BARRACKS
+Exits: S→L65
 
-You are standing in the warrior's barracks. Around you is a large parade ground
-the earth packed by many passing feet. The only exit lies to the south.
+You are standing in the warrior's barracks. Around you is a large parade
+ground the earth packed by many passing feet. The only exit lies to the south.
 %%
-    Ref: L67
-   Name: Magic shop
-  Alias: SHOP MAGIC
-  Exits: W→L51
+  Ref: L67
+ Name: Magic shop
+Alias: SHOP MAGIC
+Exits: W→L51
 
-You are in a small and shabby magic shop. If it's 'wrath of god' stuff you want
-you would do better looking somewhere else.
+You are in a small and shabby magic shop. If it's 'wrath of god' stuff you
+want you would do better looking somewhere else.
 %%
-    Ref: L68
-   Name: Street near south gate
-  Alias: STREET
-  Exits: N→L52 S→L69
+  Ref: L68
+ Name: Street near south gate
+Alias: STREET
+Exits: N→L52 S→L69
 
-You are on a street that runs from the southern city gates north into the city.
+You are on a street that runs from the southern city gates north into the
+city.
 %%
+        // NOTE: We can't have two Barrier fields for this location so we
+        // define them as narratives and add them into the inventory.
       Ref: L69
      Name: South gate of Zinara
     Alias: SOUTHGATE
     Exits: N→L68 E→L71
-Inventory: L69B1 L69B2 M10
 ZoneLinks: S→ZINARASOUTH:L1
+Inventory: L69B1 L69B2
 
 You are standing before the huge southern gates of the city of Zinara. To the
 east you see a small gate house, north the way leads into the city.
 %%
       Ref: L69B1
-Narrative:
   Barrier: EXIT→S DENY→GATEWARDEN,GUARD
+Narrative:
 %%
       Ref: L69B2
-Narrative:
   Barrier: EXIT→N DENY→GATEWARDEN
+Narrative:
 %%
-    Ref: L70
-   Name: Gate house
-  Alias: GATEHOUSE
-  Exits: E→L57
+  Ref: L70
+ Name: Gate house
+Alias: GATEHOUSE
+Exits: E→L57
 
 You are in a small gate house. It is sparse but functional, providing
 accommodation for the gate-warden on duty. The only exit is east.
 %%
-    Ref: L71
-   Name: Gate house
-  Alias: GATEHOUSE
-  Exits: W→L69
+  Ref: L71
+ Name: Gate house
+Alias: GATEHOUSE
+Exits: W→L69
 
 You are in a small gate house. It is sparse but functional, providing
 accommodation for the gate-warden on duty. The only exit is west.
 %%
-    Ref: L72
-   Name: Gate house
-  Alias: GATEHOUSE
-  Exits: N→L64
+  Ref: L72
+ Name: Gate house
+Alias: GATEHOUSE
+Exits: N→L64
 
 You are in a small gate house. It is sparse but functional, providing
 accommodation for the gate-warden on duty. The only exit is north.
 %%
-      Ref: L73
-     Name: Merkle's Fine Emporium
-    Alias: +MERKLE'S:EMPORIUM +FINE:EMPORIUM
-    Exits: N→L60
-Inventory: M18
+  Ref: L73
+ Name: Merkle's Fine Emporium
+Alias: +MERKLE'S:EMPORIUM +FINE:EMPORIUM
+Exits: N→L60
 
 You are in Merkle's fine emporium. All around you hanging from pegs or lying
 on shelves and tables are various articles of clothing.
@@ -672,46 +658,66 @@ on shelves and tables are various articles of clothing.
 // Narratives
 //
 %%
-      Ref: L1N1A
+      Ref: N1
+     Name: some rubbish
+    Alias: +SOME:RUBBISH
+ Location: L38 L39
+Inventory:
 Narrative:
+
+This rubbish is dirty and smelly. Why are you wasting your time with it?
+%%
+        Ref: N2
+       Name: @N1
+      Alias: @N1
+   Location: L40
+Description: @N1
+  Inventory:
+  Narrative:
+%%
+      Ref: L1N1
      Name: an ornate fireplace
     Alias: FIREPLACE
+Narrative:
      Veto: GET→For some inexplicable reason you can't just rip out the
            fireplace and take it!
 
 This is a very ornate fireplace carved from marble. Either side a dragon curls
-downward until the head is below the fire looking upward, giving the impression
-that they are breathing fire.
+downward until the head is below the fire looking upward, giving the
+impression that they are breathing fire.
 %%
-      Ref: L1N1B
-Narrative:
-     Name: the fire
+      Ref: L1N2
+     Name: a fire
   Aliases: FIRE
+Narrative:
      Veto: GET→Ouch! Hot, hot, hot!
    Action: AFTER→1m JITTER→30s
  OnAction: $ACT gently pops and crackles.
          : $ACT gently crackles.
          : $ACT pops, sending little embers dancing up the chimney.
          : $ACT flares for a moment as the logs shift and settle.
+         : $ACT flickers, flames dancing along the logs.
+         : $ACT dims, then flares back up again.
+         : $ACT sizzles and pops.
 
 Some logs have been placed into the fireplace and are burning away merrily.
 %%
       Ref: L2N1
-Narrative:
      Name: some rough chairs
     Alias: CHAIR CHAIRS
+Narrative:
 
 These chairs are very rough wooden affairs, so rough in fact you decide it's a
 bad idea to sit on them without some descent rear armour to fend of the
 splinters.
 %%
       Ref: L2N2
-Narrative:
      Name: some rough tables
     Alias: TABLE TABLES
+Narrative:
 
-Well you suppose these are tables. If so it was a blind carpenter who had had a
-very bad day.
+Well you suppose these are tables. If so, the carpenter was having an
+atrocious day.
 %%
       Ref: L2N3
      Name: a clock
@@ -725,26 +731,28 @@ obviously seen better days. However it does seem to be working, or at least
 ticking.
 %%
       Ref: L3N1
-Narrative:
      Name: the tavern door
   Aliases: +TAVERN DOOR
-     Door: EXIT→E RESET→1m JITTER→1m
+     Door: @ITEM EXIT→E OPEN
+Narrative:
 
 This is a sturdy wooden door with a simple latch.
 %%
       Ref: L4N1
-Narrative:
      Name: some bottles
     Alias: BOTTLE BOTTLES
+Narrative:
 
-There are tall bottles, sort ones, fat ones, etc.. They are filled with blue
-liquids and yellow, green, amber. Some also contain fruit some ... small
-animals? Well you get the idea.
+A variety of bottles line the back of the bar: tall, short, fat, slim, clear,
+dark and... klein!? They are filled to varying degrees with a rainbow of
+different coloured liquids. Some appear to contain fruit, herbs or maybe
+spices. A few contain small animals and insects? No wonder most of the bottles
+seem very old, dusty and nearly full.
 %%
       Ref: L4N2
-Narrative:
      Name: the bar
     Alias: BAR
+Narrative:
 
 This is a very solid oak bar. By the looks of the counter top you think it may
 have been a few inches taller, until the various spilt drinks started eating
@@ -753,77 +761,54 @@ away at it.
       Ref: L31N1
      Name: a pond
     Alias: FISHPOND POND
-Inventory: O8
+Inventory: O4
 Narrative:
 
 This is a small fish pond. There are a few aquatic weeds and the water seems
 quite clear. As you peer in you see a few fish quickly dart for the shady
 cover of the weeds.
 %%
-        Ref: L36N1
-  Narrative:
-       Name: a rock
-      Alias: ROCK
-       Veto: GET→The rock seems quite immovable.
+      Ref: L36N1
+     Name: a rock
+    Alias: ROCK
+Narrative:
+     Veto: GET→The rock seems quite immovable.
 
-This is a dull grey rock about three feet high and a foot across at the base. As
-it rises it tapers to a rounded point. Near its base you notice there is a small
-crack.
+This is a dull grey rock about three feet high and a foot across at the base.
+As it rises it tapers to a rounded point. Near its base you notice there is a
+small crack.
 %%
       Ref: L36N2
-Narrative:
      Name: a small crack in the rock
     Alias: CRACK
-Inventory: O6
+Inventory: O2
+Narrative:
      Veto: GET→The small crack in the rock is is not a portable crack...
 
 This is a small crack near the base of the rock.
 %%
       Ref: L36N3
-Narrative:
      Name: the shed door
   Aliases: DOOR
-     Door: EXIT→S RESET→1m
+     Door: @ITEM EXIT→S
+Narrative:
 
 This is a simple wooden door.
 %%
-      Ref: L38N1
-Narrative:
-     Name: some rubbish
-    Alias: RUBBISH
-Inventory:
-
-This rubbish is dirty and smelly. Why are you wasting your time with it?
-%%
-      Ref: L39N1
-Narrative:
-     Name: some rubbish
-    Alias: RUBBISH
-Inventory:
-
-This rubbish is dirty and smelly. Why are you wasting your time with it?
-%%
-      Ref: L40N1
-Narrative:
-     Name: some rubbish
-    Alias: RUBBISH
-Inventory:
-
-This rubbish is dirty and smelly. Why are you wasting your time with it?
 %%
       Ref: L37N1
-Narrative:
      Name: a cobweb
     Alias: WEB WEBS COBWEB COBWEBS
 Inventory:
+Narrative:
 
 The cobweb is vary large and its strands very thick and sticky.
 %%
       Ref: L37N2
-Narrative:
      Name: a bundle wrapped in silk threads
     Alias: BUNDLE
 Inventory:
+Narrative:
      Veto: GET→Sticky threads hold the bundle firmly in place.
 
 Something has been carefully, and very thoroughly, wrapped up into a neat
@@ -837,17 +822,15 @@ threads of silk.
      Ref: M1
     Name: a rabbit
    Alias: RABBIT CREATURE
-   Reset: AFTER→1m
- OnReset: A rabbit hops into view.
-  Action: AFTER→15s JITTER→15s
+Location: L34
+Holdable: HAND→2
+  Action: @MOBILE
 OnAction: $ACT hops around a bit.
         : $ACT twitches its little nose, Ahh...
         : $ACT makes a soft squeaking and chattering noise.
-        : N
-        : S
-        : E
-        : W
-Holdable: HAND→2
+        : @ACT_MOVE
+   Reset: @MOBILE
+ OnReset: A rabbit hops into view.
 
 It's a small white, fluffy bunny rabbit. Not a pocket watch in sight, and it
 doesn't seem to be late for anything!
@@ -855,30 +838,34 @@ doesn't seem to be late for anything!
      Ref: M3
     Name: a small frog
    Alias: FROG CREATURE
-   Reset: AFTER→1m
- OnReset: A frog hops into view.
-  Action: AFTER→10s JITTER→20s
+Location: L36
+Holdable: HAND
+  Action: @MOBILE
 OnAction: $ACT croaks a bit.
         : $ACT leaps high into the air.
         : $ACT hops around a bit.
-        : N
-        : S
-        : E
-        : W
-Holdable: HAND
+        : @ACT_MOVE
+   Reset: @MOBILE
+ OnReset: A frog hops into view.
 
 It is a small, lime green frog. It's slimy and croaks. What more can you say?
 %%
      Ref: M4
     Name: the tavern cat
    Alias: CAT CREATURE
-   Reset: AFTER→1m
- OnReset: A mangy looking cat slinks in and curls up on a chair.
-  Action: AFTER→1m JITTER→1m
+    Veto: GET→The cat looks at your hand, then looks at you. Hrm, probably a
+          bad idea.
+  Action: @MOBILE
 OnAction: $ACT starts to claw at the furniture, scratching deep gouges into
           the wood.
         : $ACT curls up and starts to purr like a buzz-saw.
         : $ACT starts to wash itself.
+        : #ACT yawns and stretches.
+        : $ACT flicks an ear irritably.
+        : $ACT stretches out a paw displaying sharp claws, then retracts them
+          again.
+   Reset: @MOBILE
+ OnReset: A mangy looking cat slinks in and curls up on a chair.
 
 The tavern cat is a ball of fur with one golden eye, the other eye replaced by
 a large scar. It senses you watching it and returns your gaze with a steady
@@ -887,74 +874,73 @@ one of its own.
      Ref: M5
     Name: a small mouse
    Alias: MOUSE CREATURE
-   Reset: AFTER→1m
- OnReset: A small mouse scurries into view.
-  Action: AFTER→15s JITTER→15s
+Location: L39
+  Action: AFTER→5s JITTER→5s
 OnAction: $ACT squeaks.
         : $ACT washes its face with its paws.
         : $ACT sniffs around.
-        : N
-        : E
-        : S
-        : W
+        : $ACT flicks its tail around.
+        : $ACT washes its paws.
+        : $ACT sits up and sniffs the air.
+        : $ACT twitches its whiskers.
+        : $ACT cocks its head and listens.
+        : @ACT_MOVE
+   Reset: @MOBILE
+ OnReset: A small mouse scurries into view.
 
 This is a small, furry, grey mouse.
 %%
-     Ref: M6
-    Name: the barkeep
-   Reset: AFTER→1s
- OnReset: The barkeep walks in.
- Aliases: BARKEEP MAN NPC
-  Action: AFTER→30s JITTER→30s
-OnAction: $ACT picks up a glass and wipes it with a rag.
-        : $ACT smears the top of the bar with a rag.
-        : $ACT starts to arrange a few of the curious bottles
-          behind the bar.
-        : $ACT drums his fingers on the bar.
-        : $ACT starts to whistle a little ditty.
-        : $ACT examines a filthy rag.
-        : $ACT examines a filthy rag. He finds a hole in it.
-        : SAY Nice weather for it...
-        : SAY Now let me see...
-        : SAY Can I get you something?
-        : SNEEZE
-        : EXAMINE BAR
-        : EXAMINE BOTTLES
-        : EXAMINE PLAYER
+      Ref: M6
+     Name: the barkeep
+  Aliases: BARKEEP MAN NPC
+     Body: @MOBILE
+Inventory: M6O1
+  Holding: M6O1
+   Action: @MOBILE
+ OnAction: $ACT picks up a glass and wipes it with a rag.
+         : $ACT smears the top of the bar with a rag.
+         : $ACT starts to arrange a few of the curious bottles behind the bar.
+         : $ACT drums his fingers on the bar.
+         : $ACT starts to whistle a little ditty.
+         : $ACT examines an old rag. He finds a hole in it.
+         : SAY Can I get you something?
+         : SNEEZE
+         : EXAMINE BAR
+         : EXAMINE BOTTLES
+         : EXAMINE BOTTLES
+         : EXAMINE RAG
+         : @ACT_GENERAL
+    Reset: @MOBILE
+  OnReset: The barkeep walks in.
 
 This is your average barkeep, found in taverns and pubs all over the world.
 Always ready to listen to a drinking patron, dispensing advice when required.
 %%
       Ref: M7
      Name: a sweet flower girl
-    Reset: AFTER→1s WAIT
-  OnReset: A flower girl walks in.
   Aliases: FLOWERGIRL GIRL NPC
-   Action: AFTER→30s JITTER→30s
+ Location: L7
+     Body: @MOBILE
+Inventory: M7O1 M7O2
+  Holding: M7O1
+  Wearing: M7O2
+   Action: @MOBILE
  OnAction: $ACT looks around for someone to sell flowers to.
          : $ACT looks at you with pleading eyes.
          : $ACT holds out some flowers for you to see.
          : SAY Buy a flower? Very cheap.
-         : N
-         : S
-         : E
-         : W
-     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
-           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
-           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
-           UPPER_LIP→1 WAIST→1 WRIST→2
-Inventory: M7O1 M7O2
-  Wearing: M7O2
-  Holding: M7O1
+         : @ACT_GENERAL
+         : @ACT_MOVE
+    Reset: @MOBILE
+  OnReset: A flower girl walks in.
 
 This is a sweet little girl selling flowers to make some money.
 %%
      Ref: M8
     Name: a giant spider
-   Reset: AFTER→1m
- OnReset: A giant spider crawls in.
  Aliases: SPIDER CREATURE
-  Action: AFTER→15s JITTER→15s
+Location: L37
+  Action: @MOBILE
 OnAction: $ACT starts to slowly spin another web.
         : $ACT silently sits amongst the webs, watching.
         : $ACT silently retreats into the shadows.
@@ -962,15 +948,17 @@ OnAction: $ACT starts to slowly spin another web.
         : EXAMINE WEBS
         : EXAMINE BUNDLE
         : EXAMINE PLAYER
+   Reset: @MOBILE
+ OnReset: A giant spider crawls in.
 
 This is a giant spider. It's black, hairy and looks very dangerous.
 %%
      Ref: M9
     Name: a street vendor
-   Reset: AFTER→1m
- OnReset: A street vendor walks in.
  Aliases: VENDOR MAN NPC
-  Action: AFTER→30s JITTER→15s
+Location: L14
+    Body: @MOBILE
+  Action: @MOBILE
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
         : $ACT saunters around a bit.
@@ -978,181 +966,163 @@ OnAction: $ACT looks around for passing punters.
         : SHOUT Sausages ina bun, get 'em while they're hot.
         : SHOUT Meat ona stick, get 'em while they're hot.
         : SHOUT Hot food! Hot food!
+        : @ACT_GENERAL
+   Reset: @MOBILE
+ OnReset: A street vendor walks in.
 
 This is a typical, shifty looking street vendor.
 %%
      Ref: M10
     Name: a gate warden
-   Reset: AFTER→1m
- OnReset: A gate warden walks into view.
  Aliases: GATEWARDEN WARDEN MAN NPC
+Location: L57 L64 L69
+    Body: @MOBILE
   Action: AFTER→15s JITTER→15s
 OnAction: $ACT watches you suspiciously.
         : $ACT slowly paces backwards and forwards before the gates.
         : $ACT tries to stifle a yawn.
         : SAY Mind how you go and keep out of trouble.
         : SAY I'm watching you.
-        : N
-        : S
-        : E
-        : W
+        : @ACT_GENERAL
+        : @ACT_MOVE
+   Reset: @MOBILE
+ OnReset: A gate warden walks into view.
 
 This is one of the gate wardens of the city. His duty is to keep out all
 undesirables from the city.
 %%
       Ref: M11
      Name: a city guard
-    Reset: AFTER→1m WAIT
-  OnReset: A city guard walks into view.
   Aliases: CITYGUARD GUARD WOMAN NPC
-   Action: AFTER→15s JITTER→15s
+ Location: L14
+     Body: @MOBILE
+Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
+  Wearing: L11O1 L11O2 L73O1 L73O7
+ Wielding: L13O1
+     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
+   Action: @MOBILE
  OnAction: $ACT watches you suspiciously.
          : $ACT paces up and down a bit.
          : $ACT cocks one ear, listening for trouble.
          : SAY Mind how you go and keep out of trouble.
          : SAY I'm watching you.
-         : N
-         : S
-         : E
-         : W
-         : EXAMINE PLAYER
-     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
-     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
-           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
-           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
-           UPPER_LIP→1 WAIST→1 WRIST→2
-Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
- Wielding: L13O1
-  Wearing: L11O1 L11O2 L73O1 L73O7
+         : @ACT_GENERAL
+         : @ACT_MOVE
+    Reset: @MOBILE
+  OnReset: A city guard walks into view.
 
 This is a tip top, smart city guard. Protector of the weak and justice to ill
 doers.
 %%
-      Ref: M12
-     Name: a city guard
-    Reset: AFTER→1m WAIT
-  OnReset: A city guard walks into view.
-  Aliases: CITYGUARD GUARD MAN NPC
-   Action: AFTER→15s JITTER→15s
- OnAction: $ACT watches you suspiciously.
-         : $ACT paces up and down a bit.
-         : $ACT cocks one ear, listening for trouble.
-         : SAY Mind how you go and keep out of trouble.
-         : SAY I'm watching you.
-         : N
-         : S
-         : E
-         : W
-         : EXAMINE PLAYER
-     Veto: COMBAT→The city guard shouts "Oi! No fighting!".
-     Body: ANKLE→2 BACK→1 CHEST→1 EAR→2 ELBOW→2 EYE→2 FACE→1 FINGER→8 FOOT→2
-           HAND→2 HEAD→1 KNEE→2 LOWER_ARM→2 LOWER_LEG→2 LOWER_LIP→1 MOUTH→1
-           NECK→1 NOSE→1 PELVIS→1 SHOULDER→2 THUMB→2 UPPER_ARM→2 UPPER_LEG→2
-           UPPER_LIP→1 WAIST→1 WRIST→2
-Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
- Wielding: L13O1
-  Wearing: L11O1 L11O2 L73O1 L73O7
-
-This is a tip top, smart city guard. Protector of the weak and justice to ill
-doers.
+        Ref: M12
+       Name: @M11
+    Aliases: CITYGUARD GUARD MAN NPC
+   Location: L21 L26 L61
+       Body: @MOBILE
+  Inventory: @M11
+    Wearing: @M11
+   Wielding: @M11
+       Veto: @M11
+     Action: @MOBILE
+   OnAction: @M11
+      Reset: @MOBILE
+    OnReset: @M11
+Description: @M11
 %%
      Ref: M13
     Name: a baker
-   Reset: AFTER→1m
- OnReset: A baker walks into view.
  Aliases: BAKER WOMAN LADY NPC
-  Action: AFTER→30s JITTER→15s
+Location: L6
+    Body: @MOBILE
+  Action: @MOBILE
 OnAction: $ACT starts to make some more pastries.
         : $ACT puts a fresh batch of cooking out for sale.
-        : $ACT starts sweeping the floor.
         : SAY Careful dear, some of those are still hot.
         : SAY What can I tempt you with today?
         : SAY It all smells so lovely!
-        : EXAMINE PLAYER
+        : @ACT_GENERAL
+        : @ACT_TRADER
+   Reset: @MOBILE
+ OnReset: A baker walks into view.
 
 This is a very jolly looking, if some what rotund lady. Maybe her cooking is
 so good it's irresistible.
 %%
      Ref: M14
     Name: the bladesmith
-   Reset: AFTER→1m
- OnReset: The bladesmith walks into view.
  Aliases: BAKER MAN NPC
-  Action: AFTER→30s JITTER→15s
-OnAction: $ACT watches you as you browse around the shop.
-        : $ACT tidies up a few odd items.
-        : $ACT works at honing the blade of a dagger.
+Location: L13
+    Body: @MOBILE
+  Action: @MOBILE
+OnAction: $ACT works at honing the blade of a dagger.
         : $ACT watches you idly while tossing a small blade up and down.
-        : SAY See anything you like?
-        : EXAMINE PLAYER
+        : @ACT_GENERAL
+        : @ACT_TRADER
+   Reset: @MOBILE
+ OnReset: The bladesmith walks into view.
 
 The shopkeeper is a small balding man with glasses. Like all good shopkeepers
 he wears an apron.
 %%
      Ref: M15
     Name: the armourer
-   Reset: AFTER→1m
- OnReset: An armourer walks into view.
  Aliases: ARMOURER MAN NPC
-  Action: AFTER→30s JITTER→15s
-OnAction: $ACT watches you as you browse around the shop.
-        : $ACT starts to polish some plate mail while keeping an eye on you.
+Location: L11
+    Body: @MOBILE
+  Action: @MOBILE
+OnAction: $ACT starts to polish some plate mail while keeping an eye on you.
         : $ACT starts to whistle and hum softly to himself.
         : $ACT starts making some adjustments to some leather padding.
-        : SAY See anything you like?
-        : EXAMINE PLAYER
+        : @ACT_GENERAL
+        : @ACT_TRADER
+   Reset: @MOBILE
+ OnReset: An armourer walks into view.
 
 The Armourer is of a rough looking sort.
 %%
      Ref: M16
     Name: a little old lady
-   Reset: AFTER→1m
- OnReset: A little old lady walks into view.
  Aliases: LADY NPC
-  Action: AFTER→30s JITTER→15s
-OnAction: $ACT watches you as you browse around her shop.
-        : $ACT starts to tidy away some newer items.
-        : $ACT starts sweeping the floor.
-        : $ACT idly dusts a few random items.
+Location: L8
+    Body: @MOBILE
+  Action: @MOBILE
+OnAction: $ACT idly dusts a few random items.
         : $ACT tidies up some of the junk laying around.
         : SAY Please don't touch dear.
         : SAY If you break anything you still pay for it.
-        : SAY See anything you like?
-        : EXAMINE PLAYER
+        : @ACT_GENERAL
+        : @ACT_TRADER
+   Reset: @MOBILE
+ OnReset: A little old lady walks into view.
 
 This is a little old lady. The sort everyone wants as their grandmother.
 %%
      Ref: M17
     Name: Hewman the trader
-   Reset: AFTER→1m
- OnReset: Hewman the trader walks into view.
  Aliases: HEWMAN TRADER NPC
-  Action: AFTER→30s JITTER→15s
-OnAction: $ACT looks at you, then quickly looks away again.
-        : $ACT walks around the store a bit keeping an eye on things.
-        : $ACT cautiously watches you as you browse around the store.
-        : $ACT starts sweeping the floor.
-        : SAY See anything you like?
-        : EXAMINE PLAYER
+Location: L16
+    Body: @MOBILE
+  Action: @MOBILE
+OnAction: @ACT_GENERAL
+        : @ACT_TRADER
+   Reset: @MOBILE
+ OnReset: Hewman the trader walks into view.
 
 This is a very large, serious looking man.
 %%
      Ref: M18
     Name: Merkle
-   Reset: AFTER→1m
- OnReset: Merkle walks into view.
  Aliases: MERKLE CLOTHIER NPC
-  Action: AFTER→30s JITTER→15s
-OnAction: $ACT looks at you, then quickly looks away again.
-        : $ACT walks around the shop a bit keeping an eye on things.
-        : $ACT cautiously watches you as you browse around the shop.
-        : $ACT starts sweeping the floor.
-        : $ACT smiles and nods.
-        : $ACT folds some clothing and puts it back on a table.
-        : SAY See anything you like?
+Location: L73
+    Body: @MOBILE
+  Action: @MOBILE
+OnAction: $ACT folds some clothing and puts it back on a table.
         : SAY Please look around, there must be something here you like?
-        : EXAMINE PLAYER
         : EXAMINE CLOTHING
+        : @ACT_GENERAL
+        : @ACT_TRADER
+   Reset: @MOBILE
+ OnReset: Merkle walks into view.
 
 Merkle the clothier is a thin, slightly balding man. He seems happy in his
 work and eager to please potential customers.
@@ -1162,137 +1132,148 @@ work and eager to please potential customers.
 //
 %%
      Ref: O1
-    Name: a curious brass lattice
- Aliases: LATTICE
-   Reset: AFTER→10m JITTER→10m
-Location: L8
-    Veto: JUNK→The lattice cannot be junked.
-
-This is a finely crafted, intricate lattice of fine brass wires forming a
-roughly ball shaped curiosity.
-%%
-     Ref: O2
-    Name: a small red ball
- Aliases: BALL
-   Reset: AFTER→0s JITTER→2m SPAWN
- Cleanup: AFTER→1s
-Location: O4
-
-This is a small, red, rubber ball.
-%%
-      Ref: O3
-     Name: an iron bound chest
-  Aliases: CHEST
-    Reset: AFTER→1m JITTER→1m
-  Cleanup: AFTER→10m JITTER→5m
- Location: L16
-Inventory: O4
-
-This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick metal
-bands bind it.
-%%
-      Ref: O4
-     Name: a small leather pouch
-  Aliases: POUCH
-    Reset: AFTER→1m JITTER→1m
-  Cleanup: AFTER→10m JITTER→10m
-Inventory:
-
-This is a small pouch made of soft dark leather.
-%%
-     Ref: O5
     Name: a runestone
  Aliases: RUNE RUNESTONE STONE
-   Reset: AFTER→1m JITTER→1m
- Cleanup: AFTER→10m JITTER→10m
 Location: L13 L23 L8 L29 L37
+ Cleanup: @ITEM
+   Reset: @NOW
 
-This is a flat polished stone about half an inch wide by an inch long. One side
-is smooth. On the other a strange rune has been carved.
+This is a flat polished stone about half an inch wide by an inch long. One
+side is smooth. On the other a strange rune has been carved.
 %%
-     Ref: O6
-    Name: a key
-   Alias: KEY
-   Reset: AFTER→30s JITTER→30s
- OnReset: You see a man enter, look around and then do something to
-          the bottom of the rock before leaving again.
- Cleanup: AFTER→1m JITTER→1m
+    Ref: O2
+   Name: a key
+  Alias: KEY
+Cleanup: @ITEM
+  Reset: @NOW
+OnReset: You see a man enter, look around and then do something to the bottom
+         of the rock before leaving again.
 
 This is a small iron key.
 %%
-      Ref: O7
-     Name: a lucky charm
-    Alias: LUCKY CHARM
-    Reset: AFTER→30s JITTER→30s
-  Cleanup: AFTER→1m JITTER→1m
- Location: L40N1
+     Ref: O3
+    Name: a lucky charm
+   Alias: LUCKY CHARM
+Location: N2
+ Cleanup: @ITEM
+   Reset: @NOW
 
-This is a small silver charm on a necklace. The charm looks like a small figure
-enclosed in a circle.
+This is a small silver charm on a necklace. The charm looks like a small
+figure enclosed in a circle.
 %%
-      Ref: O8
+      Ref: O4
      Name: a fish of gold
     Alias: FISH GOLDFISH
-    Reset: AFTER→30s JITTER→30s
-  OnReset: A man enters. There is a gentle plop as he drops something
-           into the pond before he walks off again.
-  Cleanup: AFTER→1m JITTER→1m
+  Cleanup: @QUICK
 OnCleanup: Light gleams off the fish of gold before it fades away and is gone.
+    Reset: @NOW
+  OnReset: A man enters. There is a gentle plop as he drops something into the
+           pond before he walks off again.
 
 This is a small, finely carved fish that appears to have been made from solid
 gold.
 %%
-      Ref: O9
-     Name: a small sack
-  Aliases: SACK
-    Reset: AFTER→1m JITTER→1m SPAWN
-  Cleanup: AFTER→10m JITTER→5m
- Location: L16
-Inventory:
-
-This is a small sack, handy for carrying things in.
 %%
-      Ref: O10
-     Name: a small bag
-  Aliases: BAG
-    Reset: AFTER→1m JITTER→1m SPAWN
-  Cleanup: AFTER→10m JITTER→5m
- Location: L16
-Inventory:
-
-This is a small bag, handy for carrying things in.
+//
+// STOCK FOR PAWN SHOP
+//
 %%
-      Ref: O11
+     Ref: L8O1
+    Name: a curious brass lattice
+ Aliases: LATTICE
+Location: @M16
+    Veto: JUNK→The lattice cannot be junked.
+   Reset: AFTER→10m JITTER→10m
+
+This is a finely crafted, intricate lattice of fine brass wires forming a
+roughly ball shaped curiosity.
+%%
+      Ref: L8O2
      Name: a small doll
   Aliases: DOLL
-    Reset: AFTER→1m JITTER→1m SPAWN WAIT
-  Cleanup: AFTER→10m JITTER→5m
- Location: L8
+ Location: @M16
      Body: TINY_BODY TINY_HEAD
-Inventory: O12 O13
-  Wearing: O12 O13
+Inventory: L8O2A L8O2B
+  Wearing: L8O2A L8O2B
+  Cleanup: @ITEM
+    Reset: @SPAWN WAIT
 
 This is a small child's toy doll.
 %%
-     Ref: O12
+     Ref: L8O2A
     Name: a tiny dress
  Aliases: +DOLL:DRESS +TINY:DRESS
-   Reset: AFTER→1m JITTER→1m SPAWN
- OnReset: Did the doll just giggle?
- Cleanup: AFTER→10m JITTER→5m
 Wearable: TINY_BODY
+ Cleanup: @ITEM
+   Reset: @SPAWN
+ OnReset: Did the doll just giggle?
 
 This is a tiny doll's dress.
 %%
-     Ref: O13
+     Ref: L8O2B
     Name: a tiny hat
  Aliases: +DOLL:HAT +TINY:HAT
-   Reset: AFTER→1m JITTER→1m SPAWN
- OnReset: You're sure the doll just sighed.
- Cleanup: AFTER→10m JITTER→5m
 Wearable: TINY_HEAD
+ Cleanup: @ITEM
+   Reset: @SPAWN
+ OnReset: You're sure the doll just sighed.
 
 This is a tiny doll's hat.
+%%
+//
+// STOCK FOR TRADER
+//
+%%
+      Ref: L16O1
+     Name: an iron bound chest
+  Aliases: CHEST
+ Location: @M17
+Inventory:
+  Cleanup: @ITEM
+    Reset: @ITEM WAIT
+
+This is a very stout wooden chest about 2 feet wide and 1 foot deep. Thick
+metal bands bind it.
+%%
+      Ref: L16O2
+     Name: a small leather pouch
+  Aliases: +SMALL:POUCH +LEATHER:POUCH
+ Location: L16O1
+Inventory:
+  Cleanup: @ITEM
+    Reset: @QUICK WAIT
+
+This is a small pouch made of soft dark leather.
+%%
+     Ref: L16O3
+    Name: a small red ball
+ Aliases: +RED:BALL +SMALL:BALL
+Location: L16O2
+ Cleanup: @JUNK
+   Reset: @JUNK SPAWN
+ OnReset: The small leather pouch moves.
+
+This is a small, red, rubber ball.
+%%
+      Ref: L16O4
+     Name: a small sack
+  Aliases: SACK
+ Location: @M17
+Inventory:
+  Cleanup: @ITEM
+    Reset: @SPAWN
+
+This is a small sack, handy for carrying things in.
+%%
+      Ref: L16O5
+     Name: a small bag
+  Aliases: BAG
+ Location: @M17
+Inventory:
+  Cleanup: @ITEM
+    Reset: @SPAWN
+
+This is a small bag, handy for carrying things in.
 %%
 //
 // STOCK FOR MERKLE'S FINE EMPORIUM
@@ -1301,80 +1282,80 @@ This is a tiny doll's hat.
      Ref: L73O1
     Name: some leather breeches
  Aliases: +LEATHER:BREECHES CLOTHING CLOTHES
-Wearable: UPPER_LEG→2 LOWER_LEG→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @TROUSERS
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 These are a pair of soft leather breeches.
 %%
      Ref: L73O2
     Name: a leather jerkin
  Aliases: +LEATHER:JERKIN CLOTHING CLOTHES
-Wearable: CHEST BACK
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @SHORT_SHIRT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a sleeveless, soft leather jerkin.
 %%
      Ref: L73O3
     Name: a leather jacket
  Aliases: +LEATHER:JACKET CLOTHING CLOTHES
-Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @LONG_SHIRT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a long sleeved, soft leather jacket.
 %%
      Ref: L73O4
     Name: a leather cap
  Aliases: +LEATHER:CAP CLOTHING CLOTHES
-Wearable: HEAD
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @HAT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a soft leather cap.
 %%
      Ref: L73O5
     Name: some leather bracers
  Aliases: +LEATHER:BRACERS ARMOUR
+Location: @M18
 Wearable: LOWER_ARM→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 These are hard leather bracers. They are worn to protect the lower arms.
 %%
      Ref: L73O6
     Name: some shoes
  Aliases: +LEATHER:SHOES CLOTHING CLOTHES
-Wearable: FOOT→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @SHOES
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 A pair of plain, soft leather shoes.
 %%
      Ref: L73O7
     Name: some boots
  Aliases: +LEATHER:BOOTS CLOTHING CLOTHES
-Wearable: FOOT→2 ANKLE→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @BOOTS
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 A pair of plain, soft leather boots that come up to just below the knees.
 %%
      Ref: L73O8
     Name: a plain belt
  Aliases: +LEATHER:BELT CLOTHING CLOTHES
-Wearable: WAIST
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @BELT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 An unadorned  belt made from hard, dark leather. The buckle is a plain, brass
 frame with a prong for fastening.
@@ -1382,10 +1363,10 @@ frame with a prong for fastening.
      Ref: L73O9
     Name: a floral belt
  Aliases: +FLORAL:BELT +LEATHER:BELT CLOTHING CLOTHES
-Wearable: WAIST
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @BELT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 A soft leather belt with an ornate floral pattern carved into it. The
 fastening is a simple brass plate engraved with a flower.
@@ -1393,10 +1374,10 @@ fastening is a simple brass plate engraved with a flower.
      Ref: L73O10
     Name: a knotwork belt
  Aliases: +KNOTWORK:BELT +LEATHER:BELT CLOTHING CLOTHES
-Wearable: WAIST
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @BELT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 A soft leather belt with an ornate knotwork pattern carved into it. The buckle
 is a sculpted, ornate brass knot.
@@ -1404,62 +1385,72 @@ is a sculpted, ornate brass knot.
      Ref: L73O11
     Name: a cotton shirt
  Aliases: +COTTON:SHIRT CLOTHING CLOTHES
-Wearable: CHEST BACK UPPER_ARM→2 LOWER_ARM→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @LONG_SHIRT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
-This is a rough, light cotton shirt with long sleves.
+This is a rough, light cotton shirt with long sleeves.
 %%
      Ref: L73O12
     Name: some cotton trousers
  Aliases: +COTTON:TROUSERS CLOTHING CLOTHES
-Wearable: UPPER_LEG→2 LOWER_LEG→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @TROUSERS
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 These are rough, long cotton trousers.
 %%
      Ref: L73O13
     Name: a cotton dress
  Aliases: +COTTON:DRESS CLOTHING CLOTHES
-Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @DRESS
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a long, rough cotton dress.
 %%
      Ref: L73O14
     Name: a formal gown
  Aliases: +FORMAL:GOWN +FINE:GOWN CLOTHING CLOTHES
-Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @GOWN
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a long, formal gown made from fine cotton.
 %%
      Ref: L73O15
     Name: a plain silk scarf
  Aliases: +PLAIN:SCARF +SILK:SCARF CLOTHING CLOTHES
-Wearable: NECK
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @SCARF
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a unadorned, fine silk scarf.
 %%
      Ref: L73O16
     Name: a floral silk scarf
  Aliases: +FLORAL:SCARF +SILK:SCARF CLOTHING CLOTHES
-Wearable: NECK
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Location: @M18
+Wearable: @SCARF
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a fine silk scarf with a colourful floral pattern on it.
+%%
+     Ref: L73O17
+    Name: a cotton skirt
+ Aliases: +COTTON:SKIRT CLOTHING CLOTHES
+Location: @M18
+Wearable: @SKIRT
+ Cleanup: @ITEM
+   Reset: @SPAWN
+
+This is a long, rough cotton skirt.
 %%
 //
 // STOCK FOR BLADESMITH
@@ -1468,30 +1459,30 @@ This is a fine silk scarf with a colourful floral pattern on it.
       Ref: L13O1
      Name: a shortsword
   Aliases: +SHORT:SWORD SHORTSWORD
+ Location: @M14
 Wieldable: HAND
-    Reset: AFTER→1m JITTER→5m SPAWN
-  Cleanup: AFTER→10m JITTER→5m
- Location: L13
+  Cleanup: @ITEM
+    Reset: @SPAWN
 
 This is a fine shortsword. It has a pointy end.
 %%
       Ref: L13O2
      Name: a dagger
   Aliases: DAGGER
+ Location: @M14
 Wieldable: HAND
-    Reset: AFTER→1m JITTER→5m SPAWN
-  Cleanup: AFTER→10m JITTER→5m
- Location: L13
+  Cleanup: @ITEM
+    Reset: @SPAWN
 
 This is a small, sharp dagger.
 %%
       Ref: L13O3
      Name: a battle axe
   Aliases: +BATTLE:AXE
+ Location: @M14
 Wieldable: HAND→2
-    Reset: AFTER→1m JITTER→5m SPAWN
-  Cleanup: AFTER→10m JITTER→5m
- Location: L13
+  Cleanup: @ITEM
+    Reset: @SPAWN
 
 This is a very large, heavy battle axe requiring two hands to wield it
 efficiently.
@@ -1499,10 +1490,10 @@ efficiently.
       Ref: L13O4
      Name: a longsword
   Aliases: +LONG:SWORD LONGSWORD
+ Location: @M14
 Wieldable: HAND
-    Reset: AFTER→1m JITTER→5m SPAWN
-  Cleanup: AFTER→10m JITTER→5m
- Location: L13
+  Cleanup: @ITEM
+    Reset: @SPAWN
 
 This is a fine longsword. It has a pointy end.
 %%
@@ -1513,48 +1504,203 @@ This is a fine longsword. It has a pointy end.
      Ref: L11O1
     Name: a steel cuirass
  Aliases: +STEEL:CUIRASS
-Wearable: CHEST BACK
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L11
+Location: @M15
+Wearable: @SHORT_SHIRT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a heavy steel cuirass, consisting of two halves. One half is the
-breastplate and the other a backplate, each have a sloft leather lining. The
+breastplate and the other a backplate, each have a soft leather lining. The
 two halves are held together with tough leather straps that buckle at the
 shoulders and sides.
 %%
      Ref: L11O2
     Name: a steel helmet
  Aliases: +STEEL:HELMET
-Wearable: HEAD
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L11
+Location: @M15
+Wearable: @HAT
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This steel helmet is open at the front and sides, with a neck guard at the
-rear. It has no plume, but a soft leather lining and a bronze inlay runing
+rear. It has no plume, but a soft leather lining and a bronze inlay running
 around the edges.
 %%
 //
 // ITEMS FOR FLOWER GIRL
 //
 %%
-     Ref: M7O1
-    Name: a small bunch of flowers
- Aliases: +BUNCH:FLOWERS
-   Reset: AFTER→1m JITTER→1m SPAWN
- Cleanup: AFTER→10m JITTER→5m
+    Ref: M7O1
+   Name: a small bunch of flowers
+Aliases: +BUNCH:FLOWERS
+Cleanup: @ITEM
+  Reset: @SPAWN
 
 This is a small bunch of wild flowers.
 %%
      Ref: M7O2
     Name: a tatty cotton dress
  Aliases: +COTTON:DRESS +TATTY:DRESS CLOTHING CLOTHES
-Wearable: CHEST BACK UPPER_LEG→2 LOWER_LEG→2
-   Reset: AFTER→1m JITTER→5m SPAWN
- Cleanup: AFTER→10m JITTER→5m
-Location: L73
+Wearable: @DRESS
+ Cleanup: @ITEM
+   Reset: @SPAWN
 
 This is a long, rough cotton dress. It's seen better days and is now faded and
 dirty with quite a few holes, some of which have been patched in the past.
+%%
+//
+// ITEMS FOR BARKEEP
+//
+%%
+      Ref: M6O1
+     Name: an old rag
+  Aliases: +OLD:RAG
+  Cleanup: @ITEM
+OnCleanup: The old rag finally gives up and disintegrates into just holes.
+    Reset: @NOW SPAWN
+  OnReset: The barkeep produces an old rag.
+
+This is an old scrap of cloth, more holes than cloth. Assuming you can find
+enough remaining cloth around the holes you might be able to wipe something
+with it.
+%%
+//
+// DEFAULT DEFINITIONS
+//
+%%
+      // Defaults for items
+    Ref: ITEM
+   Door: RESET→1m JITTER→1m
+Cleanup: AFTER→10m
+  Reset: AFTER→1m JITTER→5m
+%%
+    // Default spawnable item
+  Ref: SPAWN
+Reset: @ITEM SPAWN
+%%
+      // Defaults for junk items
+    Ref: JUNK
+Cleanup: AFTER→1m
+  Reset: @QUICK
+%%
+      // Defaults for 'quick' items
+    Ref: QUICK
+Cleanup: AFTER→1m JITTER→1m
+  Reset: AFTER→1m JITTER→1m
+%%
+      // Defaults for items to reset 'now'
+    Ref: NOW
+Cleanup: AFTER→1s
+  Reset: AFTER→1s
+%%
+     // Default for mobiles/NPCs
+   Ref: MOBILE
+  Body: @HUMANOID
+Action: AFTER→15s JITTER→15s
+ Reset: AFTER→1m WAIT
+%%
+//
+// STOCK BODY DEFINITIONS
+//
+%%
+   // Default humanoid body
+ Ref: HUMANOID
+Body: HEAD→1 FACE→1 EAR→2 EYE→2 NOSE→1 MOUTH→1 UPPER_LIP→1 LOWER_LIP→1 NECK→1
+      SHOULDER→2 BACK→1 CHEST→1
+      UPPER_ARM→2 ELBOW→2 LOWER_ARM→2 WRIST→2 HAND→2 FINGER→8 THUMB→2
+      WAIST→1 PELVIS→1
+      UPPER_LEG→2 KNEE→2 LOWER_LEG→2 ANKLE→2 FOOT→2
+%%
+//
+// STOCK BODY PART DEFINITIONS FOR COMMON TYPES OF CLOTHING
+//
+%%
+     Ref: HAT
+Wearable: HEAD
+%%
+     Ref: SCARF
+Wearable: NECK
+%%
+     Ref: SHORT_SHIRT
+Wearable: BACK CHEST
+%%
+     Ref: LONG_SHIRT
+Wearable: @SHORT_SHIRT UPPER_ARM→2 LOWER_ARM→2
+%%
+     Ref: BELT
+Wearable: WAIST
+%%
+     Ref: TROUSERS
+Wearable: UPPER_LEG→2 LOWER_LEG→2
+%%
+     Ref: SHORT_SKIRT
+Wearable: UPPER_LEG→2
+%%
+     Ref: SKIRT
+Wearable: @SHORT_SKIRT LOWER_LEG→2
+%%
+     Ref: DRESS
+Wearable: @SKIRT CHEST BACK
+%%
+     Ref: GOWN
+Wearable: @DRESS UPPER_ARM→2 LOWER_ARM→2
+%%
+     Ref: BOOTS
+Wearable: ANKLE→2 FOOT→2
+%%
+     Ref: SHOES
+Wearable: FOOT→2
+%%
+//
+// STOCK VETOES
+//
+%%
+   // Default veto for a peaceful location
+ Ref: PEACEFUL
+Veto: COMBAT→The surroundings are so peaceful that you cannot bring yourself
+      to harm anything here.
+%%
+//
+// STOCK ACTIONS
+//
+%%
+       // Movement actions for wandering mobiles
+     Ref: ACT_MOVE
+OnAction: N
+        : S
+        : E
+        : W
+%%
+       // General actions for humanoid mobiles
+     Ref: ACT_GENERAL
+OnAction: $ACT looks at you, then quickly looks away again.
+        : $ACT smiles and nods.
+        : $ACT starts to whistle a little ditty.
+        : $ACT starts to whistle and hum softly.
+        : $ACT tries to stifle a yawn.
+        : $ACT scratches their nose.
+        : $ACT pulls at their earlobe.
+        : $ACT fidgets.
+        : $ACT gives a sigh.
+        : $ACT coughs.
+        : $ACT starts muttering to themselves.
+        : SAY Hello!
+        : SAY Hi there!
+        : SAY Nice weather for it...
+        : SAY Now let me see...
+        : SAY Where did I put...
+        : SAY What was I going to say?
+        : SAY Is it that time already?
+        : EXAMINE PLAYER
+        : SNEEZE
+%%
+       // General actions for traders
+     Ref: ACT_TRADER
+OnAction: $ACT cautiously watches you as you browse around the store.
+        : $ACT starts sweeping the floor.
+        : $ACT tidies up a few odd items.
+        : $ACT walks around the store a bit, keeping an eye on things.
+        : $ACT starts to tidy away some newer items.
+        : $ACT watches you as you browse around the store.
+        : SAY See anything you like?
 %%
