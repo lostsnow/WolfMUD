@@ -237,6 +237,54 @@ AT REFERENCE / @REF
 
   See also: REF
 
+PREFERRED FIELD ORDERING
+
+  When writing zone files the order of fields does not matter to the server.
+  However, the default zone files try and follow a preferred ordering as it
+  makes maintenance and co-authoring easier. The preferred ordering used is:
+
+    ZONE HEADER RECORD
+      Ref
+      Zone
+      Author
+      Disabled
+      Description   <----- Free text block or field (always last)
+
+    ALL OTHER RECORDS
+      Ref           <----.
+      Name               | Identification information
+      Alias/Aliases <----'
+      Start         <----.
+      Exit/Exits         |
+      ZoneLinks          | Location specific information
+      Barrier            |
+      Door               |
+      Location      <----'
+      Description   <----- When used as a field
+      Body          <----.
+      Gender             |
+      Health             |
+      Inv/Inventory      | Body related information
+      Holding            |
+      Wearing            |
+      Wielding      <----'
+      Narrative     <----.
+      Holdable           |
+      Wearable           | Affects how something
+      Wieldable          | can be used
+      Writing            |
+      Veto/Vetoes   <----'
+      Action        <----.
+      OnAction           |
+      Cleanup            | Event Information
+      OnCleanup          |
+      Reset              |
+      OnReset       <----'
+      Description   <----- Free text block (always last)
+
+  Use of this list is entirely optional, and left to the discretion of the
+  zone authors.
+
 ZONE HEADER RECORD
 
   The zone header record is optional. If present it can contain the following
