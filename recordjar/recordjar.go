@@ -23,6 +23,19 @@ type Jar []Record
 // Record represents the separate records in a recordjar.
 type Record map[string][]byte
 
+// mergeFreeText is a helper for merging an actual, named free text field with
+// an unnamed free text section.
+func (r Record) mergeFreeText(freetext string) {
+	if _, ok := r[FTSection]; !ok {
+		return
+	}
+	if _, ok := r[freetext]; ok {
+		r[freetext] = append(r[freetext], '\n')
+	}
+	r[freetext] = append(r[freetext], r[FTSection]...)
+	delete(r, FTSection)
+}
+
 // splitLine is a regex to split fields and data in a recordjar .wrj file. The
 // result of a FindSubmatch should always be a [][]byte of length 3 consisting
 // of: the string matched, the field name, the data.
@@ -93,20 +106,6 @@ func Read(in io.Reader, freetext string) (j Jar) {
 	// Setup an initially empty record for the Jar
 	r := Record{}
 
-	// mergeFreeText is a helper for merging an actual, named freetext field
-	// with an unnamed freetext section.
-	mergeFreeText := func() {
-		if _, ok = r[FTSection]; ok {
-			if _, ok = r[freetext]; ok {
-				r[freetext] = append(r[freetext], '\n')
-				r[freetext] = append(r[freetext], r[FTSection]...)
-			} else {
-				r[freetext] = r[FTSection]
-			}
-			delete(r, FTSection)
-		}
-	}
-
 	for err == nil {
 		line, err = b.ReadBytes('\n')
 
@@ -137,7 +136,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		if noName && bytes.Equal(data, rSeparator) {
 			if field != FTSection || (field == FTSection && !startWS) {
 				if len(r) > 0 {
-					mergeFreeText()
+					r.mergeFreeText(freetext)
 					j = append(j, r)
 					r = Record{}
 				}
@@ -187,7 +186,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 	// Append last record to the Jar if we have one
 	if len(r) > 0 {
-		mergeFreeText()
+		r.mergeFreeText(freetext)
 		j = append(j, r)
 		r = Record{}
 	}
