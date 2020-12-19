@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
+	"code.wolfmud.org/WolfMUD.git/attr/ordering"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
@@ -71,7 +72,7 @@ func (sa save) process(s *state) {
 	}
 
 	// Write out the player file
-	jar.Write(wrj, "description", nil)
+	jar.Write(wrj, "description", ordering.Attributes)
 	wrj.Close()
 
 	// If all went well rename the temporary file to the real file. The rename
