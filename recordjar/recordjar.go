@@ -200,6 +200,11 @@ func Read(in io.Reader, freetext string) (j Jar) {
 // then any fields named description in a record will be written out in the
 // free text section.
 //
+// Ordering is a list of field names specifying the order the fields should
+// appear in within records if present. Fields not in the list appear at the
+// end of the record in alphabetical order. If Ordering is nil or an empty list
+// then all fields will be written in alphabetical order.
+//
 // For details of the recordjar format see the separate package documentation.
 //
 // TODO(diddymus): Uppercase character after a hyphen in field names so that
@@ -212,7 +217,12 @@ func Read(in io.Reader, freetext string) (j Jar) {
 // different fields.
 // BUG: If a continuation line starts with ": " and we outdent it we don't
 // refold lines even though we have two extra character positions available.
-func (j Jar) Write(out io.Writer, freetext string) {
+func (j Jar) Write(out io.Writer, freetext string, ordering []string) {
+
+	order := make(map[string]int)
+	for x, v := range ordering {
+		order[text.TitleFirst(strings.ToLower(v))] = x
+	}
 
 	var buf bytes.Buffer // Temporary buffer for current record
 
@@ -249,8 +259,23 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			}
 		}
 
+		// Sort keys by preferred order, then alphabetical
+		sort.Slice(keys, func(i, j int) bool {
+			a, aok := order[keys[i]]
+			b, bok := order[keys[j]]
+			switch {
+			case aok && !bok:
+				return true
+			case !aok && bok:
+				return false
+			case !aok && !bok:
+				return keys[i] < keys[j]
+			default:
+				return a < b
+			}
+		})
+
 		// Write out fields for current record in the order given by the sorted keys
-		sort.Strings(keys)
 		for _, field := range keys {
 
 			// Ignore the free text section field as it has to be written last

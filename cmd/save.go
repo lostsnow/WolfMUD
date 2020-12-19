@@ -71,7 +71,7 @@ func (sa save) process(s *state) {
 	}
 
 	// Write out the player file
-	jar.Write(wrj, "description")
+	jar.Write(wrj, "description", nil)
 	wrj.Close()
 
 	// If all went well rename the temporary file to the real file. The rename
