@@ -297,6 +297,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 				buf.Write(LF)
 			}
 
+			data = text.Unfold(data)
 			data = text.Fold(data, maxLineWidth)
 			data = bytes.Replace(data, CR, Empty, -1)
 			buf.Write(data)

@@ -265,6 +265,35 @@ func TestWrite_ordering(t *testing.T) {
 
 }
 
+// TestWrite_refolding makes sure that free text sections are unfolded and then
+// re-folded when written to format them correctly.
+func TestWrite_refolding(t *testing.T) {
+
+	want := `
+You are in the corner of the common room in the dragon's breath tavern. A fire
+burns merrily in an ornate fireplace, giving comfort to weary travellers. The
+fire causes shadows to flicker and dance around the room, changing darkness to
+light and back again. To the south the common room continues and east the
+common room leads to the tavern entrance.
+%%
+`
+
+	jar := Jar{Record{"FREETEXT": []byte(`
+You are in the corner of the common room in the dragon's
+breath tavern. A fire burns merrily in an ornate fireplace,
+giving comfort to weary travellers. The fire causes shadows
+to flicker and dance around the room, changing darkness to
+light and back again. To the south the common room continues
+and east the common room leads to the tavern entrance.`)}}
+
+	have := &bytes.Buffer{}
+	jar.Write(have, "FREETEXT")
+	if have.String() != want {
+		t.Errorf("have:\n%q\nwant:\n%q", have, want)
+	}
+
+}
+
 func BenchmarkWrite(b *testing.B) {
 
 	location := Record{
