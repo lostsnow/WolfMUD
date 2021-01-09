@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
+#
+# Use of this source code is governed by the license in the LICENSE file
+# included with the source code.
+#
+# Usage: niceDate ["date string"]
+#
+# niceDate is a simple wrapper around the date command to print a long format
+# date with a suffix added after the date. Defaults to 'today' but any date
+# recognised by the date command can be used.
+#
+#  >niceDate
+#  Monday 28th December, 2020
+#  >niceDate last friday
+#  Friday 25th December, 2020
+#
+
+parms=$*
+  now=`date -u -d"${parms:-today}" +@%s`
+
+case `date -d${now} +%d` in
+  1|21|31)  suffix="st" ;;
+  2|22)     suffix="nd" ;;
+  3|23)     suffix="rd" ;;
+  *)        suffix="th" ;;
+esac
+
+date -u -d${now} +"%A %-e${suffix} %B, %Y"
