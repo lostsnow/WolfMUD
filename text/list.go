@@ -2,6 +2,7 @@
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
+
 package text
 
 import (
