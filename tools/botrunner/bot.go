@@ -142,6 +142,7 @@ func (b *Bot) do() bool {
 	// Log off from the server and close connection
 	b.send("QUIT")
 	b.send("0")
+	log.Printf("[%s] Run finished", b.Id)
 	time.Sleep(time.Second)
 	b.Close()
 
