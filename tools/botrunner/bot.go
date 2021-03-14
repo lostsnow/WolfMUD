@@ -151,8 +151,11 @@ func (b *Bot) do() bool {
 func (b *Bot) discard() {
 	buf := [512]byte{}
 	for {
+		b.SetReadDeadline(time.Now().Add(60 * time.Second))
 		if _, err := b.Read(buf[0:511]); err != nil {
-			return
+			if err, ok := err.(*net.OpError); !ok || !err.Timeout() {
+				return
+			}
 		}
 	}
 }
