@@ -161,13 +161,13 @@ func (b *Bot) discard() {
 }
 
 func (b *Bot) send(data string) error {
-	b.SetWriteDeadline(time.Now().Add(time.Second))
+	b.SetWriteDeadline(time.Now().Add(60 * time.Second))
 	_, err := b.Write([]byte(data + "\r\n"))
 	return err
 }
 
 func (b *Bot) recv(data string) error {
-	b.SetReadDeadline(time.Now().Add(time.Second))
+	b.SetReadDeadline(time.Now().Add(60 * time.Second))
 	x, err := b.Read(b.buffer[0:512])
 	b.buffer = b.buffer[0:x]
 
