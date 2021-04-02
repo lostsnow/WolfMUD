@@ -733,7 +733,7 @@ ticking.
       Ref: L3N1
      Name: the tavern door
   Aliases: +TAVERN DOOR
-     Door: @ITEM EXIT→E OPEN
+     Door: @ITEM EXIT→E
 Narrative:
 
 This is a sturdy wooden door with a simple latch.
