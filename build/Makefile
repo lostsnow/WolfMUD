@@ -109,11 +109,11 @@ source: | WolfMUD-source.zip WolfMUD-source.zip.txt
 
 WolfMUD-source.tgz:
 	cd .. ;\
-	git archive --format=tgz -o ./build/WolfMUD-source.tgz --prefix=WolfMUD.git/ $(version)
+	git archive --format=tgz -o ./build/WolfMUD-source.tgz --prefix=WolfMUD/ $(version)
 
 WolfMUD-source.zip:
 	cd .. ;\
-	git archive --format=zip -o ./build/WolfMUD-source.zip --prefix=WolfMUD.git/ $(version)
+	git archive --format=zip -o ./build/WolfMUD-source.zip --prefix=WolfMUD/ $(version)
 
 .PHONY: finish
 finish:
