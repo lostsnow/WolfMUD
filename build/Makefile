@@ -73,12 +73,14 @@ WolfMUD-%.zip: bin/% $(info) docs config zones players
 	find WolfMUD -type f -executable -delete
 
 .PHONY: bin/%
-bin/%:
+bin/%: WolfMUD/bin
 	$(MAKE) --directory=.. $(@F) ;\
-	cp ../$@/* ./WolfMUD/
+	cp ../$@/* ./WolfMUD/bin/
 
 WolfMUD:
 	mkdir -p WolfMUD
+WolfMUD/bin: WolfMUD
+	mkdir -p WolfMUD/bin
 WolfMUD/docs: WolfMUD
 	mkdir -p WolfMUD/docs
 WolfMUD/data: WolfMUD

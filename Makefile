@@ -25,7 +25,6 @@ export GOPROXY=off
 export GORACE=history_size=7 halt_on_error=1
 export GOCACHE=/tmp/go-build
 export TZ=Europe/London
-export WOLFMUD_DIR=../data
 
 VERSION := $(shell git describe --dirty)
 LDFLAGS := -ldflags "-X code.wolfmud.org/WolfMUD.git/cmd.commit=$(VERSION)"

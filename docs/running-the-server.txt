@@ -26,11 +26,11 @@ ENVIRONMENT
 
     The format of the value for WOLFMUD_DIR is [DATA_DIR][configuration_file]
 
-    If unset WOLFMUD_DIR defaults to the equivalent of ./data/config.wrj
+    If unset WOLFMUD_DIR defaults to the equivalent of ../data/config.wrj
 
     DATA_DIR
       Optional relative or absolute path to the data directory. The default
-      value is ./data/ i.e. data in the current path.
+      value is ../data/ i.e. data in the current path.
 
     configuration_file
       Optional name of a specific configuration file. The configuration file
@@ -48,12 +48,12 @@ ENVIRONMENT
     For Linux systems, using the Bash shell, the environment variable can be
     set for the current instance of the server by prefixing the executable:
 
-      WOLFMUD_DIR=./data/config.wrj ./server
+      WOLFMUD_DIR=../data/config.wrj ./server
 
     The environment variable can also be set for the current Bash instance by
     exporting the variable, then starting the server:
 
-      export WOLFMUD_DIR=./data/config.wrj
+      export WOLFMUD_DIR=../data/config.wrj
       ./server
 
     Shells other than Bash may behave differently and may use something other
@@ -62,13 +62,17 @@ ENVIRONMENT
     Windows users should use the 'set' builtin to set the environment variable
     before running the server:
 
-      set WOLFMUD_DIR=./data/config.wrj
+      set WOLFMUD_DIR=../data/config.wrj
       .\server.exe
 
 EXAMPLES
 
   WOLFMUD_DIR=example.wrj
-    Use the default path, ./data/, relative to the current directory as the
+    Use the default path, ../data/, relative to the current directory as the
+    DATA_DIR and the specified configuration file example.wrj
+
+  WOLFMUD_DIR=../testdata/example.wrj
+    Use the path, ../testdata/, relative to the current directory as the
     DATA_DIR and the specified configuration file example.wrj
 
   WOLFMUD_DIR=/home/diddymus/WolfMUD/data
@@ -78,11 +82,6 @@ EXAMPLES
   WOLFMUD_DIR=/home/diddymus/WolfMUD/data/example.wrj
     Use the absolute path /home/diddymus/WolfMUD/data as the DATA_DIR and the
     specified configuration file example.wrj
-
-  WOLFMUD_DIR=../src/code.wolfmud.org/WolfMUD.git/data
-    Use the path ../src/code.wolfmud.org/WolfMUD.git/data relative to the
-    current directory as the DATA_DIR and the default configuration file
-    config.wrj
 
   WOLFMUD_DIR=NONE server
     Use the default, built in configuration. This is only useful for testing.
@@ -113,7 +112,7 @@ BUGS
 
 COPYRIGHT
 
-  Copyright 2019 Andrew 'Diddymus' Rolfe. All rights reserved.
+  Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
 
   Use of this source code is governed by the license in the LICENSE file
   included with the source code.
