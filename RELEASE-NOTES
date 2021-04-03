@@ -3,7 +3,7 @@
 This document details the main highlights for each release of WolfMUD. For
 detailed information on changes please see the WolfMUD git repository:
 
-             git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
+                   git clone https://code.wolfmud.org/WolfMUD
 
 
 v0.0.17 Released Saturday 31st October, 2020
