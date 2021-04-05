@@ -103,7 +103,7 @@ fi
 
 salt=`openssl rand -base64 32`
 password=`echo -n "${salt}${3}" | openssl dgst -sha512 -binary | openssl enc -a -A | tr "+/" "-_"`
-created=`date -u +"%a, %-d %b %Y %X %z"`
+created=`date -u +"%a, %d %b %Y %X %z"`
 
 # Write out new account file
 (
