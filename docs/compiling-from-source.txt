@@ -5,55 +5,29 @@ NAME
 
 DESCRIPTION
 
-  This document describes details for compiling WolfMUD from one of the source
-  code downloads.
+  This document describes details for compiling WolfMUD from source code. This
+  can either be from one of the source code downloads or from a Git clone.
 
-  As a prerequisite to compiling WolfMUD you should have downloaded and
-  installed Go from https://golang.org
+PREREQUISITES
 
-COMPILING (LINUX)
+  It is assumed that Go has already been downloaded and installed. If not Go
+  can be obtained from https://golang.org or it may be available from your
+  package manager.
 
-  The following instructions assume that the WolfMUD source code download has
-  been unarchived into your home directory. If a different location was used
-  you should substitute ~/WolfMUD for the directory where the source code was
-  unarchived.
+  A minimum of Go 1.14 is required to compile WolfMUD. Using the latest
+  version of Go available is recommended.
 
-  To compile WolfMUD for Linux first open a terminal window. Then enter the
-  following:
+COMPILING ON LINUX OR WINDOWS
 
-    cd ~/WolfMUD
+  To compile WolfMUD open a terminal or command window and change to the
+  directory where the sources were unarchived, or the directory where the Git
+  repository was cloned to. This defaults to the WolfMUD directory in both
+  cases. At the command prompt execute the command:
+
     go build -o bin ./...
 
-RUNNING (LINUX)
-
-  Once WolfMUD has been compiled the server executable will be located in the
-  directory ~/WolfMUD/bin. To run the server change to the bin directory and
-  start the server:
-
-    cd ~/WolfMUD/bin
-    ./server
-
-COMPILING (WINDOWS)
-
-  The following instructions assume that the WolfMUD source code download has
-  been unarchived into the directory C:\WolfMUD. If a different location was
-  used you should substitute C:\WolfMUD for the directory where the source
-  code was unarchived.
-
-  To compile WolfMUD for Windows first open a command prompt. Then enter the
-  following:
-
-    cd C:\WolfMUD
-    go build -o bin ./...
-
-RUNNING (WINDOWS)
-
-  Once WolfMUD has been compiled the server.exe executable will be in the
-  directory C:\WolfMUD\bin. To run the server change to the bin directory and
-  start the server:
-
-    cd C:\WolfMUD\bin
-    .\server.exe
+  The server executable will be placed in the bin directory. For details on
+  running the server see running-the-server.txt for details.
 
 SEE ALSO
 
