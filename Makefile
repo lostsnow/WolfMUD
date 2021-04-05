@@ -104,8 +104,8 @@ vet:
 test:
 	WOLFMUD_DIR="NONE" go test -cover ./...
 
-.PHONY: race-test
-race-test:
+.PHONY: test-race
+test-race:
 	WOLFMUD_DIR="NONE" CGO_ENABLED=1 go test -race -cover ./...
 
 .PHONY: cover
@@ -117,8 +117,8 @@ cover:
 bench:
 	WOLFMUD_DIR="NONE" go test -run NONE -timeout 10m -bench "." -benchtime 1s ./...
 
-.PHONY: longbench
-longbench:
+.PHONY: bench-long
+bench-long:
 	WOLFMUD_DIR="NONE" go test -run NONE -timeout 10m -bench "." -benchtime 10s ./...
 
 .PHONY: doc
