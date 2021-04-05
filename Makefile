@@ -57,6 +57,12 @@ run: build bin/log
 	clear ;\
 	./server 2>&1 | tee log/`date -u +%F-%T`.log
 
+# Run server with logging to terminal only
+term: build
+	cd bin ;\
+	clear ;\
+	./server
+
 # Run server with logging to bin/log only
 batch: build bin/log
 	cd bin ;\
