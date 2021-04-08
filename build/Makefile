@@ -14,8 +14,14 @@ SHELL := /bin/bash
 info := $(shell ls ../[A-Z][A-Z]*)
 tars := linux-386 linux-amd64 linux-arm5 linux-arm6 linux-arm7
 zips := windows-386 windows-amd64
-version := $(shell git describe)
+version := $(shell git describe --dirty)
 goVersion := $(shell go version)
+
+# Don't build with a release with a dirty worktree otherwise the source
+# archives will not match the sources used to build the binaries.
+ifeq ($(patsubst %dirty,,$(lastword $(version))),)
+$(error Git working tree is dirty, Cannot build release)
+endif
 
 # For reproduceable builds we can pass in a specific date, also relies on
 # version of Go being used to compile.
