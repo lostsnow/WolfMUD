@@ -363,8 +363,10 @@ func (s *state) AddLock(i has.Inventory) {
 
 	i = i.Outermost()
 
-	if s.CanLock(i) {
-		return
+	for _, l := range s.locks {
+		if i == l {
+			return
+		}
 	}
 
 	s.locks = append(s.locks, i)

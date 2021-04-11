@@ -208,7 +208,7 @@ func TestWrite_strings(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("%q", test.want), func(t *testing.T) {
 			have := &bytes.Buffer{}
-			test.data.Write(have, "ft")
+			test.data.Write(have, "ft", nil)
 			if have.String() != test.want {
 				t.Errorf("have:\n%q\nwant:\n%q", have, test.want)
 			}
@@ -255,12 +255,41 @@ func TestWrite_ordering(t *testing.T) {
 
 		t.Run(fmt.Sprintf("run %d", x), func(t *testing.T) {
 			have := &bytes.Buffer{}
-			test.Write(have, "ft")
+			test.Write(have, "ft", nil)
 			if have.String() != want {
 				t.Errorf("have:\n%q\nwant:\n%q", have, want)
 			}
 		})
 
+	}
+
+}
+
+// TestWrite_refolding makes sure that free text sections are unfolded and then
+// re-folded when written to format them correctly.
+func TestWrite_refolding(t *testing.T) {
+
+	want := `
+You are in the corner of the common room in the dragon's breath tavern. A fire
+burns merrily in an ornate fireplace, giving comfort to weary travellers. The
+fire causes shadows to flicker and dance around the room, changing darkness to
+light and back again. To the south the common room continues and east the
+common room leads to the tavern entrance.
+%%
+`
+
+	jar := Jar{Record{"FREETEXT": []byte(`
+You are in the corner of the common room in the dragon's
+breath tavern. A fire burns merrily in an ornate fireplace,
+giving comfort to weary travellers. The fire causes shadows
+to flicker and dance around the room, changing darkness to
+light and back again. To the south the common room continues
+and east the common room leads to the tavern entrance.`)}}
+
+	have := &bytes.Buffer{}
+	jar.Write(have, "FREETEXT", nil)
+	if have.String() != want {
+		t.Errorf("have:\n%q\nwant:\n%q", have, want)
 	}
 
 }
@@ -287,7 +316,7 @@ func BenchmarkWrite(b *testing.B) {
 
 	b.Run(fmt.Sprintf("Write"), func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			j.Write(w, "freetext")
+			j.Write(w, "freetext", nil)
 			w.Reset()
 		}
 	})

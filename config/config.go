@@ -6,8 +6,8 @@
 // Package config provides access to all of the tunable settings of a WolfMUD
 // server. The server's default configuration values may be overridden using a
 // configuration file. The name of the default configuration file is config.wrj
-// in the server's data path. By default the server's data path is './data',
-// the data directory in the current path.
+// in the server's data path. By default the server's data path is '../data',
+// the data directory in the parent's path.
 //
 // An alternative data path and/or configuration file can be specified using
 // the WOLFMUD_DIR environment variable. The format is:
@@ -16,7 +16,7 @@
 //
 // The default value, if not specified, is equivalent to:
 //
-//   WOLFMUD_DIR=./data/config.wrj
+//   WOLFMUD_DIR=../data/config.wrj
 //
 // If only the data path is specified the default configuration file will be
 // used. If only a configuration file is specified the default data path will
@@ -272,13 +272,13 @@ func openConfig() (config *os.File, err error) {
 		file = ""
 	}
 
-	// If no user supplied path use the data directory in the current working
-	// directory
+	// If no user supplied path use the data directory in the parent of the
+	// current working directory.
 	if dir == "" {
 		if dir, err = os.Getwd(); err != nil {
 			return nil, err
 		}
-		dir = filepath.Join(dir, "data")
+		dir = filepath.Join(dir, "..", "data")
 	}
 
 	// If no configuration file provided use the default

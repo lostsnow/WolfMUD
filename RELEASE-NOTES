@@ -3,8 +3,84 @@
 This document details the main highlights for each release of WolfMUD. For
 detailed information on changes please see the WolfMUD git repository:
 
-             git clone https://code.wolfmud.org/WolfMUD WolfMUD.git
+                   git clone https://code.wolfmud.org/WolfMUD
 
+
+v0.0.18 Released Sunday 11th April, 2021
+==============================================================================
+
+Module Mode
+
+  - WolfMUD now uses Go's module mode instead of the older GOPATH mode. As a
+    result the use of 'go get' to obtain WolfMUD is considered deprecated. The
+    preferred method of obtaining WolfMUD is Git and cloning the repository.
+    Alternatively the binary and source archives are provided for each release.
+
+Added
+
+  - Zone files can use @refs to reference fields defined at another reference.
+  - Fields in a record jar can have an optional preferred ordering applied when
+    the record jar is written. The default preferred ordering for WolfMUD is
+    specified in the attr/ordering package and can be changed to suit.
+  - The preferred ordering of fields in a zone file is now documented and is
+    intended as a guide to ease collaboration between authors. Details can be
+    found in docs/zone-files.txt.
+  - New wrjfmt tool for formatting record jar files. See Known bugs / Issues.
+  - An optional Makefile is provided for building, testing and running WolfMUD
+    on Linux during development.
+  - An optional Makefile is provided for building WolfMUD releases on Linux.
+  - A new botrunner tool has been added to simulate players on the server for
+    load testing.
+
+Changed
+
+  - The supplied zone files have been cleaned up and make use of the new @refs.
+  - Player files are now written out with the preferred field ordering.
+  - Minor performance improvement inlining state.CanLock check in state.AddLock
+  - Network writes to clients are now asynchronous. This improves performance
+    when handling player commands. Clients on a slow connection are handled
+    better and no longer hold up other players.
+  - All commands and tools should now be placed in the bin directory.
+  - Default data directory for binary, source and Git clones is ../data
+  - Default root directory for binary, source and Git clones is WolfMUD. The
+    instructions for Git clone on the website and in documentation is now:
+
+      git clone https://code.wolfmud.org/WolfMUD
+
+  - Most documentation in the docs directory has been rewritten/ improved.
+
+Deleted
+
+  - The documentation in getting-started.txt has been incorporated into the
+    running-the-server.txt and compiling-from-source.txt guides.
+
+Fixed
+
+  - Fixed an issue in record jars where the name of the free text field was
+    included at the beginning of the text if a named free text field was used
+    as opposed to an unnamed free text section.
+  - Fixed a formatting issue when writing out free text sections. Free text
+    sections are now unfolded and refolded when being written out.
+  - Fixed a comment in the text package which was causing the copyright notice
+    to appear as a package comment.
+
+Known Bugs / Issues
+
+  - The new wrjfmt tool is a work in progress and has several limitations,
+    however it has been made available 'as is' due to the benefits provided
+    when used to clean up the zone files.
+
+      - Comments will be stripped from the record jar
+      - String lists will be compacted
+      - Camel cased field names will be title cased
+      - Named free text fields will become free text sections
+
+    Despite these limitations, it is very useful when formatting a zone file
+    and comparing the output with the original zone file, using a text diff
+    program, and manually applying changes.
+
+  - The new Makefiles for WolfMUD and building releases are currently only for
+    Linux and rely on Bash.
 
 v0.0.17 Released Saturday 31st October, 2020
 ==============================================================================

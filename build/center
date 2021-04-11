@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
+#
+# Use of this source code is governed by the license in the LICENSE file
+# included with the source code.
+#
+# center reads text from stdin or specified files and centers the text within a
+# specified width, default is 78 characters. If a line exceeds the width it is
+# left 'as is'.
+
+usage=$(cat <<EOT
+Usage: center [-w width] [filename...]
+
+  -n width to center text within (default 78)
+
+Center the input text within a given width. The input can be from specified
+files or stdin via a pipe or redirect. If there is input on stdin and specified
+files, stdin will be processed first. Note that if a file is specified that
+does not exist it is assumed to contain no data and no error is raised. If a
+line of text is longer than the miximum width it is left 'as is'.
+
+Example: echo -e "The quick brown fox\njumps over the lazy dog" | ./center
+
+                            The quick brown fox
+                          jumps over the lazy dog
+ 
+EOT
+)
+
+# Default width to center text within with matching padding
+maxWidth=78
+
+# center text within width determined by length of padding
+center() {
+	while read line; do
+		pad=$(( ($maxWidth - ${#line}) / 2 ))
+		if [[ -z "$line" || "$pad" -lt "0" ]]; then
+			echo $line
+		else
+			echo "${padding:1:$pad}$line"
+		fi
+	done
+}
+
+# Process input options
+while getopts ":n:" opt; do
+	case $opt in
+		n ) maxWidth=$OPTARG ;;
+		* ) echo "$usage"; exit	;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+# Validate -n specified an integer > 0
+if [[ ! "$maxWidth" == @([1-9])*([0-9]) ]]; then
+	echo "-n must specify a positive width greater than zero."
+	exit
+fi
+
+# Make padding a number of spaces equal to the maximum width - we should only
+# ever need half that but Bash integer arithmetic is a pain.
+padding=$(printf "%${maxWidth}s" "")
+
+# Process stdin if there is any data
+if read -t0 ; then
+	center
+fi
+
+# Process files if any specified on command line
+while [ ! -z "$1" ]; do
+	if [ -e "$1" ]; then
+		exec < "$1"
+		center
+	fi
+	shift
+done

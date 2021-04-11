@@ -1,28 +1,28 @@
-// Copyright 2018 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
-// Use of this file is governed by the license in the LICENSE file included with
-// the source code.
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
 %%
-        Ref: ZINARACAVES
-       Zone: Caves near Zinara
-     Author: Andrew 'Diddymus' Rolfe
-   Disabled: FALSE
+    Ref: ZINARACAVES
+   Zone: Caves near Zinara
+ Author: Andrew 'Diddymus' Rolfe
+Disabled: FALSE
 
 This are the caves south of Zinara.
 %%
-        Ref: L1
-       Name: Entrance to caves
-    Aliases: ENTRANCE
-      Exits: S→L2
-  ZoneLinks: N→ZINARASOUTH:L13
+      Ref: L1
+     Name: Entrance to caves
+  Aliases: ENTRANCE
+    Exits: S→L2
+ZoneLinks: N→ZINARASOUTH:L13
 
 You have found the entrance to some caves. Heading south takes you into the
 caves. To the north a more plesant looking track runs off into the forest.
 %%
-      Ref: L2
-     Name: Tunnel into the caves
-  Aliases: TUNNEL
-    Exits: N→L1 S→L3
+    Ref: L2
+   Name: Tunnel into the caves
+Aliases: TUNNEL
+  Exits: N→L1 S→L3
 
 You are in a low tunnel that slopes downwards into the caves. The occasional
 sound of dripping water echoes far off in the distance.
@@ -36,18 +36,18 @@ Inventory: L3N1
 You are in a small domed underground chamber, the floor of which is covered in
 fine white sand. From here exits head off in all directions.
 %%
-      Ref: L4
-     Name: Passage
-  Aliases: PASSAGE
-    Exits: N→L3 S→L13
+    Ref: L4
+   Name: Passage
+Aliases: PASSAGE
+  Exits: N→L3 S→L13
 
 You are in a small passage leading through solid rock. It twists and turns
 running roughly north and south.
 %%
-      Ref: L5
-     Name: Short passage
-  Aliases: PASSAGE
-    Exits: E→L3 W→L26
+    Ref: L5
+   Name: Short passage
+Aliases: PASSAGE
+  Exits: E→L3 W→L26
 
 You are in a short passageway running east to west. To the west it ends at a
 wooden door.
@@ -106,37 +106,37 @@ here.
 %%
 // L12?
 %%
-      Ref: L13
-     Name: Bend in passage
-  Aliases: BEND PASSAGE
-    Exits: N→L4 E→L14
+    Ref: L13
+   Name: Bend in passage
+Aliases: BEND PASSAGE
+  Exits: N→L4 E→L14
 
 The passage here takes a sharp bend. It runs to the north and also to the
 east.
 %%
-      Ref: L14
-     Name: Dim passage
-  Aliases: PASSAGE DIM
-    Exits: W→L13 D→L15
+    Ref: L14
+   Name: Dim passage
+Aliases: PASSAGE DIM
+  Exits: W→L13 D→L15
 
 You are in a dim east/west running passageway. To the east end a set of stairs
 lead downward.
 %%
-      Ref: L15
-     Name: Stairs
-  Aliases: STAIRS
+    Ref: L15
+   Name: Stairs
+Aliases: STAIRS
     Exits: U→L14 D→L16
 
 You are on a set of stairs that curl their way through the solid rock around
 you. In the darkness below you can make out a passage. Above the stairs out
 out into a larger area.
 %%
-      Ref: L16
-     Name: Musty passage
-  Aliases: PASSAGE MUSTY
-    Exits: E→L17 U→L15
+    Ref: L16
+   Name: Musty passage
+Aliases: PASSAGE MUSTY
+  Exits: E→L17 U→L15
 
-This passage has a very musty smell to it. Eastward you can actually see mold
+This passage has a very musty smell to it. Eastward you can actually see mould
 and fungus spreading along the walls and floor. There are also some stairs
 here leading up.
 %%
@@ -219,10 +219,10 @@ Inventory: N4
 You are in a passageway that is choked with cobwebs. As you move amongst them
 their touch is gentle, almost ghost like.
 %%
-      Ref: L25
-     Name: Chasm
-  Aliases: CHASM
-    Exits: U→L8
+    Ref: L25
+   Name: Chasm
+Aliases: CHASM
+  Exits: U→L8
 
 You step off of the rock bridge and are suspended in thin air for a very, very
 brief while. Then gravity takes effect and plunges you down into the
@@ -266,15 +266,15 @@ into the stalk.
       Ref: O1
      Name: a glass ball
   Aliases: BALL GLASSBALL
+  Cleanup: AFTER→1m30s JITTER→1m
+OnCleanup: There is a small plinking noise as the glass ball turns black,
+           cracks and then splits before disintegrating into a pile of sand.
     Reset: AFTER→1m30s JITTER→1m SPAWN
   OnReset: You hear the labouring of someone climbing up the stairs. Suddenly
            a head appears from the hole. You see it is a small man in a white
            coat. He carefully takes a small glass ball from his pocket and
            places it on the cap of the toadstool. He then makes his way back
            down again and is gone.
-  Cleanup: AFTER→1m30s JITTER→1m
-OnCleanup: There is a small plinking noise as the glass ball turns black,
-           cracks and then splits before disintegrating into a pile of sand.
 
 As you pear into it you see a small twinkle of light right at it's centre.
 %%
@@ -330,14 +330,14 @@ They are cool to the touch.
       Ref: L10N2
      Name: a basin
   Aliases: BASIN
-Narrative:
 Inventory: L10N3
+Narrative:
 
 This is a small basin fixed to the wall at a height of about 4 foot.
 %%
-      Ref: L10N3
-     Name: some water
-  Aliases: WATER
+    Ref: L10N3
+   Name: some water
+Aliases: WATER
    Vetoes: TAKE→You try to take some water from the basin but it flows through
            your fingers.
 
@@ -348,11 +348,12 @@ This water is slightly pink in colour, but seems to be fresh.
   Aliases: FUNGUS
 Narrative:
 
-The fungus is mostly fine, spindly toadstools that turn to dust when you touch them.
+The fungus is mostly fine, spindly toadstools that turn to dust when you touch
+them.
 %%
       Ref: L16N2
-     Name: some mold
-  Aliases: MOLD
+     Name: some mould
+  Aliases: MOULD
 Narrative:
 
 The mould spreads out in green and purple patches on the walls and floor.
@@ -360,8 +361,8 @@ The mould spreads out in green and purple patches on the walls and floor.
       Ref: N1
      Name: some stone stairs
   Aliases: STAIR STAIRS
-Narrative:
  Location: L6 L7 L14 L15 L16
+Narrative:
 
 These stairs are carved straight out of the solid rock. They seem very worn as
 if they were, or are, often used.
@@ -369,8 +370,8 @@ if they were, or are, often used.
       Ref: N2
      Name: the chasm
   Aliases: CHASM
-Narrative:
  Location: L8 L9
+Narrative:
 
 This is a very deep, dark chasm. Looking over the edge of the bridge you still
 cannot see into it's inky depths.

@@ -23,6 +23,19 @@ type Jar []Record
 // Record represents the separate records in a recordjar.
 type Record map[string][]byte
 
+// mergeFreeText is a helper for merging an actual, named free text field with
+// an unnamed free text section.
+func (r Record) mergeFreeText(freetext string) {
+	if _, ok := r[FTSection]; !ok {
+		return
+	}
+	if _, ok := r[freetext]; ok {
+		r[freetext] = append(r[freetext], '\n')
+	}
+	r[freetext] = append(r[freetext], r[FTSection]...)
+	delete(r, FTSection)
+}
+
 // splitLine is a regex to split fields and data in a recordjar .wrj file. The
 // result of a FindSubmatch should always be a [][]byte of length 3 consisting
 // of: the string matched, the field name, the data.
@@ -39,7 +52,8 @@ var splitLine = regexp.MustCompile(text.Uncomment(`
 `))
 
 const (
-	maxLineWidth = 78 // Maximum length of a line in a .wrj file
+	maxLineWidth = 78          // Maximum length of a line in a .wrj file
+	FTSection    = "FREE TEXT" // Internal (due to space) freetext field for reading
 )
 
 var (
@@ -111,7 +125,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		noLine = noName && noData
 
 		// Ignore comments found outside of free text section
-		if noName && field != freetext && bytes.HasPrefix(data, comment) {
+		if noName && field != FTSection && bytes.HasPrefix(data, comment) {
 			continue
 		}
 
@@ -120,8 +134,9 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// separator appears after a free text section there must be no leading
 		// white-space before it otherwise it will be taken for free text.
 		if noName && bytes.Equal(data, rSeparator) {
-			if field != freetext || (field == freetext && !startWS) {
+			if field != FTSection || (field == FTSection && !startWS) {
 				if len(r) > 0 {
+					r.mergeFreeText(freetext)
 					j = append(j, r)
 					r = Record{}
 				}
@@ -132,7 +147,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 		// If we get a new name and not inside a free text section then store new
 		// name as the current field being processed
-		if !noName && field != freetext {
+		if !noName && field != FTSection {
 			field = name
 		}
 
@@ -142,23 +157,23 @@ func Read(in io.Reader, freetext string) (j Jar) {
 		// free text section. This lets us have a record that has only a free text
 		// section and can start with a blank line, which is not counted as a
 		// separator line.
-		if noLine && field != freetext {
+		if noLine && field != FTSection {
 			if field == "" {
-				r[freetext] = []byte{}
+				r[FTSection] = []byte{}
 			}
-			field = freetext
+			field = FTSection
 			continue
 		}
 
 		// Handle data as free text if already processing the free text section, or
 		// we have no field - in which case assume we are starting a free text
 		// section
-		if field == freetext || field == "" {
-			if _, ok := r[freetext]; ok {
-				r[freetext] = append(r[freetext], '\n')
+		if field == FTSection || field == "" {
+			if _, ok := r[FTSection]; ok {
+				r[FTSection] = append(r[FTSection], '\n')
 			}
-			r[freetext] = append(r[freetext], line...)
-			field = freetext
+			r[FTSection] = append(r[FTSection], line...)
+			field = FTSection
 			continue
 		}
 
@@ -171,6 +186,7 @@ func Read(in io.Reader, freetext string) (j Jar) {
 
 	// Append last record to the Jar if we have one
 	if len(r) > 0 {
+		r.mergeFreeText(freetext)
 		j = append(j, r)
 		r = Record{}
 	}
@@ -184,6 +200,11 @@ func Read(in io.Reader, freetext string) (j Jar) {
 // then any fields named description in a record will be written out in the
 // free text section.
 //
+// Ordering is a list of field names specifying the order the fields should
+// appear in within records if present. Fields not in the list appear at the
+// end of the record in alphabetical order. If Ordering is nil or an empty list
+// then all fields will be written in alphabetical order.
+//
 // For details of the recordjar format see the separate package documentation.
 //
 // TODO(diddymus): Uppercase character after a hyphen in field names so that
@@ -196,7 +217,12 @@ func Read(in io.Reader, freetext string) (j Jar) {
 // different fields.
 // BUG: If a continuation line starts with ": " and we outdent it we don't
 // refold lines even though we have two extra character positions available.
-func (j Jar) Write(out io.Writer, freetext string) {
+func (j Jar) Write(out io.Writer, freetext string, ordering []string) {
+
+	order := make(map[string]int)
+	for x, v := range ordering {
+		order[text.TitleFirst(strings.ToLower(v))] = x
+	}
 
 	var buf bytes.Buffer // Temporary buffer for current record
 
@@ -233,8 +259,23 @@ func (j Jar) Write(out io.Writer, freetext string) {
 			}
 		}
 
+		// Sort keys by preferred order, then alphabetical
+		sort.Slice(keys, func(i, j int) bool {
+			a, aok := order[keys[i]]
+			b, bok := order[keys[j]]
+			switch {
+			case aok && !bok:
+				return true
+			case !aok && bok:
+				return false
+			case !aok && !bok:
+				return keys[i] < keys[j]
+			default:
+				return a < b
+			}
+		})
+
 		// Write out fields for current record in the order given by the sorted keys
-		sort.Strings(keys)
 		for _, field := range keys {
 
 			// Ignore the free text section field as it has to be written last
@@ -281,6 +322,7 @@ func (j Jar) Write(out io.Writer, freetext string) {
 				buf.Write(LF)
 			}
 
+			data = text.Unfold(data)
 			data = text.Fold(data, maxLineWidth)
 			data = bytes.Replace(data, CR, Empty, -1)
 			buf.Write(data)

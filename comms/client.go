@@ -27,6 +27,7 @@ const (
 	termLines    = 24
 	inputBuffer  = 512
 	writeTimeout = time.Second * 10
+	backlogSize  = termLines * 2 // Size of backlog, number of messages
 )
 
 // This interface lets us assert network or our own errors
@@ -45,9 +46,11 @@ type temporary interface {
 // to a switchable, abstract layer so that we can talk to a player, menus,
 // account system etc.
 type client struct {
-	*net.TCPConn            // The client's network connection
-	err          chan error // Error channel to sync between input & output
-	log          log.Conn   // Connection specific logger
+	*net.TCPConn               // The client's network connection
+	err          chan error    // Error channel to sync between input & output
+	log          log.Conn      // Connection specific logger
+	backlog      chan []byte   // Pending unsent message backlog
+	drained      chan struct{} // Backlog closed and drained signal
 
 	frontend interface { // The current frontend in use
 		Parse([]byte) error
@@ -69,6 +72,8 @@ func newClient(conn *net.TCPConn, seq uint64) *client {
 		TCPConn: conn,
 		err:     make(chan error, 1),
 		log:     log.NewConn(seq),
+		backlog: make(chan []byte, backlogSize),
+		drained: make(chan struct{}, 1),
 	}
 
 	c.err <- nil
@@ -82,6 +87,8 @@ func newClient(conn *net.TCPConn, seq uint64) *client {
 		}
 		c.frontend.Parse([]byte(""))
 	}
+
+	go c.backlogWriter()
 
 	return c
 }
@@ -301,7 +308,7 @@ func (c *client) close() {
 	// Deallocate current frontend if we have one
 	if c.frontend != nil {
 		if idle {
-			c.Write([]byte("\n")) // Move off prompt line
+			c.write([]byte("\n")) // Move off prompt line
 		}
 		c.frontend.Close()
 		c.frontend = nil
@@ -309,16 +316,16 @@ func (c *client) close() {
 
 	// If connection timed out notify the client
 	if idle {
-		c.Write([]byte(text.Bad + "\nIdle connection terminated by server.\n"))
+		c.write([]byte(text.Bad + "\nIdle connection terminated by server.\n"))
 	}
 
 	// Notify if server too busy to accept more players
 	if busy {
-		c.Write([]byte(text.Bad + "\nServer too busy. Please come back in a short while.\n"))
+		c.write([]byte(text.Bad + "\nServer too busy. Please come back in a short while.\n"))
 	}
 
 	// Say goodbye to client and reset default colors
-	c.Write([]byte(text.Info + "\nBye bye...\n\n" + text.Reset))
+	c.write([]byte(text.Info + "\nBye bye...\n\n" + text.Reset))
 
 	// Was the frontend closed?
 	_, feClosed := c.Error().(frontend.ClosedError)
@@ -342,6 +349,10 @@ func (c *client) close() {
 		c.log("connection error: %s", c.Error())
 	}
 
+	// Close the backlog channel and wait for it to be drained
+	close(c.backlog)
+	<-c.drained
+
 	// Make sure connection closed down and deallocated
 	if err := c.Close(); err != nil {
 		c.log("error closing connection: %s", err)
@@ -357,8 +368,51 @@ func (c *client) close() {
 	<-c.err
 }
 
-// Write handles output for the network connection.
+// Write puts messages into the backlog channel so that the messages can be
+// sent asynchronously by the backlogWriter method. If the backlog channel is
+// full the oldest message will be removed and discarded so that the new
+// message can be written.
 func (c *client) Write(d []byte) (n int, err error) {
+	if c.Error() != nil {
+		return
+	}
+
+	t := make([]byte, len(d))
+	copy(t, d)
+
+retry:
+	select {
+	case c.backlog <- t:
+	default:
+		select {
+		case <-c.backlog:
+		default:
+		}
+		goto retry
+	}
+	return len(d), nil
+}
+
+// backlogWriter takes messages from the backlog and writes them to the client
+// via the write method. backlogWriter will return when the backlog channel is
+// closed, the backlog channel has been emptied and all messages passed to
+// write. Before returning a signal will be sent on the drained channel to
+// indicate processing has completed.
+func (c *client) backlogWriter() {
+	for {
+		select {
+		case msg, ok := <-c.backlog:
+			if !ok {
+				c.drained <- struct{}{}
+				return
+			}
+			c.write(msg)
+		}
+	}
+}
+
+// write handles direct output to the network connection.
+func (c *client) write(d []byte) (n int, err error) {
 
 	// If we already have a non-temporary error do nothing
 	if e := c.Error(); e != nil {

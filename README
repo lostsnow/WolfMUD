@@ -6,7 +6,7 @@ IF YOU HAVE TROUBLE VIEWING THIS OR OTHER FILES PLEASE USE YOUR WEB BROWSER!
                               https://wolfmud.org
 
 
-                  Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+                  Copyright 1984-2021 Andrew 'Diddymus' Rolfe
                               All rights reserved.
 
 
@@ -21,9 +21,9 @@ as Vim, Emacs or Notepad++ such as you would use for programming. If you just
 wish to view the files you can open them in a web browser such as Google
 Chrome, Mozilla Firefox or Microsoft Internet Explorer.
 
-If this is your first time using WolfMUD, please read the getting-started.txt
-file in the docs directory. If you are upgrading please make sure to read the
-upgrading.txt file as well.
+If this is your first time using WolfMUD, please read running-the-server.txt in
+the docs directory. If you are upgrading please read the upgrading.txt file as
+well.
 
 --
 Diddymus
