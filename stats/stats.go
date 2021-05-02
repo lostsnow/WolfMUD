@@ -81,7 +81,7 @@ func Start() {
 	s.collect() // 1st time initialisation
 
 	go func() {
-		for _ = range time.Tick(config.Stats.Rate) {
+		for range time.Tick(config.Stats.Rate) {
 			s.collect()
 		}
 	}()
