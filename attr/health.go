@@ -87,8 +87,8 @@ func (*Health) Is(a has.Attribute) bool {
 }
 
 // Found returns false if the receiver is nil otherwise true.
-func (n *Health) Found() bool {
-	return n != nil
+func (h *Health) Found() bool {
+	return h != nil
 }
 
 // Unmarshal is used to turn the passed data into a new Health attribute.
