@@ -140,8 +140,8 @@ func (h *Holdable) IsHoldable() bool {
 
 // Slots returns the Body slot references that need to be available to hold
 // the Thing. The returned slice should not be modified.
-func (w *Holdable) Slots() []string {
-	return w.slots
+func (h *Holdable) Slots() []string {
+	return h.slots
 }
 
 // Check will veto the JUNK command if the Thing is currently held.
