@@ -20,7 +20,7 @@
 parms=$*
   now=`date -u -d"${parms:-today}" +@%s`
 
-case `date -d${now} +%d` in
+case `date -d${now} +%-d` in
   1|21|31)  suffix="st" ;;
   2|22)     suffix="nd" ;;
   3|23)     suffix="rd" ;;
