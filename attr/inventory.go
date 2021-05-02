@@ -303,7 +303,7 @@ func (i *Inventory) Remove(t has.Thing) {
 	i.disabled.remove(t)
 }
 
-// Enabled marks a Thing in an Inventory as being in play.
+// Enable marks a Thing in an Inventory as being in play.
 func (i *Inventory) Enable(t has.Thing) {
 	switch {
 	case FindPlayer(t).Found():
