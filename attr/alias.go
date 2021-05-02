@@ -126,7 +126,7 @@ func NewAlias(aliases ...string) *Alias {
 // the attribute changes the old unique identifier is removed (if there is
 // one) and the new unique alias added before setting the new parent.
 func (a *Alias) SetParent(t has.Thing) {
-	for alias, _ := range a.aliases {
+	for alias := range a.aliases {
 		if strings.HasPrefix(alias, internal.UIDPrefix) {
 			delete(a.aliases, alias)
 		}
