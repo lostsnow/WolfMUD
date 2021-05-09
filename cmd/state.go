@@ -8,12 +8,14 @@ package cmd
 import (
 	"io"
 	"strings"
+	"time"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/cmd/internal"
 	"code.wolfmud.org/WolfMUD.git/event"
 	"code.wolfmud.org/WolfMUD.git/has"
 	"code.wolfmud.org/WolfMUD.git/message"
+	"code.wolfmud.org/WolfMUD.git/stats"
 )
 
 func init() {
@@ -131,10 +133,18 @@ func (s *state) tokenizeInput(input string) {
 // required, and added via state.AddLock, additional locks then return false
 // and sync should be called again.
 func (s *state) sync() (inSync bool) {
+	lockStart := time.Now()
+
 	for _, l := range s.locks {
 		l.Lock()
 		defer l.Unlock()
 	}
+
+	lockWait := <-stats.MaxLockWait
+	if diff := time.Now().Sub(lockStart); diff > lockWait {
+		lockWait = diff
+	}
+	stats.MaxLockWait <- lockWait
 
 	// If actor not where we think it is s.where and s.locks will be invalid, and
 	// we will be acquiring the wrong locks, so start over. On our first pass

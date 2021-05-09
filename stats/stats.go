@@ -29,14 +29,23 @@
 package stats
 
 import (
+	"fmt"
 	"log"
 	"runtime"
 	"runtime/debug"
 	"time"
+	"unicode"
 
 	"code.wolfmud.org/WolfMUD.git/attr"
 	"code.wolfmud.org/WolfMUD.git/config"
 )
+
+var MaxLockWait chan time.Duration
+
+func init() {
+	MaxLockWait = make(chan time.Duration, 1)
+	MaxLockWait <- 0
+}
 
 var (
 	unitPrefixs = [...]string{
@@ -52,6 +61,7 @@ type stats struct {
 	Goroutines  int
 	MaxPlayers  int
 	ThingCount  uint64
+	MaxLockWait time.Duration
 	Allocs      uint64
 
 	u uint64 // current inuse memory
@@ -107,6 +117,12 @@ func (s *stats) collect() {
 	s.t = <-attr.ThingCount
 	attr.ThingCount <- s.t
 
+	maxLockWait := <-MaxLockWait
+	MaxLockWait <- 0
+	if maxLockWait > s.MaxLockWait {
+		s.MaxLockWait = maxLockWait
+	}
+
 	// Calculate difference in resources since last run
 	s.Δu = int64(s.u - s.Inuse)
 	s.Δo = int(s.m.HeapObjects - s.HeapObjects)
@@ -124,8 +140,9 @@ func (s *stats) collect() {
 	un, up := uscale(s.u)
 	Δun, Δup := scale(s.Δu)
 
-	log.Printf("U[%4d%-2s %+5d%-2s] A[%+9d] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] P %d/%d",
+	log.Printf("U[%4d%-2s %+5d%-2s] A[%+9d] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] P %d/%d LW[%10s %10s]",
 		un, up, Δun, Δup, s.Δa, s.m.HeapObjects, s.Δo, s.t, s.Δt, s.g, s.Δg, s.p, maxPlayers,
+		prettyDuration(maxLockWait), prettyDuration(s.MaxLockWait),
 	)
 
 	// Save current stats
@@ -160,4 +177,39 @@ func scale(bytes int64) (scaled int64, scale string) {
 		scaled, scale = uscale(uint64(bytes))
 	}
 	return
+}
+
+func prettyDuration(d time.Duration) string {
+	var D string
+	switch {
+	case d >= time.Minute:
+		D = fmt.Sprintf("%.3fs", d.Seconds())
+	case d > time.Second:
+		D = d.Round(time.Millisecond).String()
+	case d > time.Millisecond:
+		D = d.Round(time.Microsecond).String()
+	case d > time.Microsecond:
+		D = d.Round(time.Nanosecond).String()
+	default:
+		D = d.String()
+	}
+	parts := [][]rune{{}, {}, {}}
+	idx := 0
+	for _, c := range D {
+		switch {
+		case c == '.':
+			idx++
+			continue
+		case !unicode.IsDigit(c):
+			idx = 2
+		}
+		parts[idx] = append(parts[idx], c)
+	}
+	parts[1] = append(parts[1], []rune("000")[:3-len(parts[1])]...)
+	parts[2] = append(parts[2], []rune("  ")[:2-len(parts[2])]...)
+	parts[0] = append(parts[0], '.')
+	parts[0] = append(parts[0], parts[1]...)
+	parts[0] = append(parts[0], parts[2]...)
+
+	return string(parts[0])
 }
