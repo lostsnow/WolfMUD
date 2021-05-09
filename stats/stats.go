@@ -212,6 +212,8 @@ func scale(bytes int64) (scaled int64, scale string) {
 	return
 }
 
+// prettyDuration formats the given duration to have a precision of 3, with
+// trailing zeros. For example: 2.320µs, 397.800ms.
 func prettyDuration(d time.Duration) string {
 	var D string
 	switch {
