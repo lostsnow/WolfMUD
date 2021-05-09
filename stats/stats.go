@@ -4,16 +4,23 @@
 // included with the source code.
 
 // Package stats implements periodic collection and display of various -
-// possibly interesting - statistics. A typical reading might be:
+// possibly interesting - statistics. A typical line from the log might be:
 //
-//	U[   1Mb  -816b ] O[          1564        +0] G[    39     +0] P 11/11
+//	U[2Mb +1b] A[+48] O[9785 +4] T[265 +0] G[27 +0] W[1.363µs 2.989µs] P[0 0]
 //
-// This shows:
+// The general format of the line is:
 //
-//	U[   1Mb  -816b ] - used memory, change since last collection
-//	O[  1564      +0] - heap objects, change since last collection
-//	G[    39      +0] - Goroutines, change since last collection
-//	P 11/11           - Current number of players / maximum number of players
+//	U[n ±n] A[±n] O[n ±n] T[n ±n] G[n ±n] W[n max] P[n max]
+//
+// The values show the following data:
+//
+//	U[n  ±n] - used memory, change since last collection
+//	A[   ±n] - number of memory allocations since last collection
+//	O[n  ±n] - heap objects, change since last collection
+//	T[n  ±n] - number of things in the world, change since last collection
+//	G[n  ±n] - number of goroutines, change since last collection
+//	W[n max] - Lock wait time since last collection / max wait since start
+//	P[n max] - Current number of players / maximum number of players
 //
 // Used memory is rounded to the nearest convenient units: b - bytes, kb -
 // kilobytes, Mb - megabytes, Gb - gigabytes, Tb - terabytes, Pb - petabytes,
@@ -33,6 +40,7 @@ import (
 	"log"
 	"runtime"
 	"runtime/debug"
+	"sync"
 	"time"
 	"unicode"
 
@@ -40,12 +48,14 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 )
 
-var MaxLockWait chan time.Duration
-
-func init() {
-	MaxLockWait = make(chan time.Duration, 1)
-	MaxLockWait <- 0
-}
+// maxLockWait is the maximum time it takes to acquire the locks for processing
+// a command. It is reset each time stats are collected. Externally this value
+// should be updated by calling the LockWait function which will handle the
+// locking.
+var (
+	maxLockWait      time.Duration
+	maxLockWaitMutex sync.RWMutex
+)
 
 var (
 	unitPrefixs = [...]string{
@@ -61,6 +71,7 @@ type stats struct {
 	Goroutines  int
 	MaxPlayers  int
 	ThingCount  uint64
+	LockWait    time.Duration
 	MaxLockWait time.Duration
 	Allocs      uint64
 
@@ -117,10 +128,13 @@ func (s *stats) collect() {
 	s.t = <-attr.ThingCount
 	attr.ThingCount <- s.t
 
-	maxLockWait := <-MaxLockWait
-	MaxLockWait <- 0
-	if maxLockWait > s.MaxLockWait {
-		s.MaxLockWait = maxLockWait
+	// Get max lock wait time and reset it
+	maxLockWaitMutex.Lock()
+	s.LockWait = maxLockWait
+	maxLockWait = 0
+	maxLockWaitMutex.Unlock()
+	if s.LockWait > s.MaxLockWait {
+		s.MaxLockWait = s.LockWait
 	}
 
 	// Calculate difference in resources since last run
@@ -140,9 +154,9 @@ func (s *stats) collect() {
 	un, up := uscale(s.u)
 	Δun, Δup := scale(s.Δu)
 
-	log.Printf("U[%4d%-2s %+5d%-2s] A[%+9d] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] P %d/%d LW[%10s %10s]",
-		un, up, Δun, Δup, s.Δa, s.m.HeapObjects, s.Δo, s.t, s.Δt, s.g, s.Δg, s.p, maxPlayers,
-		prettyDuration(maxLockWait), prettyDuration(s.MaxLockWait),
+	log.Printf("U[%4d%-2s %+5d%-2s] A[%+9d] O[%14d %+9d] T[%14d %+9d] G[%6d %+6d] W[%10s %10s] P[%5d %5d]",
+		un, up, Δun, Δup, s.Δa, s.m.HeapObjects, s.Δo, s.t, s.Δt, s.g, s.Δg,
+		prettyDuration(s.LockWait), prettyDuration(s.MaxLockWait), s.p, maxPlayers,
 	)
 
 	// Save current stats
@@ -152,6 +166,25 @@ func (s *stats) collect() {
 	s.MaxPlayers = maxPlayers
 	s.ThingCount = s.t
 	s.Allocs = s.a
+}
+
+// LockWait will update the maxLockWait time if required.
+func LockWait(wait time.Duration) {
+
+	maxLockWaitMutex.RLock()
+	mlw := maxLockWait
+	maxLockWaitMutex.RUnlock()
+
+	// Note the need to check the stats didn't change between the initial check
+	// and relocking.
+	if wait > mlw {
+		maxLockWaitMutex.Lock()
+		if wait > maxLockWait {
+			maxLockWait = wait
+		}
+		maxLockWaitMutex.Unlock()
+	}
+
 }
 
 // uscale converts an unsigned number of bytes to a scaled unit of bytes with a

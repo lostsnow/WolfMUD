@@ -133,18 +133,16 @@ func (s *state) tokenizeInput(input string) {
 // required, and added via state.AddLock, additional locks then return false
 // and sync should be called again.
 func (s *state) sync() (inSync bool) {
-	lockStart := time.Now()
+	var lockStart, lockEnd time.Time
 
+	lockStart = time.Now()
 	for _, l := range s.locks {
 		l.Lock()
 		defer l.Unlock()
 	}
+	lockEnd = time.Now()
 
-	lockWait := <-stats.MaxLockWait
-	if diff := time.Now().Sub(lockStart); diff > lockWait {
-		lockWait = diff
-	}
-	stats.MaxLockWait <- lockWait
+	stats.LockWait(lockEnd.Sub(lockStart))
 
 	// If actor not where we think it is s.where and s.locks will be invalid, and
 	// we will be acquiring the wrong locks, so start over. On our first pass
