@@ -5,8 +5,6 @@
 
 package proc
 
-var World map[string]*Thing
-
 func (s *state) Look() {
 	where := World[s.actor.As[Where]]
 	switch {

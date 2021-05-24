@@ -19,6 +19,7 @@ type state struct {
 	buff  *bytes.Buffer
 }
 
+var World map[string]*Thing
 var filler = []string{"", "", ""}
 
 func NewState(t *Thing, cmd string) *state {
