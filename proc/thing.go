@@ -65,3 +65,25 @@ func NewThing(name, description string) *Thing {
 		As:          make(map[asAttr]string),
 	}
 }
+
+// Find looks for a Thing with the given alias in the provided list of Things
+// inventories. If a matching Thing is found returns the Thing, the Thing who's
+// Inventory it was in and the index in the inventory where it was found. If
+// there is not match returns nill for the Thing, nil for the Inventory and an
+// index of -1.
+func Find(alias string, where ...*Thing) (*Thing, *Thing, int) {
+	if alias == "" {
+		return nil, nil, -1
+	}
+	for _, inv := range where {
+		if inv == nil {
+			continue
+		}
+		for idx, item := range inv.In {
+			if item.As[Alias] == alias {
+				return item, inv, idx
+			}
+		}
+	}
+	return nil, nil, -1
+}
