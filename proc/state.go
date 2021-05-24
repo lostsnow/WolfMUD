@@ -6,7 +6,6 @@
 package proc
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -16,7 +15,7 @@ type state struct {
 	actor *Thing
 	cmd   string
 	word  []string
-	buff  *bytes.Buffer
+	buff  *strings.Builder
 }
 
 var World map[string]*Thing
@@ -28,7 +27,7 @@ func NewState(t *Thing, cmd string) *state {
 		words = append(words, filler[len(words):]...)
 	}
 	return &state{
-		t, words[0], words[1:], &bytes.Buffer{},
+		t, words[0], words[1:], &strings.Builder{},
 	}
 }
 
@@ -69,4 +68,10 @@ func (s *state) Parse() {
 		s.buff.WriteByte('\n')
 	}
 	fmt.Printf("%s%s >", s.buff.String(), end.Sub(start))
+}
+
+func (s *state) Msg(text ...string) {
+	for _, t := range text {
+		s.buff.WriteString(t)
+	}
 }
