@@ -5,6 +5,44 @@
 
 package proc
 
+// Commands maps command strings to the implementing methods.
+var commands = map[string]func(*state){
+	"":          func(*state) {},
+	"QUIT":      func(s *state) { s.Msg("Bye bye!") },
+	"L":         (*state).Look,
+	"LOOK":      (*state).Look,
+	"N":         (*state).Move,
+	"NORTH":     (*state).Move,
+	"NE":        (*state).Move,
+	"NORTHEAST": (*state).Move,
+	"E":         (*state).Move,
+	"EAST":      (*state).Move,
+	"SE":        (*state).Move,
+	"SOUTHEAST": (*state).Move,
+	"S":         (*state).Move,
+	"SOUTH":     (*state).Move,
+	"SW":        (*state).Move,
+	"SOUTHWEST": (*state).Move,
+	"W":         (*state).Move,
+	"WEST":      (*state).Move,
+	"NW":        (*state).Move,
+	"UP":        (*state).Move,
+	"DOWN":      (*state).Move,
+	"NORTHWEST": (*state).Move,
+	"EXAM":      (*state).Examine,
+	"EXAMINE":   (*state).Examine,
+	"INV":       (*state).Inventory,
+	"INVENTORY": (*state).Inventory,
+	"DROP":      (*state).Drop,
+	"GET":       (*state).Get,
+	"TAKE":      (*state).Take,
+	"PUT":       (*state).Put,
+}
+
+func (s *state) Quit() {
+	s.Msg("Bye bye!")
+}
+
 func (s *state) Look() {
 
 	where := World[s.actor.As[Where]]
@@ -73,7 +111,7 @@ func (s *state) Examine() {
 	}
 }
 
-func (s *state) Inv() {
+func (s *state) Inventory() {
 	switch {
 	case len(s.actor.In) == 0:
 		s.Msg("You are not carrying anything.")
