@@ -74,17 +74,28 @@ var (
 	}
 )
 
+var nextUID chan uint32
+
+func init() {
+	nextUID = make(chan uint32, 1)
+	nextUID <- 0
+}
+
 // Thing is a basic one thing fits all type.
 type Thing struct {
 	Name        string
 	Description string
+	UID         uint32
 	Is          uint32
 	As          map[uint32]string
 	In          []*Thing
 }
 
 func NewThing(name, description string) *Thing {
+	uid := <-nextUID
+	nextUID <- uid + 1
 	return &Thing{
+		UID:         uid,
 		Name:        name,
 		Description: description,
 		As:          make(map[uint32]string),
