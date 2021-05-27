@@ -9,13 +9,9 @@ import (
 	"strings"
 )
 
-type isAttr byte
-type asAttr byte
-
 // Is Attributes
 const (
-	Unset isAttr = 1 << iota
-	Start
+	Start uint32 = 1 << iota
 	Narrative
 	Dark
 	NPC
@@ -39,7 +35,7 @@ func IsNames(is uint32) string {
 
 // As value keys
 const (
-	North asAttr = iota
+	North uint32 = iota
 	Northeast
 	East
 	Southeast
@@ -55,14 +51,17 @@ const (
 
 // Direction mappings
 var (
-	NameToDir = map[string]asAttr{
+	// NameToDir maps a long or short direction name to its As constant.
+	NameToDir = map[string]uint32{
 		"N": North, "NE": Northeast, "E": East, "SE": Southeast,
 		"S": South, "SW": Southwest, "W": West, "NW": Northwest,
 		"NORTH": North, "NORTHEAST": Northeast, "EAST": East, "SOUTHEAST": Southeast,
 		"SOUTH": South, "SOUTHWEST": Southwest, "WEST": West, "NORTHWEST": Northwest,
 		"UP": Up, "DOWN": Down,
 	}
-	DirToName = map[asAttr]string{
+
+	// DirToName maps an As direction constant to the direction's long name.
+	DirToName = map[uint32]string{
 		North: "north", Northeast: "northeast", East: "east", Southeast: "southeast",
 		South: "south", Southwest: "southwest", West: "west", Northwest: "northwest",
 		Up: "up", Down: "down",
@@ -73,8 +72,8 @@ var (
 type Thing struct {
 	Name        string
 	Description string
-	Is          isAttr
-	As          map[asAttr]string
+	Is          uint32
+	As          map[uint32]string
 	In          []*Thing
 }
 
@@ -82,7 +81,7 @@ func NewThing(name, description string) *Thing {
 	return &Thing{
 		Name:        name,
 		Description: description,
-		As:          make(map[asAttr]string),
+		As:          make(map[uint32]string),
 	}
 }
 
