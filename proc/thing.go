@@ -49,6 +49,12 @@ const (
 	Alias
 )
 
+// As value mappings
+var asNames = []string{
+	"N", "NE", "E", "SE", "S", "SW", "W", "NW", "Up", "Down",
+	"Where", "Alias",
+}
+
 // Direction mappings
 var (
 	// NameToDir maps a long or short direction name to its As constant.
