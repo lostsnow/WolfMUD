@@ -19,11 +19,11 @@ func Load() {
 	// Items
 
 	cat := proc.NewThing("the tavern cat", "The tavern cat is a ball of fur with one golden eye, the other eye replaced by a large scar. It senses you watching it and returns your gaze with a steady one of its own.")
-	cat.Is |= proc.NPC
+	cat.Is = proc.NPC
 	cat.As[proc.Alias] = "CAT"
 
 	fireplace := proc.NewThing("an ornate fireplace", "This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire.")
-	fireplace.Is |= proc.Narrative
+	fireplace.Is = proc.Narrative
 	fireplace.As[proc.Alias] = "FIREPLACE"
 
 	fire := proc.NewThing("a fire", "Some logs have been placed into the fireplace and are burning away merrily.")
