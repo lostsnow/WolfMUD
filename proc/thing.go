@@ -5,6 +5,10 @@
 
 package proc
 
+import (
+	"strings"
+)
+
 type isAttr byte
 type asAttr byte
 
@@ -17,7 +21,23 @@ const (
 	NPC
 )
 
-// As Values
+// Is value mapping to name.
+var isNames = []string{
+	"Start", "Narrative", "Dark", "NPC",
+}
+
+// isNames returns the names of the set flags separated by the OR (|) symbol.
+func IsNames(is uint32) string {
+	names := []string{}
+	for x := len(isNames) - 1; x >= 0; x-- {
+		if is&(1<<x) != 0 {
+			names = append(names, isNames[x])
+		}
+	}
+	return strings.Join(names, "|")
+}
+
+// As value keys
 const (
 	North asAttr = iota
 	Northeast
