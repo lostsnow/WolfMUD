@@ -37,6 +37,7 @@ var commands = map[string]func(*state){
 	"GET":       (*state).Get,
 	"TAKE":      (*state).Take,
 	"PUT":       (*state).Put,
+	"#DUMP":     (*state).Dump,
 }
 
 func (s *state) Quit() {
@@ -219,5 +220,24 @@ func (s *state) Put() {
 
 		where.In = append(where.In, what)
 		s.Msg("You put ", what.Name, " into ", where.Name, ".")
+	}
+}
+
+func (s *state) Dump() {
+
+  var what *Thing
+	if s.word[0] == "@" {
+		what = World[s.actor.As[Where]]
+	} else {
+		what, _, _ = Find(s.word[0], s.actor, World[s.actor.As[Where]])
+	}
+
+	switch {
+	case s.word[0] == "":
+		s.Msg("What did you want to dump?")
+	case what == nil:
+		s.Msg("You see no '", s.word[0], "' to dump.")
+	default:
+		what.Dump(s.buff, 80)
 	}
 }
