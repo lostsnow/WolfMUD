@@ -17,11 +17,12 @@ const (
 	Narrative
 	Dark
 	NPC
+	Container
 )
 
 // Is value mapping to name.
 var isNames = []string{
-	"Start", "Narrative", "Dark", "NPC",
+	"Start", "Narrative", "Dark", "NPC", "Container",
 }
 
 // isNames returns the names of the set flags separated by the OR (|) symbol.

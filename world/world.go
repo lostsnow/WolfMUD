@@ -38,10 +38,12 @@ func Load() {
 
 
 	bag := proc.NewThing("a bag", "This is a simple cloth bag.")
+	bag.Is = proc.Container
 	bag.As[proc.Alias] = "BAG"
 	bag.In = append(bag.In, apple)
 
 	chest := proc.NewThing("a chest", "This is a large iron bound wooden chest.")
+	chest.Is = proc.Container
 	chest.As[proc.Alias] = "CHEST"
 	chest.In = append(chest.In, greenBall, bag)
 

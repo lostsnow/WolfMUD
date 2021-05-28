@@ -101,7 +101,7 @@ func (s *state) Examine() {
 		s.Msg("You go to examine... something?")
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to examine.")
-	case len(what.In) == 0:
+	case what.Is&Container != Container || len(what.In) == 0:
 		s.Msg("You examine ", what.Name, ".\n", what.Description)
 	default:
 		s.Msg("You examine ", what.Name, ".\n", what.Description)
@@ -182,6 +182,11 @@ func (s *state) Take() {
 		s.Msg("You see no '", s.word[1], "' to take anything from.")
 	case what == nil:
 		s.Msg(where.Name, " does not seem to contain '", s.word[0], "'.")
+	case where.Is&(Container|NPC) == NPC :
+		s.Msg("You can't take ", what.Name, " from ", where.Name, ".")
+	case where.Is&Container == 0:
+		s.Msg("You can't take ", what.Name, " out of ", where.Name, ".")
+	case what == nil:
 	default:
 		copy(where.In[idx:], where.In[idx+1:])
 		where.In[len(where.In)-1] = nil
@@ -211,6 +216,8 @@ func (s *state) Put() {
 		s.Msg("You see no '", s.word[1], "' to put ", what.Name, " in.")
 	case where.Is&NPC == NPC:
 		s.Msg("Taxidermist are we?")
+	case where.Is&Container == 0:
+		s.Msg("You can't put ", what.Name, " into ", where.Name, ".")
 	case what == nil:
 		s.Msg("You have no '", s.word[0], "' to put into ", where.Name, ".")
 	default:
