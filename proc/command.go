@@ -212,7 +212,7 @@ func (s *state) Put() {
 	case where.Is&NPC == NPC:
 		s.Msg("Taxidermist are we?")
 	case what == nil:
-		s.Msg("You have no '", s.word[0], "' to put into ", where.Name+".")
+		s.Msg("You have no '", s.word[0], "' to put into ", where.Name, ".")
 	default:
 		copy(s.actor.In[idx:], s.actor.In[idx+1:])
 		s.actor.In[len(s.actor.In)-1] = nil
