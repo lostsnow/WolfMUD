@@ -6,6 +6,8 @@
 package proc
 
 import (
+	"fmt"
+	"io"
 	"strings"
 )
 
@@ -122,4 +124,97 @@ func Find(alias string, where ...*Thing) (*Thing, *Thing, int) {
 		}
 	}
 	return nil, nil, -1
+}
+
+// Dump will write a pretty ASCII tree representing the details of a Thing.
+// Some examples:
+//
+//	`- 0xc00000e048 *proc.Thing - CAT
+//	   |- Name - the tavern cat
+//	   |- Description - The tavern cat is a ball of fur with one golden eye, the
+//	   |                other eye replaced by a large scar. It senses you
+//	   |                watching it and returns your gaze with a steady one of
+//	   |                its own.
+//	   |- Is - 00000000000000000000000000001000 (NPC)
+//	   |- As - len: 1
+//	   |  `- [11] Alias: CAT
+//	   `- In - len: 0, nil: true
+//
+//
+//	`- 0xc00009c008 *proc.Thing - BAG
+//	   |- Name - a bag
+//	   |- Description - This is a simple cloth bag.
+//	   |- Is - 00000000000000000000000000010000 (Container)
+//	   |- As - len: 1
+//	   |  `- [11] Alias: BAG
+//	   `- In - len: 1, nil: false
+//	      `- 0xc00009c010 *proc.Thing - APPLE
+//	         |- Name - an apple
+//	         |- Description - This is a red apple.
+//	         |- Is - 00000000000000000000000000000000 ()
+//	         |- As - len: 1
+//	         |  `- [11] Alias: APPLE
+//	         `- In - len: 0, nil: true
+//
+func (t *Thing) Dump(w io.Writer, width int) {
+	t.dump(w, width, "", true)
+}
+
+// Tree drawing parts for dump method
+var tree = map[bool]struct{ i, b string }{
+	false: {i: "|- ", b: "|  "}, // tree item/branch when end=false
+	true:  {i: "`- ", b: "   "}, // tree item/branch when end=true
+}
+
+// dump implements the core functionality of the Dump method which just passes
+// some initial values to dump.
+func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
+	var b strings.Builder
+
+	p := func(f string, a ...interface{}) {
+		b.WriteString(indent)
+		fmt.Fprintf(&b, f, a...)
+		b.WriteByte('\n')
+	}
+
+	lines := simpleFold(t.Description, width-len(indent)-20)
+	p("%s%p %[2]T - UID: %d, %s", tree[last].i, t, t.UID, t.As[Alias])
+	indent += tree[last].b
+	p("%sName - %s", tree[false].i, t.Name)
+	p("%sDescription - %s", tree[false].i, lines[0])
+	for _, line := range lines[1:] {
+		p("%-17s%s", tree[false].b, line)
+	}
+	p("%sIs - %032b (%s)", tree[false].i, t.Is, IsNames(t.Is))
+	lIn, lAs := len(t.In), len(t.As)
+	p("%sAs - len: %d", tree[false].i, lAs)
+	for k, v := range t.As {
+		lAs--
+		p("%s%s[%2d] %2s: %s", tree[false].b, tree[lAs == 0].i, k, asNames[k], v)
+	}
+	p("%sIn - len: %d, nil: %t", tree[true].i, lIn, t.In == nil)
+	w.Write([]byte(b.String()))
+	for x, item := range t.In {
+		item.dump(w, width, indent+tree[true].b, x == lIn-1)
+	}
+}
+
+// simpleFold folds a line of text returning multiple lines of the given width.
+//
+// BUG(diddymus): This function is not Unicode safe and embeded line feeds will
+// probably produce an undesireable result.
+func simpleFold(s string, width int) (lines []string) {
+	var b strings.Builder
+	for _, word := range strings.Fields(s) {
+		if len(word)+b.Len()+1 > width {
+			lines = append(lines, b.String())
+			b.Reset()
+		}
+		if b.Len() > 0 {
+			b.WriteByte(' ')
+		}
+		b.WriteString(word)
+	}
+	lines = append(lines, b.String())
+	return
 }
