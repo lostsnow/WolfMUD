@@ -50,6 +50,10 @@ func Load() {
 	redBall := proc.NewThing("a red ball", "This is a small red ball.")
 	redBall.As[proc.Alias] = "BALL"
 
+	note := proc.NewThing("a note", "This is a small piece of paper with something written on it.")
+	note.As[proc.Alias] = "NOTE"
+	note.As[proc.Writing] = "It says 'Here be dragons'."
+
 	// Locations
 
 	L1 := proc.NewThing("Fireplace", "You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance.")
@@ -79,5 +83,6 @@ func Load() {
 	L4.As[proc.North] = "L3"
 	L4.As[proc.Northwest] = "L1"
 	L4.As[proc.West] = "L2"
+	L4.In = append(L4.In, note)
 	World["L4"] = L4
 }

@@ -37,6 +37,8 @@ var commands = map[string]func(*state){
 	"GET":       (*state).Get,
 	"TAKE":      (*state).Take,
 	"PUT":       (*state).Put,
+	"READ":      (*state).Read,
+
 	"#DUMP":     (*state).Dump,
 }
 
@@ -246,5 +248,18 @@ func (s *state) Dump() {
 		s.Msg("You see no '", s.word[0], "' to dump.")
 	default:
 		what.Dump(s.buff, 80)
+	}
+}
+
+func (s *state) Read() {
+	what, _, _ := Find(s.word[0], World[s.actor.As[Where]], s.actor)
+
+	switch {
+	case what == nil:
+		s.Msg("You see no '", s.word[0], "' here to read.")
+	case what.As[Writing] == "":
+		s.Msg("There is nothing on ", what.Name, " to read.")
+	default:
+		s.Msg("You read ", what.Name, ". ", what.As[Writing])
 	}
 }

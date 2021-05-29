@@ -50,13 +50,14 @@ const (
 	Down
 	Where
 	Alias
+	Writing
 )
 
 // As value mappings
 var asNames = []string{
 	"North", "Northeast", "East", "Southeast",
 	"South", "Southwest", "West", "Northwest", "Up", "Down",
-	"Where", "Alias",
+	"Where", "Alias", "Writing",
 }
 
 var (
