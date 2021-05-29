@@ -36,7 +36,6 @@ func Load() {
 	apple := proc.NewThing("an apple", "This is a red apple.")
 	apple.As[proc.Alias] = "APPLE"
 
-
 	bag := proc.NewThing("a bag", "This is a simple cloth bag.")
 	bag.Is = proc.Container
 	bag.As[proc.Alias] = "BAG"

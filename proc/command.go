@@ -39,7 +39,7 @@ var commands = map[string]func(*state){
 	"PUT":       (*state).Put,
 	"READ":      (*state).Read,
 
-	"#DUMP":     (*state).Dump,
+	"#DUMP": (*state).Dump,
 }
 
 func (s *state) Quit() {
@@ -184,7 +184,7 @@ func (s *state) Take() {
 		s.Msg("You see no '", s.word[1], "' to take anything from.")
 	case what == nil:
 		s.Msg(where.Name, " does not seem to contain '", s.word[0], "'.")
-	case where.Is&(Container|NPC) == NPC :
+	case where.Is&(Container|NPC) == NPC:
 		s.Msg("You can't take ", what.Name, " from ", where.Name, ".")
 	case where.Is&Container == 0:
 		s.Msg("You can't take ", what.Name, " out of ", where.Name, ".")
@@ -234,7 +234,7 @@ func (s *state) Put() {
 
 func (s *state) Dump() {
 
-  var what *Thing
+	var what *Thing
 	if s.word[0] == "@" {
 		what = World[s.actor.As[Where]]
 	} else {
