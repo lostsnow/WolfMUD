@@ -53,6 +53,12 @@ func Load() {
 	note.As[proc.Alias] = "NOTE"
 	note.As[proc.Writing] = "It says 'Here be dragons'."
 
+	door := proc.NewThing("the tavern door", "This is a sturdy wooden door with a simple latch.")
+	door.Is = proc.Narrative
+	door.As[proc.Alias] = "DOOR"
+	door.As[proc.Blocker] = "E"
+	door.As[proc.Where] = "L3"
+
 	// Locations
 
 	L1 := proc.NewThing("Fireplace", "You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance.")
@@ -75,7 +81,7 @@ func Load() {
 	L3.As[proc.South] = "L4"
 	L3.As[proc.Southwest] = "L2"
 	L3.As[proc.West] = "L1"
-	L3.In = append(L3.In, redBall)
+	L3.In = append(L3.In, redBall, door)
 	World["L3"] = L3
 
 	L4 := proc.NewThing("Tavern bar", "You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with many bottles in a dizzying array of sizes, shapes and colours. There are also regular casks of beer, ale, mead, cider and wine behind the bar.")
@@ -90,5 +96,6 @@ func Load() {
 	L5.As[proc.East] = "L6"
 	L5.As[proc.South] = "L7"
 	L5.As[proc.West] = "L3"
+	L5.In = append(L5.In, door)
 	World["L5"] = L5
 }
