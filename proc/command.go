@@ -38,6 +38,8 @@ var commands = map[string]func(*state){
 	"TAKE":      (*state).Take,
 	"PUT":       (*state).Put,
 	"READ":      (*state).Read,
+	"OPEN":      (*state).Open,
+	"CLOSE":     (*state).Close,
 
 	"#DUMP": (*state).Dump,
 }
@@ -83,9 +85,32 @@ func (s *state) Move() {
 	dir := NameToDir[s.cmd]
 	where := World[s.actor.As[Where]]
 
-	switch {
-	case where.As[dir] == "":
+	if where.As[dir] == "" {
 		s.Msg("You can't go ", DirToName[dir], ".")
+		return
+	}
+
+	// Try and find first blocker for direction we want to go
+	var blocker *Thing
+	for _, item := range where.In {
+		if item.As[Blocker] == "" {
+			continue
+		}
+		blocking := NameToDir[item.As[Blocker]]
+		// If on 'other side' need opposite direction blocked
+		if item.As[Where] != s.actor.As[Where] {
+			blocking = ReverseDir(blocking)
+		}
+		if blocking == dir && item.Is&Open != Open {
+			blocker = item
+			break
+		}
+	}
+
+	switch {
+	case blocker != nil:
+		s.Msg("You can't go ", DirToName[dir], ". ",
+			blocker.Name, " is blocking your way.")
 	case World[where.As[dir]] == nil:
 		s.Msg("Oops! You can't actually go ", DirToName[dir], ".")
 	default:
@@ -105,6 +130,14 @@ func (s *state) Examine() {
 		s.Msg("You see no '", s.word[0], "' to examine.")
 	case what.Is&Container != Container || len(what.In) == 0:
 		s.Msg("You examine ", what.Name, ".\n", what.Description)
+		// If a blocker, e.g. a door, is it open or closed?
+		switch {
+		case what.As[Blocker] == "":
+		case what.Is&Open == Open:
+			s.Msg(" It is open.")
+		default:
+			s.Msg(" It is closed.")
+		}
 	default:
 		s.Msg("You examine ", what.Name, ".\n", what.Description)
 		s.Msg(" It contains: ", what.In[0].Name)
@@ -261,5 +294,41 @@ func (s *state) Read() {
 		s.Msg("There is nothing on ", what.Name, " to read.")
 	default:
 		s.Msg("You read ", what.Name, ". ", what.As[Writing])
+	}
+}
+
+func (s *state) Open() {
+	what, _, _ := Find(s.word[0], World[s.actor.As[Where]])
+
+	switch {
+	case s.word[0] == "":
+		s.Msg("You go to open something...")
+	case what == nil:
+		s.Msg("You see no '", s.word[0], "' to open.")
+	case what.As[Blocker] == "":
+		s.Msg(what.Name, " is not something you can open.")
+	case what.Is&Open == Open:
+		s.Msg(what.Name, " is already open.")
+	default:
+		what.Is |= Open
+		s.Msg("You open ", what.Name, ".")
+	}
+}
+
+func (s *state) Close() {
+	what, _, _ := Find(s.word[0], World[s.actor.As[Where]])
+
+	switch {
+	case s.word[0] == "":
+		s.Msg("You go to close something...")
+	case what == nil:
+		s.Msg("You see no '", s.word[0], "' to close.")
+	case what.As[Blocker] == "":
+		s.Msg(what.Name, " is not something you can close.")
+	case what.Is&Open == 0:
+		s.Msg(what.Name, " is already closed.")
+	default:
+		what.Is &^= Open
+		s.Msg("You close ", what.Name, ".")
 	}
 }
