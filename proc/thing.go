@@ -18,11 +18,12 @@ const (
 	Dark
 	NPC
 	Container
+	Open
 )
 
 // Is value mapping to name.
 var isNames = []string{
-	"Start", "Narrative", "Dark", "NPC", "Container",
+	"Start", "Narrative", "Dark", "NPC", "Container", "Open",
 }
 
 // isNames returns the names of the set flags separated by the OR (|) symbol.
@@ -51,13 +52,14 @@ const (
 	Where
 	Alias
 	Writing
+	Blocker
 )
 
 // As value mappings
 var asNames = []string{
 	"North", "Northeast", "East", "Southeast",
 	"South", "Southwest", "West", "Northwest", "Up", "Down",
-	"Where", "Alias", "Writing",
+	"Where", "Alias", "Writing", "Blocker",
 }
 
 var (
