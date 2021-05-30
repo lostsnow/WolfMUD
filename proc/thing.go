@@ -78,6 +78,21 @@ var (
 	}
 )
 
+// ReverseDir takes a direction value and returns the reverse or opposite
+// direction. For example if passed the constant East it will return West. If
+// the passed value is not one of the direction constants it will be returned
+// unchanged.
+func ReverseDir(dir uint32) uint32 {
+	switch {
+	case dir > Down:
+		return dir
+	case dir < Up:
+		return dir ^ 1<<2
+	default:
+		return dir ^ 1
+	}
+}
+
 var nextUID chan uint32
 
 func init() {
