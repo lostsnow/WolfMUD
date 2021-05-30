@@ -41,7 +41,10 @@ var commands = map[string]func(*state){
 	"OPEN":      (*state).Open,
 	"CLOSE":     (*state).Close,
 
-	"#DUMP": (*state).Dump,
+	// Admin and debugging commands
+	"#DUMP":     (*state).Dump,
+	"#TELEPORT": (*state).Teleport,
+	"#GOTO":     (*state).Teleport,
 }
 
 func (s *state) Quit() {
@@ -332,5 +335,18 @@ func (s *state) Close() {
 	default:
 		what.Is &^= Open
 		s.Msg("You close ", what.Name, ".")
+	}
+}
+
+func (s *state) Teleport() {
+	where := World[s.word[0]]
+
+	switch {
+	case where == nil:
+		s.Msg("You don't know where '", s.word[0], "' is.")
+	default:
+		s.actor.As[Where] = s.word[0]
+		s.Msg("There is a loud 'Spang!'...\n")
+		s.Look()
 	}
 }
