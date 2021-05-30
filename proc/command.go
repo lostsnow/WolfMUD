@@ -288,6 +288,8 @@ func (s *state) Read() {
 	what, _, _ := Find(s.word[0], World[s.actor.As[Where]], s.actor)
 
 	switch {
+	case s.word[0] == "":
+		s.Msg("You go to read something...")
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' here to read.")
 	case what.As[Writing] == "":
