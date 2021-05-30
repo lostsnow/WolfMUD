@@ -84,4 +84,11 @@ func Load() {
 	L4.As[proc.West] = "L2"
 	L4.In = append(L4.In, note)
 	World["L4"] = L4
+
+	L5 := proc.NewThing("Street between tavern and bakers", "You are on a well kept cobbled street. Buildings loom up on either side of you. To the east the smells of a bakery taunt you. To the west the entrance to a tavern. A sign outside the tavern proclaims it to be the \"Dragon's Breath\". The street continues to the north and south.")
+	L5.As[proc.North] = "L14"
+	L5.As[proc.East] = "L6"
+	L5.As[proc.South] = "L7"
+	L5.As[proc.West] = "L3"
+	World["L5"] = L5
 }
