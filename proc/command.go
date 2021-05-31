@@ -73,12 +73,18 @@ func (s *state) Look() {
 		}
 		if s.buff.Len() > mark {
 			s.Msg("\n")
+			mark = s.buff.Len()
 		}
-		s.Msg("You see exits:")
 		for dir := North; dir <= Down; dir++ {
 			if where.As[dir] != "" {
+				if s.buff.Len() == mark {
+					s.Msg("You see exits:")
+				}
 				s.Msg(" ", DirToName[dir])
 			}
+		}
+		if s.buff.Len() == mark {
+			s.Msg("You see no obvious exits.")
 		}
 	}
 }
