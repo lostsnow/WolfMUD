@@ -11,22 +11,25 @@ import (
 	"strings"
 )
 
-// Is Attributes
+// Constants for use as bitmasks with the Thing.Is field.
 const (
-	Start uint32 = 1 << iota
-	Narrative
-	Dark
-	NPC
-	Container
-	Open
+	Start     uint32 = 1 << iota // A starting location
+	Dark                         // A dark location
+	NPC                          // An NPC
+	Narrative                    // A narrative item
+	Container                    // A container, allows PUT/TAKE
+	Open                         // An open item (e.g. door)
 )
 
-// Is value mapping to name.
+// isNames provides the string names for the Thing.Is bitmasks. The helper
+// function IsNames can be used to retrieve a list of names for the bits set in
+// a Thing.Is fields.
 var isNames = []string{
-	"Start", "Narrative", "Dark", "NPC", "Container", "Open",
+	"Start", "Dark", "NPC", "Narrative", "Container", "Open",
 }
 
-// isNames returns the names of the set flags separated by the OR (|) symbol.
+// IsNames returns the names of the set bits in a Thing.Is field. Names are
+// separated by the OR (|) symbol. For example: "Narrative|Open".
 func IsNames(is uint32) string {
 	names := []string{}
 	for x := len(isNames) - 1; x >= 0; x-- {
@@ -37,25 +40,28 @@ func IsNames(is uint32) string {
 	return strings.Join(names, "|")
 }
 
-// As value keys
+// Constants for use as keys in a Thing.As field. Comments provide expected
+// values for each constant.
 const (
-	North uint32 = iota
-	Northeast
-	East
-	Southeast
-	South
-	Southwest
-	West
-	Northwest
-	Up
-	Down
-	Where
-	Alias
-	Writing
-	Blocker
+	North     uint32 = iota // Location ref for north exit ("L1")
+	Northeast               // Location ref for northeast exit ("L1")
+	East                    // Location ref for east exit ("L1")
+	Southeast               // Location ref for southeast exit ("L1")
+	South                   // Location ref for south exit ("L1")
+	Southwest               // Location ref for southwest exit ("L1")
+	West                    // Location ref for west exit ("L1")
+	Northwest               // Location ref for northwest exit ("L1")
+	Up                      // Location ref for up exit ("L1")
+	Down                    // Location ref for down exit ("L1")
+	Where                   // Current location ref ("L1")
+	Alias                   // The alias for a thing ("DOOR")
+	Writing                 // Description of writing on an item
+	Blocker                 // Name of direction being blocked ("E")
 )
 
-// As value mappings
+// asNames provides the string names for the Thing.As field constants. A name
+// for a specific Thing.As value can be retrieved by simple indexing. For
+// example: asNames[Alias] returns the string "Alias".
 var asNames = []string{
 	"North", "Northeast", "East", "Southeast",
 	"South", "Southwest", "West", "Northwest", "Up", "Down",
@@ -63,7 +69,7 @@ var asNames = []string{
 }
 
 var (
-	// NameToDir maps a long or short direction name to its As constant.
+	// NameToDir maps a long or short direction name to its Thing.As constant.
 	NameToDir = map[string]uint32{
 		"N": North, "NE": Northeast, "E": East, "SE": Southeast,
 		"S": South, "SW": Southwest, "W": West, "NW": Northwest,
@@ -72,7 +78,7 @@ var (
 		"UP": Up, "DOWN": Down,
 	}
 
-	// DirToName maps an As direction constant to the direction's long name.
+	// DirToName maps a Thing.As direction constant to the direction's long name.
 	DirToName = map[uint32]string{
 		North: "north", Northeast: "northeast", East: "east", Southeast: "southeast",
 		South: "south", Southwest: "southwest", West: "west", Northwest: "northwest",
@@ -95,14 +101,17 @@ func ReverseDir(dir uint32) uint32 {
 	}
 }
 
+// nextUID is used to store the next unique identifier to be used for a new
+// Thing. It is setup and initialised via the init function.
 var nextUID chan uint32
 
+// init is used to setup and initialise the nextUID channel.
 func init() {
 	nextUID = make(chan uint32, 1)
 	nextUID <- 0
 }
 
-// Thing is a basic one thing fits all type.
+// Thing is used to represent any and all items in the game world.
 type Thing struct {
 	Name        string
 	Description string
@@ -112,6 +121,7 @@ type Thing struct {
 	In          []*Thing
 }
 
+// NewThing returns a new initialised Thing.
 func NewThing(name, description string) *Thing {
 	uid := <-nextUID
 	nextUID <- uid + 1
@@ -146,7 +156,7 @@ func Find(alias string, where ...*Thing) (*Thing, *Thing, int) {
 }
 
 // Dump will write a pretty ASCII tree representing the details of a Thing.
-// Some examples:
+// A simple, single item:
 //
 //	`- 0xc00000e048 *proc.Thing - CAT
 //	   |- Name - the tavern cat
@@ -159,6 +169,7 @@ func Find(alias string, where ...*Thing) (*Thing, *Thing, int) {
 //	   |  `- [11] Alias: CAT
 //	   `- In - len: 0, nil: true
 //
+// A container with an item in its inventory:
 //
 //	`- 0xc00009c008 *proc.Thing - BAG
 //	   |- Name - a bag
