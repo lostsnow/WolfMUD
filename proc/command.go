@@ -75,9 +75,9 @@ func (s *state) Look() {
 			s.Msg("\n")
 		}
 		s.Msg("You see exits:")
-		for dir, text := range DirToName {
+		for dir := North; dir <= Down; dir++ {
 			if where.As[dir] != "" {
-				s.Msg(" ", text)
+				s.Msg(" ", DirToName[dir])
 			}
 		}
 	}
