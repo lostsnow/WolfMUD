@@ -21,31 +21,38 @@ type state struct {
 var World map[string]*Thing
 var filler = []string{"", "", ""}
 
-func NewState(t *Thing, cmd string) *state {
-	words := strings.Fields(strings.ToUpper(cmd))
-	if len(words) < len(filler) {
-		words = append(words, filler[len(words):]...)
-	}
+func NewState(t *Thing) *state {
 	return &state{
-		t, words[0], words[1:], &strings.Builder{},
+		actor: t, buff: &strings.Builder{},
 	}
 }
 
-func (s *state) Parse() {
+func (s *state) Parse(input string) {
 	var start, end time.Time
 	start = time.Now()
+
+	if input != "\n" {
+		s.parse(input)
+		fmt.Println(s.buff.String())
+		s.buff.Reset()
+	}
+
+	end = time.Now()
+	fmt.Printf("%s >", end.Sub(start))
+}
+
+func (s *state) parse(input string) {
+	s.word = strings.Fields(strings.ToUpper(input))
+	if len(s.word) < len(filler) {
+		s.word = append(s.word, filler[len(s.word):]...)
+	}
+	s.cmd, s.word = s.word[0], s.word[1:]
 
 	if command, ok := commands[s.cmd]; ok {
 		command(s)
 	} else {
 		s.Msg("Eh?")
 	}
-
-	end = time.Now()
-	if s.buff.Len() > 0 {
-		s.buff.WriteByte('\n')
-	}
-	fmt.Printf("%s%s >", s.buff.String(), end.Sub(start))
 }
 
 func (s *state) Msg(text ...string) {

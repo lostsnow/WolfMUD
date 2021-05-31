@@ -26,14 +26,13 @@ func main() {
 	player.As[proc.Alias] = "PLAYER"
 	player.As[proc.Where] = "L1"
 
-	s := proc.NewState(player, "LOOK")
-	s.Parse()
+	s := proc.NewState(player)
+	s.Parse("LOOK")
 
 	var input string
 	r := bufio.NewReader(os.Stdin)
 	for strings.ToUpper(input) != "QUIT\n" {
 		input, _ = r.ReadString('\n')
-		s = proc.NewState(player, input)
-		s.Parse()
+		s.Parse(input)
 	}
 }
