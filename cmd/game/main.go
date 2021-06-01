@@ -17,7 +17,7 @@ import (
 
 func main() {
 
-	fmt.Println("\n  Welcome to the WolfMini experimental environment!\n")
+	fmt.Print("\n  Welcome to the WolfMini experimental environment!\n\n")
 
 	world.Load()
 
