@@ -11,31 +11,36 @@ import (
 )
 
 type state struct {
-	actor *Thing
-	cmd   string
-	word  []string
-	out   io.Writer
-	buff  *strings.Builder
+	actor  *Thing
+	cmd    string
+	word   []string
+	out    io.Writer
+	buff   *strings.Builder
+	prompt []byte
 }
 
-var World map[string]*Thing
-var filler = []string{"", "", ""}
+var (
+	World   map[string]*Thing
+	filler  = []string{"", "", ""}
+	newline = []byte("\n")
+)
 
 func NewState(out io.Writer, t *Thing) *state {
 	return &state{
-		actor: t, out: out, buff: &strings.Builder{},
+		actor: t, out: out, buff: &strings.Builder{}, prompt: []byte(">"),
 	}
 }
 
 func (s *state) Parse(input string) {
 	if input == "\n" || input == "" {
-		s.out.Write([]byte(">"))
+		s.out.Write(s.prompt)
 		return
 	}
 	s.parse(input)
 	s.out.Write([]byte(s.buff.String()))
 	s.buff.Reset()
-	s.out.Write([]byte("\n>"))
+	s.out.Write(newline)
+	s.out.Write(s.prompt)
 }
 
 func (s *state) parse(input string) {
