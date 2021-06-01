@@ -10,6 +10,9 @@ import (
 	"strings"
 )
 
+// World contains all of the locations for the current game world.
+var World map[string]*Thing
+
 type state struct {
 	actor  *Thing
 	cmd    string
@@ -20,7 +23,6 @@ type state struct {
 }
 
 var (
-	World   map[string]*Thing
 	filler  = []string{"", "", ""}
 	newline = []byte("\n")
 )

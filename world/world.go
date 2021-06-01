@@ -9,12 +9,15 @@ import (
 	"code.wolfmud.org/WolfMUD.git/proc"
 )
 
-var World map[string]*proc.Thing
-
+// Load creates the game world. This is currently hard-coded for development.
+//
+// BUG(diddymus): Load will populate proc.World directly as a side effect of
+// being called. The proc package can't import the world package as it would
+// cause a cyclic import. This should be resolved when we have a proper loader
+// written.
 func Load() {
 
-	World = make(map[string]*proc.Thing)
-	proc.World = World
+	proc.World = make(map[string]*proc.Thing)
 
 	// Items
 
@@ -67,14 +70,14 @@ func Load() {
 	L1.As[proc.Southeast] = "L4"
 	L1.As[proc.South] = "L2"
 	L1.In = append(L1.In, fireplace, fire, chest)
-	World["L1"] = L1
+	proc.World["L1"] = L1
 
 	L2 := proc.NewThing("Common room", "You are in a small, cosy common room in the dragon's breath tavern. Looking around you see a few chairs and tables for patrons. In one corner there is a very old grandfather clock. To the east you see a bar and to the north there is the glow of a fire.")
 	L2.As[proc.North] = "L1"
 	L2.As[proc.Northeast] = "L3"
 	L2.As[proc.East] = "L4"
 	L2.In = append(L2.In, cat)
-	World["L2"] = L2
+	proc.World["L2"] = L2
 
 	L3 := proc.NewThing("Tavern entrance", "You are in the entryway to the dragon's breath tavern. To the west you see an inviting fireplace and south an even more inviting bar. Eastward a door leads out into the street.")
 	L3.As[proc.East] = "L5"
@@ -82,14 +85,14 @@ func Load() {
 	L3.As[proc.Southwest] = "L2"
 	L3.As[proc.West] = "L1"
 	L3.In = append(L3.In, redBall, door)
-	World["L3"] = L3
+	proc.World["L3"] = L3
 
 	L4 := proc.NewThing("Tavern bar", "You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with many bottles in a dizzying array of sizes, shapes and colours. There are also regular casks of beer, ale, mead, cider and wine behind the bar.")
 	L4.As[proc.North] = "L3"
 	L4.As[proc.Northwest] = "L1"
 	L4.As[proc.West] = "L2"
 	L4.In = append(L4.In, note)
-	World["L4"] = L4
+	proc.World["L4"] = L4
 
 	L5 := proc.NewThing("Street between tavern and bakers", "You are on a well kept cobbled street. Buildings loom up on either side of you. To the east the smells of a bakery taunt you. To the west the entrance to a tavern. A sign outside the tavern proclaims it to be the \"Dragon's Breath\". The street continues to the north and south.")
 	L5.As[proc.North] = "L14"
@@ -97,5 +100,5 @@ func Load() {
 	L5.As[proc.South] = "L7"
 	L5.As[proc.West] = "L3"
 	L5.In = append(L5.In, door)
-	World["L5"] = L5
+	proc.World["L5"] = L5
 }
