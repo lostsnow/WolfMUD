@@ -8,7 +8,7 @@ package proc
 // Commands maps command strings to the implementing methods.
 var commands = map[string]func(*state){
 	"":          func(*state) {},
-	"QUIT":      func(s *state) { s.Msg("Bye bye!") },
+	"QUIT":      (*state).Quit,
 	"L":         (*state).Look,
 	"LOOK":      (*state).Look,
 	"N":         (*state).Move,
@@ -48,7 +48,8 @@ var commands = map[string]func(*state){
 }
 
 func (s *state) Quit() {
-	s.Msg("Bye bye!")
+	s.Msg("You leave this world behind.\n\nBye bye!\n")
+	s.prompt = s.prompt[:0]
 }
 
 func (s *state) Look() {
