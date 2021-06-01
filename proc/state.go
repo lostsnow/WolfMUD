@@ -6,39 +6,36 @@
 package proc
 
 import (
-	"fmt"
+	"io"
 	"strings"
-	"time"
 )
 
 type state struct {
 	actor *Thing
 	cmd   string
 	word  []string
+	out   io.Writer
 	buff  *strings.Builder
 }
 
 var World map[string]*Thing
 var filler = []string{"", "", ""}
 
-func NewState(t *Thing) *state {
+func NewState(out io.Writer, t *Thing) *state {
 	return &state{
-		actor: t, buff: &strings.Builder{},
+		actor: t, out: out, buff: &strings.Builder{},
 	}
 }
 
 func (s *state) Parse(input string) {
-	var start, end time.Time
-	start = time.Now()
-
-	if input != "\n" {
-		s.parse(input)
-		fmt.Println(s.buff.String())
-		s.buff.Reset()
+	if input == "\n" || input == "" {
+		s.out.Write([]byte(">"))
+		return
 	}
-
-	end = time.Now()
-	fmt.Printf("%s >", end.Sub(start))
+	s.parse(input)
+	s.out.Write([]byte(s.buff.String()))
+	s.buff.Reset()
+	s.out.Write([]byte("\n>"))
 }
 
 func (s *state) parse(input string) {

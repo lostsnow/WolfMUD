@@ -26,7 +26,7 @@ func main() {
 	player.As[proc.Alias] = "PLAYER"
 	player.As[proc.Where] = "L1"
 
-	s := proc.NewState(player)
+	s := proc.NewState(os.Stdout, player)
 	s.Parse("LOOK")
 
 	var input string
