@@ -43,20 +43,22 @@ func IsNames(is uint32) string {
 // Constants for use as keys in a Thing.As field. Comments provide expected
 // values for each constant.
 const (
-	North     uint32 = iota // Location ref for north exit ("L1")
-	Northeast               // Location ref for northeast exit ("L1")
-	East                    // Location ref for east exit ("L1")
-	Southeast               // Location ref for southeast exit ("L1")
-	South                   // Location ref for south exit ("L1")
-	Southwest               // Location ref for southwest exit ("L1")
-	West                    // Location ref for west exit ("L1")
-	Northwest               // Location ref for northwest exit ("L1")
-	Up                      // Location ref for up exit ("L1")
-	Down                    // Location ref for down exit ("L1")
-	Where                   // Current location ref ("L1")
-	Alias                   // The alias for a thing ("DOOR")
-	Writing                 // Description of writing on an item
-	Blocker                 // Name of direction being blocked ("E")
+	North       uint32 = iota // Location ref for north exit ("L1")
+	Northeast                 // Location ref for northeast exit ("L1")
+	East                      // Location ref for east exit ("L1")
+	Southeast                 // Location ref for southeast exit ("L1")
+	South                     // Location ref for south exit ("L1")
+	Southwest                 // Location ref for southwest exit ("L1")
+	West                      // Location ref for west exit ("L1")
+	Northwest                 // Location ref for northwest exit ("L1")
+	Up                        // Location ref for up exit ("L1")
+	Down                      // Location ref for down exit ("L1")
+	Name                      // Item's name
+	Description               // Item's description
+	Where                     // Current location ref ("L1")
+	Alias                     // The alias for a thing ("DOOR")
+	Writing                   // Description of writing on an item
+	Blocker                   // Name of direction being blocked ("E")
 )
 
 // asNames provides the string names for the Thing.As field constants. A name
@@ -65,7 +67,7 @@ const (
 var asNames = []string{
 	"North", "Northeast", "East", "Southeast",
 	"South", "Southwest", "West", "Northwest", "Up", "Down",
-	"Where", "Alias", "Writing", "Blocker",
+	"Name", "Description", "Where", "Alias", "Writing", "Blocker",
 }
 
 var (
@@ -113,23 +115,19 @@ func init() {
 
 // Thing is used to represent any and all items in the game world.
 type Thing struct {
-	Name        string
-	Description string
-	UID         uint32
-	Is          uint32
-	As          map[uint32]string
-	In          []*Thing
+	UID uint32
+	Is  uint32
+	As  map[uint32]string
+	In  []*Thing
 }
 
-// NewThing returns a new initialised Thing.
-func NewThing(name, description string) *Thing {
+// NewThing returns a new initialised Thing with no properties set.
+func NewThing() *Thing {
 	uid := <-nextUID
 	nextUID <- uid + 1
 	return &Thing{
-		UID:         uid,
-		Name:        name,
-		Description: description,
-		As:          make(map[uint32]string),
+		UID: uid,
+		As:  make(map[uint32]string),
 	}
 }
 
@@ -207,20 +205,19 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		b.WriteByte('\n')
 	}
 
-	lines := simpleFold(t.Description, width-len(indent)-20)
-	p("%s%p %[2]T - UID: %d, %s", tree[last].i, t, t.UID, t.As[Alias])
+	p("%s%p %[2]T - UID: %d (%s)", tree[last].i, t, t.UID, t.As[Name])
 	indent += tree[last].b
-	p("%sName - %s", tree[false].i, t.Name)
-	p("%sDescription - %s", tree[false].i, lines[0])
-	for _, line := range lines[1:] {
-		p("%-17s%s", tree[false].b, line)
-	}
 	p("%sIs - %032b (%s)", tree[false].i, t.Is, IsNames(t.Is))
 	lIn, lAs := len(t.In), len(t.As)
 	p("%sAs - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
 		lAs--
-		p("%s%s[%2d] %2s: %s", tree[false].b, tree[lAs == 0].i, k, asNames[k], v)
+		line := simpleFold(v, width-len(indent)-len(asNames[k])-len("|  |- [00] : "))
+		pad := strings.Repeat(" ", len(asNames[k])+len("[00] : "))
+		p("%s%s[%2d] %s: %s", tree[false].b, tree[lAs == 0].i, k, asNames[k], line[0])
+		for _, line := range line[1:] {
+			p("%s%s%s%s", tree[false].b, tree[lAs == 0].b, pad, line)
+		}
 	}
 	p("%sIn - len: %d, nil: %t", tree[true].i, lIn, t.In == nil)
 	w.Write([]byte(b.String()))

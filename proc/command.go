@@ -64,13 +64,13 @@ func (s *state) Look() {
 	case where.Is&Dark == Dark:
 		s.Msg("It's too dark to see anything!")
 	default:
-		s.Msg("[", where.Name, "]\n", where.Description, "\n\n")
+		s.Msg("[", where.As[Name], "]\n", where.As[Description], "\n\n")
 		mark := s.buff.Len()
 		for _, item := range where.In {
 			if item.Is&Narrative == Narrative {
 				continue
 			}
-			s.Msg("You see ", item.Name, " here.\n")
+			s.Msg("You see ", item.As[Name], " here.\n")
 		}
 		if s.buff.Len() > mark {
 			s.Msg("\n")
@@ -120,7 +120,7 @@ func (s *state) Move() {
 	switch {
 	case blocker != nil:
 		s.Msg("You can't go ", DirToName[dir], ". ",
-			blocker.Name, " is blocking your way.")
+			blocker.As[Name], " is blocking your way.")
 	case World[where.As[dir]] == nil:
 		s.Msg("Oops! You can't actually go ", DirToName[dir], ".")
 	default:
@@ -139,7 +139,7 @@ func (s *state) Examine() {
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to examine.")
 	case what.Is&Container != Container || len(what.In) == 0:
-		s.Msg("You examine ", what.Name, ".\n", what.Description)
+		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
 		// If a blocker, e.g. a door, is it open or closed?
 		switch {
 		case what.As[Blocker] == "":
@@ -149,10 +149,10 @@ func (s *state) Examine() {
 			s.Msg(" It is closed.")
 		}
 	default:
-		s.Msg("You examine ", what.Name, ".\n", what.Description)
-		s.Msg(" It contains: ", what.In[0].Name)
+		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
+		s.Msg(" It contains: ", what.In[0].As[Name])
 		for _, item := range what.In[1:] {
-			s.Msg(", ", item.Name)
+			s.Msg(", ", item.As[Name])
 		}
 	}
 }
@@ -164,7 +164,7 @@ func (s *state) Inventory() {
 	default:
 		s.Msg("You are carrying:")
 		for _, what := range s.actor.In {
-			s.Msg("\n  ", what.Name)
+			s.Msg("\n  ", what.As[Name])
 		}
 	}
 }
@@ -185,7 +185,7 @@ func (s *state) Drop() {
 
 		where := World[s.actor.As[Where]]
 		where.In = append(where.In, what)
-		s.Msg("You drop ", what.Name, ".")
+		s.Msg("You drop ", what.As[Name], ".")
 	}
 }
 
@@ -199,16 +199,16 @@ func (s *state) Get() {
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to get.")
 	case what.Is&Narrative == Narrative:
-		s.Msg("You cannot take ", what.Name, ".")
+		s.Msg("You cannot take ", what.As[Name], ".")
 	case what.Is&NPC == NPC:
-		s.Msg(what.Name, " does not want to be taken!")
+		s.Msg(what.As[Name], " does not want to be taken!")
 	default:
 		copy(where.In[idx:], where.In[idx+1:])
 		where.In[len(where.In)-1] = nil
 		where.In = where.In[:len(where.In)-1]
 
 		s.actor.In = append(s.actor.In, what)
-		s.Msg("You get ", what.Name, ".")
+		s.Msg("You get ", what.As[Name], ".")
 	}
 }
 
@@ -226,11 +226,11 @@ func (s *state) Take() {
 	case where == nil:
 		s.Msg("You see no '", s.word[1], "' to take anything from.")
 	case what == nil:
-		s.Msg(where.Name, " does not seem to contain '", s.word[0], "'.")
+		s.Msg(where.As[Name], " does not seem to contain '", s.word[0], "'.")
 	case where.Is&(Container|NPC) == NPC:
-		s.Msg("You can't take ", what.Name, " from ", where.Name, ".")
+		s.Msg("You can't take ", what.As[Name], " from ", where.As[Name], ".")
 	case where.Is&Container == 0:
-		s.Msg("You can't take ", what.Name, " out of ", where.Name, ".")
+		s.Msg("You can't take ", what.As[Name], " out of ", where.As[Name], ".")
 	case what == nil:
 	default:
 		copy(where.In[idx:], where.In[idx+1:])
@@ -238,7 +238,7 @@ func (s *state) Take() {
 		where.In = where.In[:len(where.In)-1]
 
 		s.actor.In = append(s.actor.In, what)
-		s.Msg("You take ", what.Name, " from ", where.Name, ".")
+		s.Msg("You take ", what.As[Name], " from ", where.As[Name], ".")
 	}
 }
 
@@ -254,24 +254,24 @@ func (s *state) Put() {
 	case s.word[1] == "" && what == nil:
 		s.Msg("You go to put '", s.word[0], "' into something...")
 	case s.word[1] == "":
-		s.Msg("You go to put ", what.Name, " into something...")
+		s.Msg("You go to put ", what.As[Name], " into something...")
 	case where == nil && what == nil:
 		s.Msg("You see no '", s.word[1], "' to put anything in.")
 	case where == nil:
-		s.Msg("You see no '", s.word[1], "' to put ", what.Name, " in.")
+		s.Msg("You see no '", s.word[1], "' to put ", what.As[Name], " in.")
 	case where.Is&NPC == NPC:
 		s.Msg("Taxidermist are we?")
 	case where.Is&Container == 0:
-		s.Msg("You can't put ", what.Name, " into ", where.Name, ".")
+		s.Msg("You can't put ", what.As[Name], " into ", where.As[Name], ".")
 	case what == nil:
-		s.Msg("You have no '", s.word[0], "' to put into ", where.Name, ".")
+		s.Msg("You have no '", s.word[0], "' to put into ", where.As[Name], ".")
 	default:
 		copy(s.actor.In[idx:], s.actor.In[idx+1:])
 		s.actor.In[len(s.actor.In)-1] = nil
 		s.actor.In = s.actor.In[:len(s.actor.In)-1]
 
 		where.In = append(where.In, what)
-		s.Msg("You put ", what.Name, " into ", where.Name, ".")
+		s.Msg("You put ", what.As[Name], " into ", where.As[Name], ".")
 	}
 }
 
@@ -303,9 +303,9 @@ func (s *state) Read() {
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' here to read.")
 	case what.As[Writing] == "":
-		s.Msg("There is nothing on ", what.Name, " to read.")
+		s.Msg("There is nothing on ", what.As[Name], " to read.")
 	default:
-		s.Msg("You read ", what.Name, ". ", what.As[Writing])
+		s.Msg("You read ", what.As[Name], ". ", what.As[Writing])
 	}
 }
 
@@ -318,12 +318,12 @@ func (s *state) Open() {
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to open.")
 	case what.As[Blocker] == "":
-		s.Msg(what.Name, " is not something you can open.")
+		s.Msg(what.As[Name], " is not something you can open.")
 	case what.Is&Open == Open:
-		s.Msg(what.Name, " is already open.")
+		s.Msg(what.As[Name], " is already open.")
 	default:
 		what.Is |= Open
-		s.Msg("You open ", what.Name, ".")
+		s.Msg("You open ", what.As[Name], ".")
 	}
 }
 
@@ -336,12 +336,12 @@ func (s *state) Close() {
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to close.")
 	case what.As[Blocker] == "":
-		s.Msg(what.Name, " is not something you can close.")
+		s.Msg(what.As[Name], " is not something you can close.")
 	case what.Is&Open == 0:
-		s.Msg(what.Name, " is already closed.")
+		s.Msg(what.As[Name], " is already closed.")
 	default:
 		what.Is &^= Open
-		s.Msg("You close ", what.Name, ".")
+		s.Msg("You close ", what.As[Name], ".")
 	}
 }
 

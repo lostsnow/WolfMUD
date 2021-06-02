@@ -22,7 +22,9 @@ func main() {
 	world.Load()
 
 	// Setup player
-	player := proc.NewThing("Diddymus", "An adventurer, just like you.")
+	player := proc.NewThing()
+	player.As[proc.Name] = "Diddymus"
+	player.As[proc.Description] = "An adventurer, just like you."
 	player.As[proc.Alias] = "PLAYER"
 	player.As[proc.Where] = "L1"
 
