@@ -53,6 +53,7 @@ const (
 	Northwest                 // Location ref for northwest exit ("L1")
 	Up                        // Location ref for up exit ("L1")
 	Down                      // Location ref for down exit ("L1")
+	UID                       // Item's unique identifier
 	Name                      // Item's name
 	Description               // Item's description
 	Where                     // Current location ref ("L1")
@@ -67,7 +68,7 @@ const (
 var asNames = []string{
 	"North", "Northeast", "East", "Southeast",
 	"South", "Southwest", "West", "Northwest", "Up", "Down",
-	"Name", "Description", "Where", "Alias", "Writing", "Blocker",
+	"UID", "Name", "Description", "Where", "Alias", "Writing", "Blocker",
 }
 
 var (
@@ -115,20 +116,22 @@ func init() {
 
 // Thing is used to represent any and all items in the game world.
 type Thing struct {
-	UID uint32
-	Is  uint32
-	As  map[uint32]string
-	In  []*Thing
+	Is uint32
+	As map[uint32]string
+	In []*Thing
 }
 
 // NewThing returns a new initialised Thing with no properties set.
+//
+// TODO(diddymus): UID needs adding as an alias once we have multiple aliases.
 func NewThing() *Thing {
 	uid := <-nextUID
 	nextUID <- uid + 1
-	return &Thing{
-		UID: uid,
-		As:  make(map[uint32]string),
+	t := &Thing{
+		As: make(map[uint32]string),
 	}
+	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
+	return t
 }
 
 // Find looks for a Thing with the given alias in the provided list of Things
@@ -205,7 +208,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		b.WriteByte('\n')
 	}
 
-	p("%s%p %[2]T - UID: %d (%s)", tree[last].i, t, t.UID, t.As[Name])
+	p("%s%p %[2]T - UID: %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
 	p("%sIs - %032b (%s)", tree[false].i, t.Is, IsNames(t.Is))
 	lIn, lAs := len(t.In), len(t.As)
