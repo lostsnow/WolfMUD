@@ -152,6 +152,23 @@ func NewThing() *Thing {
 	return t
 }
 
+// Copy returns a duplicate of the receiver Thing with only the UID being
+// different. The Thing's inventory will be copied recursively.
+func (t *Thing) Copy() *Thing {
+	T := NewThing()
+	T.Is = t.Is
+	for k, v := range t.As {
+		if k == UID {
+			continue
+		}
+		T.As[k] = v
+	}
+	for _, item := range t.In {
+		T.In = append(T.In, item.Copy())
+	}
+	return T
+}
+
 // Find looks for a Thing with the given alias in the provided list of Things
 // inventories. If a matching Thing is found returns the Thing, the Thing who's
 // Inventory it was in and the index in the inventory where it was found. If
