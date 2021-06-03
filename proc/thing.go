@@ -169,6 +169,24 @@ func (t *Thing) Copy() *Thing {
 	return T
 }
 
+// Free recursively unlinks everything from a Thing. This is not really
+// necessary, but makes it easier for the garbage collector.
+func (t *Thing) Free() {
+	if t == nil {
+		return
+	}
+	t.Is = 0
+	for k := range t.As {
+		delete(t.As, k)
+	}
+	t.As = nil
+	for k, item := range t.In {
+		item.Free()
+		t.In[k] = nil
+	}
+	t.In = nil
+}
+
 // Find looks for a Thing with the given alias in the provided list of Things
 // inventories. If a matching Thing is found returns the Thing, the Thing who's
 // Inventory it was in and the index in the inventory where it was found. If
