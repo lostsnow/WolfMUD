@@ -13,19 +13,24 @@ import (
 
 // Constants for use as bitmasks with the Thing.Is field.
 const (
-	Start     uint32 = 1 << iota // A starting location
+	Container uint32 = 1 << iota // A container, allows PUT/TAKE
 	Dark                         // A dark location
 	NPC                          // An NPC
 	Narrative                    // A narrative item
-	Container                    // A container, allows PUT/TAKE
 	Open                         // An open item (e.g. door)
+	Start                        // A starting location
 )
 
 // isNames provides the string names for the Thing.Is bitmasks. The helper
 // function IsNames can be used to retrieve a list of names for the bits set in
 // a Thing.Is fields.
 var isNames = []string{
-	"Start", "Dark", "NPC", "Narrative", "Container", "Open",
+	"Container",
+	"Dark",
+	"NPC",
+	"Narrative",
+	"Open",
+	"Start",
 }
 
 // IsNames returns the names of the set bits in a Thing.Is field. Names are
@@ -42,24 +47,29 @@ func IsNames(is uint32) string {
 
 // Constants for use as keys in a Thing.As field. Comments provide expected
 // values for each constant.
+//
+// NOTE: The first 10 direction constants are fixed and their values SHOULD NOT
+// BE CHANGED. The other constants should be kept in alphabetical order as new
+// ones are added.
 const (
-	North       uint32 = iota // Location ref for north exit ("L1")
-	Northeast                 // Location ref for northeast exit ("L1")
-	East                      // Location ref for east exit ("L1")
-	Southeast                 // Location ref for southeast exit ("L1")
-	South                     // Location ref for south exit ("L1")
-	Southwest                 // Location ref for southwest exit ("L1")
-	West                      // Location ref for west exit ("L1")
-	Northwest                 // Location ref for northwest exit ("L1")
-	Up                        // Location ref for up exit ("L1")
-	Down                      // Location ref for down exit ("L1")
-	UID                       // Item's unique identifier
-	Name                      // Item's name
-	Description               // Item's description
-	Where                     // Current location ref ("L1")
-	Alias                     // The alias for a thing ("DOOR")
-	Writing                   // Description of writing on an item
-	Blocker                   // Name of direction being blocked ("E")
+	North     uint32 = iota // Location ref for north exit ("L1")
+	Northeast               // Location ref for northeast exit ("L1")
+	East                    // Location ref for east exit ("L1")
+	Southeast               // Location ref for southeast exit ("L1")
+	South                   // Location ref for south exit ("L1")
+	Southwest               // Location ref for southwest exit ("L1")
+	West                    // Location ref for west exit ("L1")
+	Northwest               // Location ref for northwest exit ("L1")
+	Up                      // Location ref for up exit ("L1")
+	Down                    // Location ref for down exit ("L1")
+
+	Alias       // The alias for a thing ("DOOR")
+	Blocker     // Name of direction being blocked ("E")
+	Description // Item's description
+	Name        // Item's name
+	UID         // Item's unique identifier
+	Where       // Current location ref ("L1")
+	Writing     // Description of writing on an item
 )
 
 // asNames provides the string names for the Thing.As field constants. A name
@@ -67,8 +77,16 @@ const (
 // example: asNames[Alias] returns the string "Alias".
 var asNames = []string{
 	"North", "Northeast", "East", "Southeast",
-	"South", "Southwest", "West", "Northwest", "Up", "Down",
-	"UID", "Name", "Description", "Where", "Alias", "Writing", "Blocker",
+	"South", "Southwest", "West", "Northwest",
+	"Up", "Down",
+
+	"Alias",
+	"Blocker",
+	"Description",
+	"Name",
+	"UID",
+	"Where",
+	"Writing",
 }
 
 var (
