@@ -198,6 +198,8 @@ func (s *state) Get() {
 		s.Msg("You go to get... something?")
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to get.")
+	case what.Any[Veto+"GET"] != nil:
+		s.Msg(what.Any[Veto+"GET"]...)
 	case what.Is&Narrative == Narrative:
 		s.Msg("You cannot take ", what.As[Name], ".")
 	case what.Is&NPC == NPC:

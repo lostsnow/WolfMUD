@@ -25,18 +25,21 @@ func Load() {
 	cat.As[proc.Name] = "the tavern cat"
 	cat.As[proc.Description] = "The tavern cat is a ball of fur with one golden eye, the other eye replaced by a large scar. It senses you watching it and returns your gaze with a steady one of its own."
 	cat.Any[proc.Alias] = []string{"CAT"}
+	cat.Any[proc.Veto+"GET"] = []string{"The cat looks at your hand, then looks at you. Hrm, probably a bad idea."}
 	cat.Is = proc.NPC
 
 	fireplace := proc.NewThing()
 	fireplace.As[proc.Name] = "an ornate fireplace"
 	fireplace.As[proc.Description] = "This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."
 	fireplace.Any[proc.Alias] = []string{"FIREPLACE"}
+	fireplace.Any[proc.Veto+"GET"] = []string{"For some inexplicable reason you can't just rip out the fireplace and take it!"}
 	fireplace.Is = proc.Narrative
 
 	fire := proc.NewThing()
 	fire.As[proc.Name] = "a fire"
 	fire.As[proc.Description] = "Some logs have been placed into the fireplace and are burning away merrily."
 	fire.Any[proc.Alias] = []string{"FIRE"}
+	fire.Any[proc.Veto+"GET"] = []string{"Ouch! Hot, hot, hot!"}
 	fire.Is |= proc.Narrative
 
 	greenBall := proc.NewThing()

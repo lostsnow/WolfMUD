@@ -83,6 +83,7 @@ const (
 // Constants for Thing.Any keys
 const (
 	Alias anyKey = "ALIAS" // Aliases for an item
+	Veto  anyKey = "VETO:" // Command vetoes for an item
 )
 
 // asNames provides the string names for the Thing.As field constants. A name
