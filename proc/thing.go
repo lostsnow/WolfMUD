@@ -11,9 +11,11 @@ import (
 	"strings"
 )
 
+// Type definitions for Thing field keys.
 type (
-	isKey uint32 // index for Thing.Is
-	asKey uint32 // index for Thing.As
+	isKey  uint32 // index for Thing.Is
+	asKey  uint32 // index for Thing.As
+	anyKey string // index for Thing.Any
 )
 
 // Constants for use as bitmasks with the Thing.Is field.
@@ -70,13 +72,17 @@ const (
 	Up
 	Down
 
-	Alias       // The alias for a thing ("DOOR")
 	Blocker     // Name of direction being blocked ("E")
 	Description // Item's description
 	Name        // Item's name
 	UID         // Item's unique identifier
 	Where       // Current location ref ("L1")
 	Writing     // Description of writing on an item
+)
+
+// Constants for Thing.Any keys
+const (
+	Alias anyKey = "ALIAS" // Aliases for an item
 )
 
 // asNames provides the string names for the Thing.As field constants. A name
@@ -87,7 +93,6 @@ var asNames = []string{
 	"South", "Southwest", "West", "Northwest",
 	"Up", "Down",
 
-	"Alias",
 	"Blocker",
 	"Description",
 	"Name",
@@ -141,9 +146,10 @@ func init() {
 
 // Thing is used to represent any and all items in the game world.
 type Thing struct {
-	Is isKey
-	As map[asKey]string
-	In []*Thing
+	Is  isKey
+	As  map[asKey]string
+	Any map[anyKey][]string
+	In  []*Thing
 }
 
 // NewThing returns a new initialised Thing with no properties set.
@@ -153,7 +159,8 @@ func NewThing() *Thing {
 	uid := <-nextUID
 	nextUID <- uid + 1
 	t := &Thing{
-		As: make(map[asKey]string),
+		As:  make(map[asKey]string),
+		Any: make(map[anyKey][]string),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	return t
@@ -169,6 +176,9 @@ func (t *Thing) Copy() *Thing {
 			continue
 		}
 		T.As[k] = v
+	}
+	for k, v := range t.Any {
+		T.Any[k] = v
 	}
 	for _, item := range t.In {
 		T.In = append(T.In, item.Copy())
@@ -208,8 +218,10 @@ func Find(alias string, where ...*Thing) (*Thing, *Thing, int) {
 			continue
 		}
 		for idx, item := range inv.In {
-			if item.As[Alias] == alias {
-				return item, inv, idx
+			for _, a := range item.Any[Alias] {
+				if a == alias {
+					return item, inv, idx
+				}
 			}
 		}
 	}
@@ -271,7 +283,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%s%p %[2]T - UID: %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
 	p("%sIs - %032b (%s)", tree[false].i, t.Is, IsNames(t.Is))
-	lIn, lAs := len(t.In), len(t.As)
+	lIn, lAs, lAny := len(t.In), len(t.As), len(t.Any)
 	p("%sAs - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
 		lAs--
@@ -281,6 +293,11 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		for _, line := range line[1:] {
 			p("%s%s%s%s", tree[false].b, tree[lAs == 0].b, pad, line)
 		}
+	}
+	p("%sAny - len: %d", tree[false].i, lAny)
+	for k, v := range t.Any {
+		lAny--
+		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, k, v)
 	}
 	p("%sIn - len: %d, nil: %t", tree[true].i, lIn, t.In == nil)
 	w.Write([]byte(b.String()))

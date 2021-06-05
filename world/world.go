@@ -24,60 +24,60 @@ func Load() {
 	cat := proc.NewThing()
 	cat.As[proc.Name] = "the tavern cat"
 	cat.As[proc.Description] = "The tavern cat is a ball of fur with one golden eye, the other eye replaced by a large scar. It senses you watching it and returns your gaze with a steady one of its own."
-	cat.As[proc.Alias] = "CAT"
+	cat.Any[proc.Alias] = []string{"CAT"}
 	cat.Is = proc.NPC
 
 	fireplace := proc.NewThing()
 	fireplace.As[proc.Name] = "an ornate fireplace"
 	fireplace.As[proc.Description] = "This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."
-	fireplace.As[proc.Alias] = "FIREPLACE"
+	fireplace.Any[proc.Alias] = []string{"FIREPLACE"}
 	fireplace.Is = proc.Narrative
 
 	fire := proc.NewThing()
 	fire.As[proc.Name] = "a fire"
 	fire.As[proc.Description] = "Some logs have been placed into the fireplace and are burning away merrily."
-	fire.As[proc.Alias] = "FIRE"
+	fire.Any[proc.Alias] = []string{"FIRE"}
 	fire.Is |= proc.Narrative
 
 	greenBall := proc.NewThing()
 	greenBall.As[proc.Name] = "a green ball"
 	greenBall.As[proc.Description] = "This is a small green ball."
-	greenBall.As[proc.Alias] = "BALL"
+	greenBall.Any[proc.Alias] = []string{"+GREEN", "BALL"}
 
 	apple := proc.NewThing()
 	apple.As[proc.Name] = "an apple"
 	apple.As[proc.Description] = "This is a red apple."
-	apple.As[proc.Alias] = "APPLE"
+	apple.Any[proc.Alias] = []string{"APPLE"}
 
 	bag := proc.NewThing()
 	bag.As[proc.Name] = "a bag"
 	bag.As[proc.Description] = "This is a simple cloth bag."
-	bag.As[proc.Alias] = "BAG"
+	bag.Any[proc.Alias] = []string{"BAG"}
 	bag.Is = proc.Container
 	bag.In = append(bag.In, apple)
 
 	chest := proc.NewThing()
 	chest.As[proc.Name] = "a chest"
 	chest.As[proc.Description] = "This is a large iron bound wooden chest."
-	chest.As[proc.Alias] = "CHEST"
+	chest.Any[proc.Alias] = []string{"CHEST"}
 	chest.Is = proc.Container
 	chest.In = append(chest.In, greenBall, bag)
 
 	redBall := proc.NewThing()
 	redBall.As[proc.Name] = "a red ball"
 	redBall.As[proc.Description] = "This is a small red ball."
-	redBall.As[proc.Alias] = "BALL"
+	redBall.Any[proc.Alias] = []string{"+RED:BALL"}
 
 	note := proc.NewThing()
 	note.As[proc.Name] = "a note"
 	note.As[proc.Description] = "This is a small piece of paper with something written on it."
-	note.As[proc.Alias] = "NOTE"
+	note.Any[proc.Alias] = []string{"NOTE"}
 	note.As[proc.Writing] = "It says 'Here be dragons'."
 
 	door := proc.NewThing()
 	door.As[proc.Name] = "the tavern door"
 	door.As[proc.Description] = "This is a sturdy wooden door with a simple latch."
-	door.As[proc.Alias] = "DOOR"
+	door.Any[proc.Alias] = []string{"+TAVERN", "DOOR"}
 	door.As[proc.Blocker] = "E"
 	door.As[proc.Where] = "L3"
 	door.Is = proc.Narrative
