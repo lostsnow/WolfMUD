@@ -52,16 +52,18 @@ func IsNames(is uint32) string {
 // BE CHANGED. The other constants should be kept in alphabetical order as new
 // ones are added.
 const (
-	North     uint32 = iota // Location ref for north exit ("L1")
-	Northeast               // Location ref for northeast exit ("L1")
-	East                    // Location ref for east exit ("L1")
-	Southeast               // Location ref for southeast exit ("L1")
-	South                   // Location ref for south exit ("L1")
-	Southwest               // Location ref for southwest exit ("L1")
-	West                    // Location ref for west exit ("L1")
-	Northwest               // Location ref for northwest exit ("L1")
-	Up                      // Location ref for up exit ("L1")
-	Down                    // Location ref for down exit ("L1")
+
+	// Location reference exit leads to ("L1")
+	North uint32 = iota
+	Northeast
+	East
+	Southeast
+	South
+	Southwest
+	West
+	Northwest
+	Up
+	Down
 
 	Alias       // The alias for a thing ("DOOR")
 	Blocker     // Name of direction being blocked ("E")
