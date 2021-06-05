@@ -11,6 +11,14 @@ import (
 	"strings"
 )
 
+// Thing is used to represent any and all items in the game world.
+type Thing struct {
+	Is  isKey               // Bit flags for capabilities/state
+	As  map[asKey]string    // Single value for a key
+	Any map[anyKey][]string // One or more values for a key
+	In  []*Thing            // Item's in a Thing (inventory)
+}
+
 // Type definitions for Thing field keys.
 type (
 	isKey  uint32 // index for Thing.Is
@@ -27,30 +35,6 @@ const (
 	Open                        // An open item (e.g. door)
 	Start                       // A starting location
 )
-
-// isNames provides the string names for the Thing.Is bitmasks. The helper
-// function IsNames can be used to retrieve a list of names for the bits set in
-// a Thing.Is fields.
-var isNames = []string{
-	"Container",
-	"Dark",
-	"NPC",
-	"Narrative",
-	"Open",
-	"Start",
-}
-
-// IsNames returns the names of the set bits in a Thing.Is field. Names are
-// separated by the OR (|) symbol. For example: "Narrative|Open".
-func IsNames(is isKey) string {
-	names := []string{}
-	for x := len(isNames) - 1; x >= 0; x-- {
-		if is&(1<<x) != 0 {
-			names = append(names, isNames[x])
-		}
-	}
-	return strings.Join(names, "|")
-}
 
 // Constants for use as keys in a Thing.As field. Comments provide expected
 // values for each constant.
@@ -86,6 +70,40 @@ const (
 	Veto  anyKey = "VETO:" // Command vetoes for an item
 )
 
+// nextUID is used to store the next unique identifier to be used for a new
+// Thing. It is setup and initialised via the init function.
+var nextUID chan uint
+
+// init is used to setup and initialise the nextUID channel.
+func init() {
+	nextUID = make(chan uint, 1)
+	nextUID <- 0
+}
+
+// isNames provides the string names for the Thing.Is bitmasks. The helper
+// function IsNames can be used to retrieve a list of names for the bits set in
+// a Thing.Is fields.
+var isNames = []string{
+	"Container",
+	"Dark",
+	"NPC",
+	"Narrative",
+	"Open",
+	"Start",
+}
+
+// setNames returns the names of the set bits in a Thing.Is field. Names are
+// separated by the OR (|) symbol. For example: "Narrative|Open".
+func (is isKey) setNames() string {
+	names := []string{}
+	for x := len(isNames) - 1; x >= 0; x-- {
+		if is&(1<<x) != 0 {
+			names = append(names, isNames[x])
+		}
+	}
+	return strings.Join(names, "|")
+}
+
 // asNames provides the string names for the Thing.As field constants. A name
 // for a specific Thing.As value can be retrieved by simple indexing. For
 // example: asNames[Alias] returns the string "Alias".
@@ -120,11 +138,10 @@ var (
 	}
 )
 
-// ReverseDir takes a direction value and returns the reverse or opposite
-// direction. For example if passed the constant East it will return West. If
-// the passed value is not one of the direction constants it will be returned
-// unchanged.
-func ReverseDir(dir asKey) asKey {
+// ReverseDir returns the reverse or opposite direction. For example if passed
+// the constant East it will return West. If the passed value is not one of the
+// direction constants it will be returned unchanged.
+func (dir asKey) ReverseDir() asKey {
 	switch {
 	case dir > Down:
 		return dir
@@ -133,24 +150,6 @@ func ReverseDir(dir asKey) asKey {
 	default:
 		return dir ^ 1
 	}
-}
-
-// nextUID is used to store the next unique identifier to be used for a new
-// Thing. It is setup and initialised via the init function.
-var nextUID chan uint
-
-// init is used to setup and initialise the nextUID channel.
-func init() {
-	nextUID = make(chan uint, 1)
-	nextUID <- 0
-}
-
-// Thing is used to represent any and all items in the game world.
-type Thing struct {
-	Is  isKey
-	As  map[asKey]string
-	Any map[anyKey][]string
-	In  []*Thing
 }
 
 // NewThing returns a new initialised Thing with no properties set.
@@ -283,7 +282,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 
 	p("%s%p %[2]T - UID: %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
-	p("%sIs - %032b (%s)", tree[false].i, t.Is, IsNames(t.Is))
+	p("%sIs - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
 	lIn, lAs, lAny := len(t.In), len(t.As), len(t.Any)
 	p("%sAs - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
