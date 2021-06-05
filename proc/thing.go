@@ -11,14 +11,19 @@ import (
 	"strings"
 )
 
+type (
+	isKey uint32 // index for Thing.Is
+	asKey uint32 // index for Thing.As
+)
+
 // Constants for use as bitmasks with the Thing.Is field.
 const (
-	Container uint32 = 1 << iota // A container, allows PUT/TAKE
-	Dark                         // A dark location
-	NPC                          // An NPC
-	Narrative                    // A narrative item
-	Open                         // An open item (e.g. door)
-	Start                        // A starting location
+	Container isKey = 1 << iota // A container, allows PUT/TAKE
+	Dark                        // A dark location
+	NPC                         // An NPC
+	Narrative                   // A narrative item
+	Open                        // An open item (e.g. door)
+	Start                       // A starting location
 )
 
 // isNames provides the string names for the Thing.Is bitmasks. The helper
@@ -35,7 +40,7 @@ var isNames = []string{
 
 // IsNames returns the names of the set bits in a Thing.Is field. Names are
 // separated by the OR (|) symbol. For example: "Narrative|Open".
-func IsNames(is uint32) string {
+func IsNames(is isKey) string {
 	names := []string{}
 	for x := len(isNames) - 1; x >= 0; x-- {
 		if is&(1<<x) != 0 {
@@ -54,7 +59,7 @@ func IsNames(is uint32) string {
 const (
 
 	// Location reference exit leads to ("L1")
-	North uint32 = iota
+	North asKey = iota
 	Northeast
 	East
 	Southeast
@@ -93,7 +98,7 @@ var asNames = []string{
 
 var (
 	// NameToDir maps a long or short direction name to its Thing.As constant.
-	NameToDir = map[string]uint32{
+	NameToDir = map[string]asKey{
 		"N": North, "NE": Northeast, "E": East, "SE": Southeast,
 		"S": South, "SW": Southwest, "W": West, "NW": Northwest,
 		"NORTH": North, "NORTHEAST": Northeast, "EAST": East, "SOUTHEAST": Southeast,
@@ -102,7 +107,7 @@ var (
 	}
 
 	// DirToName maps a Thing.As direction constant to the direction's long name.
-	DirToName = map[uint32]string{
+	DirToName = map[asKey]string{
 		North: "north", Northeast: "northeast", East: "east", Southeast: "southeast",
 		South: "south", Southwest: "southwest", West: "west", Northwest: "northwest",
 		Up: "up", Down: "down",
@@ -113,7 +118,7 @@ var (
 // direction. For example if passed the constant East it will return West. If
 // the passed value is not one of the direction constants it will be returned
 // unchanged.
-func ReverseDir(dir uint32) uint32 {
+func ReverseDir(dir asKey) asKey {
 	switch {
 	case dir > Down:
 		return dir
@@ -126,18 +131,18 @@ func ReverseDir(dir uint32) uint32 {
 
 // nextUID is used to store the next unique identifier to be used for a new
 // Thing. It is setup and initialised via the init function.
-var nextUID chan uint32
+var nextUID chan uint
 
 // init is used to setup and initialise the nextUID channel.
 func init() {
-	nextUID = make(chan uint32, 1)
+	nextUID = make(chan uint, 1)
 	nextUID <- 0
 }
 
 // Thing is used to represent any and all items in the game world.
 type Thing struct {
-	Is uint32
-	As map[uint32]string
+	Is isKey
+	As map[asKey]string
 	In []*Thing
 }
 
@@ -148,7 +153,7 @@ func NewThing() *Thing {
 	uid := <-nextUID
 	nextUID <- uid + 1
 	t := &Thing{
-		As: make(map[uint32]string),
+		As: make(map[asKey]string),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	return t
