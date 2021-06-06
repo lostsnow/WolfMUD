@@ -60,14 +60,20 @@ const (
 	Description // Item's description
 	Name        // Item's name
 	UID         // Item's unique identifier
+	VetoDrop    // Veto for DROP command
+	VetoGet     // Veto for GET command
+	VetoPut     // Veto PUT command for item
+	VetoPutIn   // Veto for PUT command into container
+	VetoTake    // Veto TAKE command for item
+	VetoTakeOut // Veto for TAKE command from container
 	Where       // Current location ref ("L1")
 	Writing     // Description of writing on an item
+
 )
 
 // Constants for Thing.Any keys
 const (
 	Alias anyKey = "ALIAS" // Aliases for an item
-	Veto  anyKey = "VETO:" // Command vetoes for an item
 )
 
 // nextUID is used to store the next unique identifier to be used for a new
@@ -116,6 +122,12 @@ var asNames = []string{
 	"Description",
 	"Name",
 	"UID",
+	"VetoDrop",
+	"VetoGet",
+	"VetoPut",
+	"VetoPutIn",
+	"VetoTake",
+	"VetoTakeOut",
 	"Where",
 	"Writing",
 }

@@ -178,6 +178,8 @@ func (s *state) Drop() {
 		s.Msg("You go to drop... something?")
 	case what == nil:
 		s.Msg("You do not have any '", s.word[0], "' to drop.")
+	case what.As[VetoDrop] != "":
+		s.Msg(what.As[VetoDrop])
 	default:
 		copy(s.actor.In[idx:], s.actor.In[idx+1:])
 		s.actor.In[len(s.actor.In)-1] = nil
@@ -198,8 +200,8 @@ func (s *state) Get() {
 		s.Msg("You go to get... something?")
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to get.")
-	case what.Any[Veto+"GET"] != nil:
-		s.Msg(what.Any[Veto+"GET"]...)
+	case what.As[VetoGet] != "":
+		s.Msg(what.As[VetoGet])
 	case what.Is&Narrative == Narrative:
 		s.Msg("You cannot take ", what.As[Name], ".")
 	case what.Is&NPC == NPC:
@@ -229,6 +231,10 @@ func (s *state) Take() {
 		s.Msg("You see no '", s.word[1], "' to take anything from.")
 	case what == nil:
 		s.Msg(where.As[Name], " does not seem to contain '", s.word[0], "'.")
+	case what.As[VetoTake] != "":
+		s.Msg(what.As[VetoTake])
+	case where.As[VetoTakeOut] != "":
+		s.Msg(where.As[VetoTakeOut])
 	case where.Is&(Container|NPC) == NPC:
 		s.Msg("You can't take ", what.As[Name], " from ", where.As[Name], ".")
 	case where.Is&Container == 0:
@@ -261,6 +267,10 @@ func (s *state) Put() {
 		s.Msg("You see no '", s.word[1], "' to put anything in.")
 	case where == nil:
 		s.Msg("You see no '", s.word[1], "' to put ", what.As[Name], " in.")
+	case what.As[VetoPut] != "":
+		s.Msg(what.As[VetoPut])
+	case where.As[VetoPutIn] != "":
+		s.Msg(where.As[VetoPutIn])
 	case where.Is&NPC == NPC:
 		s.Msg("Taxidermist are we?")
 	case where.Is&Container == 0:
