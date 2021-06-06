@@ -1,0 +1,56 @@
+%%
+      Ref: ZINARA
+     Zone: City of Zinara
+   Author: Andrew 'Diddymus' Rolfe
+
+This is the city of Zinara.
+%%
+      Ref: L1
+    Start:
+     Name: Fireplace
+  Aliases: TAVERN FIREPLACE
+    Exits: E→L3 SE→L4 S→L2
+
+You are in the corner of the common room in the dragon's breath tavern. A fire
+burns merrily in an ornate fireplace, giving comfort to weary travellers. The
+fire causes shadows to flicker and dance around the room, changing darkness to
+light and back again. To the south the common room continues and east the common
+room leads to the tavern entrance.
+%%
+      Ref: L2
+     Name: Common room
+  Aliases: TAVERN COMMON
+    Exits: N→L1 NE→L3 E→L4
+
+You are in a small, cosy common room in the dragon's breath tavern. Looking
+around you see a few chairs and tables for patrons. To the east you see a bar
+and to the north there is the glow of a fire.
+%%
+    Ref: L3
+   Name: Tavern entrance
+Aliases: TAVERN ENTRANCE
+  Exits: E→L5 S→L4 SW→L2 W→L1
+
+You are in the entryway to the dragon's breath tavern. To the west you see an
+inviting fireplace and south an even more inviting bar. Eastward a door leads
+out into the street.
+%%
+      Ref: L4
+     Name: Tavern bar
+  Aliases: TAVERN BAR
+    Exits: N→L3 NW→L1 W→L2
+
+You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with
+many bottles in a dizzying array of sizes, shapes and colours. There are also
+regular casks of beer, ale, mead, cider and wine behind the bar.
+%%
+    Ref: L5
+   Name: Street between tavern and bakers
+Aliases: TAVERN BAKERS STREET
+  Exits: N→L14 E→L6 S→L7 W→L3
+
+You are on a well kept cobbled street. Buildings loom up on either side of you.
+To the east the smells of a bakery taunt you. To the west the entrance to a
+tavern. A sign outside the tavern proclaims it to be the "Dragon's Breath". The
+street continues to the north and south.
+%%
