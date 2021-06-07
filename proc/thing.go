@@ -60,6 +60,7 @@ const (
 	Blocker     // Name of direction being blocked ("E")
 	Description // Item's description
 	Name        // Item's name
+	Ref         // Item's original reference (not unique)
 	UID         // Item's unique identifier
 	VetoDrop    // Veto for DROP command
 	VetoGet     // Veto for GET command
@@ -123,6 +124,7 @@ var asNames = []string{
 	"Blocker",
 	"Description",
 	"Name",
+	"Reference",
 	"UID",
 	"VetoDrop",
 	"VetoGet",
