@@ -30,6 +30,7 @@ type (
 const (
 	Container isKey = 1 << iota // A container, allows PUT/TAKE
 	Dark                        // A dark location
+	Location                    // Item is a location
 	NPC                         // An NPC
 	Narrative                   // A narrative item
 	Open                        // An open item (e.g. door)
@@ -92,6 +93,7 @@ func init() {
 var isNames = []string{
 	"Container",
 	"Dark",
+	"Location",
 	"NPC",
 	"Narrative",
 	"Open",
