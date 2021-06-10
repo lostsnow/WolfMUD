@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
 // Thing is used to represent any and all items in the game world.
@@ -60,7 +63,7 @@ const (
 	Blocker     // Name of direction being blocked ("E")
 	Description // Item's description
 	Name        // Item's name
-	Ref         // Item's original reference (not unique)
+	Ref         // Item's original reference (zone:ref or ref)
 	UID         // Item's unique identifier
 	VetoDrop    // Veto for DROP command
 	VetoGet     // Veto for GET command
@@ -70,7 +73,7 @@ const (
 	VetoTakeOut // Veto for TAKE command from container
 	Where       // Current location ref ("L1")
 	Writing     // Description of writing on an item
-
+	Zone        // Zone item's definition loaded from
 )
 
 // Constants for Thing.Any keys
@@ -134,6 +137,7 @@ var asNames = []string{
 	"VetoTakeOut",
 	"Where",
 	"Writing",
+	"Zone",
 }
 
 var (
@@ -181,6 +185,91 @@ func NewThing() *Thing {
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	return t
+}
+
+// Unmarshal loads data from the passed Record into a Thing.
+func (t *Thing) Unmarshal(r recordjar.Record) {
+	for field, data := range r {
+		switch field {
+		case "ALIAS", "ALIASES":
+			data := decode.KeywordList(r[field])
+			t.Any[Alias] = append(t.Any[Alias], data...)
+		case "DESCRIPTION":
+			t.As[Description] = decode.String(data)
+		case "DOOR":
+			for field, data := range decode.PairList(r["DOOR"]) {
+				switch field {
+				case "EXIT":
+					t.As[Blocker] = data
+				case "OPEN":
+					if decode.Boolean([]byte(data)) {
+						t.Is |= Open
+					}
+				default:
+					//fmt.Printf("Unknown attribute: %s\n", field)
+				}
+			}
+		case "EXIT", "EXITS":
+			for dir, loc := range decode.PairList(r["EXITS"]) {
+				t.As[NameToDir[dir]] = loc
+			}
+			t.Is |= Location
+		case "INV", "INVENTORY":
+			t.Is |= Container
+		case "LOCATION":
+			// Do nothing - only used by loader
+		case "NAME":
+			t.As[Name] = decode.String(data)
+		case "NARRATIVE":
+			t.Is |= Narrative
+		case "REF":
+			t.As[Ref] = decode.Keyword(r[field])
+		case "START":
+			t.Is |= Start
+		case "VETO":
+			for cmd, msg := range decode.KeyedStringList(r[field]) {
+				switch cmd {
+				case "DROP":
+					t.As[VetoDrop] = msg
+				case "GET":
+					t.As[VetoGet] = msg
+				case "PUT":
+					t.As[VetoPut] = msg
+				case "PUTIN":
+					t.As[VetoPutIn] = msg
+				case "TAKE":
+					t.As[VetoTake] = msg
+				case "TAKEOUT":
+					t.As[VetoTakeOut] = msg
+				default:
+					//fmt.Printf("Unknown veto: %s, for: %s\n", cmd, t.As[Name])
+				}
+			}
+		case "WRITING":
+			t.As[Writing] = decode.String(data)
+		case "ZONELINKS":
+			// Do nothing - only used by loader
+		default:
+			//fmt.Printf("Unknown field: %s\n", field)
+		}
+	}
+
+	// If it's a location it's not a container
+	if t.Is&Location == Location {
+		t.Is &^= Container
+	}
+
+	// If zone information present append it to Ref, any exits, then discard.
+	if t.As[Zone] != "" {
+		t.As[Ref] = t.As[Zone] + ":" + t.As[Ref]
+
+		for dir := range DirToName {
+			if t.As[dir] != "" {
+				t.As[dir] = t.As[Zone] + ":" + t.As[dir]
+			}
+		}
+		delete(t.As, Zone)
+	}
 }
 
 // Copy returns a duplicate of the receiver Thing with only the UID being
