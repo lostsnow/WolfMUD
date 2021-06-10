@@ -141,6 +141,7 @@ var (
 	NameToDir = map[string]asKey{
 		"N": North, "NE": Northeast, "E": East, "SE": Southeast,
 		"S": South, "SW": Southwest, "W": West, "NW": Northwest,
+		"U": Up, "D": Down,
 		"NORTH": North, "NORTHEAST": Northeast, "EAST": East, "SOUTHEAST": Southeast,
 		"SOUTH": South, "SOUTHWEST": Southwest, "WEST": West, "NORTHWEST": Northwest,
 		"UP": Up, "DOWN": Down,
