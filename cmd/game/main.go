@@ -29,7 +29,7 @@ func main() {
 	player := proc.NewThing()
 	player.As[proc.Name] = "Diddymus"
 	player.As[proc.Description] = "An adventurer, just like you."
-	player.As[proc.Where] = "L1"
+	player.As[proc.Where] = proc.WorldStart[rand.Intn(len(proc.WorldStart))]
 	player.Any[proc.Alias] = []string{"PLAYER"}
 
 	s := proc.NewState(os.Stdout, player)

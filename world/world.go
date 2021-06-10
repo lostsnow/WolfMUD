@@ -6,132 +6,145 @@
 package world
 
 import (
+	"fmt"
+	"os"
+	"runtime"
+
 	"code.wolfmud.org/WolfMUD.git/proc"
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
 
-// Load creates the game world. This is currently hard-coded for development.
+// taggedThing is a *Thing with additional information only stored during the
+// loading process.
+type taggedThing struct {
+	*proc.Thing
+	inventory []string
+	location  []string
+	zoneLinks map[string]string
+}
+
+// Load creates the game world.
+//
+// FIXME(diddymus): Hard-coded zone files and paths.
 //
 // BUG(diddymus): Load will populate proc.World directly as a side effect of
 // being called. The proc package can't import the world package as it would
-// cause a cyclic import. This should be resolved when we have a proper loader
-// written.
+// cause a cyclic import.
 func Load() {
 
 	proc.World = make(map[string]*proc.Thing)
+	refToUID := make(map[string]string)
 
-	// Items
+	for _, fName := range []string{
+		"../data/zones/zinara.wrj",
+		"../data/zones/zinara_south.wrj",
+		"../data/zones/zinara_caves.wrj",
+	} {
 
-	cat := proc.NewThing()
-	cat.As[proc.Name] = "the tavern cat"
-	cat.As[proc.Description] = "The tavern cat is a ball of fur with one golden eye, the other eye replaced by a large scar. It senses you watching it and returns your gaze with a steady one of its own."
-	cat.As[proc.VetoGet] = "The cat looks at your hand, then looks at you. Hrm, probably a bad idea."
-	cat.Any[proc.Alias] = []string{"CAT"}
-	cat.Is = proc.NPC
+		f, err := os.Open(fName)
+		if err != nil {
+			fmt.Printf("Load error: %s\n", err)
+			return
+		}
+		jar := recordjar.Read(f, "DESCRIPTION")
+		f.Close()
+		PreProcessor(jar)
 
-	fireplace := proc.NewThing()
-	fireplace.As[proc.Name] = "an ornate fireplace"
-	fireplace.As[proc.Description] = "This is a very ornate fireplace carved from marble. Either side a dragon curls downward until the head is below the fire looking upward, giving the impression that they are breathing fire."
-	fireplace.As[proc.VetoGet] = "For some inexplicable reason you can't just rip out the fireplace and take it!"
-	fireplace.Any[proc.Alias] = []string{"FIREPLACE"}
-	fireplace.Is = proc.Narrative
+		// Find zone header record
+		if len(jar) < 1 || len(jar[0]["ZONE"]) == 0 {
+			fmt.Printf("load warning, zone header not found, skipping: %s\n", fName)
+		}
 
-	fire := proc.NewThing()
-	fire.As[proc.Name] = "a fire"
-	fire.As[proc.Description] = "Some logs have been placed into the fireplace and are burning away merrily."
-	fire.As[proc.VetoGet] = "Ouch! Hot, hot, hot!"
-	fire.Any[proc.Alias] = []string{"FIRE"}
-	fire.Is |= proc.Narrative
+		zone := decode.String(jar[0]["REF"])
+		jar = jar[1:]
 
-	greenBall := proc.NewThing()
-	greenBall.As[proc.Name] = "a green ball"
-	greenBall.As[proc.Description] = "This is a small green ball."
-	greenBall.Any[proc.Alias] = []string{"+GREEN", "BALL"}
+		// Load everything into temporary store
+		store := make(map[string]taggedThing)
+		for _, record := range jar {
+			ref := decode.String(record["REF"])
+			store[ref] = taggedThing{
+				Thing:     proc.NewThing(),
+				inventory: decode.KeywordList(record["INVENTORY"]),
+				location:  decode.KeywordList(record["LOCATION"]),
+				zoneLinks: decode.PairList(record["ZONELINKS"]),
+			}
+			store[ref].As[proc.Zone] = zone
+			store[ref].Unmarshal(record)
+		}
 
-	apple := proc.NewThing()
-	apple.As[proc.Name] = "an apple"
-	apple.As[proc.Description] = "This is a red apple."
-	apple.Any[proc.Alias] = []string{"APPLE"}
+		// Resolve inventory attributes in the store with references
+		for _, item := range store {
+			for _, ref := range item.inventory {
+				if what, ok := store[ref]; ok {
+					item.In = append(item.In, what.Thing)
+				} else {
+					fmt.Printf("load warning, ref not found for inventory: %s\n", ref)
+				}
+			}
+		}
 
-	bag := proc.NewThing()
-	bag.As[proc.Name] = "a bag"
-	bag.As[proc.Description] = "This is a simple cloth bag."
-	bag.Any[proc.Alias] = []string{"BAG"}
-	bag.Is = proc.Container
-	bag.In = append(bag.In, apple)
+		// Resolve location attributes in the store with references
+		for _, item := range store {
+			for _, ref := range item.location {
+				if where, ok := store[ref]; ok {
+					where.In = append(where.In, item.Thing)
+				} else {
+					fmt.Printf("load warning, ref not found for location: %s\n", ref)
+				}
+			}
+		}
 
-	chest := proc.NewThing()
-	chest.As[proc.Name] = "a chest"
-	chest.As[proc.Description] = "This is a large iron bound wooden chest."
-	chest.Any[proc.Alias] = []string{"CHEST"}
-	chest.Is = proc.Container
-	chest.In = append(chest.In, greenBall, bag)
+		// Copy locations to world, recording any starting locations - copying
+		// resolves references as unique things.
+		for _, item := range store {
+			if item.Is&proc.Location == proc.Location {
+				c := item.Copy()
+				proc.World[c.As[proc.UID]] = c
+				if c.Is&proc.Start == proc.Start {
+					proc.WorldStart = append(proc.WorldStart, c.As[proc.UID])
+				}
+				refToUID[c.As[proc.Ref]] = c.As[proc.UID]
 
-	redBall := proc.NewThing()
-	redBall.As[proc.Name] = "a red ball"
-	redBall.As[proc.Description] = "This is a small red ball."
-	redBall.Any[proc.Alias] = []string{"+RED:BALL"}
+				// Apply zonelinks to exits
+				for dir, ref := range item.zoneLinks {
+					if ref != "" {
+						c.As[proc.NameToDir[dir]] = ref
+					}
+				}
+			}
+		}
 
-	note := proc.NewThing()
-	note.As[proc.Name] = "a note"
-	note.As[proc.Description] = "This is a small piece of paper with something written on it."
-	note.Any[proc.Alias] = []string{"NOTE"}
-	note.As[proc.Writing] = "It says 'Here be dragons'."
+		// Tear down temporary store
+		for ref, item := range store {
+			item.Free()
+			delete(store, ref)
+		}
+		runtime.GC()
+	}
 
-	door := proc.NewThing()
-	door.As[proc.Name] = "the tavern door"
-	door.As[proc.Description] = "This is a sturdy wooden door with a simple latch."
-	door.Any[proc.Alias] = []string{"+TAVERN", "DOOR"}
-	door.As[proc.Blocker] = "E"
-	door.As[proc.Where] = "L3"
-	door.Is = proc.Narrative
+	// Rewrite exits from Refs to UIDs as Refs only unique within a zone. Then
+	// drop zone information as no longer required.
+	for _, loc := range proc.World {
+		for dir := range proc.DirToName {
+			if loc.As[dir] != "" {
+				loc.As[dir] = refToUID[loc.As[dir]]
+			}
+		}
+	}
 
-	// Locations
+	// Create other side of blockers as references so they share state
+	for _, loc := range proc.World {
+		for _, item := range loc.In {
+			blocking := item.As[proc.Blocker]
+			if blocking == "" || item.As[proc.Where] != "" {
+				continue
+			}
+			item.As[proc.Where] = loc.As[proc.UID]
+			otherUID := loc.As[proc.NameToDir[blocking]]
+			proc.World[otherUID].In = append(proc.World[otherUID].In, item)
+		}
+	}
 
-	L1 := proc.NewThing()
-	L1.As[proc.Name] = "Fireplace"
-	L1.As[proc.Description] = "You are in the corner of the common room in the dragon's breath tavern. A fire burns merrily in an ornate fireplace, giving comfort to weary travellers. The fire causes shadows to flicker and dance around the room, changing darkness to light and back again. To the south the common room continues and east the common room leads to the tavern entrance."
-	L1.As[proc.East] = "L3"
-	L1.As[proc.Southeast] = "L4"
-	L1.As[proc.South] = "L2"
-	L1.Is |= proc.Start
-	L1.In = append(L1.In, fireplace, fire, chest)
-	proc.World["L1"] = L1
-
-	L2 := proc.NewThing()
-	L2.As[proc.Name] = "Common room"
-	L2.As[proc.Description] = "You are in a small, cosy common room in the dragon's breath tavern. Looking around you see a few chairs and tables for patrons. In one corner there is a very old grandfather clock. To the east you see a bar and to the north there is the glow of a fire."
-	L2.As[proc.North] = "L1"
-	L2.As[proc.Northeast] = "L3"
-	L2.As[proc.East] = "L4"
-	L2.In = append(L2.In, cat)
-	proc.World["L2"] = L2
-
-	L3 := proc.NewThing()
-	L3.As[proc.Name] = "Tavern entrance"
-	L3.As[proc.Description] = "You are in the entryway to the dragon's breath tavern. To the west you see an inviting fireplace and south an even more inviting bar. Eastward a door leads out into the street."
-	L3.As[proc.East] = "L5"
-	L3.As[proc.South] = "L4"
-	L3.As[proc.Southwest] = "L2"
-	L3.As[proc.West] = "L1"
-	L3.In = append(L3.In, redBall, door)
-	proc.World["L3"] = L3
-
-	L4 := proc.NewThing()
-	L4.As[proc.Name] = "Tavern bar"
-	L4.As[proc.Description] = "You are at the tavern's very sturdy bar. Behind the bar are shelves stacked with many bottles in a dizzying array of sizes, shapes and colours. There are also regular casks of beer, ale, mead, cider and wine behind the bar."
-	L4.As[proc.North] = "L3"
-	L4.As[proc.Northwest] = "L1"
-	L4.As[proc.West] = "L2"
-	L4.In = append(L4.In, note)
-	proc.World["L4"] = L4
-
-	L5 := proc.NewThing()
-	L5.As[proc.Name] = "Street between tavern and bakers"
-	L5.As[proc.Description] = "You are on a well kept cobbled street. Buildings loom up on either side of you. To the east the smells of a bakery taunt you. To the west the entrance to a tavern. A sign outside the tavern proclaims it to be the \"Dragon's Breath\". The street continues to the north and south."
-	L5.As[proc.North] = "L14"
-	L5.As[proc.East] = "L6"
-	L5.As[proc.South] = "L7"
-	L5.As[proc.West] = "L3"
-	L5.In = append(L5.In, door)
-	proc.World["L5"] = L5
+	return
 }

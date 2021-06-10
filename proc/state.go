@@ -13,6 +13,9 @@ import (
 // World contains all of the locations for the current game world.
 var World map[string]*Thing
 
+// WorldStart contains a list of references to starting locations
+var WorldStart []string
+
 type state struct {
 	actor  *Thing
 	cmd    string
