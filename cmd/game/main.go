@@ -8,14 +8,18 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 
 	"code.wolfmud.org/WolfMUD.git/proc"
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
 func main() {
+
+	rand.Seed(time.Now().UnixNano())
 
 	fmt.Print("\n  Welcome to the WolfMini experimental environment!\n\n")
 
