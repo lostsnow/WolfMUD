@@ -78,7 +78,8 @@ const (
 
 // Constants for Thing.Any keys
 const (
-	Alias anyKey = "ALIAS" // Aliases for an item
+	Alias     anyKey = "ALIAS"     // Aliases for an item
+	Qualifier anyKey = "QUALIFIER" // Alias qualifiers
 )
 
 // nextUID is used to store the next unique identifier to be used for a new
@@ -192,8 +193,28 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 	for field, data := range r {
 		switch field {
 		case "ALIAS", "ALIASES":
-			data := decode.KeywordList(r[field])
-			t.Any[Alias] = append(t.Any[Alias], data...)
+			a := make(map[string]struct{})
+			q := make(map[string]struct{})
+			for _, alias := range decode.KeywordList(r[field]) {
+				parts := strings.Split(alias, ":")
+				switch {
+				case len(parts) == 0:
+					// Ignore empty aliases
+				case len(parts) == 1 && parts[0][0] == '+':
+					q[parts[0][1:]] = struct{}{}
+				case len(parts) == 1:
+					a[parts[0]] = struct{}{}
+				case len(parts) == 2:
+					q[alias[1:]] = struct{}{}
+					a[parts[1]] = struct{}{}
+				}
+			}
+			for alias := range a {
+				t.Any[Alias] = append(t.Any[Alias], alias)
+			}
+			for qualifier := range q {
+				t.Any[Qualifier] = append(t.Any[Qualifier], qualifier)
+			}
 		case "DESCRIPTION":
 			t.As[Description] = decode.String(data)
 		case "DOOR":
