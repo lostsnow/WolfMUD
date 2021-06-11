@@ -185,6 +185,7 @@ func NewThing() *Thing {
 		Any: make(map[anyKey][]string),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
+	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
 	return t
 }
 
@@ -310,6 +311,15 @@ func (t *Thing) Copy() *Thing {
 	for _, item := range t.In {
 		T.In = append(T.In, item.Copy())
 	}
+
+	// Swap old UID alias for copy's new UID
+	for x, alias := range T.Any[Alias] {
+		if alias == t.As[UID] {
+			T.Any[Alias][x] = T.As[UID]
+			break
+		}
+	}
+
 	return T
 }
 
