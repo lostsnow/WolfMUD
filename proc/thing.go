@@ -8,6 +8,7 @@ package proc
 import (
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
@@ -19,7 +20,7 @@ type Thing struct {
 	Is  isKey               // Bit flags for capabilities/state
 	As  map[asKey]string    // Single value for a key
 	Any map[anyKey][]string // One or more values for a key
-	In  []*Thing            // Item's in a Thing (inventory)
+	In  map[string]*Thing   // Item's in a Thing (inventory)
 }
 
 // Type definitions for Thing field keys.
@@ -183,6 +184,7 @@ func NewThing() *Thing {
 	t := &Thing{
 		As:  make(map[asKey]string),
 		Any: make(map[anyKey][]string),
+		In:  make(map[string]*Thing),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
@@ -309,7 +311,8 @@ func (t *Thing) Copy() *Thing {
 		T.Any[k] = v
 	}
 	for _, item := range t.In {
-		T.In = append(T.In, item.Copy())
+		c := item.Copy()
+		T.In[c.As[UID]] = c
 	}
 
 	// Swap old UID alias for copy's new UID
@@ -321,6 +324,19 @@ func (t *Thing) Copy() *Thing {
 	}
 
 	return T
+}
+
+// SortedIn returns the Thing's inventory as a slice with elements sorted by UID.
+func (t *Thing) SortedIn() []*Thing {
+	if t == nil {
+		return nil
+	}
+	ord := make([]*Thing, 0, len(t.In))
+	for _, item := range t.In {
+		ord = append(ord, item)
+	}
+	sort.Slice(ord, func(i, j int) bool { return ord[i].As[UID] < ord[j].As[UID] })
+	return ord
 }
 
 // Free recursively unlinks everything from a Thing. This is not really
@@ -346,23 +362,23 @@ func (t *Thing) Free() {
 // Inventory it was in and the index in the inventory where it was found. If
 // there is not match returns nill for the Thing, nil for the Inventory and an
 // index of -1.
-func Find(alias string, where ...*Thing) (*Thing, *Thing, int) {
+func Find(alias string, where ...*Thing) (*Thing, *Thing) {
 	if alias == "" {
-		return nil, nil, -1
+		return nil, nil
 	}
 	for _, inv := range where {
 		if inv == nil {
 			continue
 		}
-		for idx, item := range inv.In {
+		for _, item := range inv.In {
 			for _, a := range item.Any[Alias] {
 				if a == alias {
-					return item, inv, idx
+					return item, inv
 				}
 			}
 		}
 	}
-	return nil, nil, -1
+	return nil, nil
 }
 
 // Dump will write a pretty ASCII tree representing the details of a Thing.
@@ -436,10 +452,11 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lAny--
 		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, k, v)
 	}
-	p("%sIn - len: %d, nil: %t", tree[true].i, lIn, t.In == nil)
+	p("%sIn - len: %d", tree[true].i, lIn)
 	w.Write([]byte(b.String()))
-	for x, item := range t.In {
-		item.dump(w, width, indent+tree[true].b, x == lIn-1)
+	for _, item := range t.In {
+		lIn--
+		item.dump(w, width, indent+tree[true].b, lIn == 0)
 	}
 }
 

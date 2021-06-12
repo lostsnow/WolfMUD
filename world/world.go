@@ -77,7 +77,7 @@ func Load() {
 		for _, item := range store {
 			for _, ref := range item.inventory {
 				if what, ok := store[ref]; ok {
-					item.In = append(item.In, what.Thing)
+					item.In[what.Thing.As[proc.UID]] = what.Thing
 				} else {
 					fmt.Printf("load warning, ref not found for inventory: %s\n", ref)
 				}
@@ -88,7 +88,7 @@ func Load() {
 		for _, item := range store {
 			for _, ref := range item.location {
 				if where, ok := store[ref]; ok {
-					where.In = append(where.In, item.Thing)
+					where.In[item.Thing.As[proc.UID]] = item.Thing
 				} else {
 					fmt.Printf("load warning, ref not found for location: %s\n", ref)
 				}
@@ -142,7 +142,7 @@ func Load() {
 			}
 			item.As[proc.Where] = loc.As[proc.UID]
 			otherUID := loc.As[proc.NameToDir[blocking]]
-			proc.World[otherUID].In = append(proc.World[otherUID].In, item)
+			proc.World[otherUID].In[item.As[proc.UID]] = item
 		}
 	}
 

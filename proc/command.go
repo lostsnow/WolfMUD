@@ -68,7 +68,7 @@ func (s *state) Look() {
 	default:
 		s.Msg("[", where.As[Name], "]\n", where.As[Description], "\n\n")
 		mark := s.buff.Len()
-		for _, item := range where.In {
+		for _, item := range where.SortedIn() {
 			if item.Is&Narrative == Narrative {
 				continue
 			}
@@ -133,7 +133,7 @@ func (s *state) Move() {
 
 func (s *state) Examine() {
 
-	what, _, _ := Find(s.word[0], s.actor, World[s.actor.As[Where]])
+	what, _ := Find(s.word[0], s.actor, World[s.actor.As[Where]])
 
 	switch {
 	case s.word[0] == "":
@@ -152,9 +152,9 @@ func (s *state) Examine() {
 		}
 	default:
 		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
-		s.Msg(" It contains: ", what.In[0].As[Name])
-		for _, item := range what.In[1:] {
-			s.Msg(", ", item.As[Name])
+		s.Msg(" It contains: ")
+		for _, item := range what.SortedIn() {
+			s.Msg("\n  ", item.As[Name])
 		}
 	}
 }
@@ -165,7 +165,7 @@ func (s *state) Inventory() {
 		s.Msg("You are not carrying anything.")
 	default:
 		s.Msg("You are carrying:")
-		for _, what := range s.actor.In {
+		for _, what := range s.actor.SortedIn() {
 			s.Msg("\n  ", what.As[Name])
 		}
 	}
@@ -173,7 +173,7 @@ func (s *state) Inventory() {
 
 func (s *state) Drop() {
 
-	what, _, idx := Find(s.word[0], s.actor)
+	what, _ := Find(s.word[0], s.actor)
 
 	switch {
 	case s.word[0] == "":
@@ -183,19 +183,15 @@ func (s *state) Drop() {
 	case what.As[VetoDrop] != "":
 		s.Msg(what.As[VetoDrop])
 	default:
-		copy(s.actor.In[idx:], s.actor.In[idx+1:])
-		s.actor.In[len(s.actor.In)-1] = nil
-		s.actor.In = s.actor.In[:len(s.actor.In)-1]
-
-		where := World[s.actor.As[Where]]
-		where.In = append(where.In, what)
+		delete(s.actor.In, what.As[UID])
+		World[s.actor.As[Where]].In[what.As[UID]] = what
 		s.Msg("You drop ", what.As[Name], ".")
 	}
 }
 
 func (s *state) Get() {
 
-	what, where, idx := Find(s.word[0], World[s.actor.As[Where]])
+	what, where := Find(s.word[0], World[s.actor.As[Where]])
 
 	switch {
 	case s.word[0] == "":
@@ -209,11 +205,8 @@ func (s *state) Get() {
 	case what.Is&NPC == NPC:
 		s.Msg(what.As[Name], " does not want to be taken!")
 	default:
-		copy(where.In[idx:], where.In[idx+1:])
-		where.In[len(where.In)-1] = nil
-		where.In = where.In[:len(where.In)-1]
-
-		s.actor.In = append(s.actor.In, what)
+		delete(where.In, what.As[UID])
+		s.actor.In[what.As[UID]] = what
 		s.Msg("You get ", what.As[Name], ".")
 	}
 }
@@ -221,8 +214,8 @@ func (s *state) Get() {
 func (s *state) Take() {
 
 	// Find container, then item in container
-	where, _, _ := Find(s.word[1], s.actor, World[s.actor.As[Where]])
-	what, _, idx := Find(s.word[0], where)
+	where, _ := Find(s.word[1], s.actor, World[s.actor.As[Where]])
+	what, _ := Find(s.word[0], where)
 
 	switch {
 	case s.word[0] == "":
@@ -243,11 +236,8 @@ func (s *state) Take() {
 		s.Msg("You can't take ", what.As[Name], " out of ", where.As[Name], ".")
 	case what == nil:
 	default:
-		copy(where.In[idx:], where.In[idx+1:])
-		where.In[len(where.In)-1] = nil
-		where.In = where.In[:len(where.In)-1]
-
-		s.actor.In = append(s.actor.In, what)
+		delete(where.In, what.As[UID])
+		s.actor.In[what.As[UID]] = what
 		s.Msg("You take ", what.As[Name], " from ", where.As[Name], ".")
 	}
 }
@@ -255,8 +245,8 @@ func (s *state) Take() {
 func (s *state) Put() {
 
 	// Find container, find item (must be carried)
-	where, _, _ := Find(s.word[1], s.actor, World[s.actor.As[Where]])
-	what, _, idx := Find(s.word[0], s.actor)
+	where, _ := Find(s.word[1], s.actor, World[s.actor.As[Where]])
+	what, _ := Find(s.word[0], s.actor)
 
 	switch {
 	case s.word[0] == "":
@@ -280,11 +270,8 @@ func (s *state) Put() {
 	case what == nil:
 		s.Msg("You have no '", s.word[0], "' to put into ", where.As[Name], ".")
 	default:
-		copy(s.actor.In[idx:], s.actor.In[idx+1:])
-		s.actor.In[len(s.actor.In)-1] = nil
-		s.actor.In = s.actor.In[:len(s.actor.In)-1]
-
-		where.In = append(where.In, what)
+		delete(s.actor.In, what.As[UID])
+		where.In[what.As[UID]] = what
 		s.Msg("You put ", what.As[Name], " into ", where.As[Name], ".")
 	}
 }
@@ -295,7 +282,7 @@ func (s *state) Dump() {
 	if s.word[0] == "@" {
 		what = World[s.actor.As[Where]]
 	} else {
-		what, _, _ = Find(s.word[0], s.actor, World[s.actor.As[Where]])
+		what, _ = Find(s.word[0], s.actor, World[s.actor.As[Where]])
 	}
 
 	switch {
@@ -309,7 +296,7 @@ func (s *state) Dump() {
 }
 
 func (s *state) Read() {
-	what, _, _ := Find(s.word[0], World[s.actor.As[Where]], s.actor)
+	what, _ := Find(s.word[0], World[s.actor.As[Where]], s.actor)
 
 	switch {
 	case s.word[0] == "":
@@ -324,7 +311,7 @@ func (s *state) Read() {
 }
 
 func (s *state) Open() {
-	what, _, _ := Find(s.word[0], World[s.actor.As[Where]])
+	what, _ := Find(s.word[0], World[s.actor.As[Where]])
 
 	switch {
 	case s.word[0] == "":
@@ -342,7 +329,7 @@ func (s *state) Open() {
 }
 
 func (s *state) Close() {
-	what, _, _ := Find(s.word[0], World[s.actor.As[Where]])
+	what, _ := Find(s.word[0], World[s.actor.As[Where]])
 
 	switch {
 	case s.word[0] == "":
