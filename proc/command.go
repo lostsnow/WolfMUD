@@ -137,7 +137,7 @@ func (s *state) Examine() {
 
 	switch {
 	case s.word[0] == "":
-		s.Msg("You go to examine... something?")
+		s.Msg("You examine this and that, find nothing special.")
 	case what == nil:
 		s.Msg("You see no '", s.word[0], "' to examine.")
 	case what.Is&Container != Container || len(what.In) == 0:
