@@ -62,7 +62,20 @@ func (s *state) parse(input string) {
 	}
 }
 
+// Msg sends a message to the actor. If anything has already been sent to the
+// actor for this command a line-feed is automatically added at the beginning
+// of the message.
 func (s *state) Msg(text ...string) {
+	if s.buff.Len() > 0 {
+		s.buff.Write(newline)
+	}
+	s.MsgAppend(text...)
+}
+
+// MsgAppend sends a message to the actor. Unlike Msg, MsgAppend never adds
+// line-feeds automatically - which can be useful when building up messages in
+// stages.
+func (s *state) MsgAppend(text ...string) {
 	for _, t := range text {
 		s.buff.WriteString(t)
 	}

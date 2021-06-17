@@ -66,16 +66,16 @@ func (s *state) Look() {
 	case where.Is&Dark == Dark:
 		s.Msg("It's too dark to see anything!")
 	default:
-		s.Msg("[", where.As[Name], "]\n", where.As[Description], "\n\n")
+		s.Msg("[", where.As[Name], "]\n", where.As[Description], "\n")
 		mark := s.buff.Len()
 		for _, item := range where.SortedIn() {
 			if item.Is&Narrative == Narrative {
 				continue
 			}
-			s.Msg("You see ", item.As[Name], " here.\n")
+			s.Msg("You see ", item.As[Name], " here.")
 		}
 		if s.buff.Len() > mark {
-			s.Msg("\n")
+			s.Msg()
 			mark = s.buff.Len()
 		}
 		for dir := North; dir <= Down; dir++ {
@@ -83,7 +83,7 @@ func (s *state) Look() {
 				if s.buff.Len() == mark {
 					s.Msg("You see exits:")
 				}
-				s.Msg(" ", DirToName[dir])
+				s.MsgAppend(" ", DirToName[dir])
 			}
 		}
 		if s.buff.Len() == mark {
@@ -131,6 +131,8 @@ func (s *state) Move() {
 	}
 }
 
+// BUG(diddymus): Items always listed but if only one item visible (not
+// narrative) should show "It contain <name>."
 func (s *state) Examine() {
 
 	what, _ := Find(s.word[0], s.actor, World[s.actor.As[Where]])
@@ -146,15 +148,15 @@ func (s *state) Examine() {
 		switch {
 		case what.As[Blocker] == "":
 		case what.Is&Open == Open:
-			s.Msg(" It is open.")
+			s.MsgAppend(" It is open.")
 		default:
-			s.Msg(" It is closed.")
+			s.MsgAppend(" It is closed.")
 		}
 	default:
 		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
-		s.Msg(" It contains: ")
+		s.MsgAppend(" It contains: ")
 		for _, item := range what.SortedIn() {
-			s.Msg("\n  ", item.As[Name])
+			s.Msg("  ", item.As[Name])
 		}
 	}
 }
@@ -166,7 +168,7 @@ func (s *state) Inventory() {
 	default:
 		s.Msg("You are carrying:")
 		for _, what := range s.actor.SortedIn() {
-			s.Msg("\n  ", what.As[Name])
+			s.Msg("  ", what.As[Name])
 		}
 	}
 }
