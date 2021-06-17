@@ -25,10 +25,7 @@ type state struct {
 	prompt []byte
 }
 
-var (
-	filler  = []string{"", "", ""}
-	newline = []byte("\n")
-)
+var newline = []byte("\n")
 
 func NewState(out io.Writer, t *Thing) *state {
 	return &state{
@@ -50,9 +47,6 @@ func (s *state) Parse(input string) {
 
 func (s *state) parse(input string) {
 	s.word = strings.Fields(strings.ToUpper(input))
-	if len(s.word) < len(filler) {
-		s.word = append(s.word, filler[len(s.word):]...)
-	}
 	s.cmd, s.word = s.word[0], s.word[1:]
 
 	if command, ok := commands[s.cmd]; ok {

@@ -55,9 +55,7 @@ func (s *state) Quit() {
 }
 
 func (s *state) Look() {
-
 	where := World[s.actor.As[Where]]
-
 	switch {
 	case where == nil:
 		s.Msg("[The Void]\n",
@@ -66,7 +64,8 @@ func (s *state) Look() {
 	case where.Is&Dark == Dark:
 		s.Msg("It's too dark to see anything!")
 	default:
-		s.Msg("[", where.As[Name], "]\n", where.As[Description], "\n")
+		s.Msg("[", where.As[Name], "]")
+		s.Msg(where.As[Description], "\n")
 		mark := s.buff.Len()
 		for _, item := range where.SortedIn() {
 			if item.Is&Narrative == Narrative {
@@ -74,19 +73,20 @@ func (s *state) Look() {
 			}
 			s.Msg("You see ", item.As[Name], " here.")
 		}
-		if s.buff.Len() > mark {
+		if mark != s.buff.Len() {
 			s.Msg()
 			mark = s.buff.Len()
 		}
 		for dir := North; dir <= Down; dir++ {
 			if where.As[dir] != "" {
 				if s.buff.Len() == mark {
-					s.Msg("You see exits:")
+					s.Msg("You see exits: ", DirToName[dir])
+				} else {
+					s.MsgAppend(", ", DirToName[dir])
 				}
-				s.MsgAppend(" ", DirToName[dir])
 			}
 		}
-		if s.buff.Len() == mark {
+		if mark == s.buff.Len() {
 			s.Msg("You see no obvious exits.")
 		}
 	}
@@ -131,17 +131,27 @@ func (s *state) Move() {
 	}
 }
 
-// BUG(diddymus): Items always listed but if only one item visible (not
-// narrative) should show "It contain <name>."
 func (s *state) Examine() {
 
-	what, _ := Find(s.word[0], s.actor, World[s.actor.As[Where]])
+	if len(s.word) == 0 {
+		s.Msg("You examine this and that, find nothing special.")
+		return
+	}
+
+	uids := Match(s.word, s.actor, World[s.actor.As[Where]])
+	uid := uids[0]
+	what := s.actor.In[uid]
+	if what == nil {
+		what = World[s.actor.As[Where]].In[uid]
+	}
 
 	switch {
-	case s.word[0] == "":
+	case len(s.word) == 0:
 		s.Msg("You examine this and that, find nothing special.")
 	case what == nil:
-		s.Msg("You see no '", s.word[0], "' to examine.")
+		s.Msg("You see no '", uid, "' to examine.")
+	case len(uids) > 1:
+		s.Msg("You can only examine one thing at a time.")
 	case what.Is&Container != Container || len(what.In) == 0:
 		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
 		// If a blocker, e.g. a door, is it open or closed?
@@ -151,6 +161,11 @@ func (s *state) Examine() {
 			s.MsgAppend(" It is open.")
 		default:
 			s.MsgAppend(" It is closed.")
+		}
+	case len(what.In) == 1:
+		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
+		for _, item := range what.In {
+			s.MsgAppend(" It contains ", item.As[Name], ".")
 		}
 	default:
 		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
@@ -175,182 +190,242 @@ func (s *state) Inventory() {
 
 func (s *state) Drop() {
 
-	what, _ := Find(s.word[0], s.actor)
-
-	switch {
-	case s.word[0] == "":
+	if len(s.word) == 0 {
 		s.Msg("You go to drop... something?")
-	case what == nil:
-		s.Msg("You do not have any '", s.word[0], "' to drop.")
-	case what.As[VetoDrop] != "":
-		s.Msg(what.As[VetoDrop])
-	default:
-		delete(s.actor.In, what.As[UID])
-		World[s.actor.As[Where]].In[what.As[UID]] = what
-		s.Msg("You drop ", what.As[Name], ".")
+		return
+	}
+
+	for _, uid := range Match(s.word, s.actor) {
+		what := s.actor.In[uid]
+		switch {
+		case what == nil:
+			s.Msg("You do not have any '", uid, "' to drop.")
+		case what.As[VetoDrop] != "":
+			s.Msg(what.As[VetoDrop])
+		default:
+			delete(s.actor.In, what.As[UID])
+			World[s.actor.As[Where]].In[what.As[UID]] = what
+			s.Msg("You drop ", what.As[Name], ".")
+		}
 	}
 }
 
 func (s *state) Get() {
 
-	what, where := Find(s.word[0], World[s.actor.As[Where]])
-
-	switch {
-	case s.word[0] == "":
+	if len(s.word) == 0 {
 		s.Msg("You go to get... something?")
-	case what == nil:
-		s.Msg("You see no '", s.word[0], "' to get.")
-	case what.As[VetoGet] != "":
-		s.Msg(what.As[VetoGet])
-	case what.Is&Narrative == Narrative:
-		s.Msg("You cannot take ", what.As[Name], ".")
-	case what.Is&NPC == NPC:
-		s.Msg(what.As[Name], " does not want to be taken!")
-	default:
-		delete(where.In, what.As[UID])
-		s.actor.In[what.As[UID]] = what
-		s.Msg("You get ", what.As[Name], ".")
+		return
+	}
+
+	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
+		what := World[s.actor.As[Where]].In[uid]
+		switch {
+		case what == nil:
+			s.Msg("You see no '", uid, "' to get.")
+		case what.As[VetoGet] != "":
+			s.Msg(what.As[VetoGet])
+		case what.Is&Narrative == Narrative:
+			s.Msg("You cannot take ", what.As[Name], ".")
+		case what.Is&NPC == NPC:
+			s.Msg(what.As[Name], " does not want to be taken!")
+		default:
+			delete(World[s.actor.As[Where]].In, what.As[UID])
+			s.actor.In[what.As[UID]] = what
+			s.Msg("You get ", what.As[Name], ".")
+		}
 	}
 }
 
 func (s *state) Take() {
 
-	// Find container, then item in container
-	where, _ := Find(s.word[1], s.actor, World[s.actor.As[Where]])
-	what, _ := Find(s.word[0], where)
+	if len(s.word) == 0 {
+		s.Msg("You go to take something from something else...")
+		return
+	}
+
+	uids, words := LimitedMatch(s.word, s.actor, World[s.actor.As[Where]])
+	uid := uids[0]
+	where := s.actor.In[uid]
+	if where == nil {
+		where = World[s.actor.As[Where]].In[uid]
+	}
 
 	switch {
-	case s.word[0] == "":
-		s.Msg("You go to take something from something else...")
-	case s.word[1] == "":
-		s.Msg("You go to take '", s.word[0], "' from something...")
 	case where == nil:
-		s.Msg("You see no '", s.word[1], "' to take anything from.")
-	case what == nil:
-		s.Msg(where.As[Name], " does not seem to contain '", s.word[0], "'.")
-	case what.As[VetoTake] != "":
-		s.Msg(what.As[VetoTake])
+		s.Msg("You see no '", uid, "' to take anything from.")
+	case len(uids) > 1:
+		s.Msg("You can only take things from one container at a time.")
+	case where.Is&Container != Container:
+		s.Msg(where.As[Name], " is not something you can take anything from.")
+	case len(words) == 0:
+		s.Msg("You go to take something from ", where.As[Name], ".")
 	case where.As[VetoTakeOut] != "":
 		s.Msg(where.As[VetoTakeOut])
-	case where.Is&(Container|NPC) == NPC:
-		s.Msg("You can't take ", what.As[Name], " from ", where.As[Name], ".")
-	case where.Is&Container == 0:
-		s.Msg("You can't take ", what.As[Name], " out of ", where.As[Name], ".")
-	case what == nil:
-	default:
-		delete(where.In, what.As[UID])
-		s.actor.In[what.As[UID]] = what
-		s.Msg("You take ", what.As[Name], " from ", where.As[Name], ".")
+	}
+	if s.buff.Len() > 0 {
+		return
+	}
+
+	for _, uid := range Match(words, where) {
+		what := where.In[uid]
+		switch {
+		case what == nil:
+			s.Msg(where.As[Name], " does not seem to contain '", uid, "'.")
+		case what.As[VetoTake] != "":
+			s.Msg(what.As[VetoTake])
+		case where.Is&NPC == NPC:
+			s.Msg("You can't take ", what.As[Name], " from ", where.As[Name], ".")
+		default:
+			delete(where.In, what.As[UID])
+			s.actor.In[what.As[UID]] = what
+			s.Msg("You take ", what.As[Name], " out of ", where.As[Name], ".")
+		}
 	}
 }
 
 func (s *state) Put() {
 
-	// Find container, find item (must be carried)
-	where, _ := Find(s.word[1], s.actor, World[s.actor.As[Where]])
-	what, _ := Find(s.word[0], s.actor)
+	if len(s.word) == 0 {
+		s.Msg("You go to put something into something else...")
+		return
+	}
+
+	uids, words := LimitedMatch(s.word, s.actor, World[s.actor.As[Where]])
+	uid := uids[0]
+	where := s.actor.In[uid]
+	if where == nil {
+		where = World[s.actor.As[Where]].In[uid]
+	}
 
 	switch {
-	case s.word[0] == "":
-		s.Msg("You go to put something into something else...")
-	case s.word[1] == "" && what == nil:
-		s.Msg("You go to put '", s.word[0], "' into something...")
-	case s.word[1] == "":
-		s.Msg("You go to put ", what.As[Name], " into something...")
-	case where == nil && what == nil:
-		s.Msg("You see no '", s.word[1], "' to put anything in.")
 	case where == nil:
-		s.Msg("You see no '", s.word[1], "' to put ", what.As[Name], " in.")
-	case what.As[VetoPut] != "":
-		s.Msg(what.As[VetoPut])
+		s.Msg("You see no '", uid, "' to put anything into.")
+	case len(uids) > 1:
+		s.Msg("You can only put things into one container at a time.")
+	case where.Is&Container != Container:
+		s.Msg(where.As[Name], " is not something you can put anything into.")
+	case len(words) == 0:
+		s.Msg("You go to put something into ", where.As[Name], ".")
 	case where.As[VetoPutIn] != "":
 		s.Msg(where.As[VetoPutIn])
 	case where.Is&NPC == NPC:
 		s.Msg("Taxidermist are we?")
-	case where.Is&Container == 0:
-		s.Msg("You can't put ", what.As[Name], " into ", where.As[Name], ".")
-	case what == nil:
-		s.Msg("You have no '", s.word[0], "' to put into ", where.As[Name], ".")
-	default:
-		delete(s.actor.In, what.As[UID])
-		where.In[what.As[UID]] = what
-		s.Msg("You put ", what.As[Name], " into ", where.As[Name], ".")
+	}
+	if s.buff.Len() > 0 {
+		return
+	}
+
+	for _, uid := range Match(words, s.actor) {
+		what := s.actor.In[uid]
+		switch {
+		case what == nil:
+			s.Msg("You have no '", uid, "' to put into ", where.As[Name], ".")
+		case what.As[VetoPut] != "":
+			s.Msg(what.As[VetoPut])
+		case uid == where.As[UID]:
+			s.Msg("It might be interesting to put ", what.As[Name],
+				" inside itself, but probably paradoxical as well.")
+		default:
+			delete(s.actor.In, what.As[UID])
+			where.In[what.As[UID]] = what
+			s.Msg("You put ", what.As[Name], " into ", where.As[Name], ".")
+		}
 	}
 }
 
 func (s *state) Dump() {
-
-	var what *Thing
-	if s.word[0] == "@" {
-		what = World[s.actor.As[Where]]
-	} else {
-		what, _ = Find(s.word[0], s.actor, World[s.actor.As[Where]])
-	}
-
-	switch {
-	case s.word[0] == "":
+	if len(s.word) == 0 {
 		s.Msg("What did you want to dump?")
-	case what == nil:
-		s.Msg("You see no '", s.word[0], "' to dump.")
-	default:
-		what.Dump(s.buff, 80)
+		return
+	}
+	var uids []string
+	if s.word[0] == "@" {
+		uids = []string{s.actor.As[Where]}
+	} else {
+		uids = Match(s.word, s.actor, World[s.actor.As[Where]])
+	}
+	for _, uid := range uids {
+		what := s.actor.In[uid]
+		if what == nil {
+			what = World[s.actor.As[Where]].In[uid]
+		}
+		if what == nil {
+			what = World[uid]
+		}
+		switch {
+		case what == nil:
+			s.Msg("You see no '", uid, "' to dump.")
+		default:
+			what.Dump(s.buff, 80)
+		}
 	}
 }
 
 func (s *state) Read() {
-	what, _ := Find(s.word[0], World[s.actor.As[Where]], s.actor)
-
-	switch {
-	case s.word[0] == "":
+	if len(s.word) == 0 {
 		s.Msg("You go to read something...")
-	case what == nil:
-		s.Msg("You see no '", s.word[0], "' here to read.")
-	case what.As[Writing] == "":
-		s.Msg("There is nothing on ", what.As[Name], " to read.")
-	default:
-		s.Msg("You read ", what.As[Name], ". ", what.As[Writing])
+		return
+	}
+	for _, uid := range Match(s.word, World[s.actor.As[Where]], s.actor) {
+		what := World[s.actor.As[Where]].In[uid]
+		if what == nil {
+			what = s.actor.In[uid]
+		}
+		switch {
+		case what == nil:
+			s.Msg("You see no '", uid, "' here to read.")
+		case what.As[Writing] == "":
+			s.Msg("There is nothing on ", what.As[Name], " to read.")
+		default:
+			s.Msg("You read ", what.As[Name], ". ", what.As[Writing])
+		}
 	}
 }
 
 func (s *state) Open() {
-	what, _ := Find(s.word[0], World[s.actor.As[Where]])
-
-	switch {
-	case s.word[0] == "":
+	if len(s.word) == 0 {
 		s.Msg("You go to open something...")
-	case what == nil:
-		s.Msg("You see no '", s.word[0], "' to open.")
-	case what.As[Blocker] == "":
-		s.Msg(what.As[Name], " is not something you can open.")
-	case what.Is&Open == Open:
-		s.Msg(what.As[Name], " is already open.")
-	default:
-		what.Is |= Open
-		s.Msg("You open ", what.As[Name], ".")
+		return
+	}
+	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
+		what := World[s.actor.As[Where]].In[uid]
+		switch {
+		case what == nil:
+			s.Msg("You see no '", uid, "' to open.")
+		case what.As[Blocker] == "":
+			s.Msg(what.As[Name], " is not something you can open.")
+		case what.Is&Open == Open:
+			s.Msg(what.As[Name], " is already open.")
+		default:
+			what.Is |= Open
+			s.Msg("You open ", what.As[Name], ".")
+		}
 	}
 }
 
 func (s *state) Close() {
-	what, _ := Find(s.word[0], World[s.actor.As[Where]])
-
-	switch {
-	case s.word[0] == "":
+	if len(s.word) == 0 {
 		s.Msg("You go to close something...")
-	case what == nil:
-		s.Msg("You see no '", s.word[0], "' to close.")
-	case what.As[Blocker] == "":
-		s.Msg(what.As[Name], " is not something you can close.")
-	case what.Is&Open == 0:
-		s.Msg(what.As[Name], " is already closed.")
-	default:
-		what.Is &^= Open
-		s.Msg("You close ", what.As[Name], ".")
+		return
+	}
+	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
+		what := World[s.actor.As[Where]].In[uid]
+		switch {
+		case what == nil:
+			s.Msg("You see no '", uid, "' to close.")
+		case what.As[Blocker] == "":
+			s.Msg(what.As[Name], " is not something you can close.")
+		case what.Is&Open == 0:
+			s.Msg(what.As[Name], " is already closed.")
+		default:
+			what.Is &^= Open
+			s.Msg("You close ", what.As[Name], ".")
+		}
 	}
 }
 
 func (s *state) Teleport() {
 	where := World[s.word[0]]
-
 	switch {
 	case where == nil:
 		s.Msg("You don't know where '", s.word[0], "' is.")
