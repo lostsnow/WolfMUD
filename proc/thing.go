@@ -357,30 +357,6 @@ func (t *Thing) Free() {
 	t.In = nil
 }
 
-// Find looks for a Thing with the given alias in the provided list of Things
-// inventories. If a matching Thing is found returns the Thing, the Thing who's
-// Inventory it was in and the index in the inventory where it was found. If
-// there is not match returns nill for the Thing, nil for the Inventory and an
-// index of -1.
-func Find(alias string, where ...*Thing) (*Thing, *Thing) {
-	if alias == "" {
-		return nil, nil
-	}
-	for _, inv := range where {
-		if inv == nil {
-			continue
-		}
-		for _, item := range inv.In {
-			for _, a := range item.Any[Alias] {
-				if a == alias {
-					return item, inv
-				}
-			}
-		}
-	}
-	return nil, nil
-}
-
 // Dump will write a pretty ASCII tree representing the details of a Thing.
 // A simple, single item:
 //
