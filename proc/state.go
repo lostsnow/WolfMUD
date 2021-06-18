@@ -8,9 +8,12 @@ package proc
 import (
 	"io"
 	"strings"
+	"sync"
 )
 
-// World contains all of the locations for the current game world.
+// World contains all of the locations for the current game world. It is
+// protected by the BWL (Big World Lock).
+var BWL sync.Mutex
 var World map[string]*Thing
 
 // WorldStart contains a list of references to starting locations
@@ -50,6 +53,9 @@ func (s *state) parse(input string) {
 	s.cmd, s.word = s.word[0], s.word[1:]
 
 	if command, ok := commands[s.cmd]; ok {
+		// Stop the world for everyone else...
+		BWL.Lock()
+		defer BWL.Unlock()
 		command(s)
 	} else {
 		s.Msg("Eh?")
