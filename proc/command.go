@@ -50,6 +50,7 @@ var commands = map[string]func(*state){
 }
 
 func (s *state) Quit() {
+	delete(World[s.actor.As[Where]].In, s.actor.As[UID])
 	s.Msg("You leave this world behind.\n\nBye bye!\n")
 	s.prompt = s.prompt[:0]
 }
@@ -68,7 +69,7 @@ func (s *state) Look() {
 		s.Msg(where.As[Description], "\n")
 		mark := s.buff.Len()
 		for _, item := range where.SortedIn() {
-			if item.Is&Narrative == Narrative {
+			if item.Is&Narrative == Narrative || item.As[UID] == s.actor.As[UID] {
 				continue
 			}
 			s.Msg("You see ", item.As[Name], " here.")
@@ -126,7 +127,9 @@ func (s *state) Move() {
 	case World[where.As[dir]] == nil:
 		s.Msg("Oops! You can't actually go ", DirToName[dir], ".")
 	default:
+		delete(World[s.actor.As[Where]].In, s.actor.As[UID])
 		s.actor.As[Where] = where.As[dir]
+		World[s.actor.As[Where]].In[s.actor.As[UID]] = s.actor
 		s.Look()
 	}
 }
@@ -430,7 +433,9 @@ func (s *state) Teleport() {
 	case where == nil:
 		s.Msg("You don't know where '", s.word[0], "' is.")
 	default:
+		delete(World[s.actor.As[Where]].In, s.actor.As[UID])
 		s.actor.As[Where] = s.word[0]
+		World[s.actor.As[Where]].In[s.actor.As[UID]] = s.actor
 		s.Msg("There is a loud 'Spang!'...\n")
 		s.Look()
 	}

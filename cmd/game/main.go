@@ -25,14 +25,18 @@ func main() {
 
 	world.Load()
 
+	start := proc.WorldStart[rand.Intn(len(proc.WorldStart))]
+
 	// Setup player
 	player := proc.NewThing()
 	player.As[proc.Name] = "Diddymus"
 	player.As[proc.Description] = "An adventurer, just like you."
-	player.As[proc.Where] = proc.WorldStart[rand.Intn(len(proc.WorldStart))]
+	player.As[proc.Where] = start
 	player.Any[proc.Alias] = []string{"PLAYER"}
+	uid := player.As[proc.UID]
 
 	s := proc.NewState(os.Stdout, player)
+	proc.World[start].In[uid] = player
 	s.Parse("LOOK")
 
 	var input string
