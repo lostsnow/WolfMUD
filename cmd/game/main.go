@@ -52,6 +52,7 @@ func player(conn net.Conn) {
 
 	// Setup player
 	player := proc.NewThing()
+	player.Is = player.Is | proc.Player
 	player.As[proc.Name] = "Player" + strconv.FormatUint(np, 10)
 	player.As[proc.Description] = "An adventurer, just like you."
 	player.As[proc.Where] = start

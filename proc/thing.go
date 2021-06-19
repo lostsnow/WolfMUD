@@ -38,6 +38,7 @@ const (
 	NPC                         // An NPC
 	Narrative                   // A narrative item
 	Open                        // An open item (e.g. door)
+	Player                      // Is a player
 	Start                       // A starting location
 )
 
@@ -103,6 +104,7 @@ var isNames = []string{
 	"NPC",
 	"Narrative",
 	"Open",
+	"Player",
 	"Start",
 }
 
