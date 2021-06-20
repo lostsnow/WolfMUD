@@ -10,7 +10,7 @@ import (
 	"os"
 	"runtime"
 
-	"code.wolfmud.org/WolfMUD.git/proc"
+	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
@@ -18,7 +18,7 @@ import (
 // taggedThing is a *Thing with additional information only stored during the
 // loading process.
 type taggedThing struct {
-	*proc.Thing
+	*core.Thing
 	inventory []string
 	location  []string
 	zoneLinks map[string]string
@@ -28,12 +28,12 @@ type taggedThing struct {
 //
 // FIXME(diddymus): Hard-coded zone files and paths.
 //
-// BUG(diddymus): Load will populate proc.World directly as a side effect of
-// being called. The proc package can't import the world package as it would
+// BUG(diddymus): Load will populate core.World directly as a side effect of
+// being called. The core package can't import the world package as it would
 // cause a cyclic import.
 func Load() {
 
-	proc.World = make(map[string]*proc.Thing)
+	core.World = make(map[string]*core.Thing)
 	refToUID := make(map[string]string)
 
 	for _, fName := range []string{
@@ -64,12 +64,12 @@ func Load() {
 		for _, record := range jar {
 			ref := decode.String(record["REF"])
 			store[ref] = taggedThing{
-				Thing:     proc.NewThing(),
+				Thing:     core.NewThing(),
 				inventory: decode.KeywordList(record["INVENTORY"]),
 				location:  decode.KeywordList(record["LOCATION"]),
 				zoneLinks: decode.PairList(record["ZONELINKS"]),
 			}
-			store[ref].As[proc.Zone] = zone
+			store[ref].As[core.Zone] = zone
 			store[ref].Unmarshal(record)
 		}
 
@@ -77,7 +77,7 @@ func Load() {
 		for _, item := range store {
 			for _, ref := range item.inventory {
 				if what, ok := store[ref]; ok {
-					item.In[what.Thing.As[proc.UID]] = what.Thing
+					item.In[what.Thing.As[core.UID]] = what.Thing
 				} else {
 					fmt.Printf("load warning, ref not found for inventory: %s\n", ref)
 				}
@@ -88,7 +88,7 @@ func Load() {
 		for _, item := range store {
 			for _, ref := range item.location {
 				if where, ok := store[ref]; ok {
-					where.In[item.Thing.As[proc.UID]] = item.Thing
+					where.In[item.Thing.As[core.UID]] = item.Thing
 				} else {
 					fmt.Printf("load warning, ref not found for location: %s\n", ref)
 				}
@@ -98,18 +98,18 @@ func Load() {
 		// Copy locations to world, recording any starting locations - copying
 		// resolves references as unique things.
 		for _, item := range store {
-			if item.Is&proc.Location == proc.Location {
+			if item.Is&core.Location == core.Location {
 				c := item.Copy()
-				proc.World[c.As[proc.UID]] = c
-				if c.Is&proc.Start == proc.Start {
-					proc.WorldStart = append(proc.WorldStart, c.As[proc.UID])
+				core.World[c.As[core.UID]] = c
+				if c.Is&core.Start == core.Start {
+					core.WorldStart = append(core.WorldStart, c.As[core.UID])
 				}
-				refToUID[c.As[proc.Ref]] = c.As[proc.UID]
+				refToUID[c.As[core.Ref]] = c.As[core.UID]
 
 				// Apply zonelinks to exits
 				for dir, ref := range item.zoneLinks {
 					if ref != "" {
-						c.As[proc.NameToDir[dir]] = ref
+						c.As[core.NameToDir[dir]] = ref
 					}
 				}
 			}
@@ -125,8 +125,8 @@ func Load() {
 
 	// Rewrite exits from Refs to UIDs as Refs only unique within a zone. Then
 	// drop zone information as no longer required.
-	for _, loc := range proc.World {
-		for dir := range proc.DirToName {
+	for _, loc := range core.World {
+		for dir := range core.DirToName {
 			if loc.As[dir] != "" {
 				loc.As[dir] = refToUID[loc.As[dir]]
 			}
@@ -134,15 +134,15 @@ func Load() {
 	}
 
 	// Create other side of blockers as references so they share state
-	for _, loc := range proc.World {
+	for _, loc := range core.World {
 		for _, item := range loc.In {
-			blocking := item.As[proc.Blocker]
-			if blocking == "" || item.As[proc.Where] != "" {
+			blocking := item.As[core.Blocker]
+			if blocking == "" || item.As[core.Where] != "" {
 				continue
 			}
-			item.As[proc.Where] = loc.As[proc.UID]
-			otherUID := loc.As[proc.NameToDir[blocking]]
-			proc.World[otherUID].In[item.As[proc.UID]] = item
+			item.As[core.Where] = loc.As[core.UID]
+			otherUID := loc.As[core.NameToDir[blocking]]
+			core.World[otherUID].In[item.As[core.UID]] = item
 		}
 	}
 

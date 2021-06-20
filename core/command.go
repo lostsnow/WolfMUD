@@ -3,7 +3,7 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-package proc
+package core
 
 // Commands maps command strings to the implementing methods.
 var commands = map[string]func(*state){

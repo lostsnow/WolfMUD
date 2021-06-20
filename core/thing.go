@@ -3,7 +3,7 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-package proc
+package core
 
 import (
 	"fmt"
@@ -362,7 +362,7 @@ func (t *Thing) Free() {
 // Dump will write a pretty ASCII tree representing the details of a Thing.
 // A simple, single item:
 //
-//	`- 0xc00000e048 *proc.Thing - CAT
+//	`- 0xc00000e048 *core.Thing - CAT
 //	   |- Name - the tavern cat
 //	   |- Description - The tavern cat is a ball of fur with one golden eye, the
 //	   |                other eye replaced by a large scar. It senses you
@@ -375,14 +375,14 @@ func (t *Thing) Free() {
 //
 // A container with an item in its inventory:
 //
-//	`- 0xc00009c008 *proc.Thing - BAG
+//	`- 0xc00009c008 *core.Thing - BAG
 //	   |- Name - a bag
 //	   |- Description - This is a simple cloth bag.
 //	   |- Is - 00000000000000000000000000010000 (Container)
 //	   |- As - len: 1
 //	   |  `- [11] Alias: BAG
 //	   `- In - len: 1, nil: false
-//	      `- 0xc00009c010 *proc.Thing - APPLE
+//	      `- 0xc00009c010 *core.Thing - APPLE
 //	         |- Name - an apple
 //	         |- Description - This is a red apple.
 //	         |- Is - 00000000000000000000000000000000 ()

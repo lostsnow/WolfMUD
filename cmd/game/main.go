@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"code.wolfmud.org/WolfMUD.git/proc"
+	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
@@ -45,24 +45,24 @@ func main() {
 }
 
 func player(conn net.Conn) {
-	start := proc.WorldStart[rand.Intn(len(proc.WorldStart))]
+	start := core.WorldStart[rand.Intn(len(core.WorldStart))]
 
 	np := <-nextPlayer
 	nextPlayer <- np + 1
 
 	// Setup player
-	player := proc.NewThing()
-	player.Is = player.Is | proc.Player
-	player.As[proc.Name] = "Player" + strconv.FormatUint(np, 10)
-	player.As[proc.Description] = "An adventurer, just like you."
-	player.As[proc.Where] = start
-	player.Any[proc.Alias] = []string{"PLAYER" + strconv.FormatUint(np, 10)}
-	uid := player.As[proc.UID]
+	player := core.NewThing()
+	player.Is = player.Is | core.Player
+	player.As[core.Name] = "Player" + strconv.FormatUint(np, 10)
+	player.As[core.Description] = "An adventurer, just like you."
+	player.As[core.Where] = start
+	player.Any[core.Alias] = []string{"PLAYER" + strconv.FormatUint(np, 10)}
+	uid := player.As[core.UID]
 
-	s := proc.NewState(conn, player)
-	proc.BWL.Lock()
-	proc.World[start].In[uid] = player
-	proc.BWL.Unlock()
+	s := core.NewState(conn, player)
+	core.BWL.Lock()
+	core.World[start].In[uid] = player
+	core.BWL.Unlock()
 	s.Parse("LOOK")
 
 	var input string
