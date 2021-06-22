@@ -36,16 +36,17 @@ func NewState(out io.Writer, t *Thing) *state {
 	}
 }
 
-func (s *state) Parse(input string) {
-	if input == "\n" || input == "" {
+func (s *state) Parse(input string) (cmd string) {
+	if input = strings.TrimSpace(input); len(input) == 0 {
 		s.out.Write(s.prompt)
-		return
+		return ""
 	}
 	s.parse(input)
 	s.out.Write([]byte(s.buff.String()))
 	s.buff.Reset()
 	s.out.Write(newline)
 	s.out.Write(s.prompt)
+	return s.cmd
 }
 
 func (s *state) parse(input string) {

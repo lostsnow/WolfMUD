@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/core"
@@ -63,13 +62,13 @@ func player(conn net.Conn) {
 	core.BWL.Lock()
 	core.World[start].In[uid] = player
 	core.BWL.Unlock()
-	s.Parse("LOOK")
+	cmd := s.Parse("LOOK")
 
 	var input string
 	r := bufio.NewReader(conn)
-	for strings.ToUpper(input) != "QUIT\r\n" {
+	for cmd != "QUIT" {
 		input, _ = r.ReadString('\n')
-		s.Parse(input)
+		cmd = s.Parse(input)
 	}
 	log.Printf("Disconnect from: %s", conn.RemoteAddr())
 	conn.Close()
