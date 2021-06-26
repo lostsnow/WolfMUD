@@ -87,6 +87,9 @@ func (b *Bot) connect(host, port string) (err error) {
 		return err
 	}
 
+	// FIXME: Currently there are no logins, for now we just bypass the logic.
+	return
+
 	for _, f := range []struct {
 		op   func(string) error
 		data string
