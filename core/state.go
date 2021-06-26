@@ -6,9 +6,10 @@
 package core
 
 import (
-	"io"
 	"strings"
 	"sync"
+
+	"code.wolfmud.org/WolfMUD.git/mailbox"
 )
 
 // World contains all of the locations for the current game world. It is
@@ -20,32 +21,24 @@ var World map[string]*Thing
 var WorldStart []string
 
 type state struct {
-	actor  *Thing
-	cmd    string
-	word   []string
-	out    io.Writer
-	buff   *strings.Builder
-	prompt []byte
+	actor *Thing
+	cmd   string
+	word  []string
+	buff  *strings.Builder
 }
 
 var newline = []byte("\n")
 
-func NewState(out io.Writer, t *Thing) *state {
-	return &state{
-		actor: t, out: out, buff: &strings.Builder{}, prompt: []byte(">"),
-	}
+func NewState(t *Thing) *state {
+	return &state{actor: t, buff: &strings.Builder{}}
 }
 
 func (s *state) Parse(input string) (cmd string) {
-	if input = strings.TrimSpace(input); len(input) == 0 {
-		s.out.Write(s.prompt)
-		return ""
+	if input = strings.TrimSpace(input); len(input) != 0 {
+		s.parse(input)
 	}
-	s.parse(input)
-	s.out.Write([]byte(s.buff.String()))
+	mailbox.Send(s.actor.As[UID], s.buff.String())
 	s.buff.Reset()
-	s.out.Write(newline)
-	s.out.Write(s.prompt)
 	return s.cmd
 }
 

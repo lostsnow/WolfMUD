@@ -52,7 +52,6 @@ var commands = map[string]func(*state){
 func (s *state) Quit() {
 	delete(World[s.actor.As[Where]].In, s.actor.As[UID])
 	s.Msg("You leave this world behind.\n\nBye bye!\n")
-	s.prompt = s.prompt[:0]
 }
 
 func (s *state) Look() {
