@@ -135,7 +135,7 @@ func (b *Bot) do() bool {
 		action := freq[rand.Intn(len(freq))]
 
 		// Execute command
-		if err := b.send(action + "\r\n"); err != nil {
+		if err := b.send(action); err != nil {
 			log.Printf("[%s] %s", b.Id, err)
 			return true
 		}
