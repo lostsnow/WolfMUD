@@ -26,14 +26,15 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	world.Load()
 
-	listener, err := net.Listen("tcp", ":4001")
+	addr, _ := net.ResolveTCPAddr("tcp", ":4001")
+	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
 		log.Printf("Error setting up listener: %s", err)
 		return
 	}
 
 	for {
-		conn, err := listener.Accept()
+		conn, err := listener.AcceptTCP()
 		if err != nil {
 			log.Printf("Error accepting connection: %s", err)
 			continue
@@ -43,7 +44,14 @@ func main() {
 	}
 }
 
-func player(conn net.Conn) {
+func player(conn *net.TCPConn) {
+
+	conn.SetKeepAlive(true)
+	conn.SetLinger(10)
+	conn.SetNoDelay(false)
+	conn.SetWriteBuffer(80 * 24)
+	conn.SetReadBuffer(80)
+
 	start := core.WorldStart[rand.Intn(len(core.WorldStart))]
 
 	np := <-nextPlayer
