@@ -48,6 +48,9 @@ import (
 //	LAST  - the last item matched
 //	N/Nth - the Nth item matched (or last item if N > matches)
 //
+// NOTE: For performance reasons, if a thing being searched is considered
+// crowded then we don't include everyone in the crowd in the search.
+//
 // TODO(diddymus): Add 'see also' pointing to docs/ files.
 //
 // BUG(diddymus): Nth does not care what the suffix is, 2nd and 2rd are both
@@ -70,8 +73,8 @@ func Match(words []string, where ...*Thing) (results []string) {
 // blue balls then:
 //
 //  LimitedMatch(
-//  	[]string{"RED", "BALL", "ALL", "BLUE", "BALL"}),
-//  	s.actor,
+//		[]string{"RED", "BALL", "ALL", "BLUE", "BALL"}),
+//		s.actor,
 //  )
 //
 // Would return one match, it being "all blue ball" with the results being the
@@ -88,7 +91,10 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 
 	data := []*Thing{}
 	for _, inv := range where {
-		data = append(data, inv.Who.Sort()...)
+		// For performance don't include all of the players if there is a crowd.
+		if len(inv.Who) < CrowdSize {
+			data = append(data, inv.Who.Sort()...)
+		}
 		data = append(data, inv.In.Sort()...)
 	}
 
