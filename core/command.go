@@ -5,6 +5,10 @@
 
 package core
 
+// CrowdSize represents the minimum number of players considered to be a crowd.
+// FIXME(diddymus): This needs to be configurable.
+const CrowdSize = 11
+
 // Commands maps command strings to the implementing methods.
 var commands = map[string]func(*state){
 	"":          func(*state) {},
