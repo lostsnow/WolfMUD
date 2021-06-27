@@ -451,6 +451,10 @@ func (s *state) Close() {
 }
 
 func (s *state) Teleport() {
+	if len(s.word) == 0 {
+		s.Msg("Where do you want to go?")
+		return
+	}
 	where := World[s.word[0]]
 	switch {
 	case where == nil:
