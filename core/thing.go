@@ -21,6 +21,7 @@ type Thing struct {
 	As  map[asKey]string    // Single value for a key
 	Any map[anyKey][]string // One or more values for a key
 	In  map[string]*Thing   // Item's in a Thing (inventory)
+	Who map[string]*Thing   // Who is here? Players @ location
 }
 
 // Type definitions for Thing field keys.
@@ -187,6 +188,7 @@ func NewThing() *Thing {
 		As:  make(map[asKey]string),
 		Any: make(map[anyKey][]string),
 		In:  make(map[string]*Thing),
+		Who: make(map[string]*Thing),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
@@ -298,8 +300,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 	}
 }
 
-// Copy returns a duplicate of the receiver Thing with only the UID being
-// different. The Thing's inventory will be copied recursively.
+// Copy returns a duplicate of the receiver Thing with only the UID and Who
+// being different. We don't duplicate Who as this would duplicate players. The
+// Thing's inventory will be copied recursively.
 func (t *Thing) Copy() *Thing {
 	T := NewThing()
 	T.Is = t.Is
@@ -413,9 +416,9 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 
 	p("%s%p %[2]T - UID: %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
-	p("%sIs - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
-	lIn, lAs, lAny := len(t.In), len(t.As), len(t.Any)
-	p("%sAs - len: %d", tree[false].i, lAs)
+	p("%sIs  - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
+	lIn, lAs, lAny, lWho := len(t.In), len(t.As), len(t.Any), len(t.Who)
+	p("%sAs  - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
 		lAs--
 		line := simpleFold(v, width-len(indent)-len(asNames[k])-len("|  |- [00] : "))
@@ -430,8 +433,16 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lAny--
 		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, k, v)
 	}
-	p("%sIn - len: %d", tree[true].i, lIn)
+	p("%sWho - len: %d", tree[false].i, lWho)
 	w.Write([]byte(b.String()))
+	b.Reset()
+	for _, who := range t.Who {
+		lWho--
+		who.dump(w, width, indent+tree[false].b, lWho == 0)
+	}
+	p("%sIn  - len: %d", tree[true].i, lIn)
+	w.Write([]byte(b.String()))
+	b.Reset()
 	for _, item := range t.In {
 		lIn--
 		item.dump(w, width, indent+tree[true].b, lIn == 0)
