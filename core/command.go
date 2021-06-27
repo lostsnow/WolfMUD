@@ -240,7 +240,7 @@ func (s *state) Get() {
 			s.Msg(what.As[VetoGet])
 		case what.Is&Narrative == Narrative:
 			s.Msg("You cannot take ", what.As[Name], ".")
-		case what.Is&NPC == NPC:
+		case what.Is&(NPC|Player) != 0:
 			s.Msg(what.As[Name], " does not want to be taken!")
 		default:
 			delete(World[s.actor.As[Where]].In, what.As[UID])
@@ -322,7 +322,7 @@ func (s *state) Put() {
 		s.Msg("You go to put something into ", where.As[Name], ".")
 	case where.As[VetoPutIn] != "":
 		s.Msg(where.As[VetoPutIn])
-	case where.Is&NPC == NPC:
+	case where.Is&(NPC|Player) != 0:
 		s.Msg("Taxidermist are we?")
 	}
 	if s.buff.Len() > 0 {
