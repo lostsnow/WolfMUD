@@ -50,7 +50,7 @@ var commands = map[string]func(*state){
 }
 
 func (s *state) Quit() {
-	delete(World[s.actor.As[Where]].In, s.actor.As[UID])
+	delete(World[s.actor.As[Where]].Who, s.actor.As[UID])
 	s.Msg("You leave this world behind.\n\nBye bye!\n")
 }
 
@@ -67,6 +67,12 @@ func (s *state) Look() {
 		s.Msg("[", where.As[Name], "]")
 		s.Msg(where.As[Description], "\n")
 		mark := s.buff.Len()
+		for _, who := range where.Who.Sort() {
+			if who.As[UID] == s.actor.As[UID] {
+				continue
+			}
+			s.Msg("You see ", who.As[Name], " here.")
+		}
 		for _, item := range where.In.Sort() {
 			if item.Is&Narrative == Narrative || item.As[UID] == s.actor.As[UID] {
 				continue
@@ -126,9 +132,9 @@ func (s *state) Move() {
 	case World[where.As[dir]] == nil:
 		s.Msg("Oops! You can't actually go ", DirToName[dir], ".")
 	default:
-		delete(World[s.actor.As[Where]].In, s.actor.As[UID])
+		delete(World[s.actor.As[Where]].Who, s.actor.As[UID])
 		s.actor.As[Where] = where.As[dir]
-		World[s.actor.As[Where]].In[s.actor.As[UID]] = s.actor
+		World[s.actor.As[Where]].Who[s.actor.As[UID]] = s.actor
 		s.Look()
 	}
 }
@@ -145,6 +151,9 @@ func (s *state) Examine() {
 	what := s.actor.In[uid]
 	if what == nil {
 		what = World[s.actor.As[Where]].In[uid]
+	}
+	if what == nil {
+		what = World[s.actor.As[Where]].Who[uid]
 	}
 
 	switch {
@@ -221,6 +230,9 @@ func (s *state) Get() {
 
 	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
 		what := World[s.actor.As[Where]].In[uid]
+		if what == nil {
+			what = World[s.actor.As[Where]].Who[uid]
+		}
 		switch {
 		case what == nil:
 			s.Msg("You see no '", uid, "' to get.")
@@ -352,6 +364,9 @@ func (s *state) Dump() {
 			what = World[s.actor.As[Where]].In[uid]
 		}
 		if what == nil {
+			what = World[s.actor.As[Where]].Who[uid]
+		}
+		if what == nil {
 			what = World[uid]
 		}
 		switch {
@@ -370,6 +385,9 @@ func (s *state) Read() {
 	}
 	for _, uid := range Match(s.word, World[s.actor.As[Where]], s.actor) {
 		what := World[s.actor.As[Where]].In[uid]
+		if what == nil {
+			what = World[s.actor.As[Where]].Who[uid]
+		}
 		if what == nil {
 			what = s.actor.In[uid]
 		}
@@ -391,6 +409,9 @@ func (s *state) Open() {
 	}
 	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
 		what := World[s.actor.As[Where]].In[uid]
+		if what == nil {
+			what = World[s.actor.As[Where]].Who[uid]
+		}
 		switch {
 		case what == nil:
 			s.Msg("You see no '", uid, "' to open.")
@@ -412,6 +433,9 @@ func (s *state) Close() {
 	}
 	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
 		what := World[s.actor.As[Where]].In[uid]
+		if what == nil {
+			what = World[s.actor.As[Where]].Who[uid]
+		}
 		switch {
 		case what == nil:
 			s.Msg("You see no '", uid, "' to close.")

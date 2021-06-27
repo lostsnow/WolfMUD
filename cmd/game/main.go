@@ -114,7 +114,7 @@ func player(conn *net.TCPConn) {
 	}()
 
 	core.BWL.Lock()
-	core.World[player.As[core.Where]].In[uid] = player
+	core.World[player.As[core.Where]].Who[uid] = player
 	core.BWL.Unlock()
 	cmd := s.Parse("LOOK")
 
