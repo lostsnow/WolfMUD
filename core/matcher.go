@@ -88,7 +88,7 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 
 	data := []*Thing{}
 	for _, inv := range where {
-		data = append(data, inv.SortedIn()...)
+		data = append(data, inv.In.Sort()...)
 	}
 
 	var (

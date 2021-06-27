@@ -20,9 +20,12 @@ type Thing struct {
 	Is  isKey               // Bit flags for capabilities/state
 	As  map[asKey]string    // Single value for a key
 	Any map[anyKey][]string // One or more values for a key
-	In  map[string]*Thing   // Item's in a Thing (inventory)
-	Who map[string]*Thing   // Who is here? Players @ location
+	In  Things              // Item's in a Thing (inventory)
+	Who Things              // Who is here? Players @ location
 }
+
+// Things represents a group of Thing.
+type Things map[string]*Thing
 
 // Type definitions for Thing field keys.
 type (
@@ -331,16 +334,20 @@ func (t *Thing) Copy() *Thing {
 	return T
 }
 
-// SortedIn returns the Thing's inventory as a slice with elements sorted by UID.
-func (t *Thing) SortedIn() []*Thing {
-	if t == nil {
+// Sort returns the receiver Things as a slice of the Things sorted by UID.
+func (t Things) Sort() []*Thing {
+	if t == nil || len(t) == 0 {
 		return nil
 	}
-	ord := make([]*Thing, 0, len(t.In))
-	for _, item := range t.In {
-		ord = append(ord, item)
+	ord := make([]*Thing, len(t))
+	keys := make([]string, 0, len(t))
+	for key := range t {
+		keys = append(keys, key)
 	}
-	sort.Slice(ord, func(i, j int) bool { return ord[i].As[UID] < ord[j].As[UID] })
+	sort.Strings(keys)
+	for x, key := range keys {
+		ord[x] = t[key]
+	}
 	return ord
 }
 

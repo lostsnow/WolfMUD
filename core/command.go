@@ -67,7 +67,7 @@ func (s *state) Look() {
 		s.Msg("[", where.As[Name], "]")
 		s.Msg(where.As[Description], "\n")
 		mark := s.buff.Len()
-		for _, item := range where.SortedIn() {
+		for _, item := range where.In.Sort() {
 			if item.Is&Narrative == Narrative || item.As[UID] == s.actor.As[UID] {
 				continue
 			}
@@ -172,7 +172,7 @@ func (s *state) Examine() {
 	default:
 		s.Msg("You examine ", what.As[Name], ".\n", what.As[Description])
 		s.MsgAppend(" It contains: ")
-		for _, item := range what.SortedIn() {
+		for _, item := range what.In.Sort() {
 			s.Msg("  ", item.As[Name])
 		}
 	}
@@ -184,7 +184,7 @@ func (s *state) Inventory() {
 		s.Msg("You are not carrying anything.")
 	default:
 		s.Msg("You are carrying:")
-		for _, what := range s.actor.SortedIn() {
+		for _, what := range s.actor.In.Sort() {
 			s.Msg("  ", what.As[Name])
 		}
 	}

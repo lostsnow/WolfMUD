@@ -15,7 +15,7 @@ import (
 // World contains all of the locations for the current game world. It is
 // protected by the BWL (Big World Lock).
 var BWL sync.Mutex
-var World map[string]*Thing
+var World Things
 
 // WorldStart contains a list of references to starting locations
 var WorldStart []string
