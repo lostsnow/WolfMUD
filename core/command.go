@@ -71,20 +71,25 @@ func (s *state) Look() {
 		s.Msg("[", where.As[Name], "]")
 		s.Msg(where.As[Description], "\n")
 		mark := s.buff.Len()
-		for _, who := range where.Who.Sort() {
-			if who.As[UID] == s.actor.As[UID] {
-				continue
+		if len(where.Who) < CrowdSize {
+			for _, who := range where.Who.Sort() {
+				if who.As[UID] == s.actor.As[UID] {
+					continue
+				}
+				s.Msg("You see ", who.As[Name], " here.")
 			}
-			s.Msg("You see ", who.As[Name], " here.")
-		}
-		for _, item := range where.In.Sort() {
-			if item.Is&Narrative == Narrative || item.As[UID] == s.actor.As[UID] {
-				continue
+			for _, item := range where.In.Sort() {
+				if item.Is&Narrative == Narrative || item.As[UID] == s.actor.As[UID] {
+					continue
+				}
+				s.Msg("You see ", item.As[Name], " here.")
 			}
-			s.Msg("You see ", item.As[Name], " here.")
-		}
-		if mark != s.buff.Len() {
-			s.Msg()
+			if mark != s.buff.Len() {
+				s.Msg()
+				mark = s.buff.Len()
+			}
+		} else {
+			s.Msg("It's too crowded here to see anything.\n")
 			mark = s.buff.Len()
 		}
 		for dir := North; dir <= Down; dir++ {
