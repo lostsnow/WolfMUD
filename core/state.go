@@ -24,21 +24,19 @@ type state struct {
 	actor *Thing
 	cmd   string
 	word  []string
-	buff  *strings.Builder
+	buf   map[string]*strings.Builder
 }
 
 var newline = []byte("\n")
 
 func NewState(t *Thing) *state {
-	return &state{actor: t, buff: &strings.Builder{}}
+	return &state{actor: t, buf: make(map[string]*strings.Builder)}
 }
 
 func (s *state) Parse(input string) (cmd string) {
 	if input = strings.TrimSpace(input); len(input) != 0 {
 		s.parse(input)
 	}
-	mailbox.Send(s.actor.As[UID], s.buff.String())
-	s.buff.Reset()
 	return s.cmd
 }
 
@@ -46,31 +44,89 @@ func (s *state) parse(input string) {
 	s.word = strings.Fields(strings.ToUpper(input))
 	s.cmd, s.word = s.word[0], s.word[1:]
 
+	// Stop the world for everyone else...
+	BWL.Lock()
+	defer BWL.Unlock()
+
 	if command, ok := commands[s.cmd]; ok {
-		// Stop the world for everyone else...
-		BWL.Lock()
-		defer BWL.Unlock()
 		command(s)
 	} else {
-		s.Msg("Eh?")
+		s.Msg(s.actor, "Eh?")
+	}
+
+	s.mailman()
+}
+
+// mailman delivers queued messages to player's mailboxes. Messages can be
+// queued for a specific player or for a location. If queued for a location,
+// messages will be sent to all player at the location - unless they have
+// received a specific message.
+//
+// Note that even though commands are processed under the BRL mailboxes can be
+// deleted at anytime due to network errors. This is not a problem, if the UID
+// for a buffer is not for an existing mailbox or location it will be ignored
+// and cleaned up.
+func (s *state) mailman() {
+
+	for uid, buf := range s.buf {
+		// Send to specific players - race between Exists & Send is okay
+		if mailbox.Exists(uid) {
+			mailbox.Send(uid, buf.String())
+			continue
+		}
+		// Send to players at location, omitting players that are receiving
+		// specific messages.
+		if where := World[uid]; where != nil {
+			for uid := range where.Who {
+				if s.buf[uid] == nil {
+					mailbox.Send(uid, buf.String())
+				}
+			}
+		}
+	}
+
+	// Cleanup buffers
+	for uid, buf := range s.buf {
+		buf.Reset()
+		delete(s.buf, uid)
 	}
 }
 
-// Msg sends a message to the actor. If anything has already been sent to the
-// actor for this command a line-feed is automatically added at the beginning
-// of the message.
-func (s *state) Msg(text ...string) {
-	if s.buff.Len() > 0 {
-		s.buff.Write(newline)
+// Msg queues a message for the specified receiver. The receiver may be a
+// player or location. If a player is specified the message is only sent to
+// that player. If a loction is specified then the message is sent to all
+// players at that location that have not received a specific message. All
+// messages are sent once the current player commands completes. Msg may be
+// called multiple times for the same recipient for a command, in which case
+// the messages will be sent as a single delivery. Msg will always start the
+// given text on a new line. To append text to the end of a message, without
+// starting on a new line, use MsgAppend.
+func (s *state) Msg(recipient *Thing, text ...string) {
+	uid := recipient.As[UID]
+	if s.buf[uid] == nil {
+		s.buf[uid] = &strings.Builder{}
+		if uid != s.actor.As[UID] {
+			s.buf[uid].Write(newline)
+		}
+	} else {
+		s.buf[uid].Write(newline)
 	}
-	s.MsgAppend(text...)
-}
-
-// MsgAppend sends a message to the actor. Unlike Msg, MsgAppend never adds
-// line-feeds automatically - which can be useful when building up messages in
-// stages.
-func (s *state) MsgAppend(text ...string) {
 	for _, t := range text {
-		s.buff.WriteString(t)
+		s.buf[uid].WriteString(t)
+	}
+}
+
+// MsgAppend works the same as Msg, but does not force a line-feed to be added
+// before appending the text. This can be used to build messages a piece at a
+// time. It is safe to call MsgAppend for a recipient, even if Msg has not been
+// called first.
+func (s *state) MsgAppend(recipient *Thing, text ...string) {
+	uid := recipient.As[UID]
+	if s.buf[uid] == nil {
+		s.Msg(recipient, text...)
+		return
+	}
+	for _, t := range text {
+		s.buf[uid].WriteString(t)
 	}
 }
