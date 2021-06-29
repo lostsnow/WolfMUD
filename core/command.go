@@ -51,6 +51,9 @@ var commands = map[string]func(*state){
 	"#DUMP":     (*state).Dump,
 	"#TELEPORT": (*state).Teleport,
 	"#GOTO":     (*state).Teleport,
+
+	// Scripting only commands
+	"$POOF": (*state).Poof,
 }
 
 func (s *state) Quit() {
@@ -478,4 +481,12 @@ func (s *state) Teleport() {
 		s.Msg(s.actor, "There is a loud 'Spang!'...\n")
 		s.Look()
 	}
+}
+
+func (s *state) Poof() {
+	if len(World[s.actor.As[Where]].Who) < CrowdSize {
+		s.Msg(World[s.actor.As[Where]], "There is a cloud of smoke from which ",
+			s.actor.As[Name], " emerges coughing and spluttering.")
+	}
+	s.Look()
 }
