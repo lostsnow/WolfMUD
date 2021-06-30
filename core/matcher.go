@@ -139,6 +139,10 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 		for pos--; pos > -1; pos-- {
 			bound, subset = words[pos]+alias, subset[:0]
 			for _, match := range matches {
+				if match.As[DynamicQualifier] == words[pos] {
+					subset = append(subset, match)
+					continue
+				}
 				for _, qualifier := range match.Any[Qualifier] {
 					if qualifier == words[pos] || qualifier == bound {
 						subset = append(subset, match)
