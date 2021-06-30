@@ -111,6 +111,10 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 		// Filter items by alias
 		alias, matches = words[pos], matches[:0]
 		for _, item := range data {
+			if item.As[DynamicAlias] == alias {
+				matches = append(matches, item)
+				continue
+			}
 			for _, a := range item.Any[Alias] {
 				if a == alias {
 					matches = append(matches, item)

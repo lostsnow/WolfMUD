@@ -66,20 +66,21 @@ const (
 	Up
 	Down
 
-	Blocker     // Name of direction being blocked ("E")
-	Description // Item's description
-	Name        // Item's name
-	Ref         // Item's original reference (zone:ref or ref)
-	UID         // Item's unique identifier
-	VetoDrop    // Veto for DROP command
-	VetoGet     // Veto for GET command
-	VetoPut     // Veto PUT command for item
-	VetoPutIn   // Veto for PUT command into container
-	VetoTake    // Veto TAKE command for item
-	VetoTakeOut // Veto for TAKE command from container
-	Where       // Current location ref ("L1")
-	Writing     // Description of writing on an item
-	Zone        // Zone item's definition loaded from
+	Blocker      // Name of direction being blocked ("E")
+	Description  // Item's description
+	DynamicAlias // "PLAYER" or unset, "SELF" for actor performing a command
+	Name         // Item's name
+	Ref          // Item's original reference (zone:ref or ref)
+	UID          // Item's unique identifier
+	VetoDrop     // Veto for DROP command
+	VetoGet      // Veto for GET command
+	VetoPut      // Veto PUT command for item
+	VetoPutIn    // Veto for PUT command into container
+	VetoTake     // Veto TAKE command for item
+	VetoTakeOut  // Veto for TAKE command from container
+	Where        // Current location ref ("L1")
+	Writing      // Description of writing on an item
+	Zone         // Zone item's definition loaded from
 )
 
 // Constants for Thing.Any keys
@@ -134,6 +135,7 @@ var asNames = []string{
 
 	"Blocker",
 	"Description",
+	"DynamicAlias",
 	"Name",
 	"Reference",
 	"UID",

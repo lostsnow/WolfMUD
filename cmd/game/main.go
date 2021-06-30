@@ -62,6 +62,7 @@ func player(conn *net.TCPConn) {
 	player.As[core.Name] = "Player" + strconv.FormatUint(np, 10)
 	player.As[core.Description] = "An adventurer, just like you."
 	player.As[core.Where] = core.WorldStart[rand.Intn(len(core.WorldStart))]
+	player.As[core.DynamicAlias] = "PLAYER"
 	player.Any[core.Alias] = []string{"PLAYER" + strconv.FormatUint(np, 10)}
 	uid := player.As[core.UID]
 
