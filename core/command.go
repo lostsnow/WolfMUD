@@ -79,9 +79,28 @@ func init() {
 	commands["COMMANDS"] = (*state).Commands
 }
 
+// FIXME: At the moment we just drop everything in the player's inventory.
 func (s *state) Quit() {
-	delete(World[s.actor.As[Where]].Who, s.actor.As[UID])
+	where := World[s.actor.As[Where]]
+
+	// FIXME: Force drop everything for now...
+	crowded := len(where.Who) >= CrowdSize
+	for uid, what := range s.actor.In {
+		delete(s.actor.In, uid)
+		World[s.actor.As[Where]].In[uid] = what
+		delete(what.As, DynamicQualifier)
+		s.Msg(s.actor, "You drop ", what.As[Name], ".")
+		if !crowded {
+			s.Msg(where, s.actor.As[Name], " drops ", what.As[Name], ".")
+		}
+	}
+
+	delete(where.Who, s.actor.As[UID])
 	s.Msg(s.actor, "You leave this world behind.\n\nBye bye!\n")
+	if !crowded {
+		s.Msg(where, s.actor.As[Name],
+			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+	}
 }
 
 func (s *state) Look() {
