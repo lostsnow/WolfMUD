@@ -207,12 +207,12 @@ func (s *state) Examine() {
 	}
 
 	switch {
-	case len(s.word) == 0:
-		s.Msg(s.actor, "You examine this and that, find nothing special.")
 	case what == nil:
 		s.Msg(s.actor, "You see no '", uid, "' to examine.")
 	case len(uids) > 1:
 		s.Msg(s.actor, "You can only examine one thing at a time.")
+	case uid == s.actor.As[UID]:
+		s.Msg(s.actor, "Looking fine!")
 	case what.Is&Container != Container || len(what.In) == 0:
 		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
 		// If a blocker, e.g. a door, is it open or closed?
