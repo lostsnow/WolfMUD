@@ -544,6 +544,17 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
+	s.Msg(s.actor, `
+
+WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
+
+    World                 WARNING!
+    Of                  -- Highly --
+    Living              Experimental
+    Fantasy             -- Server --
+
+Welcome to WolfMUD!
+	`)
 	if len(World[s.actor.As[Where]].Who) < CrowdSize {
 		s.Msg(World[s.actor.As[Where]], "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
