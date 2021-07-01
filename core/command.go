@@ -170,7 +170,14 @@ func (s *state) Move() {
 		s.Msg(s.actor, "Oops! You can't actually go ", DirToName[dir], ".")
 	default:
 		delete(World[s.actor.As[Where]].Who, s.actor.As[UID])
+		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+			s.MsgAppend(World[s.actor.As[Where]], s.actor.As[Name],
+				" leaves ", DirToName[dir], ".")
+		}
 		s.actor.As[Where] = where.As[dir]
+		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+			s.MsgAppend(World[s.actor.As[Where]], s.actor.As[Name], " enters.")
+		}
 		World[s.actor.As[Where]].Who[s.actor.As[UID]] = s.actor
 		s.Look()
 	}
