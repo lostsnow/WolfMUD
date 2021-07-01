@@ -5,6 +5,10 @@
 
 package core
 
+import (
+	"sort"
+)
+
 // CrowdSize represents the minimum number of players considered to be a crowd.
 // FIXME(diddymus): This needs to be configurable.
 const CrowdSize = 11
@@ -46,6 +50,7 @@ var commands = map[string]func(*state){
 	"READ":      (*state).Read,
 	"OPEN":      (*state).Open,
 	"CLOSE":     (*state).Close,
+	"COMMANDS":  nil, // Will be populated by init to avoid initialisation cycle
 
 	// Admin and debugging commands
 	"#DUMP":     (*state).Dump,
@@ -54,6 +59,24 @@ var commands = map[string]func(*state){
 
 	// Scripting only commands
 	"$POOF": (*state).Poof,
+}
+
+// cmdNames is a precomputed, sorted list of available player and admin
+// commands.Scripting commands with a '$' prefix are not included.
+var cmdNames = func() (names []string) {
+	for name := range commands {
+		if name != "" && name[0] != '$' {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	return names
+}()
+
+// init registers the COMMANDS command. COMMANDS can't be in commands when
+// cmdNames is initialised as it will create an initialisation cycle.
+func init() {
+	commands["COMMANDS"] = (*state).Commands
 }
 
 func (s *state) Quit() {
@@ -466,6 +489,22 @@ func (s *state) Close() {
 			what.Is &^= Open
 			s.Msg(s.actor, "You close ", what.As[Name], ".")
 		}
+	}
+}
+
+func (s *state) Commands() {
+	cols := 7
+	split := (len(cmdNames) / cols) + 1
+	pad := "               "
+	s.Msg(s.actor, "Commands currently available:\n\n")
+	for x := 0; x < split; x++ {
+		for y := x; y < len(cmdNames); y += split {
+			if y >= len(cmdNames) {
+				continue
+			}
+			s.MsgAppend(s.actor, ("  " + cmdNames[y] + pad)[:12])
+		}
+		s.Msg(s.actor)
 	}
 }
 
