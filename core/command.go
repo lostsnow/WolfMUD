@@ -196,7 +196,7 @@ func (s *state) Examine() {
 		return
 	}
 
-	uids := Match(s.word, s.actor, World[s.actor.As[Where]])
+	uids := Match(s.word, World[s.actor.As[Where]], s.actor)
 	uid := uids[0]
 	what := s.actor.In[uid]
 	if what == nil {
