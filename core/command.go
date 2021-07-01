@@ -133,6 +133,12 @@ func (s *state) Look() {
 			s.Msg(s.actor, "You see no obvious exits.")
 		}
 	}
+
+	// Only notify observers if actually looking and not $POOF or entering a
+	// location when moving.
+	if (s.cmd == "L" || s.cmd == "LOOK") && len(where.Who) < CrowdSize {
+		s.Msg(where, s.actor.As[Name], " starts looking around.")
+	}
 }
 
 func (s *state) Move() {
