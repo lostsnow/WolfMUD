@@ -223,6 +223,10 @@ func (s *state) Examine() {
 		default:
 			s.MsgAppend(s.actor, " It is closed.")
 		}
+		if what.Is&Player == Player {
+			s.Msg(what, s.actor.As[Name], " studies you.")
+		}
+		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " studies ", what.As[Name], ".")
 	case len(what.In) == 1:
 		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
 		for _, item := range what.In {
