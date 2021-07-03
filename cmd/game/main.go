@@ -97,17 +97,11 @@ func player(conn *net.TCPConn) {
 						errState <- err
 						mailbox.Delete(uid)
 						conn.CloseWrite()
-						log.Printf("[%s] mailbox deleted, error", uid)
-					}
-				} else {
-					if ok {
-						log.Printf("[%s] discarding: %q", uid, msg)
 					}
 				}
 				if !ok {
 					mailbox.Delete(uid)
 					conn.CloseWrite()
-					log.Printf("[%s] mailbox deleted, channel closed", uid)
 					return
 				}
 			}
@@ -134,7 +128,6 @@ func player(conn *net.TCPConn) {
 		conn.SetReadDeadline(time.Now().Add(60 * time.Minute))
 		input, err = r.ReadString('\n')
 		if len(q) > 10 {
-			log.Printf("[%s] command dropped: %q", uid, input)
 			continue
 		}
 		if err != nil {
