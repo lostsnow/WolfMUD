@@ -503,6 +503,9 @@ func (s *state) Read() {
 			s.Msg(s.actor, "There is nothing on ", what.As[Name], " to read.")
 		default:
 			s.Msg(s.actor, "You read ", what.As[Name], ". ", what.As[Writing])
+			if len(World[s.actor.As[Where]].Who) < CrowdSize {
+				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " reads ", what.As[Name], ".")
+			}
 		}
 	}
 }
