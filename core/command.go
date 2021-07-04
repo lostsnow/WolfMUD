@@ -529,7 +529,22 @@ func (s *state) Open() {
 			s.Msg(s.actor, what.As[Name], " is already open.")
 		default:
 			what.Is |= Open
+			where := World[s.actor.As[Where]]
 			s.Msg(s.actor, "You open ", what.As[Name], ".")
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, s.actor.As[Name], " opens ", what.As[Name], ".")
+			}
+
+			// Find location on other side...
+			if where.As[UID] == what.As[Where] {
+				exit := NameToDir[what.As[Blocker]]
+				where = World[where.As[exit]]
+			} else {
+				where = World[what.As[Where]]
+			}
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, what.As[Name], " opens.")
+			}
 		}
 	}
 }
@@ -553,7 +568,22 @@ func (s *state) Close() {
 			s.Msg(s.actor, what.As[Name], " is already closed.")
 		default:
 			what.Is &^= Open
+			where := World[s.actor.As[Where]]
 			s.Msg(s.actor, "You close ", what.As[Name], ".")
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, s.actor.As[Name], " closes ", what.As[Name], ".")
+			}
+
+			// Find location on other side...
+			if where.As[UID] == what.As[Where] {
+				exit := NameToDir[what.As[Blocker]]
+				where = World[where.As[exit]]
+			} else {
+				where = World[what.As[Where]]
+			}
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, what.As[Name], " closes.")
+			}
 		}
 	}
 }
