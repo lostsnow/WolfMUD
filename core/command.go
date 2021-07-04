@@ -615,10 +615,16 @@ func (s *state) Teleport() {
 		s.Msg(s.actor, "You don't know where '", s.word[0], "' is.")
 	default:
 		delete(World[s.actor.As[Where]].In, s.actor.As[UID])
+		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+			s.Msg(World[s.actor.As[Where]], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly disappears.")
+		}
 		s.actor.As[Where] = s.word[0]
 		World[s.actor.As[Where]].In[s.actor.As[UID]] = s.actor
 		s.Msg(s.actor, "There is a loud 'Spang!'...\n")
 		s.Look()
+		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+			s.Msg(World[s.actor.As[Where]], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
+		}
 	}
 }
 
