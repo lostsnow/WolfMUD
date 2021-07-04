@@ -282,6 +282,8 @@ func (s *state) Drop() {
 		return
 	}
 
+	crowded := len(World[s.actor.As[Where]].Who) < CrowdSize
+
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
 		switch {
@@ -294,6 +296,9 @@ func (s *state) Drop() {
 			World[s.actor.As[Where]].In[what.As[UID]] = what
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You drop ", what.As[Name], ".")
+			if !crowded {
+				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " drops ", what.As[Name])
+			}
 		}
 	}
 }
@@ -304,6 +309,8 @@ func (s *state) Get() {
 		s.Msg(s.actor, "You go to get... something?")
 		return
 	}
+
+	crowded := len(World[s.actor.As[Where]].Who) < CrowdSize
 
 	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
 		what := World[s.actor.As[Where]].In[uid]
@@ -324,6 +331,9 @@ func (s *state) Get() {
 			s.actor.In[what.As[UID]] = what
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You get ", what.As[Name], ".")
+			if !crowded {
+				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " picks up ", what.As[Name])
+			}
 		}
 	}
 }
