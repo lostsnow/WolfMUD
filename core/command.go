@@ -370,6 +370,7 @@ func (s *state) Take() {
 		return
 	}
 
+	notify := false
 	for _, uid := range Match(words, where) {
 		what := where.In[uid]
 		switch {
@@ -384,7 +385,12 @@ func (s *state) Take() {
 			s.actor.In[what.As[UID]] = what
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You take ", what.As[Name], " out of ", where.As[Name], ".")
+			notify = true
 		}
+
+	}
+	if notify && len(World[s.actor.As[Where]].Who) < CrowdSize {
+		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " takes something out of ", where.As[Name], ".")
 	}
 }
 
@@ -420,6 +426,7 @@ func (s *state) Put() {
 		return
 	}
 
+	notify := false
 	for _, uid := range Match(words, s.actor) {
 		what := s.actor.In[uid]
 		switch {
@@ -435,7 +442,12 @@ func (s *state) Put() {
 			where.In[what.As[UID]] = what
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You put ", what.As[Name], " into ", where.As[Name], ".")
+			notify = true
 		}
+	}
+
+	if notify && len(World[s.actor.As[Where]].Who) < CrowdSize {
+		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " puts something into ", where.As[Name], ".")
 	}
 }
 
