@@ -208,6 +208,9 @@ func (s *state) Move() {
 	}
 }
 
+// FIXME(diddymus): At the moment containers can contain narritives. This
+// complicates describing a container's inventory. Should this be allowed? What
+// could narratives in containers be useful for?
 func (s *state) Examine() {
 
 	if len(s.word) == 0 {
@@ -232,8 +235,9 @@ func (s *state) Examine() {
 		s.Msg(s.actor, "You can only examine one thing at a time.")
 	case uid == s.actor.As[UID]:
 		s.Msg(s.actor, "Looking fine!")
-	case what.Is&Container != Container || len(what.In) == 0:
+	default:
 		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
+
 		// If a blocker, e.g. a door, is it open or closed?
 		switch {
 		case what.As[Blocker] == "":
@@ -242,20 +246,44 @@ func (s *state) Examine() {
 		default:
 			s.MsgAppend(s.actor, " It is closed.")
 		}
-		if what.Is&Player == Player {
-			s.Msg(what, s.actor.As[Name], " studies you.")
+
+		// If a container then count non-narrative items in it. When examining
+		// containers we only want to describe non-narrative content.
+		itemCount := 0
+		if what.Is&Container == Container {
+			for _, item := range what.In {
+				if item.Is&Narrative == 0 {
+					itemCount++
+				}
+			}
 		}
-		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " studies ", what.As[Name], ".")
-	case len(what.In) == 1:
-		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
-		for _, item := range what.In {
-			s.MsgAppend(s.actor, " It contains ", item.As[Name], ".")
+
+		// If a container, describe its content
+		switch {
+		case what.Is&Container == 0:
+			// Not a container
+		case itemCount == 0 && what.Is&Narrative == Narrative:
+			// Don't describe empty narrative containers ;)
+		case itemCount == 0:
+			s.MsgAppend(s.actor, " It is empty.")
+		case itemCount == 1:
+			for _, item := range what.In {
+				if item.Is&Narrative == 0 {
+					s.MsgAppend(s.actor, " It contains ", item.As[Name], ".")
+				}
+			}
+		default:
+			s.MsgAppend(s.actor, " It contains: ")
+			for _, item := range what.In.Sort() {
+				s.Msg(s.actor, "  ", item.As[Name])
+			}
 		}
-	default:
-		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
-		s.MsgAppend(s.actor, " It contains: ")
-		for _, item := range what.In.Sort() {
-			s.Msg(s.actor, "  ", item.As[Name])
+
+		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+			if what.Is&Player == Player {
+				s.Msg(what, s.actor.As[Name], " studies you.")
+			}
+			s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " studies ", what.As[Name], ".")
 		}
 	}
 }
