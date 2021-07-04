@@ -322,6 +322,8 @@ func (s *state) Get() {
 			s.Msg(s.actor, "You see no '", uid, "' to get.")
 		case what.As[VetoGet] != "":
 			s.Msg(s.actor, what.As[VetoGet])
+		case uid == s.actor.As[UID]:
+			s.Msg(s.actor, "Trying to pick youreself up by your bootlaces?")
 		case what.Is&Narrative == Narrative:
 			s.Msg(s.actor, "You cannot take ", what.As[Name], ".")
 		case what.Is&(NPC|Player) != 0:
