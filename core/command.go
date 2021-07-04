@@ -269,6 +269,9 @@ func (s *state) Inventory() {
 		for _, what := range s.actor.In.Sort() {
 			s.Msg(s.actor, "  ", what.As[Name])
 		}
+		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+			s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " checks over their gear.")
+		}
 	}
 }
 
