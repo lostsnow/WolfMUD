@@ -23,6 +23,7 @@ var WorldStart []string
 type state struct {
 	actor *Thing
 	cmd   string
+	input string
 	word  []string
 	buf   map[string]*strings.Builder
 }
@@ -43,6 +44,7 @@ func (s *state) Parse(input string) (cmd string) {
 func (s *state) parse(input string) {
 	s.word = strings.Fields(strings.ToUpper(input))
 	s.cmd, s.word = s.word[0], s.word[1:]
+	s.input = strings.TrimSpace(input[len(s.cmd):])
 
 	// Stop the world for everyone else...
 	BWL.Lock()
