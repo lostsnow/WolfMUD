@@ -59,6 +59,7 @@ var commands = map[string]func(*state){
 
 	// Scripting only commands
 	"$POOF": (*state).Poof,
+	"$ACT":  (*state).Act,
 }
 
 // cmdNames is a precomputed, sorted list of available player and admin
@@ -673,4 +674,16 @@ Welcome to WolfMUD!
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
+}
+
+func (s *state) Act() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "What did you want to act out?")
+		return
+	}
+
+	s.Msg(s.actor, s.actor.As[Name], " ", s.input)
+	if len(World[s.actor.As[Where]].Who) < CrowdSize {
+		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " ", s.input)
+	}
 }
