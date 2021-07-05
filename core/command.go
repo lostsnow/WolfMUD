@@ -51,6 +51,8 @@ var commands = map[string]func(*state){
 	"OPEN":      (*state).Open,
 	"CLOSE":     (*state).Close,
 	"COMMANDS":  nil, // Will be populated by init to avoid initialisation cycle
+	"\"":        (*state).Say,
+	"SAY":       (*state).Say,
 
 	// Admin and debugging commands
 	"#DUMP":     (*state).Dump,
@@ -685,5 +687,36 @@ func (s *state) Act() {
 	s.Msg(s.actor, s.actor.As[Name], " ", s.input)
 	if len(World[s.actor.As[Where]].Who) < CrowdSize {
 		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " ", s.input)
+	}
+}
+
+func (s *state) Say() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "What did you want to say?")
+		return
+	}
+
+	where := World[s.actor.As[Where]]
+	l := len(where.Who)
+
+	if l >= CrowdSize {
+		s.Msg(s.actor, "It's too crowded for you to be heard.")
+		return
+	}
+
+	if l == 1 {
+		s.Msg(s.actor, "Talking to yourself again?")
+	} else {
+		s.Msg(s.actor, "You say: ", s.input)
+		s.Msg(where, s.actor.As[Name], " says: ", s.input)
+	}
+
+	for dir := North; dir <= Down; dir++ {
+		if where.As[dir] == "" {
+			continue
+		}
+		if l = len(World[where.As[dir]].Who); 0 < l && l < CrowdSize {
+			s.Msg(World[where.As[dir]], "You hear talking nearby.")
+		}
 	}
 }
