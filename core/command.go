@@ -87,20 +87,20 @@ func (s *state) Quit() {
 	where := World[s.actor.As[Where]]
 
 	// FIXME: Force drop everything for now...
-	crowded := len(where.Who) >= CrowdSize
+	notify := len(where.Who) < CrowdSize
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
 		World[s.actor.As[Where]].In[uid] = what
 		delete(what.As, DynamicQualifier)
 		s.Msg(s.actor, "You drop ", what.As[Name], ".")
-		if !crowded {
+		if notify {
 			s.Msg(where, s.actor.As[Name], " drops ", what.As[Name], ".")
 		}
 	}
 
 	delete(where.Who, s.actor.As[UID])
 	s.Msg(s.actor, "You leave this world behind.\n\nBye bye!\n")
-	if !crowded {
+	if notify {
 		s.Msg(where, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
@@ -313,7 +313,7 @@ func (s *state) Drop() {
 		return
 	}
 
-	crowded := len(World[s.actor.As[Where]].Who) < CrowdSize
+	notify := len(World[s.actor.As[Where]].Who) < CrowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -327,7 +327,7 @@ func (s *state) Drop() {
 			World[s.actor.As[Where]].In[what.As[UID]] = what
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You drop ", what.As[Name], ".")
-			if !crowded {
+			if notify {
 				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " drops ", what.As[Name])
 			}
 		}
@@ -341,7 +341,7 @@ func (s *state) Get() {
 		return
 	}
 
-	crowded := len(World[s.actor.As[Where]].Who) < CrowdSize
+	notify := len(World[s.actor.As[Where]].Who) < CrowdSize
 
 	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
 		what := World[s.actor.As[Where]].In[uid]
@@ -364,7 +364,7 @@ func (s *state) Get() {
 			s.actor.In[what.As[UID]] = what
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You get ", what.As[Name], ".")
-			if !crowded {
+			if notify {
 				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " picks up ", what.As[Name])
 			}
 		}
