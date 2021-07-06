@@ -22,6 +22,7 @@ type Thing struct {
 	Any map[anyKey][]string // One or more values for a key
 	In  Things              // Item's in a Thing (inventory)
 	Who Things              // Who is here? Players @ location
+	Int map[intKey]int      // Integer values, counts and quantities
 }
 
 // Things represents a group of Thing.
@@ -32,6 +33,7 @@ type (
 	isKey  uint32 // index for Thing.Is
 	asKey  uint32 // index for Thing.As
 	anyKey string // index for Thing.Any
+	intKey uint32 // index for Thing.Int
 )
 
 // Constants for use as bitmasks with the Thing.Is field.
@@ -185,6 +187,11 @@ func (dir asKey) ReverseDir() asKey {
 	}
 }
 
+// intNames provides the string names for the Thing.Int field constants. A name
+// for a specific Thing.Int value can be retrieved by simple indexing. For
+// example: intNames[ActionAfter] returns the string "Action Jitter".
+var intNames = map[intKey]string{}
+
 // NewThing returns a new initialised Thing with no properties set.
 //
 // TODO(diddymus): UID needs adding as an alias once we have multiple aliases.
@@ -196,6 +203,7 @@ func NewThing() *Thing {
 		Any: make(map[anyKey][]string),
 		In:  make(map[string]*Thing),
 		Who: make(map[string]*Thing),
+		Int: make(map[intKey]int),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
@@ -322,6 +330,9 @@ func (t *Thing) Copy() *Thing {
 	for k, v := range t.Any {
 		T.Any[k] = v
 	}
+	for k, v := range t.Int {
+		T.Int[k] = v
+	}
 	for _, item := range t.In {
 		c := item.Copy()
 		T.In[c.As[UID]] = c
@@ -428,7 +439,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%s%p %[2]T - UID: %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
 	p("%sIs  - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
-	lIn, lAs, lAny, lWho := len(t.In), len(t.As), len(t.Any), len(t.Who)
+	lIn, lAs, lAny, lWho, lInt := len(t.In), len(t.As), len(t.Any), len(t.Who), len(t.Int)
 	p("%sAs  - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
 		lAs--
@@ -443,6 +454,11 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	for k, v := range t.Any {
 		lAny--
 		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, k, v)
+	}
+	p("%sInt - len: %d", tree[false].i, lInt)
+	for k, v := range t.Int {
+		lInt--
+		p("%s%s %s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
 	}
 	p("%sWho - len: %d", tree[false].i, lWho)
 	w.Write([]byte(b.String()))
