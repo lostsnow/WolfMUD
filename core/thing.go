@@ -73,6 +73,8 @@ const (
 	DynamicAlias     // "PLAYER" or unset, "SELF" for actor performing a command
 	DynamicQualifier // Situation dependant e.g. GET sets "MY",DROP deleted "MY"
 	Name             // Item's name
+	OnCleanup        // Custome cleanup message for an item
+	OnReset          // Custom reset message for an item
 	Ref              // Item's original reference (zone:ref or ref)
 	UID              // Item's unique identifier
 	VetoDrop         // Veto for DROP command
@@ -89,6 +91,7 @@ const (
 // Constants for Thing.Any keys
 const (
 	Alias     anyKey = iota // Aliases for an item
+	OnAction                // Actions that can be performed
 	Qualifier               // Alias qualifiers
 )
 
@@ -141,6 +144,8 @@ var asNames = []string{
 	"DynamicAlias",
 	"DynamicQualifier",
 	"Name",
+	"OnCleanup",
+	"OnReset",
 	"Reference",
 	"UID",
 	"VetoDrop",
@@ -187,16 +192,34 @@ func (dir asKey) ReverseDir() asKey {
 	}
 }
 
+// Constants for Thing.Int keys
+const (
+	ActionAfter intKey = iota
+	ActionJitter
+	CleanupAfter
+	CleanupJitter
+	ResetAfter
+	ResetJitter
+)
+
 // intNames provides the string names for the Thing.Int field constants. A name
 // for a specific Thing.Int value can be retrieved by simple indexing. For
 // example: intNames[ActionAfter] returns the string "Action Jitter".
-var intNames = map[intKey]string{}
+var intNames = map[intKey]string{
+	ActionAfter:   "ActionAfter",
+	ActionJitter:  "ActionJitter",
+	CleanupAfter:  "CleanupAfter",
+	CleanupJitter: "CleanupJitter",
+	ResetAfter:    "ResetAfter",
+	ResetJitter:   "ResetJitter",
+}
 
 // anyNames provides the string names for the Thing.Any field constants. A name
 // for a specific Thing.Any value can be retrieved by simple indexing. For
 // example: anyNames[Alias] returns the string "Alias".
 var anyNames = map[anyKey]string{
 	Alias:     "Alias",
+	OnAction:  "OnAction",
 	Qualifier: "Qualifier",
 }
 
