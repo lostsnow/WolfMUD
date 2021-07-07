@@ -32,7 +32,7 @@ type Things map[string]*Thing
 type (
 	isKey  uint32 // index for Thing.Is
 	asKey  uint32 // index for Thing.As
-	anyKey string // index for Thing.Any
+	anyKey uint32 // index for Thing.Any
 	intKey uint32 // index for Thing.Int
 )
 
@@ -88,8 +88,8 @@ const (
 
 // Constants for Thing.Any keys
 const (
-	Alias     anyKey = "ALIAS"     // Aliases for an item
-	Qualifier anyKey = "QUALIFIER" // Alias qualifiers
+	Alias     anyKey = iota // Aliases for an item
+	Qualifier               // Alias qualifiers
 )
 
 // nextUID is used to store the next unique identifier to be used for a new
@@ -191,6 +191,14 @@ func (dir asKey) ReverseDir() asKey {
 // for a specific Thing.Int value can be retrieved by simple indexing. For
 // example: intNames[ActionAfter] returns the string "Action Jitter".
 var intNames = map[intKey]string{}
+
+// anyNames provides the string names for the Thing.Any field constants. A name
+// for a specific Thing.Any value can be retrieved by simple indexing. For
+// example: anyNames[Alias] returns the string "Alias".
+var anyNames = map[anyKey]string{
+	Alias:     "Alias",
+	Qualifier: "Qualifier",
+}
 
 // NewThing returns a new initialised Thing with no properties set.
 //
@@ -453,7 +461,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%sAny - len: %d", tree[false].i, lAny)
 	for k, v := range t.Any {
 		lAny--
-		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, k, v)
+		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, anyNames[k], v)
 	}
 	p("%sInt - len: %d", tree[false].i, lInt)
 	for k, v := range t.Int {
