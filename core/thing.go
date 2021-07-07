@@ -17,12 +17,12 @@ import (
 
 // Thing is used to represent any and all items in the game world.
 type Thing struct {
-	Is  isKey               // Bit flags for capabilities/state
 	As  map[asKey]string    // Single value for a key
 	Any map[anyKey][]string // One or more values for a key
+	Int map[intKey]int      // Integer values, counts and quantities
 	In  Things              // Item's in a Thing (inventory)
 	Who Things              // Who is here? Players @ location
-	Int map[intKey]int      // Integer values, counts and quantities
+	Is  isKey               // Bit flags for capabilities/state
 }
 
 // Things represents a group of Thing.
