@@ -245,6 +245,16 @@ func NewThing() *Thing {
 func (t *Thing) Unmarshal(r recordjar.Record) {
 	for field, data := range r {
 		switch field {
+		case "ACTION":
+			for k, v := range decode.PairList(r[field]) {
+				b := []byte(v)
+				switch k {
+				case "AFTER":
+					t.Int[ActionAfter] = int(decode.Duration(b).Seconds())
+				case "JITTER":
+					t.Int[ActionJitter] = int(decode.Duration(b).Seconds())
+				}
+			}
 		case "ALIAS", "ALIASES":
 			a := make(map[string]struct{})
 			q := make(map[string]struct{})
@@ -267,6 +277,16 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 			for qualifier := range q {
 				t.Any[Qualifier] = append(t.Any[Qualifier], qualifier)
+			}
+		case "CLEANUP":
+			for k, v := range decode.PairList(r[field]) {
+				b := []byte(v)
+				switch k {
+				case "AFTER":
+					t.Int[CleanupAfter] = int(decode.Duration(b).Seconds())
+				case "JITTER":
+					t.Int[CleanupJitter] = int(decode.Duration(b).Seconds())
+				}
 			}
 		case "DESCRIPTION":
 			t.As[Description] = decode.String(data)
@@ -296,8 +316,24 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.As[Name] = decode.String(data)
 		case "NARRATIVE":
 			t.Is |= Narrative
+		case "ONACTION":
+			t.Any[OnAction] = decode.StringList(r["ONACTION"])
+		case "ONCLEANUP":
+			t.As[OnCleanup] = decode.String(r["ONCLEANUP"])
+		case "ONRESET":
+			t.As[OnReset] = decode.String(r["ONRESET"])
 		case "REF":
 			t.As[Ref] = decode.Keyword(r[field])
+		case "RESET":
+			for k, v := range decode.PairList(r[field]) {
+				b := []byte(v)
+				switch k {
+				case "AFTER":
+					t.Int[ResetAfter] = int(decode.Duration(b).Seconds())
+				case "JITTER":
+					t.Int[ResetJitter] = int(decode.Duration(b).Seconds())
+				}
+			}
 		case "START":
 			t.Is |= Start
 		case "VETO":
