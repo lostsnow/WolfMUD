@@ -22,10 +22,10 @@ var WorldStart []string
 
 type state struct {
 	actor *Thing
+	buf   map[string]*strings.Builder
 	cmd   string
 	input string
 	word  []string
-	buf   map[string]*strings.Builder
 }
 
 var newline = []byte("\n")
