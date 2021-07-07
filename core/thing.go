@@ -335,7 +335,17 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%sAny - len: %d", tree[false].i, lAny)
 	for k, v := range t.Any {
 		lAny--
-		p("%s%s %s: %q", tree[false].b, tree[lAny == 0].i, anyNames[k], v)
+		p("%s%s%s:", tree[false].b, tree[lAny == 0].i, anyNames[k])
+		for kk, vv := range v {
+			line := simpleFold(vv, width-len(indent)-len("|  |- [00]"))
+			pad := strings.Repeat(" ", len("[00]"))
+			p("%s%s%s[%2d] %s",
+				tree[false].b, tree[lAny == 0].b, tree[kk == len(v)-1].i, kk, line[0])
+			for _, line := range line[1:] {
+				p("%s%s%s%s %s",
+					tree[false].b, tree[lAny == 0].b, tree[kk == len(v)-1].b, pad, line)
+			}
+		}
 	}
 	p("%sInt - len: %d", tree[false].i, lInt)
 	for k, v := range t.Int {
