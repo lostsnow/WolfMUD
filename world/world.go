@@ -33,6 +33,10 @@ type taggedThing struct {
 // cause a cyclic import.
 func Load() {
 
+	// Stop the world while we are building it
+	core.BWL.Lock()
+	defer core.BWL.Unlock()
+
 	core.World = make(map[string]*core.Thing)
 	refToUID := make(map[string]string)
 
