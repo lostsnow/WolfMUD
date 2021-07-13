@@ -6,8 +6,9 @@
 package world
 
 import (
-	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"code.wolfmud.org/WolfMUD.git/core"
@@ -24,6 +25,8 @@ type taggedThing struct {
 	zoneLinks map[string]string
 }
 
+const zoneDir = "../data/zones/*.wrj"
+
 // Load creates the game world.
 //
 // FIXME(diddymus): Hard-coded zone files and paths.
@@ -33,6 +36,8 @@ type taggedThing struct {
 // cause a cyclic import.
 func Load() {
 
+	log.Printf("Loading zones from: %s", zoneDir)
+
 	// Stop the world while we are building it
 	core.BWL.Lock()
 	defer core.BWL.Unlock()
@@ -40,30 +45,42 @@ func Load() {
 	core.World = make(map[string]*core.Thing)
 	refToUID := make(map[string]string)
 
-	for _, fName := range []string{
-		"../data/zones/zinara.wrj",
-		"../data/zones/zinara_south.wrj",
-		"../data/zones/zinara_caves.wrj",
-	} {
+	filenames, err := filepath.Glob(zoneDir)
+	if err != nil || len(filenames) == 0 {
+		log.Fatalf("Cannot load any zone files. Server not started.")
+		return
+	}
+
+	for _, fName := range filenames {
 
 		f, err := os.Open(fName)
 		if err != nil {
-			fmt.Printf("Load error: %s\n", err)
+			log.Printf("Load error: %s\n", err)
 			return
 		}
 		jar := recordjar.Read(f, "DESCRIPTION")
 		f.Close()
-		PreProcessor(jar)
 
 		// Find zone header record
 		if len(jar) < 1 || len(jar[0]["ZONE"]) == 0 {
-			fmt.Printf("load warning, zone header not found, skipping: %s\n", fName)
+			log.Printf("load warning, zone header not found, skipping: %s\n", fName)
 		}
 
-		zone := decode.String(jar[0]["REF"])
+		zref := decode.String(jar[0]["REF"])
+		zone := decode.String(jar[0]["ZONE"])
+		disabled := decode.Boolean(jar[0]["DISABLED"])
+
+		if disabled {
+			log.Printf("Disabled %s: %s (%s)", filepath.Base(fName), zone, zref)
+			continue
+		}
+
+		log.Printf("Loading %s: %s (%s)", filepath.Base(fName), zone, zref)
+		PreProcessor(jar)
 		jar = jar[1:]
 
 		// Load everything into temporary store
+		log.Print("  Loading temporary store")
 		store := make(map[string]taggedThing)
 		for _, record := range jar {
 			ref := decode.String(record["REF"])
@@ -73,34 +90,37 @@ func Load() {
 				location:  decode.KeywordList(record["LOCATION"]),
 				zoneLinks: decode.PairList(record["ZONELINKS"]),
 			}
-			store[ref].As[core.Zone] = zone
+			store[ref].As[core.Zone] = zref
 			store[ref].Unmarshal(record)
 		}
 
 		// Resolve inventory attributes in the store with references
+		log.Print("  Linking temporary store inventories")
 		for _, item := range store {
 			for _, ref := range item.inventory {
 				if what, ok := store[ref]; ok {
 					item.In[what.Thing.As[core.UID]] = what.Thing
 				} else {
-					fmt.Printf("load warning, ref not found for inventory: %s\n", ref)
+					log.Printf("load warning, ref not found for inventory: %s\n", ref)
 				}
 			}
 		}
 
 		// Resolve location attributes in the store with references
+		log.Print("  Linking temporary store locations")
 		for _, item := range store {
 			for _, ref := range item.location {
 				if where, ok := store[ref]; ok {
 					where.In[item.Thing.As[core.UID]] = item.Thing
 				} else {
-					fmt.Printf("load warning, ref not found for location: %s\n", ref)
+					log.Printf("load warning, ref not found for location: %s\n", ref)
 				}
 			}
 		}
 
 		// Copy locations to world, recording any starting locations - copying
 		// resolves references as unique things.
+		log.Print("  Copying to world")
 		for _, item := range store {
 			if item.Is&core.Location == core.Location {
 				c := item.Copy()
@@ -120,15 +140,17 @@ func Load() {
 		}
 
 		// Tear down temporary store
+		log.Printf("  Closing down temporary store: %d entries", len(store))
 		for ref, item := range store {
 			item.Free()
 			delete(store, ref)
 		}
 		runtime.GC()
+		log.Printf("Loaded %s: %s (%s)", filepath.Base(fName), zone, zref)
 	}
 
-	// Rewrite exits from Refs to UIDs as Refs only unique within a zone. Then
-	// drop zone information as no longer required.
+	// Rewrite exits from Refs to UIDs as Refs only unique within a zone.
+	log.Print("Linking exits")
 	for _, loc := range core.World {
 		for dir := range core.DirToName {
 			if loc.As[dir] != "" {
@@ -138,6 +160,7 @@ func Load() {
 	}
 
 	// Create other side of blockers as references so they share state
+	log.Print("Checking other side")
 	for _, loc := range core.World {
 		for _, item := range loc.In {
 			blocking := item.As[core.Blocker]
@@ -150,5 +173,8 @@ func Load() {
 		}
 	}
 
+	log.Printf("Total world locations: %d, starting locations: %d",
+		len(core.World), len(core.WorldStart))
+	log.Print("Genesis complete")
 	return
 }
