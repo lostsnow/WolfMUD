@@ -35,6 +35,7 @@ func main() {
 		return
 	}
 
+	log.Printf("Accepting connections on: %s", addr)
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {
