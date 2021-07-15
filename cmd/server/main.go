@@ -26,6 +26,8 @@ func main() {
 	nextPlayer = make(chan uint64, 1)
 	nextPlayer <- 1
 	rand.Seed(time.Now().UnixNano())
+
+	core.RegisterCommandHandlers()
 	world.Load()
 
 	addr, _ := net.ResolveTCPAddr("tcp", ":4001")

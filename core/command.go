@@ -6,6 +6,7 @@
 package core
 
 import (
+	"log"
 	"sort"
 )
 
@@ -13,73 +14,83 @@ import (
 // FIXME(diddymus): This needs to be configurable.
 const CrowdSize = 11
 
-// Commands maps command strings to the implementing methods.
-var commands = map[string]func(*state){
-	"":          func(*state) {},
-	"QUIT":      (*state).Quit,
-	"L":         (*state).Look,
-	"LOOK":      (*state).Look,
-	"N":         (*state).Move,
-	"NORTH":     (*state).Move,
-	"NE":        (*state).Move,
-	"NORTHEAST": (*state).Move,
-	"E":         (*state).Move,
-	"EAST":      (*state).Move,
-	"SE":        (*state).Move,
-	"SOUTHEAST": (*state).Move,
-	"S":         (*state).Move,
-	"SOUTH":     (*state).Move,
-	"SW":        (*state).Move,
-	"SOUTHWEST": (*state).Move,
-	"W":         (*state).Move,
-	"WEST":      (*state).Move,
-	"NW":        (*state).Move,
-	"U":         (*state).Move,
-	"UP":        (*state).Move,
-	"D":         (*state).Move,
-	"DOWN":      (*state).Move,
-	"NORTHWEST": (*state).Move,
-	"EXAM":      (*state).Examine,
-	"EXAMINE":   (*state).Examine,
-	"INV":       (*state).Inventory,
-	"INVENTORY": (*state).Inventory,
-	"DROP":      (*state).Drop,
-	"GET":       (*state).Get,
-	"TAKE":      (*state).Take,
-	"PUT":       (*state).Put,
-	"READ":      (*state).Read,
-	"OPEN":      (*state).Open,
-	"CLOSE":     (*state).Close,
-	"COMMANDS":  nil, // Will be populated by init to avoid initialisation cycle
-	"\"":        (*state).Say,
-	"SAY":       (*state).Say,
+// commandHandlers maps command strings to the implementing methods. It is
+// typically initialised by calling RegisterCommandHandlers.
+var commandHandlers map[string]func(*state)
 
-	// Admin and debugging commands
-	"#DUMP":     (*state).Dump,
-	"#TELEPORT": (*state).Teleport,
-	"#GOTO":     (*state).Teleport,
+// commandNames is a precomputed, sorted list of registered player and admin
+// commands. It is typically initialised by calling RegisterCommandHandlers.
+var commandNames []string
 
-	// Scripting only commands
-	"$POOF": (*state).Poof,
-	"$ACT":  (*state).Act,
-}
+// RegisterCommandHandlers initialises the commandHandlers and commandNames. It
+// needs to be called before any player, admin or scripting commands are used.
+// RegisterCommandHandlers should not be called while holding core.BWL as it
+// will acquire core.BWL itself.
+func RegisterCommandHandlers() {
 
-// cmdNames is a precomputed, sorted list of available player and admin
-// commands.Scripting commands with a '$' prefix are not included.
-var cmdNames = func() (names []string) {
-	for name := range commands {
+	BWL.Lock()
+	defer BWL.Unlock()
+
+	commandHandlers = map[string]func(*state){
+		"":          func(*state) {},
+		"QUIT":      (*state).Quit,
+		"L":         (*state).Look,
+		"LOOK":      (*state).Look,
+		"N":         (*state).Move,
+		"NORTH":     (*state).Move,
+		"NE":        (*state).Move,
+		"NORTHEAST": (*state).Move,
+		"E":         (*state).Move,
+		"EAST":      (*state).Move,
+		"SE":        (*state).Move,
+		"SOUTHEAST": (*state).Move,
+		"S":         (*state).Move,
+		"SOUTH":     (*state).Move,
+		"SW":        (*state).Move,
+		"SOUTHWEST": (*state).Move,
+		"W":         (*state).Move,
+		"WEST":      (*state).Move,
+		"NW":        (*state).Move,
+		"U":         (*state).Move,
+		"UP":        (*state).Move,
+		"D":         (*state).Move,
+		"DOWN":      (*state).Move,
+		"NORTHWEST": (*state).Move,
+		"EXAM":      (*state).Examine,
+		"EXAMINE":   (*state).Examine,
+		"INV":       (*state).Inventory,
+		"INVENTORY": (*state).Inventory,
+		"DROP":      (*state).Drop,
+		"GET":       (*state).Get,
+		"TAKE":      (*state).Take,
+		"PUT":       (*state).Put,
+		"READ":      (*state).Read,
+		"OPEN":      (*state).Open,
+		"CLOSE":     (*state).Close,
+		"COMMANDS":  (*state).Commands,
+		"\"":        (*state).Say,
+		"SAY":       (*state).Say,
+
+		// Admin and debugging commands
+		"#DUMP":     (*state).Dump,
+		"#TELEPORT": (*state).Teleport,
+		"#GOTO":     (*state).Teleport,
+
+		// Scripting only commands
+		"$POOF": (*state).Poof,
+		"$ACT":  (*state).Act,
+	}
+
+	// precompute a sorted list of available player and admin commands. Scripting
+	// commands with a '$' prefix are not included.
+	for name := range commandHandlers {
 		if name != "" && name[0] != '$' {
-			names = append(names, name)
+			commandNames = append(commandNames, name)
 		}
 	}
-	sort.Strings(names)
-	return names
-}()
+	sort.Strings(commandNames)
 
-// init registers the COMMANDS command. COMMANDS can't be in commands when
-// cmdNames is initialised as it will create an initialisation cycle.
-func init() {
-	commands["COMMANDS"] = (*state).Commands
+	log.Printf("Registered %d command handlers", len(commandHandlers))
 }
 
 // FIXME: At the moment we just drop everything in the player's inventory.
@@ -621,15 +632,15 @@ func (s *state) Close() {
 
 func (s *state) Commands() {
 	cols := 7
-	split := (len(cmdNames) / cols) + 1
+	split := (len(commandNames) / cols) + 1
 	pad := "               "
 	s.Msg(s.actor, "Commands currently available:\n\n")
 	for x := 0; x < split; x++ {
-		for y := x; y < len(cmdNames); y += split {
-			if y >= len(cmdNames) {
+		for y := x; y < len(commandNames); y += split {
+			if y >= len(commandNames) {
 				continue
 			}
-			s.MsgAppend(s.actor, ("  " + cmdNames[y] + pad)[:12])
+			s.MsgAppend(s.actor, ("  " + commandNames[y] + pad)[:12])
 		}
 		s.Msg(s.actor)
 	}

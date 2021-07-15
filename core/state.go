@@ -50,10 +50,10 @@ func (s *state) parse(input string) {
 	BWL.Lock()
 	defer BWL.Unlock()
 
-	if command, ok := commands[s.cmd]; ok {
+	if handler, ok := commandHandlers[s.cmd]; ok {
 		savedDA := s.actor.As[DynamicAlias]
 		s.actor.As[DynamicAlias] = "SELF"
-		command(s)
+		handler(s)
 		s.actor.As[DynamicAlias] = savedDA
 	} else {
 		s.Msg(s.actor, "Eh?")
