@@ -207,17 +207,30 @@ func (s *state) Move() {
 			blocker.As[Name], " is blocking your way.")
 	case World[where.As[dir]] == nil:
 		s.Msg(s.actor, "Oops! You can't actually go ", DirToName[dir], ".")
+	case s.actor.Is&Player != Player:
+		delete(where.In, s.actor.As[UID])
+		if len(where.In) < CrowdSize {
+			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
+		}
+
+		where = World[where.As[dir]]
+		s.actor.As[Where] = where.As[UID]
+		where.In[s.actor.As[UID]] = s.actor
+		if len(where.In) < CrowdSize {
+			s.MsgAppend(where, s.actor.As[Name], " enters.")
+		}
 	default:
-		delete(World[s.actor.As[Where]].Who, s.actor.As[UID])
-		if len(World[s.actor.As[Where]].Who) < CrowdSize {
-			s.MsgAppend(World[s.actor.As[Where]], s.actor.As[Name],
-				" leaves ", DirToName[dir], ".")
+		delete(where.Who, s.actor.As[UID])
+		if len(where.Who) < CrowdSize {
+			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
 		}
-		s.actor.As[Where] = where.As[dir]
-		if len(World[s.actor.As[Where]].Who) < CrowdSize {
-			s.MsgAppend(World[s.actor.As[Where]], s.actor.As[Name], " enters.")
+
+		where = World[where.As[dir]]
+		s.actor.As[Where] = where.As[UID]
+		where.Who[s.actor.As[UID]] = s.actor
+		if len(where.Who) < CrowdSize {
+			s.MsgAppend(where, s.actor.As[Name], " enters.")
 		}
-		World[s.actor.As[Where]].Who[s.actor.As[UID]] = s.actor
 		s.Look()
 	}
 }
