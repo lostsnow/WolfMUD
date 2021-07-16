@@ -36,7 +36,12 @@ func NewState(t *Thing) *state {
 
 func (s *state) Parse(input string) (cmd string) {
 	if input = strings.TrimSpace(input); len(input) != 0 {
+		// Stop the world for everyone else...
+		BWL.Lock()
+		defer BWL.Unlock()
+
 		s.parse(input)
+		s.mailman()
 	}
 	return s.cmd
 }
@@ -46,10 +51,6 @@ func (s *state) parse(input string) {
 	s.cmd, s.word = s.word[0], s.word[1:]
 	s.input = strings.TrimSpace(input[len(s.cmd):])
 
-	// Stop the world for everyone else...
-	BWL.Lock()
-	defer BWL.Unlock()
-
 	if handler, ok := commandHandlers[s.cmd]; ok {
 		savedDA := s.actor.As[DynamicAlias]
 		s.actor.As[DynamicAlias] = "SELF"
@@ -58,8 +59,14 @@ func (s *state) parse(input string) {
 	} else {
 		s.Msg(s.actor, "Eh?")
 	}
+}
 
-	s.mailman()
+// subparse parses new input reusing the current actor and buffers from the
+// current state. This is useful for commands that want to be able to take
+// advantage of the functionality other commands.
+func (s *state) subparse(input string) {
+	s2 := &state{actor: s.actor, buf: s.buf}
+	s2.parse(input)
 }
 
 // mailman delivers queued messages to player's mailboxes. Messages can be
