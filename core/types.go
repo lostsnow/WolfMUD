@@ -11,10 +11,11 @@ import (
 
 // Type definitions for Thing field keys.
 type (
-	isKey  uint32 // index for Thing.Is
-	asKey  uint32 // index for Thing.As
-	anyKey uint32 // index for Thing.Any
-	intKey uint32 // index for Thing.Int
+	isKey    uint32 // index for Thing.Is
+	asKey    uint32 // index for Thing.As
+	anyKey   uint32 // index for Thing.Any
+	intKey   uint32 // index for Thing.Int
+	eventKey uint32 // index for Thing.Events
 )
 
 // Constants for use as bitmasks with the Thing.Is field.
@@ -166,6 +167,8 @@ var anyNames = []string{
 }
 
 // Constants for Thing.Int keys
+//
+// NOTE: See also comments for eventKey constants.
 const (
 	ActionAfter   intKey = iota // How often an action event should occur
 	ActionJitter                // Maximum random delay to add to ActionAfter
@@ -184,3 +187,14 @@ var intNames = []string{
 	"ResetAfter",
 	"ResetJitter",
 }
+
+// Constants for Thing.Events keys
+//
+// NOTE: Events map to Thing.Int values. The intKey constants for an event's
+// After and Jitter values should be consecutive as we assume After = eventKey
+// and Jitter = eventKey+1.
+const (
+	Action  eventKey = eventKey(ActionAfter)
+	Cleanup          = eventKey(CleanupAfter)
+	Reset            = eventKey(ResetAfter)
+)
