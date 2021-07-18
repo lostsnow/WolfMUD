@@ -7,6 +7,7 @@ package core
 
 import (
 	"log"
+	"math/rand"
 	"sort"
 )
 
@@ -81,11 +82,14 @@ func RegisterCommandHandlers() {
 		"#GOTO":     (*state).Teleport,
 
 		// Scripting only commands
-		"$POOF": (*state).Poof,
-		"$ACT":  (*state).Act,
+		"$POOF":   (*state).Poof,
+		"$ACT":    (*state).Act,
+		"$ACTION": (*state).Action,
 	}
 
-	eventCommands = map[eventKey]string{}
+	eventCommands = map[eventKey]string{
+		Action: "$ACTION",
+	}
 
 	// precompute a sorted list of available player and admin commands. Scripting
 	// commands with a '$' prefix are not included.
@@ -754,4 +758,14 @@ func (s *state) Say() {
 			s.Msg(World[where.As[dir]], "You hear talking nearby.")
 		}
 	}
+}
+
+func (s *state) Action() {
+	l := len(s.actor.Any[OnAction])
+	if l == 0 {
+		return
+	}
+
+	s.subparse(s.actor.Any[OnAction][rand.Intn(l)])
+	s.actor.Schedule(Action)
 }

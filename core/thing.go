@@ -82,6 +82,11 @@ func (t *Thing) Enable(parent string) {
 	if t.As[Where] == "" {
 		t.As[Where] = parent
 	}
+
+	// Check if we need to enable events
+	if t.Int[ActionAfter] != 0 || t.Int[ActionJitter] != 0 {
+		t.Schedule(Action)
+	}
 }
 
 // Unmarshal loads data from the passed Record into a Thing.
