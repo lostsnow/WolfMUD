@@ -22,10 +22,14 @@ var commandHandlers map[string]func(*state)
 // commands. It is typically initialised by calling RegisterCommandHandlers.
 var commandNames []string
 
-// RegisterCommandHandlers initialises the commandHandlers and commandNames. It
-// needs to be called before any player, admin or scripting commands are used.
-// RegisterCommandHandlers should not be called while holding core.BWL as it
-// will acquire core.BWL itself.
+// eventCommands map an eventKey to its associated scripting command handler.
+// It is typically initialised by calling RegisterCommandHandlers.
+var eventCommands map[eventKey]string
+
+// RegisterCommandHandlers initialises the commandHandlers, commandNames and
+// eventCommands. It needs to be called before any player, admin or scripting
+// commands are used. RegisterCommandHandlers should not be called while
+// holding core.BWL as it will acquire core.BWL itself.
 func RegisterCommandHandlers() {
 
 	BWL.Lock()
@@ -80,6 +84,8 @@ func RegisterCommandHandlers() {
 		"$POOF": (*state).Poof,
 		"$ACT":  (*state).Act,
 	}
+
+	eventCommands = map[eventKey]string{}
 
 	// precompute a sorted list of available player and admin commands. Scripting
 	// commands with a '$' prefix are not included.

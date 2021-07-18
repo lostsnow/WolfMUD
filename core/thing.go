@@ -8,6 +8,7 @@ package core
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"sort"
 	"strings"
 	"time"
@@ -417,4 +418,41 @@ func simpleFold(s string, width int) (lines []string) {
 	}
 	lines = append(lines, b.String())
 	return
+}
+
+// Schedule the specified event for a Thing. If the event is already active it
+// will be aborted and the new event scheduled.
+func (t *Thing) Schedule(event eventKey) {
+
+	delay := t.Int[intKey(event)]
+	jitter := t.Int[intKey(event+1)]
+
+	if delay+jitter == 0 {
+		return
+	}
+
+	if jitter != 0 {
+		delay += rand.Intn(jitter)
+	}
+
+	t.Abort(event) // Cancel any already active / in-flight event
+
+	t.Event[event] = time.AfterFunc(
+		time.Duration(delay)*time.Second,
+		func() { NewState(t).Parse(eventCommands[event]) },
+	)
+}
+
+// Abort an event for a Thing. If the event is not active no action is taken.
+func (t *Thing) Abort(event eventKey) {
+	if t.Event[event] == nil {
+		return
+	}
+	if !t.Event[event].Stop() {
+		select {
+		case <-t.Event[event].C:
+		default:
+		}
+	}
+	t.Event[event] = nil
 }
