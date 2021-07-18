@@ -150,7 +150,7 @@ func Load() {
 	}
 
 	// Rewrite exits from Refs to UIDs as Refs only unique within a zone.
-	log.Print("Linking exits")
+	log.Print("Resolving exit refs to UIDs")
 	for _, loc := range core.World {
 		for dir := range core.DirToName {
 			if loc.As[dir] != "" {
