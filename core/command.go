@@ -360,6 +360,7 @@ func (s *state) Drop() {
 		default:
 			delete(s.actor.In, what.As[UID])
 			World[s.actor.As[Where]].In[what.As[UID]] = what
+			what.Schedule(Action)
 			what.As[Where] = s.actor.As[Where]
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You drop ", what.As[Name], ".")
@@ -396,6 +397,7 @@ func (s *state) Get() {
 		case what.Is&(NPC|Player) != 0:
 			s.Msg(s.actor, what.As[Name], " does not want to be taken!")
 		default:
+			what.Abort(Action)
 			delete(World[s.actor.As[Where]].In, what.As[UID])
 			s.actor.In[what.As[UID]] = what
 			what.As[Where] = s.actor.As[UID]
