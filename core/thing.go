@@ -10,6 +10,7 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"time"
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
@@ -17,16 +18,20 @@ import (
 
 // Thing is used to represent any and all items in the game world.
 type Thing struct {
-	As  map[asKey]string    // Single value for a key
-	Any map[anyKey][]string // One or more values for a key
-	Int map[intKey]int      // Integer values, counts and quantities
-	In  Things              // Item's in a Thing (inventory)
-	Who Things              // Who is here? Players @ location
-	Is  isKey               // Bit flags for capabilities/state
+	As    map[asKey]string    // Single value for a key
+	Any   map[anyKey][]string // One or more values for a key
+	Int   map[intKey]int      // Integer values, counts and quantities
+	In    Things              // Item's in a Thing (inventory)
+	Who   Things              // Who is here? Players @ location
+	Is    isKey               // Bit flags for capabilities/state
+	Event Events              // Active/in-flight events
 }
 
 // Things represents a group of Thing.
 type Things map[string]*Thing
+
+// Events is used to store currently active/in-flight events for a Thing.
+type Events map[eventKey]*time.Timer
 
 // nextUID is used to store the next unique identifier to be used for a new
 // Thing. It is setup and initialised via the init function.
@@ -45,11 +50,12 @@ func NewThing() *Thing {
 	uid := <-nextUID
 	nextUID <- uid + 1
 	t := &Thing{
-		As:  make(map[asKey]string),
-		Any: make(map[anyKey][]string),
-		In:  make(map[string]*Thing),
-		Who: make(map[string]*Thing),
-		Int: make(map[intKey]int),
+		As:    make(map[asKey]string),
+		Any:   make(map[anyKey][]string),
+		In:    make(map[string]*Thing),
+		Who:   make(map[string]*Thing),
+		Int:   make(map[intKey]int),
+		Event: make(map[eventKey]*time.Timer),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
@@ -221,6 +227,10 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 // Copy returns a duplicate of the receiver Thing with only the UID and Who
 // being different. We don't duplicate Who as this would duplicate players. The
 // Thing's inventory will be copied recursively.
+//
+// BUG(diddymus): Currently we don't copy Events either. In-flight events
+// should be copied and suspended in the copy with the remainin time recorded
+// so that the event can be resumed if desired.
 func (t *Thing) Copy() *Thing {
 	T := NewThing()
 	T.Is = t.Is
