@@ -102,6 +102,7 @@ func (s *state) Quit() {
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
 		World[s.actor.As[Where]].In[uid] = what
+		what.As[Where] = s.actor.As[Where]
 		delete(what.As, DynamicQualifier)
 		s.Msg(s.actor, "You drop ", what.As[Name], ".")
 		if notify {
@@ -349,6 +350,7 @@ func (s *state) Drop() {
 		default:
 			delete(s.actor.In, what.As[UID])
 			World[s.actor.As[Where]].In[what.As[UID]] = what
+			what.As[Where] = s.actor.As[Where]
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You drop ", what.As[Name], ".")
 			if notify {
@@ -386,6 +388,7 @@ func (s *state) Get() {
 		default:
 			delete(World[s.actor.As[Where]].In, what.As[UID])
 			s.actor.In[what.As[UID]] = what
+			what.As[Where] = s.actor.As[UID]
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You get ", what.As[Name], ".")
 			if notify {
@@ -438,6 +441,7 @@ func (s *state) Take() {
 		default:
 			delete(where.In, what.As[UID])
 			s.actor.In[what.As[UID]] = what
+			what.As[Where] = s.actor.As[UID]
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You take ", what.As[Name], " out of ", where.As[Name], ".")
 			notify = true
@@ -495,6 +499,7 @@ func (s *state) Put() {
 		default:
 			delete(s.actor.In, what.As[UID])
 			where.In[what.As[UID]] = what
+			what.As[Where] = where.As[UID]
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You put ", what.As[Name], " into ", where.As[Name], ".")
 			notify = true
