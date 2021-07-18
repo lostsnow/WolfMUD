@@ -159,18 +159,16 @@ func Load() {
 		}
 	}
 
-	// Create other side of blockers as references so they share state
-	log.Print("Checking other side")
+	// Enable all items in the world - this is done last so that all location
+	// references have been resolved and we can have things like doors between
+	// zones work properly.
+	//
+	// NOTE: If we didn't allow one side of a door to be in one zone and the
+	// other side of the door to be in a different zone we could call enable when
+	// copying to the world.
+	log.Print("Enabling items")
 	for _, loc := range core.World {
-		for _, item := range loc.In {
-			blocking := item.As[core.Blocker]
-			if blocking == "" || item.As[core.Where] != "" {
-				continue
-			}
-			item.As[core.Where] = loc.As[core.UID]
-			otherUID := loc.As[core.NameToDir[blocking]]
-			core.World[otherUID].In[item.As[core.UID]] = item
-		}
+		loc.Enable("")
 	}
 
 	log.Printf("Total world locations: %d, starting locations: %d",

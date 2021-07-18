@@ -56,6 +56,27 @@ func NewThing() *Thing {
 	return t
 }
 
+// Enable performs final setup for a Thing placed into the world. The Thing
+// will have access to its inventory and surroundings. The passed parent is
+// the UID of the containing inventory, for locations themselves this will be
+// an empty string.
+func (t *Thing) Enable(parent string) {
+	for _, item := range t.In {
+		item.Enable(t.As[UID])
+	}
+
+	// If it's a blocker setup the 'other side'
+	if t.As[Blocker] != "" && t.As[Where] == "" {
+		otherUID := World[parent].As[NameToDir[t.As[Blocker]]]
+		World[otherUID].In[t.As[UID]] = t
+	}
+
+	// Set Where so that a thing knows where it is.
+	if t.As[Where] == "" {
+		t.As[Where] = parent
+	}
+}
+
 // Unmarshal loads data from the passed Record into a Thing.
 func (t *Thing) Unmarshal(r recordjar.Record) {
 	for field, data := range r {
