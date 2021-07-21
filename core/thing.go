@@ -21,7 +21,7 @@ import (
 type Thing struct {
 	As    map[asKey]string    // Single value for a key
 	Any   map[anyKey][]string // One or more values for a key
-	Int   map[intKey]int      // Integer values, counts and quantities
+	Int   map[intKey]int64    // Integer values, counts and quantities
 	In    Things              // Item's in a Thing (inventory)
 	Who   Things              // Who is here? Players @ location
 	Is    isKey               // Bit flags for capabilities/state
@@ -55,7 +55,7 @@ func NewThing() *Thing {
 		Any:   make(map[anyKey][]string),
 		In:    make(map[string]*Thing),
 		Who:   make(map[string]*Thing),
-		Int:   make(map[intKey]int),
+		Int:   make(map[intKey]int64),
 		Event: make(map[eventKey]*time.Timer),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
@@ -98,9 +98,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				b := []byte(v)
 				switch k {
 				case "AFTER":
-					t.Int[ActionAfter] = int(decode.Duration(b).Seconds())
+					t.Int[ActionAfter] = decode.Duration(b).Nanoseconds()
 				case "JITTER":
-					t.Int[ActionJitter] = int(decode.Duration(b).Seconds())
+					t.Int[ActionJitter] = decode.Duration(b).Nanoseconds()
 				}
 			}
 		case "ALIAS", "ALIASES":
@@ -131,9 +131,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				b := []byte(v)
 				switch k {
 				case "AFTER":
-					t.Int[CleanupAfter] = int(decode.Duration(b).Seconds())
+					t.Int[CleanupAfter] = decode.Duration(b).Nanoseconds()
 				case "JITTER":
-					t.Int[CleanupJitter] = int(decode.Duration(b).Seconds())
+					t.Int[CleanupJitter] = decode.Duration(b).Nanoseconds()
 				}
 			}
 		case "DESCRIPTION":
@@ -177,9 +177,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				b := []byte(v)
 				switch k {
 				case "AFTER":
-					t.Int[ResetAfter] = int(decode.Duration(b).Seconds())
+					t.Int[ResetAfter] = decode.Duration(b).Nanoseconds()
 				case "JITTER":
-					t.Int[ResetJitter] = int(decode.Duration(b).Seconds())
+					t.Int[ResetJitter] = decode.Duration(b).Nanoseconds()
 				}
 			}
 		case "START":
@@ -437,14 +437,13 @@ func (t *Thing) Schedule(event eventKey) {
 	}
 
 	if jitter != 0 {
-		delay += rand.Intn(jitter)
+		delay += rand.Int63n(jitter)
 	}
 
 	t.Abort(event) // Cancel any already active / in-flight event
 
 	t.Event[event] = time.AfterFunc(
-		time.Duration(delay)*time.Second,
-		func() { NewState(t).Parse(eventCommands[event]) },
+		time.Duration(delay), func() { NewState(t).Parse(eventCommands[event]) },
 	)
 }
 
