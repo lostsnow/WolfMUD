@@ -220,3 +220,10 @@ const (
 	Cleanup          = eventKey(CleanupAfter)
 	Reset            = eventKey(ResetAfter)
 )
+
+// eventNames maps eventKey values to their string name.
+var eventNames = map[eventKey]string{
+	Action:  "Action",
+	Cleanup: "Cleanup",
+	Reset:   "Reset",
+}
