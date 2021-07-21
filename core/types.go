@@ -200,6 +200,16 @@ var intNames = []string{
 	"ResetDueIn",
 }
 
+// Standard offsets for Event related values. Given an eventKey we can add the
+// offsets to get the After, Jitter, DueAt and DueIn values from Thing.Int for
+// an event.
+const (
+	AfterOffset intKey = iota
+	JitterOffset
+	DueAtOffset
+	DueInOffset
+)
+
 // Constants for Thing.Events keys
 //
 // NOTE: Events map to Thing.Int values. The intKey constants for an event's
