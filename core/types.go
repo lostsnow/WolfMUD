@@ -172,20 +172,32 @@ var anyNames = []string{
 const (
 	ActionAfter   intKey = iota // How often an action event should occur
 	ActionJitter                // Maximum random delay to add to ActionAfter
+	ActionDueAt                 // Time a scheduled Action is due
+	ActionDueIn                 // Time remaining for Action
 	CleanupAfter                // How soon a clean-up event should occur
 	CleanupJitter               // Maximum random delay to add to CleanupAfter
+	CleanupDueAt                // Time a scheduled clean-up is due
+	CleanupDueIn                // Time remaining for clean-up
 	ResetAfter                  // How soon a reset event should occur
 	ResetJitter                 // Maximum random delay to add to TesetAfter
+	ResetDueAt                  // Time a scheduled reset is due
+	ResetDueIn                  // Time remaining for reset
 )
 
 // intNames maps intKey values to their string name.
 var intNames = []string{
 	"ActionAfter",
 	"ActionJitter",
+	"ActionDueAt",
+	"ActionDueIn",
 	"CleanupAfter",
 	"CleanupJitter",
+	"CleanupDueAt",
+	"CleanupDueIn",
 	"ResetAfter",
 	"ResetJitter",
+	"ResetDueAt",
+	"ResetDueIn",
 }
 
 // Constants for Thing.Events keys
