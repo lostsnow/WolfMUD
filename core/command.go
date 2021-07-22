@@ -397,7 +397,7 @@ func (s *state) Get() {
 		case what.Is&(NPC|Player) != 0:
 			s.Msg(s.actor, what.As[Name], " does not want to be taken!")
 		default:
-			what.Abort(Action)
+			what.Suspend(Action)
 			delete(World[s.actor.As[Where]].In, what.As[UID])
 			s.actor.In[what.As[UID]] = what
 			what.As[Where] = s.actor.As[UID]

@@ -25,13 +25,13 @@ type Thing struct {
 	In    Things              // Item's in a Thing (inventory)
 	Who   Things              // Who is here? Players @ location
 	Is    isKey               // Bit flags for capabilities/state
-	Event Events              // Active/in-flight events
+	Event Events              // In-flight event timers
 }
 
 // Things represents a group of Thing.
 type Things map[string]*Thing
 
-// Events is used to store currently active/in-flight events for a Thing.
+// Events is used to store currently in-flight events for a Thing.
 type Events map[eventKey]*time.Timer
 
 // nextUID is used to store the next unique identifier to be used for a new
@@ -425,38 +425,73 @@ func simpleFold(s string, width int) (lines []string) {
 	return
 }
 
-// Schedule the specified event for a Thing. If the event is already active it
-// will be aborted and the new event scheduled.
+// Schedule the specified event for a Thing. If the event is already in-flight
+// it will be cancelled and the new event scheduled. A scheduled event may be
+// suspended, and then resumed by rescheduling it. A scheduled event may be
+// cancelled, in which case rescheduling will cause the timers to start over.
 func (t *Thing) Schedule(event eventKey) {
 
-	delay := t.Int[intKey(event)]
-	jitter := t.Int[intKey(event+1)]
+	var (
+		idx    = intKey(event)
+		delay  = t.Int[idx+AfterOffset]
+		jitter = t.Int[idx+JitterOffset]
+		dueIn  = t.Int[idx+DueInOffset]
+	)
 
-	if delay+jitter == 0 {
+	switch {
+	case delay+jitter+dueIn == 0:
 		return
-	}
-
-	if jitter != 0 {
+	case dueIn != 0:
+		delay, jitter = dueIn, 0
+		t.Int[idx+DueInOffset] = 0
+	case jitter != 0:
 		delay += rand.Int63n(jitter)
 	}
 
-	t.Abort(event) // Cancel any already active / in-flight event
-
+	wait := time.Duration(delay)
+	t.Cancel(event)
+	t.Int[idx+DueAtOffset] = time.Now().Add(wait).UnixNano()
 	t.Event[event] = time.AfterFunc(
-		time.Duration(delay), func() { NewState(t).Parse(eventCommands[event]) },
+		wait, func() {
+			NewState(t).Parse(eventCommands[event])
+		},
 	)
 }
 
-// Abort an event for a Thing. If the event is not active no action is taken.
-func (t *Thing) Abort(event eventKey) {
+// Cancel an event for a Thing. The remaining time for the event is not
+// recorded. If the event is rescheduled the timers will start over. A
+// suspended event may be subsequently cancelled.
+func (t *Thing) Cancel(event eventKey) {
+	t.Suspend(event)
+	t.Int[intKey(event)+DueInOffset] = 0
+}
+
+// Suspend an event for a Thing. If the event is not in-flight no action is
+// taken. Suspending an in-flight event will record the time remaining before
+// it fires so that the timers can be resumed when the event is rescheduled. A
+// suspended event may be subsequently cancelled.
+func (t *Thing) Suspend(event eventKey) {
 	if t.Event[event] == nil {
 		return
 	}
-	if !t.Event[event].Stop() {
+
+	var suspended bool // True if we stop timer before it fires
+
+	if suspended = t.Event[event].Stop(); !suspended {
 		select {
 		case <-t.Event[event].C:
 		default:
 		}
 	}
+
 	t.Event[event] = nil
+
+	idx := intKey(event)
+	dueAt, dueIn := idx+DueAtOffset, idx+DueInOffset
+
+	t.Int[dueIn] = t.Int[dueAt] - time.Now().UnixNano()
+	if !suspended || t.Int[dueIn] < 0 {
+		t.Int[dueIn] = 0
+	}
+	t.Int[dueAt] = 0
 }
