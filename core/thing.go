@@ -355,10 +355,12 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		b.WriteByte('\n')
 	}
 
-	p("%s%p %[2]T - UID: %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
+	lIn, lAs, lAny, lWho, lInt, lEvent :=
+		len(t.In), len(t.As), len(t.Any), len(t.Who), len(t.Int), len(t.Event)
+
+	p("%s%p %[2]T - %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
 	p("%sIs  - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
-	lIn, lAs, lAny, lWho, lInt := len(t.In), len(t.As), len(t.Any), len(t.Who), len(t.Int)
 	p("%sAs  - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
 		lAs--
@@ -383,6 +385,21 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 					tree[false].b, tree[lAny == 0].b, tree[kk == len(v)-1].b, pad, line)
 			}
 		}
+	}
+	p("%sEvents - len: %d", tree[false].i, lEvent)
+	for k, event := range t.Event {
+		lEvent--
+		dueAt, dueIn := "-", "-"
+		if at := t.Int[intKey(k)+DueAtOffset]; at > 0 {
+			unix := time.Unix(0, int64(at))
+			dueAt = unix.Format(time.Stamp)
+			dueIn = unix.Sub(time.Now()).Truncate(time.Millisecond).String()
+		}
+		if in := t.Int[intKey(k)+DueInOffset]; in > 0 {
+			dueIn = time.Duration(in).Truncate(time.Millisecond).String()
+		}
+		p("%s%s%s: %p, at: %s, in: %s",
+			tree[false].b, tree[lEvent == 0].i, eventNames[k], event, dueAt, dueIn)
 	}
 	p("%sInt - len: %d", tree[false].i, lInt)
 	for k, v := range t.Int {
