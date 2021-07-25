@@ -432,7 +432,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	b.Reset()
 	for _, item := range t.In {
 		lIn--
-		item.dump(w, width, indent+tree[true].b, lIn == 0)
+		item.dump(w, width, indent+tree[false].b, lIn == 0)
 	}
 	p("%sOut - len: %d", tree[true].i, lOut)
 	w.Write([]byte(b.String()))
