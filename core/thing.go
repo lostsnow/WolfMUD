@@ -252,7 +252,8 @@ func (t *Thing) Copy() *Thing {
 		T.As[k] = v
 	}
 	for k, v := range t.Any {
-		T.Any[k] = v
+		T.Any[k] = make([]string, len(t.Any[k]))
+		copy(T.Any[k], v)
 	}
 	for k, v := range t.Int {
 		T.Int[k] = v
