@@ -374,8 +374,8 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 
 	p("%s%p %[2]T - %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
-	p("%sIs  - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
-	p("%sAs  - len: %d", tree[false].i, lAs)
+	p("%sIs - %032b (%s)", tree[false].i, t.Is, t.Is.setNames())
+	p("%sAs - len: %d", tree[false].i, lAs)
 	for k, v := range t.As {
 		lAs--
 		line := simpleFold(v, width-len(indent)-len(asNames[k])-len("|  |- [00] : "))
@@ -418,7 +418,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%sInt - len: %d", tree[false].i, lInt)
 	for k, v := range t.Int {
 		lInt--
-		p("%s%s %s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
+		p("%s%s%s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
 	}
 	p("%sWho - len: %d", tree[false].i, lWho)
 	w.Write([]byte(b.String()))
@@ -427,14 +427,14 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lWho--
 		who.dump(w, width, indent+tree[false].b, lWho == 0)
 	}
-	p("%sIn  - len: %d", tree[false].i, lIn)
+	p("%sIn - len: %d", tree[false].i, lIn)
 	w.Write([]byte(b.String()))
 	b.Reset()
 	for _, item := range t.In {
 		lIn--
 		item.dump(w, width, indent+tree[true].b, lIn == 0)
 	}
-	p("%sOut  - len: %d", tree[true].i, lOut)
+	p("%sOut - len: %d", tree[true].i, lOut)
 	w.Write([]byte(b.String()))
 	b.Reset()
 	for _, item := range t.Out {
