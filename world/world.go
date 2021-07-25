@@ -94,24 +94,44 @@ func Load() {
 			store[ref].Unmarshal(record)
 		}
 
-		// Resolve inventory attributes in the store with references
+		// Resolve Inventory attributes in the store with pointer references. An
+		// Inventory Ref with an exclamation mark '!' prefix indicates the item is
+		// disabled and out of play.
 		log.Print("  Linking temporary store inventories")
 		for _, item := range store {
 			for _, ref := range item.inventory {
+				disabled := ref[0] == '!'
+				if disabled {
+					ref = ref[1:]
+				}
 				if what, ok := store[ref]; ok {
-					item.In[what.Thing.As[core.UID]] = what.Thing
+					if disabled {
+						item.Out[what.Thing.As[core.UID]] = what.Thing
+					} else {
+						item.In[what.Thing.As[core.UID]] = what.Thing
+					}
 				} else {
 					log.Printf("load warning, ref not found for inventory: %s\n", ref)
 				}
 			}
 		}
 
-		// Resolve location attributes in the store with references
+		// Resolve Location attributes in the store with pointer references. A
+		// Location Ref with an exclamation mark '!' prefix indicates the item is
+		// disabled and out of play.
 		log.Print("  Linking temporary store locations")
 		for _, item := range store {
 			for _, ref := range item.location {
+				disabled := ref[0] == '!'
+				if disabled {
+					ref = ref[1:]
+				}
 				if where, ok := store[ref]; ok {
-					where.In[item.Thing.As[core.UID]] = item.Thing
+					if disabled {
+						where.Out[item.Thing.As[core.UID]] = item.Thing
+					} else {
+						where.In[item.Thing.As[core.UID]] = item.Thing
+					}
 				} else {
 					log.Printf("load warning, ref not found for location: %s\n", ref)
 				}

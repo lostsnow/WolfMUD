@@ -23,6 +23,7 @@ type Thing struct {
 	Any   map[anyKey][]string // One or more values for a key
 	Int   map[intKey]int64    // Integer values, counts and quantities
 	In    Things              // Item's in a Thing (inventory)
+	Out   Things              // Item's out of play in a Thing
 	Who   Things              // Who is here? Players @ location
 	Is    isKey               // Bit flags for capabilities/state
 	Event Events              // In-flight event timers
@@ -54,6 +55,7 @@ func NewThing() *Thing {
 		As:    make(map[asKey]string),
 		Any:   make(map[anyKey][]string),
 		In:    make(map[string]*Thing),
+		Out:   make(map[string]*Thing),
 		Who:   make(map[string]*Thing),
 		Int:   make(map[intKey]int64),
 		Event: make(map[eventKey]*time.Timer),
@@ -69,6 +71,9 @@ func NewThing() *Thing {
 // an empty string.
 func (t *Thing) Enable(parent string) {
 	for _, item := range t.In {
+		item.Enable(t.As[UID])
+	}
+	for _, item := range t.Out {
 		item.Enable(t.As[UID])
 	}
 
@@ -256,6 +261,10 @@ func (t *Thing) Copy() *Thing {
 		c := item.Copy()
 		T.In[c.As[UID]] = c
 	}
+	for _, item := range t.Out {
+		c := item.Copy()
+		T.Out[c.As[UID]] = c
+	}
 
 	// Swap old UID alias for copy's new UID
 	for x, alias := range T.Any[Alias] {
@@ -301,6 +310,11 @@ func (t *Thing) Free() {
 		t.In[k] = nil
 	}
 	t.In = nil
+	for k, item := range t.Out {
+		item.Free()
+		t.Out[k] = nil
+	}
+	t.Out = nil
 }
 
 // Dump will write a pretty ASCII tree representing the details of a Thing.
@@ -355,8 +369,8 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		b.WriteByte('\n')
 	}
 
-	lIn, lAs, lAny, lWho, lInt, lEvent :=
-		len(t.In), len(t.As), len(t.Any), len(t.Who), len(t.Int), len(t.Event)
+	lIn, lOut, lAs, lAny, lWho, lInt, lEvent :=
+		len(t.In), len(t.Out), len(t.As), len(t.Any), len(t.Who), len(t.Int), len(t.Event)
 
 	p("%s%p %[2]T - %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
@@ -413,12 +427,19 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lWho--
 		who.dump(w, width, indent+tree[false].b, lWho == 0)
 	}
-	p("%sIn  - len: %d", tree[true].i, lIn)
+	p("%sIn  - len: %d", tree[false].i, lIn)
 	w.Write([]byte(b.String()))
 	b.Reset()
 	for _, item := range t.In {
 		lIn--
 		item.dump(w, width, indent+tree[true].b, lIn == 0)
+	}
+	p("%sOut  - len: %d", tree[true].i, lOut)
+	w.Write([]byte(b.String()))
+	b.Reset()
+	for _, item := range t.Out {
+		lOut--
+		item.dump(w, width, indent+tree[true].b, lOut == 0)
 	}
 }
 
