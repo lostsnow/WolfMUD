@@ -220,14 +220,14 @@ func (s *state) Move() {
 		s.Msg(s.actor, "Oops! You can't actually go ", DirToName[dir], ".")
 	case s.actor.Is&Player != Player:
 		delete(where.In, s.actor.As[UID])
-		if len(where.In) < CrowdSize {
+		if len(where.Who) < CrowdSize {
 			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
 		}
 
 		where = World[where.As[dir]]
 		s.actor.As[Where] = where.As[UID]
 		where.In[s.actor.As[UID]] = s.actor
-		if len(where.In) < CrowdSize {
+		if len(where.Who) < CrowdSize {
 			s.MsgAppend(where, s.actor.As[Name], " enters.")
 		}
 	default:
