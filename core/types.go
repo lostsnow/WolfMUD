@@ -15,6 +15,7 @@ type (
 	asKey    uint32 // index for Thing.As
 	anyKey   uint32 // index for Thing.Any
 	intKey   uint32 // index for Thing.Int
+	refKey   uint32 // index for Thing.Ref
 	eventKey uint32 // index for Thing.Events
 )
 

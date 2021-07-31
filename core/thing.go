@@ -22,6 +22,7 @@ type Thing struct {
 	As    map[asKey]string    // Single value for a key
 	Any   map[anyKey][]string // One or more values for a key
 	Int   map[intKey]int64    // Integer values, counts and quantities
+	Ref   map[refKey]*Thing   // References to other Thing (e.g. Where)
 	In    Things              // Item's in a Thing (inventory)
 	Out   Things              // Item's out of play in a Thing
 	Who   Things              // Who is here? Players @ location
@@ -54,10 +55,11 @@ func NewThing() *Thing {
 	t := &Thing{
 		As:    make(map[asKey]string),
 		Any:   make(map[anyKey][]string),
+		Int:   make(map[intKey]int64),
+		Ref:   make(map[refKey]*Thing),
 		In:    make(map[string]*Thing),
 		Out:   make(map[string]*Thing),
 		Who:   make(map[string]*Thing),
-		Int:   make(map[intKey]int64),
 		Event: make(map[eventKey]*time.Timer),
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
@@ -258,6 +260,9 @@ func (t *Thing) Copy() *Thing {
 	for k, v := range t.Int {
 		T.Int[k] = v
 	}
+	for k, v := range t.Ref {
+		T.Ref[k] = v
+	}
 	for _, item := range t.In {
 		c := item.Copy()
 		T.In[c.As[UID]] = c
@@ -306,6 +311,10 @@ func (t *Thing) Free() {
 		delete(t.As, k)
 	}
 	t.As = nil
+	for k := range t.Ref {
+		delete(t.Ref, k)
+	}
+	t.Ref = nil
 	for k, item := range t.In {
 		item.Free()
 		t.In[k] = nil
@@ -370,8 +379,8 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		b.WriteByte('\n')
 	}
 
-	lIn, lOut, lAs, lAny, lWho, lInt, lEvent :=
-		len(t.In), len(t.Out), len(t.As), len(t.Any), len(t.Who), len(t.Int), len(t.Event)
+	lIn, lOut, lAs, lAny, lWho, lInt, lRef, lEvent :=
+		len(t.In), len(t.Out), len(t.As), len(t.Any), len(t.Who), len(t.Int), len(t.Ref), len(t.Event)
 
 	p("%s%p %[2]T - %s (%s)", tree[last].i, t, t.As[UID], t.As[Name])
 	indent += tree[last].b
@@ -420,6 +429,15 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	for k, v := range t.Int {
 		lInt--
 		p("%s%s%s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
+	}
+	p("%sRef - len: %d", tree[false].i, lRef)
+	for k, v := range t.Ref {
+		lRef--
+		if v != nil {
+			p("%s%s[%2d] %s: %s (%s)", tree[false].b, tree[lInt == 0].i, k, refNames[k], v.As[UID], v.As[Name])
+		} else {
+			p("%s%s[%2d] %s: nil", tree[false].b, tree[lInt == 0].i, k, refNames[k])
+		}
 	}
 	p("%sWho - len: %d", tree[false].i, lWho)
 	w.Write([]byte(b.String()))
