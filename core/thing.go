@@ -71,23 +71,23 @@ func NewThing() *Thing {
 // will have access to its inventory and surroundings. The passed parent is
 // the UID of the containing inventory, for locations themselves this will be
 // an empty string.
-func (t *Thing) Enable(parent string) {
+func (t *Thing) Enable(parent *Thing) {
 	for _, item := range t.In {
-		item.Enable(t.As[UID])
+		item.Enable(t)
 	}
 	for _, item := range t.Out {
-		item.Enable(t.As[UID])
+		item.Enable(t)
 	}
 
 	// If it's a blocker setup the 'other side'
-	if t.As[Blocker] != "" && t.As[Where] == "" {
-		otherUID := World[parent].As[NameToDir[t.As[Blocker]]]
+	if t.As[Blocker] != "" && t.Ref[Where] == nil {
+		otherUID := parent.As[NameToDir[t.As[Blocker]]]
 		World[otherUID].In[t.As[UID]] = t
 	}
 
 	// Set Where so that a thing knows where it is.
-	if t.As[Where] == "" {
-		t.As[Where] = parent
+	if parent != nil && t.Ref[Where] == nil {
+		t.Ref[Where] = parent
 	}
 
 	// Check if we need to enable events

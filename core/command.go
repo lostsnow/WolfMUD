@@ -105,14 +105,14 @@ func RegisterCommandHandlers() {
 
 // FIXME: At the moment we just drop everything in the player's inventory.
 func (s *state) Quit() {
-	where := World[s.actor.As[Where]]
+	where := s.actor.Ref[Where]
 
 	// FIXME: Force drop everything for now...
 	notify := len(where.Who) < CrowdSize
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
-		World[s.actor.As[Where]].In[uid] = what
-		what.As[Where] = s.actor.As[Where]
+		where.In[uid] = what
+		what.Ref[Where] = where
 		delete(what.As, DynamicQualifier)
 		s.Msg(s.actor, "You drop ", what.As[Name], ".")
 		if notify {
@@ -129,7 +129,7 @@ func (s *state) Quit() {
 }
 
 func (s *state) Look() {
-	where := World[s.actor.As[Where]]
+	where := s.actor.Ref[Where]
 	auid := s.actor.As[UID]
 
 	switch {
@@ -188,7 +188,7 @@ func (s *state) Look() {
 func (s *state) Move() {
 
 	dir := NameToDir[s.cmd]
-	where := World[s.actor.As[Where]]
+	where := s.actor.Ref[Where]
 
 	if where.As[dir] == "" {
 		s.Msg(s.actor, "You can't go ", DirToName[dir], ".")
@@ -203,7 +203,7 @@ func (s *state) Move() {
 		}
 		blocking := NameToDir[item.As[Blocker]]
 		// If on 'other side' need opposite direction blocked
-		if item.As[Where] != s.actor.As[Where] {
+		if item.Ref[Where] != s.actor.Ref[Where] {
 			blocking = blocking.ReverseDir()
 		}
 		if blocking == dir && item.Is&Open != Open {
@@ -225,7 +225,7 @@ func (s *state) Move() {
 		}
 
 		where = World[where.As[dir]]
-		s.actor.As[Where] = where.As[UID]
+		s.actor.Ref[Where] = where
 		where.In[s.actor.As[UID]] = s.actor
 		if len(where.Who) < CrowdSize {
 			s.MsgAppend(where, s.actor.As[Name], " enters.")
@@ -237,7 +237,7 @@ func (s *state) Move() {
 		}
 
 		where = World[where.As[dir]]
-		s.actor.As[Where] = where.As[UID]
+		s.actor.Ref[Where] = where
 		where.Who[s.actor.As[UID]] = s.actor
 		if len(where.Who) < CrowdSize {
 			s.MsgAppend(where, s.actor.As[Name], " enters.")
@@ -256,14 +256,14 @@ func (s *state) Examine() {
 		return
 	}
 
-	uids := Match(s.word, World[s.actor.As[Where]], s.actor)
+	uids := Match(s.word, s.actor.Ref[Where], s.actor)
 	uid := uids[0]
 	what := s.actor.In[uid]
 	if what == nil {
-		what = World[s.actor.As[Where]].In[uid]
+		what = s.actor.Ref[Where].In[uid]
 	}
 	if what == nil {
-		what = World[s.actor.As[Where]].Who[uid]
+		what = s.actor.Ref[Where].Who[uid]
 	}
 
 	switch {
@@ -317,11 +317,11 @@ func (s *state) Examine() {
 			}
 		}
 
-		if len(World[s.actor.As[Where]].Who) < CrowdSize {
+		if len(s.actor.Ref[Where].Who) < CrowdSize {
 			if what.Is&Player == Player {
 				s.Msg(what, s.actor.As[Name], " studies you.")
 			}
-			s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " studies ", what.As[Name], ".")
+			s.Msg(s.actor.Ref[Where], s.actor.As[Name], " studies ", what.As[Name], ".")
 		}
 	}
 }
@@ -335,8 +335,8 @@ func (s *state) Inventory() {
 		for _, what := range s.actor.In.Sort() {
 			s.Msg(s.actor, "  ", what.As[Name])
 		}
-		if len(World[s.actor.As[Where]].Who) < CrowdSize {
-			s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " checks over their gear.")
+		if len(s.actor.Ref[Where].Who) < CrowdSize {
+			s.Msg(s.actor.Ref[Where], s.actor.As[Name], " checks over their gear.")
 		}
 	}
 }
@@ -348,7 +348,7 @@ func (s *state) Drop() {
 		return
 	}
 
-	notify := len(World[s.actor.As[Where]].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < CrowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -359,13 +359,13 @@ func (s *state) Drop() {
 			s.Msg(s.actor, what.As[VetoDrop])
 		default:
 			delete(s.actor.In, what.As[UID])
-			World[s.actor.As[Where]].In[what.As[UID]] = what
+			s.actor.Ref[Where].In[what.As[UID]] = what
 			what.Schedule(Action)
-			what.As[Where] = s.actor.As[Where]
+			what.Ref[Where] = s.actor.Ref[Where]
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You drop ", what.As[Name], ".")
 			if notify {
-				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " drops ", what.As[Name])
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " drops ", what.As[Name])
 			}
 		}
 	}
@@ -378,12 +378,12 @@ func (s *state) Get() {
 		return
 	}
 
-	notify := len(World[s.actor.As[Where]].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < CrowdSize
 
-	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
-		what := World[s.actor.As[Where]].In[uid]
+	for _, uid := range Match(s.word, s.actor.Ref[Where]) {
+		what := s.actor.Ref[Where].In[uid]
 		if what == nil {
-			what = World[s.actor.As[Where]].Who[uid]
+			what = s.actor.Ref[Where].Who[uid]
 		}
 		switch {
 		case what == nil:
@@ -398,13 +398,13 @@ func (s *state) Get() {
 			s.Msg(s.actor, what.As[Name], " does not want to be taken!")
 		default:
 			what.Suspend(Action)
-			delete(World[s.actor.As[Where]].In, what.As[UID])
+			delete(s.actor.Ref[Where].In, what.As[UID])
 			s.actor.In[what.As[UID]] = what
-			what.As[Where] = s.actor.As[UID]
+			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You get ", what.As[Name], ".")
 			if notify {
-				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " picks up ", what.As[Name])
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " picks up ", what.As[Name])
 			}
 		}
 	}
@@ -417,11 +417,11 @@ func (s *state) Take() {
 		return
 	}
 
-	uids, words := LimitedMatch(s.word, s.actor, World[s.actor.As[Where]])
+	uids, words := LimitedMatch(s.word, s.actor, s.actor.Ref[Where])
 	uid := uids[0]
 	where := s.actor.In[uid]
 	if where == nil {
-		where = World[s.actor.As[Where]].In[uid]
+		where = s.actor.Ref[Where].In[uid]
 	}
 
 	switch {
@@ -453,15 +453,15 @@ func (s *state) Take() {
 		default:
 			delete(where.In, what.As[UID])
 			s.actor.In[what.As[UID]] = what
-			what.As[Where] = s.actor.As[UID]
+			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, "You take ", what.As[Name], " out of ", where.As[Name], ".")
 			notify = true
 		}
 
 	}
-	if notify && len(World[s.actor.As[Where]].Who) < CrowdSize {
-		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " takes something out of ", where.As[Name], ".")
+	if notify && len(s.actor.Ref[Where].Who) < CrowdSize {
+		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " takes something out of ", where.As[Name], ".")
 	}
 }
 
@@ -472,11 +472,11 @@ func (s *state) Put() {
 		return
 	}
 
-	uids, words := LimitedMatch(s.word, s.actor, World[s.actor.As[Where]])
+	uids, words := LimitedMatch(s.word, s.actor, s.actor.Ref[Where])
 	uid := uids[0]
 	where := s.actor.In[uid]
 	if where == nil {
-		where = World[s.actor.As[Where]].In[uid]
+		where = s.actor.Ref[Where].In[uid]
 	}
 
 	switch {
@@ -511,15 +511,15 @@ func (s *state) Put() {
 		default:
 			delete(s.actor.In, what.As[UID])
 			where.In[what.As[UID]] = what
-			what.As[Where] = where.As[UID]
+			what.Ref[Where] = where
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You put ", what.As[Name], " into ", where.As[Name], ".")
 			notify = true
 		}
 	}
 
-	if notify && len(World[s.actor.As[Where]].Who) < CrowdSize {
-		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " puts something into ", where.As[Name], ".")
+	if notify && len(s.actor.Ref[Where].Who) < CrowdSize {
+		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " puts something into ", where.As[Name], ".")
 	}
 }
 
@@ -530,17 +530,17 @@ func (s *state) Dump() {
 	}
 	var uids []string
 	if s.word[0] == "@" {
-		uids = []string{s.actor.As[Where]}
+		uids = []string{s.actor.Ref[Where].As[UID]}
 	} else {
-		uids = Match(s.word, s.actor, World[s.actor.As[Where]])
+		uids = Match(s.word, s.actor, s.actor.Ref[Where])
 	}
 	for _, uid := range uids {
 		what := s.actor.In[uid]
 		if what == nil {
-			what = World[s.actor.As[Where]].In[uid]
+			what = s.actor.Ref[Where].In[uid]
 		}
 		if what == nil {
-			what = World[s.actor.As[Where]].Who[uid]
+			what = s.actor.Ref[Where].Who[uid]
 		}
 		if what == nil {
 			what = World[uid]
@@ -560,10 +560,10 @@ func (s *state) Read() {
 		s.Msg(s.actor, "You go to read something...")
 		return
 	}
-	for _, uid := range Match(s.word, World[s.actor.As[Where]], s.actor) {
-		what := World[s.actor.As[Where]].In[uid]
+	for _, uid := range Match(s.word, s.actor.Ref[Where], s.actor) {
+		what := s.actor.Ref[Where].In[uid]
 		if what == nil {
-			what = World[s.actor.As[Where]].Who[uid]
+			what = s.actor.Ref[Where].Who[uid]
 		}
 		if what == nil {
 			what = s.actor.In[uid]
@@ -575,8 +575,8 @@ func (s *state) Read() {
 			s.Msg(s.actor, "There is nothing on ", what.As[Name], " to read.")
 		default:
 			s.Msg(s.actor, "You read ", what.As[Name], ". ", what.As[Writing])
-			if len(World[s.actor.As[Where]].Who) < CrowdSize {
-				s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " reads ", what.As[Name], ".")
+			if len(s.actor.Ref[Where].Who) < CrowdSize {
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " reads ", what.As[Name], ".")
 			}
 		}
 	}
@@ -587,10 +587,10 @@ func (s *state) Open() {
 		s.Msg(s.actor, "You go to open something...")
 		return
 	}
-	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
-		what := World[s.actor.As[Where]].In[uid]
+	for _, uid := range Match(s.word, s.actor.Ref[Where]) {
+		what := s.actor.Ref[Where].In[uid]
 		if what == nil {
-			what = World[s.actor.As[Where]].Who[uid]
+			what = s.actor.Ref[Where].Who[uid]
 		}
 		switch {
 		case what == nil:
@@ -601,18 +601,18 @@ func (s *state) Open() {
 			s.Msg(s.actor, what.As[Name], " is already open.")
 		default:
 			what.Is |= Open
-			where := World[s.actor.As[Where]]
+			where := s.actor.Ref[Where]
 			s.Msg(s.actor, "You open ", what.As[Name], ".")
 			if len(where.Who) < CrowdSize {
 				s.Msg(where, s.actor.As[Name], " opens ", what.As[Name], ".")
 			}
 
 			// Find location on other side...
-			if where.As[UID] == what.As[Where] {
+			if where == what.Ref[Where] {
 				exit := NameToDir[what.As[Blocker]]
 				where = World[where.As[exit]]
 			} else {
-				where = World[what.As[Where]]
+				where = what.Ref[Where]
 			}
 			if len(where.Who) < CrowdSize {
 				s.Msg(where, what.As[Name], " opens.")
@@ -626,10 +626,10 @@ func (s *state) Close() {
 		s.Msg(s.actor, "You go to close something...")
 		return
 	}
-	for _, uid := range Match(s.word, World[s.actor.As[Where]]) {
-		what := World[s.actor.As[Where]].In[uid]
+	for _, uid := range Match(s.word, s.actor.Ref[Where]) {
+		what := s.actor.Ref[Where].In[uid]
 		if what == nil {
-			what = World[s.actor.As[Where]].Who[uid]
+			what = s.actor.Ref[Where].Who[uid]
 		}
 		switch {
 		case what == nil:
@@ -640,18 +640,18 @@ func (s *state) Close() {
 			s.Msg(s.actor, what.As[Name], " is already closed.")
 		default:
 			what.Is &^= Open
-			where := World[s.actor.As[Where]]
+			where := s.actor.Ref[Where]
 			s.Msg(s.actor, "You close ", what.As[Name], ".")
 			if len(where.Who) < CrowdSize {
 				s.Msg(where, s.actor.As[Name], " closes ", what.As[Name], ".")
 			}
 
 			// Find location on other side...
-			if where.As[UID] == what.As[Where] {
+			if where == what.Ref[Where] {
 				exit := NameToDir[what.As[Blocker]]
 				where = World[where.As[exit]]
 			} else {
-				where = World[what.As[Where]]
+				where = what.Ref[Where]
 			}
 			if len(where.Who) < CrowdSize {
 				s.Msg(where, what.As[Name], " closes.")
@@ -686,16 +686,16 @@ func (s *state) Teleport() {
 	case where == nil:
 		s.Msg(s.actor, "You don't know where '", s.word[0], "' is.")
 	default:
-		delete(World[s.actor.As[Where]].In, s.actor.As[UID])
-		if len(World[s.actor.As[Where]].Who) < CrowdSize {
-			s.Msg(World[s.actor.As[Where]], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly disappears.")
+		delete(s.actor.Ref[Where].In, s.actor.As[UID])
+		if len(s.actor.Ref[Where].Who) < CrowdSize {
+			s.Msg(s.actor.Ref[Where], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly disappears.")
 		}
-		s.actor.As[Where] = s.word[0]
-		World[s.actor.As[Where]].In[s.actor.As[UID]] = s.actor
+		s.actor.Ref[Where] = where
+		s.actor.Ref[Where].In[s.actor.As[UID]] = s.actor
 		s.Msg(s.actor, "There is a loud 'Spang!'...\n")
 		s.Look()
-		if len(World[s.actor.As[Where]].Who) < CrowdSize {
-			s.Msg(World[s.actor.As[Where]], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
+		if len(s.actor.Ref[Where].Who) < CrowdSize {
+			s.Msg(s.actor.Ref[Where], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
 		}
 	}
 }
@@ -712,8 +712,8 @@ WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
 
 Welcome to WolfMUD!
 	`)
-	if len(World[s.actor.As[Where]].Who) < CrowdSize {
-		s.Msg(World[s.actor.As[Where]], "There is a cloud of smoke from which ",
+	if len(s.actor.Ref[Where].Who) < CrowdSize {
+		s.Msg(s.actor.Ref[Where], "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
@@ -726,8 +726,8 @@ func (s *state) Act() {
 	}
 
 	s.Msg(s.actor, s.actor.As[Name], " ", s.input)
-	if len(World[s.actor.As[Where]].Who) < CrowdSize {
-		s.Msg(World[s.actor.As[Where]], s.actor.As[Name], " ", s.input)
+	if len(s.actor.Ref[Where].Who) < CrowdSize {
+		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " ", s.input)
 	}
 }
 
@@ -737,7 +737,7 @@ func (s *state) Say() {
 		return
 	}
 
-	where := World[s.actor.As[Where]]
+	where := s.actor.Ref[Where]
 	l := len(where.Who)
 
 	if l >= CrowdSize {

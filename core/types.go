@@ -89,7 +89,6 @@ const (
 	VetoPutIn        // Veto for PUT command into container
 	VetoTake         // Veto TAKE command for item
 	VetoTakeOut      // Veto for TAKE command from container
-	Where            // Current location ref ("L1")
 	Writing          // Description of writing on an item
 	Zone             // Zone item's definition loaded from
 )
@@ -115,7 +114,6 @@ var asNames = []string{
 	"VetoPutIn",
 	"VetoTake",
 	"VetoTakeOut",
-	"Where",
 	"Writing",
 	"Zone",
 }
@@ -227,4 +225,14 @@ var eventNames = map[eventKey]string{
 	Action:  "Action",
 	Cleanup: "Cleanup",
 	Reset:   "Reset",
+}
+
+// Constants for Thing.Ref keys
+const (
+	Where refKey = iota // Where an item is
+)
+
+// refNames maps refKey values to their string name.
+var refNames = map[refKey]string{
+	Where: "Where",
 }

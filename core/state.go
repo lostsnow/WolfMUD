@@ -17,8 +17,8 @@ import (
 var BWL sync.Mutex
 var World Things
 
-// WorldStart contains a list of references to starting locations
-var WorldStart []string
+// WorldStart contains a list of starting locations
+var WorldStart []*Thing
 
 type state struct {
 	actor *Thing

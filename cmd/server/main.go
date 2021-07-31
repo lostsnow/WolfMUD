@@ -64,7 +64,6 @@ func player(conn *net.TCPConn) {
 	player.Is = player.Is | core.Player
 	player.As[core.Name] = "Player" + strconv.FormatUint(np, 10)
 	player.As[core.Description] = "An adventurer, just like you."
-	player.As[core.Where] = core.WorldStart[rand.Intn(len(core.WorldStart))]
 	player.As[core.DynamicAlias] = "PLAYER"
 	player.Any[core.Alias] = []string{"PLAYER" + strconv.FormatUint(np, 10)}
 	uid := player.As[core.UID]
@@ -112,7 +111,8 @@ func player(conn *net.TCPConn) {
 	}()
 
 	core.BWL.Lock()
-	core.World[player.As[core.Where]].Who[uid] = player
+	player.Ref[core.Where] = core.WorldStart[rand.Intn(len(core.WorldStart))]
+	player.Ref[core.Where].Who[uid] = player
 	core.BWL.Unlock()
 	cmd := s.Parse("$POOF")
 

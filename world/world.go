@@ -146,7 +146,7 @@ func Load() {
 				c := item.Copy()
 				core.World[c.As[core.UID]] = c
 				if c.Is&core.Start == core.Start {
-					core.WorldStart = append(core.WorldStart, c.As[core.UID])
+					core.WorldStart = append(core.WorldStart, c)
 				}
 				refToUID[c.As[core.Ref]] = c.As[core.UID]
 
@@ -188,7 +188,7 @@ func Load() {
 	// copying to the world.
 	log.Print("Enabling items")
 	for _, loc := range core.World {
-		loc.Enable("")
+		loc.Enable(nil)
 	}
 
 	log.Printf("Total world locations: %d, starting locations: %d",
