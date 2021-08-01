@@ -75,6 +75,7 @@ func RegisterCommandHandlers() {
 		"COMMANDS":  (*state).Commands,
 		"\"":        (*state).Say,
 		"SAY":       (*state).Say,
+		"SNEEZE":    (*state).Sneeze,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -770,6 +771,33 @@ func (s *state) Action() {
 
 	s.subparse(s.actor.Any[OnAction][rand.Intn(l)])
 	s.actor.Schedule(Action)
+}
+
+// FIXME(diddymus): Currently SNEEZE has very aggressive crowd control to limit
+// the amount of broadcasting we do, otherwise network traffic and CPU usage
+// goes through the roof.
+func (s *state) Sneeze() {
+
+	s.Msg(s.actor, "You sneeze. Aaahhhccchhhooo!")
+
+	// Don't propagate sneeze if it's crowded.
+	if len(s.actor.Ref[Where].Who) >= CrowdSize {
+		return
+	}
+
+	s.Msg(s.actor.Ref[Where], s.actor.As[Name], " sneezes.")
+
+	locs := radius(2, s.actor.Ref[Where])
+	for _, where := range locs[1] {
+		if l := len(where.Who); 0 < l && l < CrowdSize {
+			s.Msg(where, "You hear a loud sneeze.")
+		}
+	}
+	for _, where := range locs[2] {
+		if l := len(where.Who); 0 < l && l < CrowdSize {
+			s.Msg(where, "You hear a sneeze.")
+		}
+	}
 }
 
 // radius returns the locations within size moves of a location. The locations
