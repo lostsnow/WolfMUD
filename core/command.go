@@ -771,3 +771,40 @@ func (s *state) Action() {
 	s.subparse(s.actor.Any[OnAction][rand.Intn(l)])
 	s.actor.Schedule(Action)
 }
+
+// radius returns the locations within size moves of a location. The locations
+// are returned as 'rings' around the given location. For example [0][0] is the
+// central location, [1][...] are locations within one move, [2][...] are
+// locations within two moves, etc. Note that the radius is 3D and includes
+// locations above and below.
+//
+// BUG(diddymus): Blockers, such as doors, are currently ignored.
+func radius(size int, where *Thing) [][]*Thing {
+	locs := make([][]*Thing, size+1)
+	seen := make(map[string]struct{})
+
+	// Add central location
+	locs[0] = append(locs[0], where)
+	seen[where.As[UID]] = struct{}{}
+
+	var (
+		uid   string
+		found bool
+		dir   asKey
+	)
+	for r := 1; r <= size; r++ {
+		for _, where = range locs[r-1] {
+			for dir = North; dir <= Down; dir++ {
+				if uid = where.As[dir]; uid == "" {
+					continue
+				}
+				if _, found = seen[uid]; found {
+					continue
+				}
+				locs[r] = append(locs[r], World[uid])
+				seen[uid] = struct{}{}
+			}
+		}
+	}
+	return locs
+}
