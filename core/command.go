@@ -753,12 +753,9 @@ func (s *state) Say() {
 		s.Msg(where, s.actor.As[Name], " says: ", s.input)
 	}
 
-	for dir := North; dir <= Down; dir++ {
-		if where.As[dir] == "" {
-			continue
-		}
-		if l = len(World[where.As[dir]].Who); 0 < l && l < CrowdSize {
-			s.Msg(World[where.As[dir]], "You hear talking nearby.")
+	for _, where := range radius(1, where)[1] {
+		if l = len(where.Who); 0 < l && l < CrowdSize {
+			s.Msg(where, "You hear talking nearby.")
 		}
 	}
 }
