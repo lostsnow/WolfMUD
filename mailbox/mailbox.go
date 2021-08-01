@@ -22,6 +22,7 @@ const size = 100
 // mailbox is the player's UID.
 var mboxLock sync.RWMutex
 var mbox = make(map[string]chan string)
+var last = make(map[string]string)
 
 // Add a mailbox for the given UID and return a channel for receiving mailbox
 // messages.
@@ -42,6 +43,7 @@ func Delete(uid string) {
 	if mbox[uid] != nil {
 		close(mbox[uid])
 		delete(mbox, uid)
+		delete(last, uid)
 	}
 }
 
@@ -59,14 +61,24 @@ func Exists(uid string) bool {
 	return mbox[uid] != nil
 }
 
-// Send writes the given message to the mailbox for the given UID. If mailbox
-// is full then remove + drop oldest message and try adding message again.
-func Send(uid, msg string) {
+// Send writes the given message to the mailbox for the given UID. Priority
+// messages are always sent. Non-priority messages are sent if they are not a
+// repeat of the last non-priority message sent - this helps cut down on
+// message spamming. If mailbox is full then remove + drop oldest message and
+// try adding message again.
+func Send(uid string, priority bool, msg string) {
 	mboxLock.RLock()
 	defer mboxLock.RUnlock()
 
 	if mbox[uid] == nil {
 		return
+	}
+
+	if !priority {
+		if last[uid] == msg {
+			return
+		}
+		last[uid] = msg
 	}
 
 retry:
