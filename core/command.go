@@ -76,6 +76,7 @@ func RegisterCommandHandlers() {
 		"\"":        (*state).Say,
 		"SAY":       (*state).Say,
 		"SNEEZE":    (*state).Sneeze,
+		"SHOUT":     (*state).Shout,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -793,6 +794,37 @@ func (s *state) Sneeze() {
 	for _, where := range locs[2] {
 		if l := len(where.Who); 0 < l && l < CrowdSize {
 			s.Msg(where, "You hear a sneeze.")
+		}
+	}
+}
+
+// FIXME(diddymus): Currently SHOUT has very aggressive crowd control to limit
+// the amount of broadcasting we do, otherwise network traffic and CPU usage
+// goes through the roof.
+func (s *state) Shout() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "What did you want to shout?")
+		return
+	}
+
+	// Don't propagate shout if it's crowded.
+	if len(s.actor.Ref[Where].Who) >= CrowdSize {
+		s.Msg(s.actor, "Even shouting, it's too crowded for you to be heard.")
+		return
+	}
+
+	s.Msg(s.actor, "You shout: ", s.input)
+	s.Msg(s.actor.Ref[Where], s.actor.As[Name], " shouts: ", s.input)
+
+	locs := radius(2, s.actor.Ref[Where])
+	for _, where := range locs[1] {
+		if l := len(where.Who); 0 < l && l < CrowdSize {
+			s.Msg(where, "You hear someone shout: ", s.input)
+		}
+	}
+	for _, where := range locs[2] {
+		if l := len(where.Who); 0 < l && l < CrowdSize {
+			s.Msg(where, "You hear shouting nearby.")
 		}
 	}
 }
