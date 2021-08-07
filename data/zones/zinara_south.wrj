@@ -25,7 +25,7 @@ beckons, south a worn road leads toward a small forest in the distance.
 Alias: ROAD
 Exits: N→L1 S→L3
 
-You are on a well worn dirt road. It leads north the city of Zinara, it's
+You are on a well worn dirt road. It leads north the city of Zinara, its
 outer walls visible in the distance. South the road leads toward a small
 forest also in the distance.
 %%
@@ -101,7 +101,7 @@ south you can just make out a small track.
     Exits: N→L9 E→L6 S→L11 W→L13
 Inventory: N1
 
-You are on a small track that twists and turns it's way through the forest
+You are on a small track that twists and turns its way through the forest
 around you. East the track heads towards a worn road. West it continues
 twisting and turning into the forest.
 %%
@@ -167,7 +167,7 @@ Narrative:
 
 This stone marker is about a foot square and a foot and a half tall. The top
 of it has been shaped like a pyramid giving the stone the look of a small
-obelisk. You can see some worn writing on it's sides.
+obelisk. You can see some worn writing on its sides.
 %%
       Ref: N1
      Name: the forest

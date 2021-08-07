@@ -255,7 +255,7 @@ their touch is gentle, almost ghost like.
 Inventory: N3 O1
 
 You are standing on top of one of giant toadstools. Around you you can see a
-vast cavern, it's floor covered by a forest of these toadstools. The one you
+vast cavern, its floor covered by a forest of these toadstools. The one you
 are on has a hole cut into the cap allowing access down via some stairs cut
 into the stalk.
 %%
@@ -276,7 +276,7 @@ OnCleanup: There is a small plinking noise as the glass ball turns black,
            places it on the cap of the toadstool. He then makes his way back
            down again and is gone.
 
-As you peer into it you see a small twinkle of light right at it's centre.
+As you peer into it you see a small twinkle of light right at its centre.
 %%
 //
 // Narratives
@@ -374,7 +374,7 @@ if they were, or are, often used.
 Narrative:
 
 This is a very deep, dark chasm. Looking over the edge of the bridge you still
-cannot see into it's inky depths.
+cannot see into its inky depths.
 %%
       Ref: N3
      Name: giant toadstools
