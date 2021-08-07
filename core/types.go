@@ -224,13 +224,14 @@ const (
 	Action  eventKey = eventKey(ActionAfter)
 	Cleanup          = eventKey(CleanupAfter)
 	Reset            = eventKey(ResetAfter)
+	EventLen
 )
 
 // eventNames maps eventKey values to their string name.
-var eventNames = map[eventKey]string{
-	Action:  "Action",
-	Cleanup: "Cleanup",
-	Reset:   "Reset",
+var eventNames = []string{
+	"Action",
+	"Cleanup",
+	"Reset",
 }
 
 // Constants for Thing.Ref keys
