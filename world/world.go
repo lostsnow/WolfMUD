@@ -151,9 +151,9 @@ func Load() {
 				refToUID[c.As[core.Ref]] = c.As[core.UID]
 
 				// Apply zonelinks to exits
-				for dir, ref := range item.zoneLinks {
+				for name, ref := range item.zoneLinks {
 					if ref != "" {
-						c.As[core.NameToDir[dir]] = ref
+						c.As[core.DirRefToAs[core.NameToDir[name]]] = ref
 					}
 				}
 			}
@@ -172,7 +172,7 @@ func Load() {
 	// Rewrite exits from Refs to UIDs as Refs only unique within a zone.
 	log.Print("Resolving exit refs to UIDs")
 	for _, loc := range core.World {
-		for dir := range core.DirToName {
+		for _, dir := range core.DirRefToAs {
 			if loc.As[dir] != "" {
 				loc.As[dir] = refToUID[loc.As[dir]]
 			}

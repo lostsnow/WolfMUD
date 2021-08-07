@@ -61,18 +61,17 @@ func (is isKey) setNames() string {
 // BE CHANGED. The other constants should be kept in alphabetical order as new
 // ones are added.
 const (
-
-	// Location reference exit leads to ("L1")
-	North asKey = iota
-	Northeast
-	East
-	Southeast
-	South
-	Southwest
-	West
-	Northwest
-	Up
-	Down
+	// Location reference exit leads to ("L1") - ONLY USED BY LOADER
+	_North asKey = iota
+	_Northeast
+	_East
+	_Southeast
+	_South
+	_Southwest
+	_West
+	_Northwest
+	_Up
+	_Down
 
 	Blocker          // Name of direction being blocked ("E")
 	Description      // Item's description
@@ -95,9 +94,9 @@ const (
 
 // asNames maps asKey values to their string name.
 var asNames = []string{
-	"North", "Northeast", "East", "Southeast",
-	"South", "Southwest", "West", "Northwest",
-	"Up", "Down",
+	"_North", "_Northeast", "_East", "_Southeast",
+	"_South", "_Southwest", "_West", "_Northwest",
+	"_Up", "_Down",
 
 	"Blocker",
 	"Description",
@@ -120,7 +119,7 @@ var asNames = []string{
 
 var (
 	// NameToDir maps a long or short direction name to its Thing.As constant.
-	NameToDir = map[string]asKey{
+	NameToDir = map[string]refKey{
 		"N": North, "NE": Northeast, "E": East, "SE": Southeast,
 		"S": South, "SW": Southwest, "W": West, "NW": Northwest,
 		"U": Up, "D": Down,
@@ -130,17 +129,24 @@ var (
 	}
 
 	// DirToName maps a Thing.As direction constant to the direction's long name.
-	DirToName = map[asKey]string{
+	DirToName = map[refKey]string{
 		North: "north", Northeast: "northeast", East: "east", Southeast: "southeast",
 		South: "south", Southwest: "southwest", West: "west", Northwest: "northwest",
 		Up: "up", Down: "down",
+	}
+
+	// DirRefToAs maps a Thing.Ref direction to a Thing.As direction
+	DirRefToAs = map[refKey]asKey{
+		North: _North, Northeast: _Northeast, East: _East, Southeast: _Southeast,
+		South: _South, Southwest: _Southwest, West: _West, Northwest: _Northwest,
+		Up: _Up, Down: _Down,
 	}
 )
 
 // ReverseDir returns the reverse or opposite direction. For example if passed
 // the constant East it will return West. If the passed value is not one of the
 // direction constants it will be returned unchanged.
-func (dir asKey) ReverseDir() asKey {
+func (dir refKey) ReverseDir() refKey {
 	switch {
 	case dir > Down:
 		return dir
@@ -228,11 +234,29 @@ var eventNames = map[eventKey]string{
 }
 
 // Constants for Thing.Ref keys
+//
+// NOTE: The first 10 direction constants are fixed and their values SHOULD NOT
+// BE CHANGED. The other constants should be kept in alphabetical order as new
 const (
-	Where refKey = iota // Where an item is
+	North refKey = iota
+	Northeast
+	East
+	Southeast
+	South
+	Southwest
+	West
+	Northwest
+	Up
+	Down
+
+	Where // Where an item is
 )
 
 // refNames maps refKey values to their string name.
-var refNames = map[refKey]string{
-	Where: "Where",
+var refNames = []string{
+	"North", "Northeast", "East", "Southeast",
+	"South", "Southwest", "West", "Northwest",
+	"Up", "Down",
+
+	"Where",
 }

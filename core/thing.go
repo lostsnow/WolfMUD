@@ -72,17 +72,11 @@ func NewThing() *Thing {
 // the UID of the containing inventory, for locations themselves this will be
 // an empty string.
 func (t *Thing) Enable(parent *Thing) {
-	for _, item := range t.In {
-		item.Enable(t)
-	}
-	for _, item := range t.Out {
-		item.Enable(t)
-	}
 
 	// If it's a blocker setup the 'other side'
 	if t.As[Blocker] != "" && t.Ref[Where] == nil {
-		otherUID := parent.As[NameToDir[t.As[Blocker]]]
-		World[otherUID].In[t.As[UID]] = t
+		other := parent.Ref[NameToDir[t.As[Blocker]]]
+		other.In[t.As[UID]] = t
 	}
 
 	// Set Where so that a thing knows where it is.
@@ -90,10 +84,28 @@ func (t *Thing) Enable(parent *Thing) {
 		t.Ref[Where] = parent
 	}
 
+	// Hard-link exits - convert from Thing.As UIDs to Thing.Ref *Thing
+	if t.Is&Location == Location {
+		for refDir, asDir := range DirRefToAs {
+			if t.As[asDir] != "" {
+				t.Ref[refDir] = World[t.As[asDir]]
+				delete(t.As, asDir)
+			}
+		}
+	}
+
 	// Check if we need to enable events
 	if t.Int[ActionAfter] != 0 || t.Int[ActionJitter] != 0 {
 		t.Schedule(Action)
 	}
+
+	for _, item := range t.In {
+		item.Enable(t)
+	}
+	for _, item := range t.Out {
+		item.Enable(t)
+	}
+
 }
 
 // Unmarshal loads data from the passed Record into a Thing.
@@ -159,8 +171,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				}
 			}
 		case "EXIT", "EXITS":
-			for dir, loc := range decode.PairList(r["EXITS"]) {
-				t.As[NameToDir[dir]] = loc
+			for name, loc := range decode.PairList(r["EXITS"]) {
+				t.As[DirRefToAs[NameToDir[name]]] = loc
 			}
 			t.Is |= Location
 		case "INV", "INVENTORY":
@@ -228,7 +240,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 	if t.As[Zone] != "" {
 		t.As[Ref] = t.As[Zone] + ":" + t.As[Ref]
 
-		for dir := range DirToName {
+		for _, dir := range DirRefToAs {
 			if t.As[dir] != "" {
 				t.As[dir] = t.As[Zone] + ":" + t.As[dir]
 			}

@@ -166,8 +166,10 @@ func (s *state) Look() {
 			s.Msg(s.actor, "It's too crowded here to see anything.\n")
 			mark = s.buf[auid].Len()
 		}
+
+		// Get directions in a fixed order
 		for dir := North; dir <= Down; dir++ {
-			if where.As[dir] != "" {
+			if where.Ref[dir] != nil {
 				if s.buf[auid].Len() == mark {
 					s.Msg(s.actor, "You see exits: ", DirToName[dir])
 				} else {
@@ -175,6 +177,7 @@ func (s *state) Look() {
 				}
 			}
 		}
+
 		if mark == s.buf[auid].Len() {
 			s.Msg(s.actor, "You see no obvious exits.")
 		}
@@ -192,7 +195,7 @@ func (s *state) Move() {
 	dir := NameToDir[s.cmd]
 	where := s.actor.Ref[Where]
 
-	if where.As[dir] == "" {
+	if where.Ref[dir] == nil {
 		s.Msg(s.actor, "You can't go ", DirToName[dir], ".")
 		return
 	}
@@ -218,7 +221,7 @@ func (s *state) Move() {
 	case blocker != nil:
 		s.Msg(s.actor, "You can't go ", DirToName[dir], ". ",
 			blocker.As[Name], " is blocking your way.")
-	case World[where.As[dir]] == nil:
+	case where.Ref[dir] == nil:
 		s.Msg(s.actor, "Oops! You can't actually go ", DirToName[dir], ".")
 	case s.actor.Is&Player != Player:
 		delete(where.In, s.actor.As[UID])
@@ -226,7 +229,7 @@ func (s *state) Move() {
 			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
 		}
 
-		where = World[where.As[dir]]
+		where = where.Ref[dir]
 		s.actor.Ref[Where] = where
 		where.In[s.actor.As[UID]] = s.actor
 		if len(where.Who) < CrowdSize {
@@ -238,7 +241,7 @@ func (s *state) Move() {
 			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
 		}
 
-		where = World[where.As[dir]]
+		where = where.Ref[dir]
 		s.actor.Ref[Where] = where
 		where.Who[s.actor.As[UID]] = s.actor
 		if len(where.Who) < CrowdSize {
@@ -612,7 +615,7 @@ func (s *state) Open() {
 			// Find location on other side...
 			if where == what.Ref[Where] {
 				exit := NameToDir[what.As[Blocker]]
-				where = World[where.As[exit]]
+				where = where.Ref[exit]
 			} else {
 				where = what.Ref[Where]
 			}
@@ -651,7 +654,7 @@ func (s *state) Close() {
 			// Find location on other side...
 			if where == what.Ref[Where] {
 				exit := NameToDir[what.As[Blocker]]
-				where = World[where.As[exit]]
+				where = where.Ref[exit]
 			} else {
 				where = what.Ref[Where]
 			}
@@ -838,28 +841,28 @@ func (s *state) Shout() {
 // BUG(diddymus): Blockers, such as doors, are currently ignored.
 func radius(size int, where *Thing) [][]*Thing {
 	locs := make([][]*Thing, size+1)
-	seen := make(map[string]struct{})
+	seen := make(map[*Thing]struct{})
 
 	// Add central location
 	locs[0] = append(locs[0], where)
-	seen[where.As[UID]] = struct{}{}
+	seen[where] = struct{}{}
 
 	var (
-		uid   string
 		found bool
-		dir   asKey
+		dir   refKey
+		loc   *Thing
 	)
 	for r := 1; r <= size; r++ {
 		for _, where = range locs[r-1] {
-			for dir = North; dir <= Down; dir++ {
-				if uid = where.As[dir]; uid == "" {
+			for dir = range DirToName {
+				if loc = where.Ref[dir]; loc == nil {
 					continue
 				}
-				if _, found = seen[uid]; found {
+				if _, found = seen[loc]; found {
 					continue
 				}
-				locs[r] = append(locs[r], World[uid])
-				seen[uid] = struct{}{}
+				locs[r] = append(locs[r], loc)
+				seen[loc] = struct{}{}
 			}
 		}
 	}
