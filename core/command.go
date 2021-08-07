@@ -132,7 +132,6 @@ func (s *state) Quit() {
 
 func (s *state) Look() {
 	where := s.actor.Ref[Where]
-	auid := s.actor.As[UID]
 
 	switch {
 	case where == nil:
@@ -144,33 +143,33 @@ func (s *state) Look() {
 	default:
 		s.Msg(s.actor, "[", where.As[Name], "]")
 		s.Msg(s.actor, where.As[Description], "\n")
-		mark := s.buf[auid].Len()
+		mark := s.buf[s.actor].Len()
 		if len(where.Who) < CrowdSize {
 			for _, who := range where.Who.Sort() {
-				if who.As[UID] == auid {
+				if who == s.actor {
 					continue
 				}
 				s.Msg(s.actor, "You see ", who.As[Name], " here.")
 			}
 			for _, item := range where.In.Sort() {
-				if item.Is&Narrative == Narrative || item.As[UID] == auid {
+				if item.Is&Narrative == Narrative || item == s.actor {
 					continue
 				}
 				s.Msg(s.actor, "You see ", item.As[Name], " here.")
 			}
-			if mark != s.buf[auid].Len() {
+			if mark != s.buf[s.actor].Len() {
 				s.Msg(s.actor)
-				mark = s.buf[auid].Len()
+				mark = s.buf[s.actor].Len()
 			}
 		} else {
 			s.Msg(s.actor, "It's too crowded here to see anything.\n")
-			mark = s.buf[auid].Len()
+			mark = s.buf[s.actor].Len()
 		}
 
 		// Get directions in a fixed order
 		for dir := North; dir <= Down; dir++ {
 			if where.Ref[dir] != nil {
-				if s.buf[auid].Len() == mark {
+				if s.buf[s.actor].Len() == mark {
 					s.Msg(s.actor, "You see exits: ", DirToName[dir])
 				} else {
 					s.MsgAppend(s.actor, ", ", DirToName[dir])
@@ -178,7 +177,7 @@ func (s *state) Look() {
 			}
 		}
 
-		if mark == s.buf[auid].Len() {
+		if mark == s.buf[s.actor].Len() {
 			s.Msg(s.actor, "You see no obvious exits.")
 		}
 	}
@@ -441,7 +440,7 @@ func (s *state) Take() {
 	case where.As[VetoTakeOut] != "":
 		s.Msg(s.actor, where.As[VetoTakeOut])
 	}
-	if s.buf[s.actor.As[UID]] != nil {
+	if s.buf[s.actor] != nil {
 		return
 	}
 
@@ -498,7 +497,7 @@ func (s *state) Put() {
 	case where.Is&(NPC|Player) != 0:
 		s.Msg(s.actor, "Taxidermist are we?")
 	}
-	if s.buf[s.actor.As[UID]] != nil {
+	if s.buf[s.actor] != nil {
 		return
 	}
 
@@ -555,7 +554,7 @@ func (s *state) Dump() {
 			s.Msg(s.actor, "You see no '", uid, "' to dump.")
 		default:
 			s.Msg(s.actor, "DUMP: ", uid, "\n")
-			what.Dump(s.buf[s.actor.As[UID]], 80)
+			what.Dump(s.buf[s.actor], 80)
 		}
 	}
 }

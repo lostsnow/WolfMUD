@@ -22,7 +22,7 @@ var WorldStart []*Thing
 
 type state struct {
 	actor *Thing
-	buf   map[string]*strings.Builder
+	buf   map[*Thing]*strings.Builder
 	cmd   string
 	input string
 	word  []string
@@ -31,7 +31,7 @@ type state struct {
 var newline = []byte("\n")
 
 func NewState(t *Thing) *state {
-	return &state{actor: t, buf: make(map[string]*strings.Builder)}
+	return &state{actor: t, buf: make(map[*Thing]*strings.Builder)}
 }
 
 func (s *state) Parse(input string) (cmd string) {
@@ -81,29 +81,25 @@ func (s *state) subparse(input string) {
 // and cleaned up.
 func (s *state) mailman() {
 
-	auid := s.actor.As[UID]
-
-	for uid, buf := range s.buf {
+	for ref, buf := range s.buf {
 		// Send to specific players - race between Exists & Send is okay
-		if mailbox.Exists(uid) {
-			mailbox.Send(uid, uid == auid, buf.String())
+		if mailbox.Exists(ref.As[UID]) {
+			mailbox.Send(ref.As[UID], ref == s.actor, buf.String())
 			continue
 		}
 		// Send to players at location, omitting players that are receiving
 		// specific messages.
-		if where := World[uid]; where != nil {
-			for uid := range where.Who {
-				if s.buf[uid] == nil {
-					mailbox.Send(uid, false, buf.String())
-				}
+		for uid, who := range ref.Who {
+			if s.buf[who] == nil {
+				mailbox.Send(uid, false, buf.String())
 			}
 		}
 	}
 
 	// Cleanup buffers
-	for uid, buf := range s.buf {
+	for ref, buf := range s.buf {
 		buf.Reset()
-		delete(s.buf, uid)
+		delete(s.buf, ref)
 	}
 }
 
@@ -117,17 +113,16 @@ func (s *state) mailman() {
 // given text on a new line. To append text to the end of a message, without
 // starting on a new line, use MsgAppend.
 func (s *state) Msg(recipient *Thing, text ...string) {
-	uid := recipient.As[UID]
-	if s.buf[uid] == nil {
-		s.buf[uid] = &strings.Builder{}
-		if uid != s.actor.As[UID] {
-			s.buf[uid].Write(newline)
+	if s.buf[recipient] == nil {
+		s.buf[recipient] = &strings.Builder{}
+		if recipient != s.actor {
+			s.buf[recipient].Write(newline)
 		}
 	} else {
-		s.buf[uid].Write(newline)
+		s.buf[recipient].Write(newline)
 	}
 	for _, t := range text {
-		s.buf[uid].WriteString(t)
+		s.buf[recipient].WriteString(t)
 	}
 }
 
@@ -136,12 +131,11 @@ func (s *state) Msg(recipient *Thing, text ...string) {
 // time. It is safe to call MsgAppend for a recipient, even if Msg has not been
 // called first.
 func (s *state) MsgAppend(recipient *Thing, text ...string) {
-	uid := recipient.As[UID]
-	if s.buf[uid] == nil {
+	if s.buf[recipient] == nil {
 		s.Msg(recipient, text...)
 		return
 	}
 	for _, t := range text {
-		s.buf[uid].WriteString(t)
+		s.buf[recipient].WriteString(t)
 	}
 }
