@@ -77,6 +77,7 @@ func RegisterCommandHandlers() {
 		"SAY":       (*state).Say,
 		"SNEEZE":    (*state).Sneeze,
 		"SHOUT":     (*state).Shout,
+		"JUNK":      (*state).Junk,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -909,4 +910,25 @@ func (s *state) Reset() {
 		return
 	}
 	s.Msg(where, s.actor.As[OnReset])
+}
+
+func (s *state) Junk() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "Now what did you want to go and junk?")
+		return
+	}
+
+	uids := Match(s.word, s.actor)
+	uid := uids[0]
+	what := s.actor.In[uid]
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, "You have no '", uid, "' to junk.")
+	default:
+		s.Msg(s.actor, "You junk ", what.As[Name])
+		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " junks ", what.As[Name])
+		delete(s.actor.In, what.As[UID])
+		what.Free()
+	}
 }
