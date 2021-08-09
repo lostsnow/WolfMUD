@@ -87,10 +87,12 @@ func RegisterCommandHandlers() {
 		"$POOF":   (*state).Poof,
 		"$ACT":    (*state).Act,
 		"$ACTION": (*state).Action,
+		"$RESET":  (*state).Reset,
 	}
 
 	eventCommands = map[eventKey]string{
 		Action: "$ACTION",
+		Reset:  "$RESET",
 	}
 
 	// precompute a sorted list of available player and admin commands. Scripting
@@ -866,4 +868,43 @@ func radius(size int, where *Thing) [][]*Thing {
 		}
 	}
 	return locs
+}
+
+func (s *state) Reset() {
+
+	// If actor should wait and has out of play items don't reset
+	if s.actor.Is&Wait == Wait && len(s.actor.Out) > 0 {
+		return
+	}
+
+	where := s.actor.Ref[Where]
+	delete(where.Out, s.actor.As[UID])
+	where.In[s.actor.As[UID]] = s.actor
+
+	// If where reset will happen is out of play reset will not be seen. If where
+	// reset will happen now has no out of play items we can schedule a reset for
+	// it.
+	parent := where.Ref[Where]
+	if parent != nil && parent.Out[where.As[UID]] != nil {
+		if len(where.Out) == 0 {
+			where.Schedule(Reset)
+		}
+		return
+	}
+
+	// If reset message supressed we can just bail now
+	if msg, ok := s.actor.As[OnReset]; ok && msg == "" {
+		return
+	}
+
+	// If parent is a location or player we need to send the message there.
+	if parent != nil && parent.Is&(Player|Location) != 0 {
+		where = parent
+	}
+
+	if s.actor.As[OnReset] == "" {
+		s.Msg(where, "You notice ", s.actor.As[Name], " you didn't see before.")
+		return
+	}
+	s.Msg(where, s.actor.As[OnReset])
 }
