@@ -405,6 +405,7 @@ func (s *state) Get() {
 		default:
 			what.Suspend(Action)
 			delete(s.actor.Ref[Where].In, what.As[UID])
+			what = what.Spawn()
 			s.actor.In[what.As[UID]] = what
 			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
@@ -458,6 +459,7 @@ func (s *state) Take() {
 			s.Msg(s.actor, "You can't take ", what.As[Name], " from ", where.As[Name], ".")
 		default:
 			delete(where.In, what.As[UID])
+			what = what.Spawn()
 			s.actor.In[what.As[UID]] = what
 			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
