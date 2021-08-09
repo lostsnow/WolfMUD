@@ -310,6 +310,54 @@ func (t *Thing) Copy(deep bool) *Thing {
 	return T
 }
 
+// Spawn returns a copy of a spawnable Thing or the original if not spawnable.
+// The returned copy will not be spawnable. If the original contains any
+// spawnable items they will remain spawnable. If the original contains any
+// non-spawnable items they will be moved to the copy.
+func (t *Thing) Spawn() *Thing {
+	if t.Is&Spawnable != Spawnable {
+		return t
+	}
+	t.Ref[Where].Out[t.As[UID]] = t
+	T := t.spawn()
+	T.Is ^= Spawnable
+	delete(T.Int, ResetAfter)
+	delete(T.Int, ResetJitter)
+	delete(T.Int, ResetDueAt)
+	delete(T.Int, ResetDueIn)
+	t.Schedule(Reset)
+	return T
+}
+
+// spawn is a helper for Spawn and recursively spawns a Thing.
+func (t *Thing) spawn() *Thing {
+	if t.Is&Spawnable != Spawnable {
+		return t
+	}
+
+	T := t.Copy(false)
+
+	for ref, item := range t.In {
+		if item.Is&Spawnable == Spawnable {
+			item = item.Spawn()
+		} else {
+			delete(t.In, ref)
+		}
+		T.In[item.As[UID]] = item
+		item.Ref[Where] = T
+	}
+	for ref, item := range t.Out {
+		if item.Is&Spawnable == Spawnable {
+			item = item.Spawn()
+		} else {
+			delete(t.Out, ref)
+		}
+		T.Out[item.As[UID]] = item
+		item.Ref[Where] = T
+	}
+	return T
+}
+
 // Sort returns the receiver Things as a slice of the Things sorted by UID.
 func (t Things) Sort() []*Thing {
 	if t == nil || len(t) == 0 {
