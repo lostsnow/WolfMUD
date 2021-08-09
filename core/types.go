@@ -29,6 +29,8 @@ const (
 	Open                        // An open item (e.g. door)
 	Player                      // Is a player
 	Start                       // A starting location
+	Spawnable                   // Is item spawnable?
+	Wait                        // Container reset wait for inventory?
 )
 
 // isNames maps isKey bits to their string name. See also setName method.
@@ -41,6 +43,8 @@ var isNames = []string{
 	"Open",
 	"Player",
 	"Start",
+	"Spawnable",
+	"Wait",
 }
 
 // setNames returns the names of the set bits in a Thing.Is field. Names are
