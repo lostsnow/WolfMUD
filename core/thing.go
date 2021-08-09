@@ -74,14 +74,9 @@ func NewThing() *Thing {
 func (t *Thing) Enable(parent *Thing) {
 
 	// If it's a blocker setup the 'other side'
-	if t.As[Blocker] != "" && t.Ref[Where] == nil {
+	if t.As[Blocker] != "" && t.Ref[Where] == parent {
 		other := parent.Ref[NameToDir[t.As[Blocker]]]
 		other.In[t.As[UID]] = t
-	}
-
-	// Set Where so that a thing knows where it is.
-	if parent != nil && t.Ref[Where] == nil {
-		t.Ref[Where] = parent
 	}
 
 	// Hard-link exits - convert from Thing.As UIDs to Thing.Ref *Thing
@@ -250,14 +245,18 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 }
 
 // Copy returns a duplicate of the receiver Thing with only the UID and Who
-// being different. We don't duplicate Who as this would duplicate players. The
-// Thing's inventory will be copied recursively.
-//
-// BUG(diddymus): Currently we don't copy Events either. In-flight events
-// should be copied and suspended in the copy with the remainin time recorded
-// so that the event can be resumed if desired.
-func (t *Thing) Copy() *Thing {
+// being different. We don't duplicate Who as this would duplicate players. If
+// deep is set to true the Thing's inventory will be copied recursively.
+func (t *Thing) Copy(deep bool) *Thing {
 	T := NewThing()
+
+	// Suspend any events in the original
+	events := []eventKey{}
+	for eventId := range t.Event {
+		events = append(events, eventId)
+		t.Suspend(eventId)
+	}
+
 	T.Is = t.Is
 	for k, v := range t.As {
 		if k == UID {
@@ -275,13 +274,18 @@ func (t *Thing) Copy() *Thing {
 	for k, v := range t.Ref {
 		T.Ref[k] = v
 	}
-	for _, item := range t.In {
-		c := item.Copy()
-		T.In[c.As[UID]] = c
-	}
-	for _, item := range t.Out {
-		c := item.Copy()
-		T.Out[c.As[UID]] = c
+
+	if deep {
+		for _, item := range t.In {
+			c := item.Copy(deep)
+			T.In[c.As[UID]] = c
+			c.Ref[Where] = T
+		}
+		for _, item := range t.Out {
+			c := item.Copy(deep)
+			T.Out[c.As[UID]] = c
+			c.Ref[Where] = T
+		}
 	}
 
 	// Swap old UID alias for copy's new UID
@@ -290,6 +294,12 @@ func (t *Thing) Copy() *Thing {
 			T.Any[Alias][x] = T.As[UID]
 			break
 		}
+	}
+
+	// enable events in original and copy
+	for _, eventId := range events {
+		t.Schedule(eventId)
+		T.Schedule(eventId)
 	}
 
 	return T

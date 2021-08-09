@@ -143,7 +143,7 @@ func Load() {
 		log.Print("  Copying to world")
 		for _, item := range store {
 			if item.Is&core.Location == core.Location {
-				c := item.Copy()
+				c := item.Copy(true)
 				core.World[c.As[core.UID]] = c
 				if c.Is&core.Start == core.Start {
 					core.WorldStart = append(core.WorldStart, c)
