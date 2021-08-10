@@ -5,7 +5,6 @@
 
 // Package core handles all of the main processing of items and player commands
 // in WolfMUD. All items are represented via the Thing type with capabilities
-// and settings implemented as Thing.Is and Thing.As values. Inventory items
-// are held in Thing.In which is a []*Thing. The short names Is, As and In were
-// chosen to be meaningful and easily readable in code.
+// and settings implemented as Thing.xxx values. The short names Is, As, In
+// etc. were chosen to be meaningful and easily readable in code.
 package core
