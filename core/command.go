@@ -928,7 +928,6 @@ func (s *state) Junk() {
 	default:
 		s.Msg(s.actor, "You junk ", what.As[Name])
 		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " junks ", what.As[Name])
-		delete(s.actor.In, what.As[UID])
-		what.Free()
+		what.Junk()
 	}
 }
