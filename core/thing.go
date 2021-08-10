@@ -94,6 +94,10 @@ func (t *Thing) Enable(parent *Thing) {
 		t.Schedule(Action)
 	}
 
+	if t.Is&Spawnable != Spawnable {
+		t.Ref[Origin] = parent
+	}
+
 	for _, item := range t.In {
 		item.Enable(t)
 	}

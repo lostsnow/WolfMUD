@@ -253,7 +253,8 @@ const (
 	Up
 	Down
 
-	Where // Where an item is
+	Where  // Where an item is
+	Origin // Where a unique item resets to
 )
 
 // refNames maps refKey values to their string name.
@@ -263,4 +264,5 @@ var refNames = []string{
 	"Up", "Down",
 
 	"Where",
+	"Origin",
 }
