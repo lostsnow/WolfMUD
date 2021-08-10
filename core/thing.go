@@ -362,6 +362,31 @@ func (t *Thing) spawn() *Thing {
 	return T
 }
 
+// Junk removes an item from the world and either schedules it to reset if it
+// is unique or spawnable, otherwise it is freed for the garbage collector. If
+// the item has inventory it is also junked.
+func (t *Thing) Junk() {
+	for _, item := range t.In {
+		item.Junk()
+	}
+	for _, item := range t.Out {
+		item.Junk()
+	}
+
+	delete(t.Ref[Where].In, t.As[UID])
+
+	if t.Ref[Origin] == nil && t.Is&Spawnable != Spawnable {
+		t.Free()
+		return
+	}
+
+	if t.Ref[Origin] != nil {
+		t.Ref[Where] = t.Ref[Origin]
+	}
+	t.Ref[Where].Out[t.As[UID]] = t
+	t.Schedule(Reset)
+}
+
 // Sort returns the receiver Things as a slice of the Things sorted by UID.
 func (t Things) Sort() []*Thing {
 	if t == nil || len(t) == 0 {
