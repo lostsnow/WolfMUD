@@ -12,13 +12,14 @@ import (
 	"code.wolfmud.org/WolfMUD.git/mailbox"
 )
 
-// World contains all of the locations for the current game world. It is
-// protected by the BWL (Big World Lock).
-var BWL sync.Mutex
-var World Things
-
-// WorldStart contains a list of starting locations
-var WorldStart []*Thing
+// World contains all of the top level locations for the current game world.
+// WorldStart only contains valid player starting locations. Both are protected
+// by the BWL (Big World Lock).
+var (
+	BWL        sync.Mutex
+	World      Things   // All top level locations
+	WorldStart []*Thing // Starting locations
+)
 
 type state struct {
 	actor *Thing
