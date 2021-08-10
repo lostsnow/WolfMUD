@@ -30,7 +30,7 @@ type Thing struct {
 	Event Events              // In-flight event timers
 }
 
-// Things represents a group of Thing.
+// Things represents a group of Thing indexed by UID.
 type Things map[string]*Thing
 
 // Events is used to store currently in-flight events for a Thing.
