@@ -343,7 +343,7 @@ func (t *Thing) spawn() *Thing {
 
 	for ref, item := range t.In {
 		if item.Is&Spawnable == Spawnable {
-			item = item.Spawn()
+			item = item.spawn()
 		} else {
 			delete(t.In, ref)
 		}
@@ -352,7 +352,7 @@ func (t *Thing) spawn() *Thing {
 	}
 	for ref, item := range t.Out {
 		if item.Is&Spawnable == Spawnable {
-			item = item.Spawn()
+			item = item.spawn()
 		} else {
 			delete(t.Out, ref)
 		}
