@@ -881,13 +881,14 @@ func (s *state) Reset() {
 	}
 
 	where := s.actor.Ref[Where]
+	parent := where.Ref[Where]
+
 	delete(where.Out, s.actor.As[UID])
 	where.In[s.actor.As[UID]] = s.actor
 
-	// If where reset will happen is out of play reset will not be seen. If where
-	// reset will happen now has no out of play items we can schedule a reset for
-	// it.
-	parent := where.Ref[Where]
+	// Check parent of where reset will happen to see if where is out of play.
+	// If where is out of play reset will not be seen. However, if where reset
+	// will happen now has no out of play items we can schedule a reset for it.
 	if parent != nil && parent.Out[where.As[UID]] != nil {
 		if len(where.Out) == 0 {
 			where.Schedule(Reset)
@@ -900,9 +901,21 @@ func (s *state) Reset() {
 		return
 	}
 
-	// If parent is a location or player we need to send the message there.
-	if parent != nil && parent.Is&(Player|Location) != 0 {
-		where = parent
+	// If resetting in a container the reset will not be seen. However, if we
+	// have a custom reset message and the parent is a location or player we send
+	// the custom message there. This lets custom messages notify players that
+	// something has happened in the container.
+	if where.Is&Container == Container {
+		if s.actor.As[OnReset] != "" && parent.Is&(Player|Location) != 0 {
+			where = parent
+		} else {
+			return
+		}
+	}
+
+	// If where message is being sent is crowded we won't see it
+	if len(where.Who) >= CrowdSize {
+		return
 	}
 
 	if s.actor.As[OnReset] == "" {
