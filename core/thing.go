@@ -409,10 +409,11 @@ func (t Things) Sort() []*Thing {
 // Free recursively unlinks everything from a Thing. This is not really
 // necessary, but makes it easier for the garbage collector.
 func (t *Thing) Free() {
-	if t == nil {
+	if t == nil || t.Is&Freed == Freed {
 		return
 	}
-	t.Is = 0
+	t.Is = Freed
+
 	for k := range t.As {
 		delete(t.As, k)
 	}

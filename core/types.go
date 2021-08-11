@@ -23,6 +23,7 @@ type (
 const (
 	Container isKey = 1 << iota // A container, allows PUT/TAKE
 	Dark                        // A dark location
+	Freed                       // Thing has been freed for GC
 	Location                    // Item is a location
 	NPC                         // An NPC
 	Narrative                   // A narrative item
@@ -37,6 +38,7 @@ const (
 var isNames = []string{
 	"Container",
 	"Dark",
+	"Freed",
 	"Location",
 	"NPC",
 	"Narrative",
