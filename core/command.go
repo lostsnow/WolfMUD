@@ -925,6 +925,8 @@ func (s *state) Junk() {
 	switch {
 	case what == nil:
 		s.Msg(s.actor, "You have no '", uid, "' to junk.")
+	case what.As[VetoJunk] != "":
+		s.Msg(s.actor, what.As[VetoJunk])
 	default:
 		s.Msg(s.actor, "You junk ", what.As[Name])
 		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " junks ", what.As[Name])
