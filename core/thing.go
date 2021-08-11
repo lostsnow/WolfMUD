@@ -18,6 +18,9 @@ import (
 )
 
 // Thing is used to represent any and all items in the game world.
+//
+// NOTE: If new fields are added to Thing they should be catered for in the
+// NewThing and Free methods.
 type Thing struct {
 	As    map[asKey]string    // Single value for a key
 	Any   map[anyKey][]string // One or more values for a key
@@ -417,24 +420,48 @@ func (t *Thing) Free() {
 	}
 	t.Is = Freed
 
+	for eventId := range t.Event {
+		t.Suspend(eventId)
+		delete(t.Event, eventId)
+	}
+	t.Event = nil
+
 	for k := range t.As {
 		delete(t.As, k)
 	}
 	t.As = nil
+
+	for k := range t.Any {
+		delete(t.Any, k)
+	}
+	t.Any = nil
+
+	for k := range t.Int {
+		delete(t.Int, k)
+	}
+	t.Int = nil
+
 	for k := range t.Ref {
 		delete(t.Ref, k)
 	}
 	t.Ref = nil
+
 	for k, item := range t.In {
 		item.Free()
-		t.In[k] = nil
+		delete(t.In, k)
 	}
 	t.In = nil
+
 	for k, item := range t.Out {
 		item.Free()
-		t.Out[k] = nil
+		delete(t.Out, k)
 	}
 	t.Out = nil
+
+	for k := range t.Who {
+		delete(t.Who, k)
+	}
+	t.Who = nil
 }
 
 // Dump will write a pretty ASCII tree representing the details of a Thing.
