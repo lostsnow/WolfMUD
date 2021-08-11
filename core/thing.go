@@ -368,10 +368,13 @@ func (t *Thing) spawn() *Thing {
 // is unique or spawnable, otherwise it is freed for the garbage collector. If
 // the item has inventory it is also junked.
 func (t *Thing) Junk() {
-	for _, item := range t.In {
+
+	// The ordering of Out and In here is important as scheduling a Reset will
+	// move items from In to Out and we don't want items processed twice.
+	for _, item := range t.Out {
 		item.Junk()
 	}
-	for _, item := range t.Out {
+	for _, item := range t.In {
 		item.Junk()
 	}
 
