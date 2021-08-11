@@ -918,18 +918,21 @@ func (s *state) Junk() {
 		return
 	}
 
-	uids := Match(s.word, s.actor)
-	uid := uids[0]
-	what := s.actor.In[uid]
+	notify := len(s.actor.Ref[Where].Who) < CrowdSize
 
-	switch {
-	case what == nil:
-		s.Msg(s.actor, "You have no '", uid, "' to junk.")
-	case what.As[VetoJunk] != "":
-		s.Msg(s.actor, what.As[VetoJunk])
-	default:
-		s.Msg(s.actor, "You junk ", what.As[Name])
-		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " junks ", what.As[Name])
-		what.Junk()
+	for _, uid := range Match(s.word, s.actor) {
+		what := s.actor.In[uid]
+		switch {
+		case what == nil:
+			s.Msg(s.actor, "You have no '", uid, "' to junk.")
+		case what.As[VetoJunk] != "":
+			s.Msg(s.actor, what.As[VetoJunk])
+		default:
+			s.Msg(s.actor, "You junk ", what.As[Name], ".")
+			if notify {
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " junks ", what.As[Name], ".")
+			}
+			what.Junk()
+		}
 	}
 }
