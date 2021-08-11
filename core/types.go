@@ -29,8 +29,8 @@ const (
 	Narrative                   // A narrative item
 	Open                        // An open item (e.g. door)
 	Player                      // Is a player
-	Start                       // A starting location
 	Spawnable                   // Is item spawnable?
+	Start                       // A starting location
 	Wait                        // Container reset wait for inventory?
 )
 
@@ -44,8 +44,8 @@ var isNames = []string{
 	"Narrative",
 	"Open",
 	"Player",
-	"Start",
 	"Spawnable",
+	"Start",
 	"Wait",
 }
 
