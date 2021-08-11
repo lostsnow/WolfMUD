@@ -388,6 +388,8 @@ func (t *Thing) Junk() {
 		return
 	}
 
+	delete(t.As, DynamicQualifier)
+
 	if t.Ref[Origin] != nil {
 		t.Ref[Where] = t.Ref[Origin]
 	}
