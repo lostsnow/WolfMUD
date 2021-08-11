@@ -214,6 +214,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.As[VetoDrop] = msg
 				case "GET":
 					t.As[VetoGet] = msg
+				case "JUNK":
+					t.As[VetoJunk] = msg
 				case "PUT":
 					t.As[VetoPut] = msg
 				case "PUTIN":

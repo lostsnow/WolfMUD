@@ -88,6 +88,7 @@ const (
 	UID              // Item's unique identifier
 	VetoDrop         // Veto for DROP command
 	VetoGet          // Veto for GET command
+	VetoJunk         // Veto for JUNK command
 	VetoPut          // Veto PUT command for item
 	VetoPutIn        // Veto for PUT command into container
 	VetoTake         // Veto TAKE command for item
@@ -113,6 +114,7 @@ var asNames = []string{
 	"UID",
 	"VetoDrop",
 	"VetoGet",
+	"VetoJunk",
 	"VetoPut",
 	"VetoPutIn",
 	"VetoTake",
