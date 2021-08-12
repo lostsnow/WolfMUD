@@ -56,7 +56,9 @@ func (s *state) parse(input string) {
 		savedDA := s.actor.As[DynamicAlias]
 		s.actor.As[DynamicAlias] = "SELF"
 		handler(s)
-		s.actor.As[DynamicAlias] = savedDA
+		if s.actor.Is&Freed != Freed {
+			s.actor.As[DynamicAlias] = savedDA
+		}
 	} else {
 		s.Msg(s.actor, "Eh?")
 	}
