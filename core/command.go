@@ -110,26 +110,16 @@ func RegisterCommandHandlers() {
 	log.Printf("Registered %d command handlers", len(commandHandlers))
 }
 
-// FIXME: At the moment we just drop everything in the player's inventory.
+// FIXME: Currently we just force junk everything in the player's inventory.
 func (s *state) Quit() {
 	where := s.actor.Ref[Where]
-
-	// FIXME: Force drop everything for now...
-	notify := len(where.Who) < CrowdSize
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
-		where.In[uid] = what
-		what.Ref[Where] = where
-		delete(what.As, DynamicQualifier)
-		s.Msg(s.actor, "You drop ", what.As[Name], ".")
-		if notify {
-			s.Msg(where, s.actor.As[Name], " drops ", what.As[Name], ".")
-		}
+		what.Junk()
 	}
-
 	delete(where.Who, s.actor.As[UID])
 	s.Msg(s.actor, "You leave this world behind.\n\nBye bye!\n")
-	if notify {
+	if len(where.Who) < CrowdSize {
 		s.Msg(where, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
