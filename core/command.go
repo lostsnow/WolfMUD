@@ -370,6 +370,7 @@ func (s *state) Drop() {
 			delete(s.actor.In, what.As[UID])
 			s.actor.Ref[Where].In[what.As[UID]] = what
 			what.Schedule(Action)
+			what.Schedule(Cleanup)
 			what.Ref[Where] = s.actor.Ref[Where]
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You drop ", what.As[Name], ".")
@@ -407,8 +408,17 @@ func (s *state) Get() {
 			s.Msg(s.actor, what.As[Name], " does not want to be taken!")
 		default:
 			what.Suspend(Action)
+			what.Cancel(Cleanup)
 			delete(s.actor.Ref[Where].In, what.As[UID])
 			what = what.Spawn()
+
+			// If item is a container it may have had items put in to it before it
+			// was spawned. In which case the items will have pending clean-ups that
+			// need to be cancelled.
+			for _, what := range what.In {
+				what.Cancel(Cleanup)
+			}
+
 			s.actor.In[what.As[UID]] = what
 			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
@@ -461,6 +471,7 @@ func (s *state) Take() {
 		case where.Is&NPC == NPC || what.Is&Narrative == Narrative:
 			s.Msg(s.actor, "You can't take ", what.As[Name], " from ", where.As[Name], ".")
 		default:
+			what.Cancel(Cleanup)
 			delete(where.In, what.As[UID])
 			what = what.Spawn()
 			s.actor.In[what.As[UID]] = what
@@ -508,6 +519,8 @@ func (s *state) Put() {
 		return
 	}
 
+	parent := where.Ref[Where]
+
 	notify := false
 	for _, uid := range Match(words, s.actor) {
 		what := s.actor.In[uid]
@@ -523,6 +536,12 @@ func (s *state) Put() {
 			delete(s.actor.In, what.As[UID])
 			where.In[what.As[UID]] = what
 			what.Ref[Where] = where
+
+			// If container not held by a player and not pending a clean-up then schedule our own
+			if (parent == nil || parent.Is&Player == 0) && where.Event[Cleanup] == nil {
+				what.Schedule(Cleanup)
+			}
+
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, "You put ", what.As[Name], " into ", where.As[Name], ".")
 			notify = true
