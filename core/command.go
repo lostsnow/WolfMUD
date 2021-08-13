@@ -85,15 +85,17 @@ func RegisterCommandHandlers() {
 		"#GOTO":     (*state).Teleport,
 
 		// Scripting only commands
-		"$POOF":   (*state).Poof,
-		"$ACT":    (*state).Act,
-		"$ACTION": (*state).Action,
-		"$RESET":  (*state).Reset,
+		"$POOF":    (*state).Poof,
+		"$ACT":     (*state).Act,
+		"$ACTION":  (*state).Action,
+		"$RESET":   (*state).Reset,
+		"$CLEANUP": (*state).Cleanup,
 	}
 
 	eventCommands = map[eventKey]string{
-		Action: "$ACTION",
-		Reset:  "$RESET",
+		Action:  "$ACTION",
+		Reset:   "$RESET",
+		Cleanup: "$CLEANUP",
 	}
 
 	// precompute a sorted list of available player and admin commands. Scripting
@@ -949,4 +951,23 @@ func (s *state) Junk() {
 			what.Junk()
 		}
 	}
+}
+
+func (s *state) Cleanup() {
+	defer s.actor.Junk()
+
+	where := s.actor.Ref[Where]
+
+	if where.Is&Container == Container || len(where.Who) >= CrowdSize {
+		return
+	}
+
+	if msg, ok := s.actor.As[OnCleanup]; ok {
+		if msg != "" {
+			s.Msg(where, msg)
+		}
+		return
+	}
+
+	s.Msg(where, "You thought you noticed ", s.actor.As[Name], " here, but you can't see it now.")
 }
