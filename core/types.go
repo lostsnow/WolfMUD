@@ -87,6 +87,7 @@ const (
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
 	Ref              // Item's original reference (zone:ref or ref)
+	TriggerType      // Type of trigger event to send
 	UID              // Item's unique identifier
 	VetoDrop         // Veto for DROP command
 	VetoGet          // Veto for GET command
@@ -113,6 +114,7 @@ var asNames = []string{
 	"OnCleanup",
 	"OnReset",
 	"Reference",
+	"TriggerType",
 	"UID",
 	"VetoDrop",
 	"VetoGet",
@@ -195,6 +197,10 @@ const (
 	ResetJitter                 // Maximum random delay to add to TesetAfter
 	ResetDueAt                  // Time a scheduled reset is due
 	ResetDueIn                  // Time remaining for reset
+	TriggerAfter                // How soon a trigger should occur
+	TriggerJitter               // Maximum random delay to add to trigger
+	TriggerDueAt                // Time a scheduled trigger event is due
+	TriggerDueIn                // Time remaining for trigger event
 )
 
 // intNames maps intKey values to their string name.
@@ -211,6 +217,10 @@ var intNames = []string{
 	"ResetJitter",
 	"ResetDueAt",
 	"ResetDueIn",
+	"TriggerAfter",
+	"TriggerJitter",
+	"TriggerDueAt",
+	"TriggerDueIn",
 }
 
 // Standard offsets for Event related values. Given an eventKey we can add the
@@ -232,6 +242,7 @@ const (
 	Action  eventKey = eventKey(ActionAfter)
 	Cleanup          = eventKey(CleanupAfter)
 	Reset            = eventKey(ResetAfter)
+	Trigger          = eventKey(TriggerAfter)
 )
 
 // eventNames maps eventKey values to their string name.
@@ -239,6 +250,7 @@ var eventNames = map[eventKey]string{
 	Action:  "Action",
 	Cleanup: "Cleanup",
 	Reset:   "Reset",
+	Trigger: "Trigger",
 }
 
 // Constants for Thing.Ref keys

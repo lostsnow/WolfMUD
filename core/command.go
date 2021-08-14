@@ -90,12 +90,14 @@ func RegisterCommandHandlers() {
 		"$ACTION":  (*state).Action,
 		"$RESET":   (*state).Reset,
 		"$CLEANUP": (*state).Cleanup,
+		"$TRIGGER": (*state).Trigger,
 	}
 
 	eventCommands = map[eventKey]string{
 		Action:  "$ACTION",
 		Reset:   "$RESET",
 		Cleanup: "$CLEANUP",
+		Trigger: "$TRIGGER",
 	}
 
 	// precompute a sorted list of available player and admin commands. Scripting
@@ -979,4 +981,13 @@ func (s *state) Cleanup() {
 	}
 
 	s.Msg(where, "You thought you noticed ", s.actor.As[Name], " here, but you can't see it now.")
+}
+
+// Trigger is used to process a trigger event for an item. The trigger type can
+// be set via Thing.As[TriggerType]. The item can be in or out of play at the
+// time.
+func (s *state) Trigger() {
+
+	switch s.actor.As[TriggerType] {
+	}
 }
