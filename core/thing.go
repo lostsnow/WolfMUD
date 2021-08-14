@@ -26,8 +26,8 @@ type Thing struct {
 	Any   map[anyKey][]string // One or more values for a key
 	Int   map[intKey]int64    // Integer values, counts and quantities
 	Ref   map[refKey]*Thing   // References to other Thing (e.g. Where)
-	In    Things              // Item's in a Thing (inventory)
-	Out   Things              // Item's out of play in a Thing
+	In    Things              // Items in a Thing (inventory)
+	Out   Things              // Items out of play in a Thing
 	Who   Things              // Who is here? Players @ location
 	Is    isKey               // Bit flags for capabilities/state
 	Event Events              // In-flight event timers
