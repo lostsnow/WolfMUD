@@ -623,10 +623,22 @@ func (s *state) Open() {
 			s.Msg(s.actor, what.As[Name], " is already open.")
 		default:
 			what.Is |= Open
+			if what.Is&_Open == 0 {
+				what.Schedule(Trigger)
+			} else {
+				what.Cancel(Trigger)
+			}
+
 			where := s.actor.Ref[Where]
-			s.Msg(s.actor, "You open ", what.As[Name], ".")
-			if len(where.Who) < CrowdSize {
+			if len(where.Who) >= CrowdSize {
+				return
+			}
+
+			if s.actor != what {
+				s.Msg(s.actor, "You open ", what.As[Name], ".")
 				s.Msg(where, s.actor.As[Name], " opens ", what.As[Name], ".")
+			} else {
+				s.Msg(where, what.As[Name], " opens.")
 			}
 
 			// Find location on other side...
@@ -636,9 +648,7 @@ func (s *state) Open() {
 			} else {
 				where = what.Ref[Where]
 			}
-			if len(where.Who) < CrowdSize {
-				s.Msg(where, what.As[Name], " opens.")
-			}
+			s.Msg(where, what.As[Name], " opens.")
 		}
 	}
 }
@@ -662,10 +672,22 @@ func (s *state) Close() {
 			s.Msg(s.actor, what.As[Name], " is already closed.")
 		default:
 			what.Is &^= Open
+			if what.Is&_Open == _Open {
+				what.Schedule(Trigger)
+			} else {
+				what.Cancel(Trigger)
+			}
+
 			where := s.actor.Ref[Where]
-			s.Msg(s.actor, "You close ", what.As[Name], ".")
-			if len(where.Who) < CrowdSize {
+			if len(where.Who) >= CrowdSize {
+				return
+			}
+
+			if s.actor != what {
+				s.Msg(s.actor, "You close ", what.As[Name], ".")
 				s.Msg(where, s.actor.As[Name], " closes ", what.As[Name], ".")
+			} else {
+				s.Msg(where, what.As[Name], " closes.")
 			}
 
 			// Find location on other side...
@@ -675,9 +697,7 @@ func (s *state) Close() {
 			} else {
 				where = what.Ref[Where]
 			}
-			if len(where.Who) < CrowdSize {
-				s.Msg(where, what.As[Name], " closes.")
-			}
+			s.Msg(where, what.As[Name], " closes.")
 		}
 	}
 }
@@ -989,5 +1009,11 @@ func (s *state) Cleanup() {
 func (s *state) Trigger() {
 
 	switch s.actor.As[TriggerType] {
+	case "BLOCKER":
+		if s.actor.Is&_Open == _Open {
+			s.subparse("OPEN " + s.actor.As[UID])
+		} else {
+			s.subparse("CLOSE " + s.actor.As[UID])
+		}
 	}
 }
