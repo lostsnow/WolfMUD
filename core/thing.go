@@ -161,16 +161,22 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.As[Description] = decode.String(data)
 		case "DOOR":
 			for field, data := range decode.PairList(r["DOOR"]) {
+				b := []byte(data)
 				switch field {
+				case "RESET":
+					t.Int[TriggerAfter] = decode.Duration(b).Nanoseconds()
 				case "EXIT":
 					t.As[Blocker] = data
+				case "JITTER":
+					t.Int[TriggerJitter] = decode.Duration(b).Nanoseconds()
 				case "OPEN":
 					if decode.Boolean([]byte(data)) {
-						t.Is |= Open
+						t.Is |= Open | _Open
 					}
 				default:
 					//fmt.Printf("Unknown attribute: %s\n", field)
 				}
+				t.As[TriggerType] = "BLOCKER"
 			}
 		case "EXIT", "EXITS":
 			for name, loc := range decode.PairList(r["EXITS"]) {
