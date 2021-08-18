@@ -66,6 +66,20 @@ func player(conn *net.TCPConn) {
 	player.As[core.Description] = "An adventurer, just like you."
 	player.As[core.DynamicAlias] = "PLAYER"
 	player.Any[core.Alias] = []string{"PLAYER" + strconv.FormatUint(np, 10)}
+	player.Any[core.Body] = []string{
+		"HEAD",
+		"FACE", "EAR", "EYE", "NOSE", "EYE", "EAR",
+		"MOUTH", "UPPER_LIP", "LOWER_LIP",
+		"NECK",
+		"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+		"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+		"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
+		"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
+		"BACK", "CHEST",
+		"WAIST", "PELVIS",
+		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+	}
 	uid := player.As[core.UID]
 
 	log.Printf("[%s] connection from: %s", uid, conn.RemoteAddr())
