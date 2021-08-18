@@ -192,6 +192,15 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				t.As[DirRefToAs[NameToDir[name]]] = loc
 			}
 			t.Is |= Location
+		case "HOLDABLE":
+			for slot, qty := range decode.PairList(r[field]) {
+				if qty == "" {
+					qty = "1"
+				}
+				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+					t.Any[Holdable] = append(t.Any[Holdable], slot)
+				}
+			}
 		case "INV", "INVENTORY":
 			t.Is |= Container
 		case "LOCATION":
@@ -244,6 +253,24 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.As[VetoTakeOut] = msg
 				default:
 					//fmt.Printf("Unknown veto: %s, for: %s\n", cmd, t.As[Name])
+				}
+			}
+		case "WEARABLE":
+			for slot, qty := range decode.PairList(r[field]) {
+				if qty == "" {
+					qty = "1"
+				}
+				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+					t.Any[Wearable] = append(t.Any[Wearable], slot)
+				}
+			}
+		case "WIELDABLE":
+			for slot, qty := range decode.PairList(r[field]) {
+				if qty == "" {
+					qty = "1"
+				}
+				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+					t.Any[Wieldable] = append(t.Any[Wieldable], slot)
 				}
 			}
 		case "WRITING":
