@@ -147,6 +147,15 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			for qualifier := range q {
 				t.Any[Qualifier] = append(t.Any[Qualifier], qualifier)
 			}
+		case "BODY":
+			for slot, qty := range decode.PairList(r[field]) {
+				if qty == "" {
+					qty = "1"
+				}
+				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+					t.Any[Body] = append(t.Any[Body], slot)
+				}
+			}
 		case "CLEANUP":
 			for k, v := range decode.PairList(r[field]) {
 				b := []byte(v)
