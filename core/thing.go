@@ -376,7 +376,7 @@ func (t *Thing) Spawn() *Thing {
 	}
 	t.Ref[Where].Out[t.As[UID]] = t
 	T := t.spawn()
-	T.Is ^= Spawnable
+	T.Is &^= Spawnable
 	delete(T.Int, ResetAfter)
 	delete(T.Int, ResetJitter)
 	delete(T.Int, ResetDueAt)
