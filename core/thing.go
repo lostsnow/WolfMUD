@@ -260,6 +260,11 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		t.Is &^= Container
 	}
 
+	// If we have a body and not a Player assume it's an NPC
+	if t.Is&Player != Player && len(t.Any[Body]) != 0 {
+		t.Is |= NPC
+	}
+
 	// If zone information present append it to Ref, any exits, then discard.
 	if t.As[Zone] != "" {
 		t.As[Ref] = t.As[Zone] + ":" + t.As[Ref]
