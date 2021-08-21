@@ -1017,3 +1017,60 @@ func (s *state) Trigger() {
 		}
 	}
 }
+
+// intersects returns true if any elements of want are also in have, else false.
+func intersects(have, want []string) bool {
+	sort.Strings(have)
+	sort.Strings(want)
+	h, w := 0, 0
+	for w < len(want) && h < len(have) {
+		switch {
+		case have[h] < want[w]:
+			h++
+		case want[w] < have[h]:
+			w++
+		default:
+			return true
+		}
+	}
+	return false
+}
+
+// conatins returns true if have contains all elements of of want, else false.
+func conatins(have, want []string) bool {
+	sort.Strings(have)
+	sort.Strings(want)
+	x := 0
+	for _, have := range have {
+		if want[x] == have {
+			x++
+			if x == len(want) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// remainder returns the remaining elements of have after removing all elements
+// of want. If have does not contain all elements of want nothing is removed
+// and have is returned.
+func remainder(have, want []string) (rem []string) {
+	if len(want) == 0 {
+		return have
+	}
+	sort.Strings(have)
+	sort.Strings(want)
+	x := 0
+	for y, had := range have {
+		if want[x] == had {
+			x++
+			if x == len(want) {
+				return append(rem, have[y+1:]...)
+			}
+		} else {
+			rem = append(rem, had)
+		}
+	}
+	return have
+}
