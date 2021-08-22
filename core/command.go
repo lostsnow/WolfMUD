@@ -119,10 +119,13 @@ func RegisterCommandHandlers() {
 }
 
 // FIXME: Currently we just force junk everything in the player's inventory.
+// FIXME: We reset usage here in case item is unique, should it go somewhere
+// else? Thing.Junk maybe?
 func (s *state) Quit() {
 	where := s.actor.Ref[Where]
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
+		what.Is &^= Using
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
