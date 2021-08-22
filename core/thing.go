@@ -292,6 +292,13 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		t.Is |= NPC
 	}
 
+	// All items are holdable in one hand except for locations, players, NPCs
+	// and narratives. This can be overridden with a VetoHold or by defining an
+	// explicit Holdable field for the item.
+	if t.Is&(Location|Player|NPC|Narrative) == 0 && t.Any[Holdable] == nil {
+		t.Any[Holdable] = append(t.Any[Holdable], "HAND")
+	}
+
 	// If zone information present append it to Ref, any exits, then discard.
 	if t.As[Zone] != "" {
 		t.As[Ref] = t.As[Zone] + ":" + t.As[Ref]
