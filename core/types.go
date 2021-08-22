@@ -24,6 +24,7 @@ const (
 	Container isKey = 1 << iota // A container, allows PUT/TAKE
 	Dark                        // A dark location
 	Freed                       // Thing has been freed for GC
+	Holding                     // Item is being held
 	Location                    // Item is a location
 	NPC                         // An NPC
 	Narrative                   // A narrative item
@@ -32,7 +33,14 @@ const (
 	Spawnable                   // Is item spawnable?
 	Start                       // A starting location
 	Wait                        // Container reset wait for inventory?
+	Wielding                    // Item is being wielded
+	Wearing                     // Item is being worn
 	_Open                       // Initial open state of item (e.g. door)
+)
+
+// Useful masks for groups of constants for checking multiple flags.
+const (
+	Using isKey = Holding | Wearing | Wielding
 )
 
 // isNames maps isKey bits to their string name. See also setName method.
@@ -40,6 +48,7 @@ var isNames = []string{
 	"Container",
 	"Dark",
 	"Freed",
+	"Holding",
 	"Location",
 	"NPC",
 	"Narrative",
@@ -48,6 +57,8 @@ var isNames = []string{
 	"Spawnable",
 	"Start",
 	"Wait",
+	"Wielding",
+	"Wearing",
 	"_Open",
 }
 
