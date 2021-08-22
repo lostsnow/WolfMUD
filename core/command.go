@@ -376,6 +376,8 @@ func (s *state) Drop() {
 			s.Msg(s.actor, "You do not have any '", uid, "' to drop.")
 		case what.As[VetoDrop] != "":
 			s.Msg(s.actor, what.As[VetoDrop])
+		case what.Is&Using != 0:
+			s.Msg(s.actor, "You can't drop ", what.As[Name], " while using it.")
 		default:
 			delete(s.actor.In, what.As[UID])
 			s.actor.Ref[Where].In[what.As[UID]] = what
@@ -539,6 +541,8 @@ func (s *state) Put() {
 			s.Msg(s.actor, "You have no '", uid, "' to put into ", where.As[Name], ".")
 		case what.As[VetoPut] != "":
 			s.Msg(s.actor, what.As[VetoPut])
+		case what.Is&Using != 0:
+			s.Msg(s.actor, "You can't put ", what.As[Name], " anywhere while using it.")
 		case uid == where.As[UID]:
 			s.Msg(s.actor, "It might be interesting to put ", what.As[Name],
 				" inside itself, but probably paradoxical as well.")
@@ -992,6 +996,8 @@ func (s *state) Junk() {
 			s.Msg(s.actor, "You have no '", uid, "' to junk.")
 		case what.As[VetoJunk] != "":
 			s.Msg(s.actor, what.As[VetoJunk])
+		case what.Is&Using != 0:
+			s.Msg(s.actor, "You can't junk ", what.As[Name], " while using it.")
 		default:
 			s.Msg(s.actor, "You junk ", what.As[Name], ".")
 			if notify {
