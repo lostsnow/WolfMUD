@@ -107,6 +107,7 @@ const (
 	VetoJunk         // Veto for JUNK command
 	VetoPut          // Veto PUT command for item
 	VetoPutIn        // Veto for PUT command into container
+	VetoRemove       // Veto REMOVE command
 	VetoTake         // Veto TAKE command for item
 	VetoTakeOut      // Veto for TAKE command from container
 	Writing          // Description of writing on an item
@@ -134,6 +135,7 @@ var asNames = []string{
 	"VetoJunk",
 	"VetoPut",
 	"VetoPutIn",
+	"VetoRemove",
 	"VetoTake",
 	"VetoTakeOut",
 	"Writing",

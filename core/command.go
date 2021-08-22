@@ -78,6 +78,7 @@ func RegisterCommandHandlers() {
 		"SNEEZE":    (*state).Sneeze,
 		"SHOUT":     (*state).Shout,
 		"JUNK":      (*state).Junk,
+		"REMOVE":    (*state).Remove,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1014,6 +1015,51 @@ func (s *state) Trigger() {
 			s.subparse("OPEN " + s.actor.As[UID])
 		} else {
 			s.subparse("CLOSE " + s.actor.As[UID])
+		}
+	}
+}
+
+func (s *state) Remove() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "You go to remove... something?")
+		return
+	}
+
+	where := s.actor.Ref[Where]
+	notify := len(where.Who) < CrowdSize
+
+	for _, uid := range Match(s.word, s.actor) {
+		what := s.actor.In[uid]
+		var (
+			usage string
+			slots []string
+		)
+		switch {
+		case what.Is&Holding == Holding:
+			usage = " holding "
+			slots = what.Any[Holdable]
+		case what.Is&Wearing == Wearing:
+			usage = " wearing "
+			slots = what.Any[Wearable]
+		case what.Is&Wielding == Wielding:
+			usage = " wielding "
+			slots = what.Any[Wieldable]
+		}
+
+		switch {
+		case what == nil:
+			s.Msg(s.actor, "You have no '", uid, "' to remove.")
+		case what.Is&Using == 0:
+			s.Msg(s.actor, "You are not using ", what.As[Name], ".")
+		case what.As[VetoRemove] != "":
+			s.Msg(s.actor, what.As[VetoRemove])
+		default:
+			what.Is &^= Using
+			s.actor.Any[Body] = append(s.actor.Any[Body], slots...)
+			s.Msg(s.actor, "You stop", usage, what.As[Name], ".")
+			if notify {
+				s.Msg(where, s.actor.As[Name], " stops", usage, what.As[Name], ".")
+			}
 		}
 	}
 }
