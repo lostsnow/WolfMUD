@@ -9,6 +9,8 @@ import (
 	"log"
 	"math/rand"
 	"sort"
+
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // CrowdSize represents the minimum number of players considered to be a crowd.
@@ -79,6 +81,9 @@ func RegisterCommandHandlers() {
 		"SHOUT":     (*state).Shout,
 		"JUNK":      (*state).Junk,
 		"REMOVE":    (*state).Remove,
+		"HOLD":      (*state).Hold,
+		"WEAR":      (*state).Wear,
+		"WIELD":     (*state).Wield,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1059,6 +1064,137 @@ func (s *state) Remove() {
 			s.Msg(s.actor, "You stop", usage, what.As[Name], ".")
 			if notify {
 				s.Msg(where, s.actor.As[Name], " stops", usage, what.As[Name], ".")
+			}
+		}
+	}
+}
+
+func (s *state) Hold() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "You go to hold... something?")
+		return
+	}
+
+	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+
+	for _, uid := range Match(s.word, s.actor) {
+		what := s.actor.In[uid]
+
+		switch {
+		case what == nil:
+			s.Msg(s.actor, "You have no '", uid, "' to hold.")
+		case what.Is&Holding == Holding:
+			s.Msg(s.actor, "You are already holding ", what.As[Name], ".")
+		case what.Any[Holdable] == nil:
+			s.Msg(s.actor, what.As[Name], " isn't something you can hold.")
+		case what.Is&Wearing == Wearing:
+			s.Msg(s.actor, "You can't hold ", what.As[Name], " while wearing it.")
+		case what.Is&Wielding == Wielding:
+			s.Msg(s.actor, "You can't hold ", what.As[Name], " while wielding it.")
+		case what.As[VetoHold] != "":
+			s.Msg(s.actor, what.As[VetoHold])
+		case !conatins(s.actor.Any[Body], what.Any[Holdable]):
+			var whys []string
+			for _, item := range s.actor.In {
+				if item.Is&Holding != 0 && intersects(item.Any[Holdable], what.Any[Holdable]) {
+					whys = append(whys, item.As[Name])
+				}
+			}
+			s.Msg(s.actor, "You can't hold ", what.As[Name], " while holding ", text.List(whys), ".")
+		default:
+			what.Is |= Holding
+			s.actor.Any[Body] = remainder(s.actor.Any[Body], what.Any[Holdable])
+			s.Msg(s.actor, "You hold ", what.As[Name], ".")
+			if notify {
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " holds ", what.As[Name], ".")
+			}
+		}
+	}
+}
+
+func (s *state) Wear() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "You go to wear... something?")
+		return
+	}
+
+	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+
+	for _, uid := range Match(s.word, s.actor) {
+		what := s.actor.In[uid]
+		switch {
+		case what == nil:
+			s.Msg(s.actor, "You have no '", uid, "' to wear.")
+		case what.Is&Wearing == Wearing:
+			s.Msg(s.actor, "You are already wearing ", what.As[Name], ".")
+		case what.Any[Wearable] == nil:
+			s.Msg(s.actor, what.As[Name], " isn't something you can wear.")
+		case what.Is&Holding == Holding:
+			s.Msg(s.actor, "You can't wear ", what.As[Name], " while holding it.")
+		case what.Is&Wielding == Wielding:
+			s.Msg(s.actor, "You can't wear ", what.As[Name], " while wielding it.")
+		case what.As[VetoWear] != "":
+			s.Msg(s.actor, what.As[VetoWear])
+		case !conatins(s.actor.Any[Body], what.Any[Wearable]):
+			var whys []string
+			for _, item := range s.actor.In {
+				if item.Is&Wearing != 0 && intersects(item.Any[Wearable], what.Any[Wearable]) {
+					whys = append(whys, item.As[Name])
+				}
+			}
+			s.Msg(s.actor, "You can't wear ", what.As[Name], " while wearing ", text.List(whys), ".")
+		default:
+			what.Is |= Wearing
+			s.actor.Any[Body] = remainder(s.actor.Any[Body], what.Any[Wearable])
+			s.Msg(s.actor, "You wear ", what.As[Name], ".")
+			if notify {
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " wears ", what.As[Name], ".")
+			}
+		}
+	}
+}
+
+func (s *state) Wield() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "You go to wield... something?")
+		return
+	}
+
+	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+
+	for _, uid := range Match(s.word, s.actor) {
+		what := s.actor.In[uid]
+		switch {
+		case what == nil:
+			s.Msg(s.actor, "You have no '", uid, "' to wield.")
+		case what.Is&Wielding == Wielding:
+			s.Msg(s.actor, "You are already wielding ", what.As[Name], ".")
+		case what.Any[Wieldable] == nil:
+			s.Msg(s.actor, what.As[Name], " isn't something you can wield.")
+		case what.Is&Holding == Holding:
+			s.Msg(s.actor, "You can't wield ", what.As[Name], " while holding it.")
+		case what.Is&Wearing == Wearing:
+			s.Msg(s.actor, "You can't wield ", what.As[Name], " while wearing it.")
+		case what.As[VetoWield] != "":
+			s.Msg(s.actor, what.As[VetoWield])
+		case !conatins(s.actor.Any[Body], what.Any[Wieldable]):
+			var whys []string
+			for _, item := range s.actor.In {
+				if item.Is&Wielding != 0 && intersects(item.Any[Wieldable], what.Any[Wieldable]) {
+					whys = append(whys, item.As[Name])
+				}
+			}
+			if len(whys) == 0 {
+				s.Msg(s.actor, "You are incapable of wielding ", what.As[Name], ".")
+				return
+			}
+			s.Msg(s.actor, "You can't wield ", what.As[Name], " while wielding ", text.List(whys), ".")
+		default:
+			what.Is |= Wielding
+			s.actor.Any[Body] = remainder(s.actor.Any[Body], what.Any[Wieldable])
+			s.Msg(s.actor, "You wield ", what.As[Name], ".")
+			if notify {
+				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " wields ", what.As[Name], ".")
 			}
 		}
 	}

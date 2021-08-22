@@ -104,12 +104,15 @@ const (
 	UID              // Item's unique identifier
 	VetoDrop         // Veto for DROP command
 	VetoGet          // Veto for GET command
+	VetoHold         // Veto HOLD command
 	VetoJunk         // Veto for JUNK command
 	VetoPut          // Veto PUT command for item
 	VetoPutIn        // Veto for PUT command into container
 	VetoRemove       // Veto REMOVE command
 	VetoTake         // Veto TAKE command for item
 	VetoTakeOut      // Veto for TAKE command from container
+	VetoWear         // Veto WEAR command
+	VetoWield        // Veto WIELD command
 	Writing          // Description of writing on an item
 	Zone             // Zone item's definition loaded from
 )
@@ -132,12 +135,15 @@ var asNames = []string{
 	"UID",
 	"VetoDrop",
 	"VetoGet",
+	"VetoHold",
 	"VetoJunk",
 	"VetoPut",
 	"VetoPutIn",
 	"VetoRemove",
 	"VetoTake",
 	"VetoTakeOut",
+	"VetoWear",
+	"VetoWield",
 	"Writing",
 	"Zone",
 }
