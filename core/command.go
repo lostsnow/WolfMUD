@@ -343,7 +343,16 @@ func (s *state) Inventory() {
 	default:
 		s.Msg(s.actor, "You are carrying:")
 		for _, what := range s.actor.In.Sort() {
-			s.Msg(s.actor, "  ", what.As[Name])
+			var usage string
+			switch {
+			case what.Is&Holding == Holding:
+				usage = " (held)"
+			case what.Is&Wearing == Wearing:
+				usage = " (worn)"
+			case what.Is&Wielding == Wielding:
+				usage = " (wielded)"
+			}
+			s.Msg(s.actor, "  ", what.As[Name], usage)
 		}
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
 			s.Msg(s.actor.Ref[Where], s.actor.As[Name], " checks over their gear.")
