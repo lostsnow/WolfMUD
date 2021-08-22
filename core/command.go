@@ -416,7 +416,7 @@ func (s *state) Get() {
 			s.Msg(s.actor, "Trying to pick youreself up by your bootlaces?")
 		case what.Is&Narrative == Narrative:
 			s.Msg(s.actor, "You cannot take ", what.As[Name], ".")
-		case what.Is&(NPC|Player) != 0:
+		case what.Is&(NPC|Player) != 0 && len(what.Any[Holdable]) == 0:
 			s.Msg(s.actor, what.As[Name], " does not want to be taken!")
 		default:
 			what.Suspend(Action)
