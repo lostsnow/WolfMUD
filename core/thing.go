@@ -282,14 +282,14 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		}
 	}
 
-	// If it's a location it's not a container
-	if t.Is&Location == Location {
-		t.Is &^= Container
-	}
-
 	// If we have a body and not a Player assume it's an NPC
 	if t.Is&Player != Player && len(t.Any[Body]) != 0 {
 		t.Is |= NPC
+	}
+
+	// If it's a location, player or NPC it's not a container
+	if t.Is&(Location|Player|NPC) != 0 {
+		t.Is &^= Container
 	}
 
 	// All items are holdable in one hand except for locations, players, NPCs
