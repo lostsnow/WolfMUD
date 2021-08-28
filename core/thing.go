@@ -110,6 +110,16 @@ func (t *Thing) Enable(parent *Thing) {
 
 }
 
+// decodeInt is a wrapper to recordjar/decode.Integer defaulting the qty to 1
+// if an empty string is passed in.
+func decodeInt(qty string) int {
+	q := []byte(qty)
+	if len(qty) == 0 {
+		q = append(q, '1')
+	}
+	return decode.Integer(q)
+}
+
 // Unmarshal loads data from the passed Record into a Thing.
 func (t *Thing) Unmarshal(r recordjar.Record) {
 	for field, data := range r {
@@ -149,10 +159,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "BODY":
 			for slot, qty := range decode.PairList(r[field]) {
-				if qty == "" {
-					qty = "1"
-				}
-				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+				for x := 0; x < decodeInt(qty); x++ {
 					t.Any[Body] = append(t.Any[Body], slot)
 				}
 			}
@@ -194,10 +201,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.Is |= Location
 		case "HOLDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
-				if qty == "" {
-					qty = "1"
-				}
-				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+				for x := 0; x < decodeInt(qty); x++ {
 					t.Any[Holdable] = append(t.Any[Holdable], slot)
 				}
 			}
@@ -257,19 +261,13 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "WEARABLE":
 			for slot, qty := range decode.PairList(r[field]) {
-				if qty == "" {
-					qty = "1"
-				}
-				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+				for x := 0; x < decodeInt(qty); x++ {
 					t.Any[Wearable] = append(t.Any[Wearable], slot)
 				}
 			}
 		case "WIELDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
-				if qty == "" {
-					qty = "1"
-				}
-				for x := 0; x < decode.Integer([]byte(qty)); x++ {
+				for x := 0; x < decodeInt(qty); x++ {
 					t.Any[Wieldable] = append(t.Any[Wieldable], slot)
 				}
 			}
