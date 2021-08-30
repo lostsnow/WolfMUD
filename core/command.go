@@ -1150,7 +1150,7 @@ func (s *state) Hold() {
 			s.Msg(s.actor, "You can't hold ", what.As[Name], " while holding ", text.List(whys), ".")
 		default:
 			what.Is |= Holding
-			s.actor.Any[Body] = remainder(s.actor.Any[Body], what.Any[Holdable])
+			s.actor.Any[Body], _ = remainder(s.actor.Any[Body], what.Any[Holdable])
 			s.Msg(s.actor, "You hold ", what.As[Name], ".")
 			if notify {
 				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " holds ", what.As[Name], ".")
@@ -1192,7 +1192,7 @@ func (s *state) Wear() {
 			s.Msg(s.actor, "You can't wear ", what.As[Name], " while wearing ", text.List(whys), ".")
 		default:
 			what.Is |= Wearing
-			s.actor.Any[Body] = remainder(s.actor.Any[Body], what.Any[Wearable])
+			s.actor.Any[Body], _ = remainder(s.actor.Any[Body], what.Any[Wearable])
 			s.Msg(s.actor, "You wear ", what.As[Name], ".")
 			if notify {
 				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " wears ", what.As[Name], ".")
@@ -1238,7 +1238,7 @@ func (s *state) Wield() {
 			s.Msg(s.actor, "You can't wield ", what.As[Name], " while wielding ", text.List(whys), ".")
 		default:
 			what.Is |= Wielding
-			s.actor.Any[Body] = remainder(s.actor.Any[Body], what.Any[Wieldable])
+			s.actor.Any[Body], _ = remainder(s.actor.Any[Body], what.Any[Wieldable])
 			s.Msg(s.actor, "You wield ", what.As[Name], ".")
 			if notify {
 				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " wields ", what.As[Name], ".")
@@ -1282,11 +1282,11 @@ func conatins(have, want []string) bool {
 }
 
 // remainder returns the remaining elements of have after removing all elements
-// of want. If have does not contain all elements of want nothing is removed
-// and have is returned.
-func remainder(have, want []string) (rem []string) {
+// of want and true. If have does not contain all elements of want nothing is
+// removed and have is returned unmodified as well as false.
+func remainder(have, want []string) (rem []string, had bool) {
 	if len(want) == 0 {
-		return have
+		return have, false
 	}
 	sort.Strings(have)
 	sort.Strings(want)
@@ -1295,11 +1295,11 @@ func remainder(have, want []string) (rem []string) {
 		if want[x] == had {
 			x++
 			if x == len(want) {
-				return append(rem, have[y+1:]...)
+				return append(rem, have[y+1:]...), true
 			}
 		} else {
 			rem = append(rem, had)
 		}
 	}
-	return have
+	return have, false
 }
