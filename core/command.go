@@ -327,6 +327,35 @@ func (s *state) Examine() {
 			}
 		}
 
+		// If player or mobile/NPC describe items being worn, held or wielded.
+		if what.Is&(Player|NPC) != 0 {
+			var wearing, holding, wielding []string
+			for _, item := range what.In {
+				switch {
+				case item.Is&Holding == Holding:
+					holding = append(holding, item.As[Name])
+				case item.Is&Wearing == Wearing:
+					wearing = append(wearing, item.As[Name])
+				case item.Is&Wielding == Wielding:
+					wielding = append(wielding, item.As[Name])
+				}
+			}
+
+			if len(wearing) > 0 {
+				s.MsgAppend(s.actor, " They are wearing ", text.List(wearing), ".")
+			}
+
+			switch {
+			case len(holding) > 0 && len(wielding) > 0:
+				s.MsgAppend(s.actor, " They are holding ", text.List(holding),
+					" while wielding ", text.List(wielding), ".")
+			case len(holding) > 0:
+				s.MsgAppend(s.actor, " They are holding ", text.List(holding), ".")
+			case len(wielding) > 0:
+				s.MsgAppend(s.actor, " They are wielding ", text.List(wielding), ".")
+			}
+		}
+
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
 			if what.Is&Player == Player {
 				s.Msg(what, s.actor.As[Name], " studies you.")
