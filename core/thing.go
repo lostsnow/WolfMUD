@@ -70,11 +70,13 @@ func NewThing() *Thing {
 	return t
 }
 
-// Enable performs final setup for a Thing placed into the world. The Thing
-// will have access to its inventory and surroundings. The passed parent is
-// the UID of the containing inventory, for locations themselves this will be
-// an empty string.
-func (t *Thing) Enable(parent *Thing) {
+// InitOnce performs final setup for a Thing placed into the world. The Thing
+// will have access to its inventory and surroundings. The passed parent is the
+// UID of the containing inventory, for locations themselves this will be an
+// empty string. The parent is enabled before any inventory items. As its name
+// implies InitOnce is only called once for a Thing - when it is first put into
+// the world.
+func (t *Thing) InitOnce(parent *Thing) {
 
 	// If it's a blocker setup the 'other side'
 	if t.As[Blocker] != "" && t.Ref[Where] == parent {
@@ -102,10 +104,10 @@ func (t *Thing) Enable(parent *Thing) {
 	}
 
 	for _, item := range t.In {
-		item.Enable(t)
+		item.InitOnce(t)
 	}
 	for _, item := range t.Out {
-		item.Enable(t)
+		item.InitOnce(t)
 	}
 
 }

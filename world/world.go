@@ -179,16 +179,16 @@ func Load() {
 		}
 	}
 
-	// Enable all items in the world - this is done last so that all location
-	// references have been resolved and we can have things like doors between
-	// zones work properly.
+	// Finish initialising all items in the world - this is done last so that all
+	// location references have been resolved and we can have things like doors
+	// between zones work properly.
 	//
 	// NOTE: If we didn't allow one side of a door to be in one zone and the
 	// other side of the door to be in a different zone we could call enable when
 	// copying to the world.
-	log.Print("Enabling items")
+	log.Print("Final item setup")
 	for _, loc := range core.World {
-		loc.Enable(nil)
+		loc.InitOnce(nil)
 	}
 
 	log.Printf("Total world locations: %d, starting locations: %d",
