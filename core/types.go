@@ -192,11 +192,15 @@ func (dir refKey) ReverseDir() refKey {
 const (
 	Alias     anyKey = iota // Aliases for an item
 	Body                    // Body slots available to an item
-	Holdable                // Item is holdable if body slots free
+	Holdable                // Body slots required to hold item
 	OnAction                // Actions that can be performed
 	Qualifier               // Alias qualifiers
-	Wearable                // Item is wearable if body slots free
-	Wieldable               // Item is wieldable if body slots free
+	Wearable                // Body slots required to wear item
+	Wieldable               // Body slots required to wield item
+	_Holding                // UIDs of items initially held
+	_Wearing                // UIDs of items initially worn
+	_Wielding               // UIDs of items initially wielded
+
 )
 
 // anyNames maps anyKey values to their string name.
@@ -208,6 +212,9 @@ var anyNames = []string{
 	"Qualifier",
 	"Wearable",
 	"Wieldable",
+	"_Holding",
+	"_Wearing",
+	"_Wielding",
 }
 
 // Constants for Thing.Int keys

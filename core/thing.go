@@ -99,6 +99,17 @@ func (t *Thing) InitOnce(parent *Thing) {
 		t.Schedule(Action)
 	}
 
+	// Swap references for UIDs
+	refToUID := make(map[string]string, len(t.In))
+	for _, item := range t.In {
+		refToUID[item.As[Ref]] = item.As[UID]
+	}
+	for _, using := range []anyKey{_Holding, _Wearing, _Wielding} {
+		for x, ref := range t.Any[using] {
+			t.Any[using][x] = refToUID[ref]
+		}
+	}
+
 	if t.Is&Spawnable != Spawnable {
 		t.Ref[Origin] = parent
 	}
@@ -207,6 +218,10 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Any[Holdable] = append(t.Any[Holdable], slot)
 				}
 			}
+		case "HOLDING":
+			for _, ref := range decode.KeywordList(r[field]) {
+				t.Any[_Holding] = append(t.Any[_Holding], ref)
+			}
 		case "INV", "INVENTORY":
 			t.Is |= Container
 		case "LOCATION":
@@ -267,11 +282,19 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Any[Wearable] = append(t.Any[Wearable], slot)
 				}
 			}
+		case "WEARING":
+			for _, ref := range decode.KeywordList(r[field]) {
+				t.Any[_Wearing] = append(t.Any[_Wearing], ref)
+			}
 		case "WIELDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
 				for x := 0; x < decodeInt(qty); x++ {
 					t.Any[Wieldable] = append(t.Any[Wieldable], slot)
 				}
+			}
+		case "WIELDING":
+			for _, ref := range decode.KeywordList(r[field]) {
+				t.Any[_Wielding] = append(t.Any[_Wielding], ref)
 			}
 		case "WRITING":
 			t.As[Writing] = decode.String(data)
@@ -299,13 +322,24 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		t.Any[Holdable] = append(t.Any[Holdable], "HAND")
 	}
 
-	// If zone information present append it to Ref, any exits, then discard.
+	// If zone information present full qualify references with it
 	if t.As[Zone] != "" {
-		t.As[Ref] = t.As[Zone] + ":" + t.As[Ref]
+		t.As[Zone] += ":"
+		t.As[Ref] = t.As[Zone] + t.As[Ref]
+
+		for x := range t.Any[_Holding] {
+			t.Any[_Holding][x] = t.As[Zone] + t.Any[_Holding][x]
+		}
+		for x := range t.Any[_Wearing] {
+			t.Any[_Wearing][x] = t.As[Zone] + t.Any[_Wearing][x]
+		}
+		for x := range t.Any[_Wielding] {
+			t.Any[_Wielding][x] = t.As[Zone] + t.Any[_Wielding][x]
+		}
 
 		for _, dir := range DirRefToAs {
 			if t.As[dir] != "" {
-				t.As[dir] = t.As[Zone] + ":" + t.As[dir]
+				t.As[dir] = t.As[Zone] + t.As[dir]
 			}
 		}
 		delete(t.As, Zone)
