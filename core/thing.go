@@ -232,7 +232,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "EXIT", "EXITS":
 			for name, loc := range decode.PairList(r["EXITS"]) {
-				t.As[DirRefToAs[NameToDir[name]]] = loc
+				t.As[DirRefToAs[NameToDir[name]]] = t.As[Zone] + loc
 			}
 			t.Is |= Location
 		case "HOLDABLE":
@@ -243,7 +243,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "HOLDING":
 			for _, ref := range decode.KeywordList(r[field]) {
-				t.Any[_Holding] = append(t.Any[_Holding], ref)
+				t.Any[_Holding] = append(t.Any[_Holding], t.As[Zone]+ref)
 			}
 		case "INV", "INVENTORY":
 			t.Is |= Container
@@ -260,7 +260,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		case "ONRESET":
 			t.As[OnReset] = decode.String(r["ONRESET"])
 		case "REF":
-			t.As[Ref] = decode.Keyword(r[field])
+			t.As[Ref] = t.As[Zone] + decode.Keyword(r[field])
 		case "RESET":
 			for k, v := range decode.PairList(r[field]) {
 				b := []byte(v)
@@ -307,7 +307,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "WEARING":
 			for _, ref := range decode.KeywordList(r[field]) {
-				t.Any[_Wearing] = append(t.Any[_Wearing], ref)
+				t.Any[_Wearing] = append(t.Any[_Wearing], t.As[Zone]+ref)
 			}
 		case "WIELDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
@@ -317,7 +317,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "WIELDING":
 			for _, ref := range decode.KeywordList(r[field]) {
-				t.Any[_Wielding] = append(t.Any[_Wielding], ref)
+				t.Any[_Wielding] = append(t.Any[_Wielding], t.As[Zone]+ref)
 			}
 		case "WRITING":
 			t.As[Writing] = decode.String(data)
@@ -345,28 +345,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		t.Any[Holdable] = append(t.Any[Holdable], "HAND")
 	}
 
-	// If zone information present full qualify references with it
-	if t.As[Zone] != "" {
-		t.As[Zone] += ":"
-		t.As[Ref] = t.As[Zone] + t.As[Ref]
-
-		for x := range t.Any[_Holding] {
-			t.Any[_Holding][x] = t.As[Zone] + t.Any[_Holding][x]
-		}
-		for x := range t.Any[_Wearing] {
-			t.Any[_Wearing][x] = t.As[Zone] + t.Any[_Wearing][x]
-		}
-		for x := range t.Any[_Wielding] {
-			t.Any[_Wielding][x] = t.As[Zone] + t.Any[_Wielding][x]
-		}
-
-		for _, dir := range DirRefToAs {
-			if t.As[dir] != "" {
-				t.As[dir] = t.As[Zone] + t.As[dir]
-			}
-		}
-		delete(t.As, Zone)
-	}
+	// Zone only needed during loading
+	delete(t.As, Zone)
 }
 
 // Copy returns a duplicate of the receiver Thing with only the UID and Who

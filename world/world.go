@@ -90,7 +90,7 @@ func Load() {
 				location:  decode.KeywordList(record["LOCATION"]),
 				zoneLinks: decode.PairList(record["ZONELINKS"]),
 			}
-			store[ref].As[core.Zone] = zref
+			store[ref].As[core.Zone] = zref + ":"
 			store[ref].Unmarshal(record)
 		}
 
