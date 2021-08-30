@@ -94,11 +94,6 @@ func (t *Thing) InitOnce(parent *Thing) {
 		}
 	}
 
-	// Check if we need to enable events
-	if t.Int[ActionAfter] != 0 || t.Int[ActionJitter] != 0 {
-		t.Schedule(Action)
-	}
-
 	// Swap references for UIDs
 	refToUID := make(map[string]string, len(t.In))
 	for _, item := range t.In {
@@ -121,6 +116,34 @@ func (t *Thing) InitOnce(parent *Thing) {
 		item.InitOnce(t)
 	}
 
+	t.Init()
+}
+
+// Init is used for the repeatable setup or resetting of a Thing.
+func (t *Thing) Init() {
+
+	// See if we need to hold, wear or wield anything
+	var ok bool
+	for _, uid := range t.Any[_Holding] {
+		if t.Any[Body], ok = remainder(t.Any[Body], t.In[uid].Any[Holdable]); ok {
+			t.In[uid].Is |= Holding
+		}
+	}
+	for _, uid := range t.Any[_Wearing] {
+		if t.Any[Body], ok = remainder(t.Any[Body], t.In[uid].Any[Wearable]); ok {
+			t.In[uid].Is |= Wearing
+		}
+	}
+	for _, uid := range t.Any[_Wielding] {
+		if t.Any[Body], ok = remainder(t.Any[Body], t.In[uid].Any[Wieldable]); ok {
+			t.In[uid].Is |= Wielding
+		}
+	}
+
+	// Check if we need to enable events
+	if t.Int[ActionAfter] != 0 || t.Int[ActionJitter] != 0 {
+		t.Schedule(Action)
+	}
 }
 
 // decodeInt is a wrapper to recordjar/decode.Integer defaulting the qty to 1
