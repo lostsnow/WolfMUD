@@ -8,6 +8,7 @@ package core
 import (
 	"log"
 	"math/rand"
+	"runtime"
 	"sort"
 
 	"code.wolfmud.org/WolfMUD.git/text"
@@ -84,6 +85,7 @@ func RegisterCommandHandlers() {
 		"HOLD":      (*state).Hold,
 		"WEAR":      (*state).Wear,
 		"WIELD":     (*state).Wield,
+		"VERSION":   (*state).Version,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1244,6 +1246,10 @@ func (s *state) Wield() {
 			}
 		}
 	}
+}
+
+func (s *state) Version() {
+	s.Msg(s.actor, "Version: ", commit, ", built with: ", runtime.Version(), " (", runtime.Compiler, ")")
 }
 
 // intersects returns true if any elements of want are also in have, else false.
