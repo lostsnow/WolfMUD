@@ -1,0 +1,199 @@
+
+NAME
+
+  server - run a WolfMUD server instance
+
+SYNOPSIS
+
+  server|server.exe
+
+DESCRIPTION
+
+  Run a WolfMUD game server. It is strongly advised to create a separate user/
+  group for running WolfMUD and that all files are owned by that user/group.
+  As a security precaution player and data files should not be accessible to
+  normal users on the system.
+
+  The name of the executable is server on Linux and server.exe on Windows.
+
+  If you downloaded a source code archive or cloned the Git repository, please
+  see the file compiling-from-source.txt before using these instructions.
+
+STARTING THE SERVER
+
+  To start the WolfMUD server, open a terminal or command window and change to
+  the directory where WolfMUD was unarchived or cloned to. By default this is
+  the WolfMUD directory. Within the WolfMUD directory, change to the bin
+  directory. At the command prompt enter the following command:
+
+  FOR LINUX
+
+    ./server
+
+  FOR WINDOWS
+
+    .\server.exe
+
+  An alternative for Windows users is to navigate to the bin directory using
+  the file explorer and double-click the server.exe executable file.
+
+  You should see some messages as the server starts up. The last message
+  should be:
+
+    Accepting connections on: 127.0.0.1:4001
+
+  You are now ready to connect to the server.
+
+CONNECTING TO THE SERVER
+
+  Once the WolfMUD server is running you can connect to the server as a player
+  using any TELNET client. On Linux a TELNET client can be installed using the
+  package manager. On Windows a TELNET client is provided as an optionally
+  installable feature (see WINDOWS TELNET FEATURE for details). However, any
+  TELNET client should work.
+
+  By default the server will only let local players, on the same machine,
+  connect on port 4001. See ALLOWING OTHER MACHINES TO CONNECT for details on
+  how to change this. To connect a player would TELNET to port 4001. For the
+  default Linux TELNET clienti, or the Windows TELNET optional feature, issue
+  the command:
+
+    telnet 127.0.0.1 4001
+
+  You should now be connected to your WolfMUD server and see a greeting.
+
+  For other clients the command may vary or there may be a graphical connect
+  dialog. However, the host to connect to should be specified as 127.0.0.1 and
+  the port specified as 4001.
+
+WINDOWS TELNET FEATURE
+
+  If you are running Windows, you need to enable the TELNET client. Go to the
+  control panel, select "programs" or "programs and features" and then "turn
+  Windows features on or off". A "Windows features" dialog should appear. Find
+  the "telnet client" option, check it and click OK. Enabling TELNET may take
+  a while and may require a reboot.
+
+ALLOWING OTHER MACHINES TO CONNECT
+
+  By default the WolfMUD server will only be listening on localhost, IP
+  address 127.0.0.1, and will only allow client connections from the local
+  machine.
+
+  If you wish to allow connections from remote machines you will need to
+  update the server configuration file config.wrj, by default in the WolfMUD
+  data directory, with your machine's IP address.
+
+  For example, if the IP address of the machine running the server is
+  172.16.1.1 you would update the file config.wrj and edit the line:
+
+    Server.Host: 127.0.0.1
+
+  This line would need to be changed to:
+
+    Server.Host: 172.16.1.1
+
+  To connect to the server we would have to use the new IP address in our
+  telnet command as well:
+
+    telnet 172.16.1.1 4001
+
+ENVIRONMENT VARIABLES
+
+  WOLFMUD_DIR
+    The environment variable WOLFMUD_DIR can be set to provide an alternate
+    data path and/or configuration file for the server to use.
+
+    The format of the value for WOLFMUD_DIR is [DATA_DIR][configuration_file]
+
+    If unset WOLFMUD_DIR defaults to the equivalent of ../data/config.wrj
+
+    DATA_DIR
+      Optional relative or absolute path to the data directory. The default
+      value is ../data/ i.e. data in the current path.
+
+    configuration_file
+      Optional name of a specific configuration file. The configuration file
+      will be looked for in DATA_DIR. The default value is config.wrj
+
+    As a special case WOLFMUD_DIR may be set to the special value NONE to load
+    the server's default, built in configuration. This can be useful when
+    testing.
+
+  Setting WOLFMUD_DIR
+
+    The environment variable WOLFMUD_DIR can be set using several different
+    methods depending on the operating system and command shell being used.
+
+    For Linux systems, using the Bash shell, the environment variable can be
+    set for the current instance of the server by prefixing the executable:
+
+      WOLFMUD_DIR=../data/config.wrj ./server
+
+    The environment variable can also be set for the current Bash instance by
+    exporting the variable, then starting the server:
+
+      export WOLFMUD_DIR=../data/config.wrj
+      ./server
+
+    Shells other than Bash may behave differently and may use something other
+    than the export builtin to set environment variables in the shell.
+
+    Windows users should use the 'set' builtin to set the environment variable
+    before running the server:
+
+      set WOLFMUD_DIR=../data/config.wrj
+      .\server.exe
+
+EXAMPLES
+
+  WOLFMUD_DIR=example.wrj
+    Use the default path, ../data/, relative to the current directory as the
+    DATA_DIR and the specified configuration file example.wrj
+
+  WOLFMUD_DIR=../testdata/example.wrj
+    Use the path, ../testdata/, relative to the current directory as the
+    DATA_DIR and the specified configuration file example.wrj
+
+  WOLFMUD_DIR=/home/diddymus/WolfMUD/data
+    Use the absolute path /home/diddymus/WolfMUD/data as the DATA_DIR and the
+    default configuration file config.wrj
+
+  WOLFMUD_DIR=/home/diddymus/WolfMUD/data/example.wrj
+    Use the absolute path /home/diddymus/WolfMUD/data as the DATA_DIR and the
+    specified configuration file example.wrj
+
+  WOLFMUD_DIR=NONE
+    Use the default, built in configuration. This is only useful for testing.
+
+FILES
+
+  DATA_DIR/
+    Can be any path to a directory holding WolfMUD data files.
+
+  DATA_DIR/config.wrj
+    Default configuration file.
+
+  DATA_DIR/zones/*.wrj
+    Path used to locate zone files. Any files in the zones directory that end
+    in .wrj will be loaded as zone files.
+
+  DATA_DIR/players/*.wrj
+    Path used to locate player account files. Any files in the players
+    directory that end in .wrj will be treated as player files.
+
+SEE ALSO
+
+  configuration-file.txt, zone-files.txt
+
+BUGS
+
+  Some documented, some yet to be written.
+
+COPYRIGHT
+
+  Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+

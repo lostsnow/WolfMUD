@@ -1,0 +1,99 @@
+
+NAME
+
+  *.wrj - WolfMUD Record Jar file format
+
+DESCRIPTION
+
+  This document describes the record jar format used by WolfMUD. Files
+  formatted using the record jar format have the file extension .wrj and are
+  plain text files that may include Unicode.
+
+  A record jar file consists of one or more records delimited by a record
+  separator. Each record may contain comments, fields and a free text block.
+
+  An example record jar file consisting of three records:
+
+
+    // Copyright 2016 Andrew 'Diddymus' Rolfe. All rights reserved.
+    //
+    // Use of this file is governed by the license in the LICENSE file
+    // included with the source code.
+    %%
+          Ref: ZINARA
+         Zone: City of Zinara
+       Author: Andrew 'Diddymus' Rolfe
+
+    This is the city of Zinara.
+    %%
+          Ref: L1
+        Start:
+         Name: Fireplace
+      Aliases: TAVERN FIREPLACE
+        Exits: E→L3 SE→L4 S→L2
+    Inventory: L1N1
+
+    You are in the corner of the common room in the dragon's breath tavern. A
+    fire burns merrily in an ornate fireplace, giving comfort to weary
+    travellers. The fire causes shadows to flicker and dance around the room,
+    changing darkness to light and back again. To the south the common room
+    continues and east the common room leads to the tavern entrance.
+    %%
+
+
+COMMENTS
+
+  Comment lines are those that start with two forward slash characters '//'.
+  Comments may be indented using whitespace.
+
+BLANK LINES
+
+  Blank lines are only allowed in a record to signify the start of a free text
+  block or within a free text block itself.
+
+RECORD SEPARATOR
+
+  Records are separated by a line containing only two percent symbols '%%'.
+  Record separators may be indented using whitespace, although this is rarely
+  done, except when following a free text block. Following a free text block
+  there should be no leading whitespace before the record separator. The final
+  record separator for the last record in a record jar may be omitted.
+
+FIELDS
+
+  A field consists of a single word name followed by a single colon ':'. The
+  name may be indented using whitespace. The colon may be followed by optional
+  data. Field names are case insensitive and must not contain whitespace.
+
+  Whitespace is allowed between the colon and data to aid readability.
+
+  Data following the colon may span multiple lines. Subsequent lines may be
+  indented using leading whitespace.
+
+  Depending on the field name the format of the associated data may have
+  special requirements.
+
+FREE TEXT BLOCK
+
+  A record may contain an optional free text block. The start of a free text
+  block is signified by a single blank line. If a record contains a free text
+  block only the leading blank line may be omitted:
+
+  %%
+  This is a free text block.
+  %%
+
+  Any leading whitespace and any blank lines in a free text block will be
+  preserved.
+
+SEE ALSO
+
+  configuration-file.txt, zone-files.txt
+
+COPYRIGHT
+
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+

@@ -1,0 +1,42 @@
+
+NAME
+
+  Compiling WolfMUD from source
+
+DESCRIPTION
+
+  This document describes details for compiling WolfMUD from source code. This
+  can either be from one of the source code downloads or from a Git clone.
+
+PREREQUISITES
+
+  It is assumed that Go has already been downloaded and installed. If not Go
+  can be obtained from https://golang.org or it may be available from your
+  package manager.
+
+  A minimum of Go 1.14 is required to compile WolfMUD. Using the latest
+  version of Go available is recommended.
+
+COMPILING ON LINUX OR WINDOWS
+
+  To compile WolfMUD open a terminal or command window and change to the
+  directory where the sources were unarchived, or the directory where the Git
+  repository was cloned to. This defaults to the WolfMUD directory in both
+  cases. At the command prompt execute the command:
+
+    go build -o bin ./...
+
+  The server executable will be placed in the bin directory. For details on
+  running the server see running-the-server.txt for details.
+
+SEE ALSO
+
+  running-the-server.txt
+
+COPYRIGHT
+
+  Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+

@@ -1,0 +1,60 @@
+
+NAME
+
+  upgrading - some notes on upgrading from one release of WolfMUD to the next
+
+DESCRIPTION
+
+  ++ PLEASE READ ALL OF THIS DOCUMENT BEFORE UPGRADING YOUR WolfMUD SERVER. ++
+
+  This document describes steps to take when upgrading WolfMUD to a new
+  release so as not to lose player files, customised or modified zones files
+  or configuration changes.
+
+  The important directory is the data directory which contains the server
+  configuration, zone files and player files.
+
+  It is important to back it up or copy your data directory somewhere safe.
+  For most installations simply renaming the WolfMUD directory to WolfMUD.old
+  is sufficient to back up everything.
+
+  Once the new version of WolfMUD is installed you can delete, or rename for
+  later reference, the default data directory and replace it with the backup
+  or copy you made of your own data directory.
+
+  If any files need to be upgraded, for example new settings in the
+  configuration file or new fields in player or zone files, the server will
+  check the files when the server is started and perform upgrades as required.
+
+  Additionally you may want to use a file comparison tool to compare the
+  default configuration file and/or zone files with your versions for changes.
+
+WOLFMUD DIRECTORY
+
+  In versions of WolfMUD prior to v0.0.18 the main WolfMUD directory would
+  have been WolfMUD.git for source downloads or Git clones of the repository.
+  From v0.0.18 onwards the directory will be WolfMUD. After upgrading you are
+  advised to rename the WolfMUD.git directory to WolfMUD in order to ease
+  future updates.
+
+ENVIRONMENT VARIABLES
+
+  In versions of WolfMUD prior to v0.0.18 it was necessary to set the
+  environment variable WOLFMUD_DIR when using the source downloads or a clone
+  of the Git repository. For standard default installations this is no longer
+  required. WOLFMUD_DIR only needs to be set for custom configurations.
+
+  For details on WOLFMUD_DIR see the section ENVIRONMENT VARIABLES in the file
+  running-the-server.txt in the docs directory.
+
+SEE ALSO
+
+  running-the-server.txt, compiling-from-source.txt
+
+COPYRIGHT
+
+  Copyright 2017 Andrew 'Diddymus' Rolfe. All rights reserved.
+
+  Use of this source code is governed by the license in the LICENSE file
+  included with the source code.
+
