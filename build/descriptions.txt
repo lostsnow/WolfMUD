@@ -1,0 +1,24 @@
+# Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
+#
+# Use of this source code is governed by the license in the LICENSE file
+# included with the source code.
+#
+# descriptions.txt is used to provide additional descriptive text for the
+# files specified. Line are specified as <file>:<description>.
+
+    linux-386.tgz: WolfMUD for Linux/32bit
+  linux-amd64.tgz: WolfMUD for Linux/64bit
+       source.tgz: WolfMUD source code gzipped tarball
+
+  windows-386.zip: WolfMUD for Windows/32bit
+windows-amd64.zip: WolfMUD for Windows/64bit
+       source.zip: WolfMUD source code zipped
+
+   linux-arm5.tgz: WolfMUD for Linux/ARMv5 (Soft float)
+   linux-arm5.tgz: Notes.: Generic ARM build. Raspberry Pi can use the faster ARMv6/v7 builds.
+
+   linux-arm6.tgz: WolfMUD for Linux/ARMv6 (Hard float)
+   linux-arm6.tgz: Notes.: Suitable for Raspberry Pi A, A+, B, B+, Zero, Zero W
+
+   linux-arm7.tgz: WolfMUD for Linux/ARMv7 (Hard float)
+   linux-arm7.tgz: Notes.: Suitable for Raspberry Pi 2, 3 and 4.
