@@ -25,6 +25,10 @@ following from the directory where you found this file:
 Assuming everything compiles, remember this is experimental stuff, change to
 the bin directory and run the server or server.exe binary.
 
+Documentation in the docs directory has been taken from the current WolfMUD and
+may or may not be accurate depending on how many features have been implemented
+so far in the experiment.
+
 If you have any comments or suggestions: diddymus@wolfmud.org
 
 Should your use of this experiment result in summoning small annoying imps or a
