@@ -1,0 +1,60 @@
+// Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
+//
+// config.wrj - Main WolfMUD server configuration file. For details of the
+// options and their settings see docs/configuration-file.txt.
+//
+// Server configuration
+  Server.Host:        127.0.0.1
+  Server.Port:        4001
+  Server.IdleTimeout: 10m
+  Server.MaxPlayers:  1024
+  Server.LogClient:   false
+//
+// Per IP connection quotas
+//
+  Quota.Window:  0
+  Quota.Timeout: 0
+  Quota.Stats:   0
+//
+// Stats configuration
+//
+  Stats.Rate: 10s
+  Stats.GC:   false
+//
+// Inventory configuration
+//
+  Inventory.CrowdSize:  10
+//
+// Login configuration
+//
+// NOTE: Lengths are minimums
+//
+  Login.AccountLength:  10
+  Login.PasswordLength: 10
+  Login.SaltLength:     32
+//
+// Debug configuration
+//
+  Debug.LongLog:      false
+  Debug.Panic:        false
+  Debug.AllowDump:    false
+  Debug.AllowDebug:   false
+  Debug.Events:       false
+  Debug.Things:       false
+//
+// Initial client connection greeting
+
+
+WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
+
+    [GREEN]W[WHITE]orld
+    [GREEN]O[WHITE]f
+    [GREEN]L[WHITE]iving
+    [GREEN]F[WHITE]antasy
+
+[YELLOW]Welcome to WolfMUD![RESET]
+
+%%
