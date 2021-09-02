@@ -211,6 +211,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "DESCRIPTION":
 			t.As[Description] = decode.String(data)
+			// Replace "\r\n" with "\n" so 2nd replace does not produce "\r\r\n"
+			t.As[Description] = strings.ReplaceAll(t.As[Description], "\r\n", "\n")
+			t.As[Description] = strings.ReplaceAll(t.As[Description], "\n", "\r\n")
 		case "DOOR":
 			for field, data := range decode.PairList(r["DOOR"]) {
 				b := []byte(data)
@@ -606,7 +609,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p := func(f string, a ...interface{}) {
 		b.WriteString(indent)
 		fmt.Fprintf(&b, f, a...)
-		b.WriteByte('\n')
+		b.WriteString("\r\n")
 	}
 
 	lIn, lOut, lAs, lAny, lWho, lInt, lRef, lEvent :=

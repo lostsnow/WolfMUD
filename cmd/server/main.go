@@ -103,7 +103,7 @@ func player(conn *net.TCPConn) {
 					buf = buf[:0]
 					if len(msg) > 0 {
 						buf = append(buf, msg...)
-						buf = append(buf, '\n')
+						buf = append(buf, "\r\n"...)
 					}
 					buf = append(buf, '>')
 					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))

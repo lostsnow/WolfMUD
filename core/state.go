@@ -29,7 +29,8 @@ type state struct {
 	word  []string
 }
 
-var newline = []byte("\n")
+// eol defines the end-of-line characters (network line endings)
+var eol = []byte("\r\n")
 
 func NewState(t *Thing) *state {
 	return &state{actor: t, buf: make(map[*Thing]*strings.Builder)}
@@ -119,10 +120,10 @@ func (s *state) Msg(recipient *Thing, text ...string) {
 	if s.buf[recipient] == nil {
 		s.buf[recipient] = &strings.Builder{}
 		if recipient != s.actor {
-			s.buf[recipient].Write(newline)
+			s.buf[recipient].Write(eol)
 		}
 	} else {
-		s.buf[recipient].Write(newline)
+		s.buf[recipient].Write(eol)
 	}
 	for _, t := range text {
 		s.buf[recipient].WriteString(t)

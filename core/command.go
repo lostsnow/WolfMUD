@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"runtime"
 	"sort"
+	"strings"
 
 	"code.wolfmud.org/WolfMUD.git/text"
 )
@@ -131,7 +132,7 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
-	s.Msg(s.actor, "You leave this world behind.\n\nBye bye!\n")
+	s.Msg(s.actor, "You leave this world behind.\r\n\r\nBye bye!\r\n")
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
@@ -143,14 +144,14 @@ func (s *state) Look() {
 
 	switch {
 	case where == nil:
-		s.Msg(s.actor, "[The Void]\n",
+		s.Msg(s.actor, "[The Void]\r\n",
 			"You are in a dark void. Around you nothing.",
 			"No stars, no light, no heat and no sound.")
 	case where.Is&Dark == Dark:
 		s.Msg(s.actor, "It's too dark to see anything!")
 	default:
 		s.Msg(s.actor, "[", where.As[Name], "]")
-		s.Msg(s.actor, where.As[Description], "\n")
+		s.Msg(s.actor, where.As[Description], "\r\n")
 		mark := s.buf[s.actor].Len()
 		if len(where.Who) < CrowdSize {
 			for _, who := range where.Who.Sort() {
@@ -170,7 +171,7 @@ func (s *state) Look() {
 				mark = s.buf[s.actor].Len()
 			}
 		} else {
-			s.Msg(s.actor, "It's too crowded here to see anything.\n")
+			s.Msg(s.actor, "It's too crowded here to see anything.\r\n")
 			mark = s.buf[s.actor].Len()
 		}
 
@@ -286,7 +287,7 @@ func (s *state) Examine() {
 	case uid == s.actor.As[UID]:
 		s.Msg(s.actor, "Looking fine!")
 	default:
-		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
+		s.Msg(s.actor, "You examine ", what.As[Name], ".\r\n", what.As[Description])
 
 		// If a blocker, e.g. a door, is it open or closed?
 		switch {
@@ -624,7 +625,7 @@ func (s *state) Dump() {
 		case what == nil:
 			s.Msg(s.actor, "You see no '", uid, "' to dump.")
 		default:
-			s.Msg(s.actor, "DUMP: ", uid, "\n")
+			s.Msg(s.actor, "DUMP: ", uid, "\r\n")
 			what.Dump(s.buf[s.actor], 80)
 		}
 	}
@@ -759,7 +760,7 @@ func (s *state) Commands() {
 	cols := 7
 	split := (len(commandNames) / cols) + 1
 	pad := "               "
-	s.Msg(s.actor, "Commands currently available:\n\n")
+	s.Msg(s.actor, "Commands currently available:\r\n\r\n")
 	for x := 0; x < split; x++ {
 		for y := x; y < len(commandNames); y += split {
 			if y >= len(commandNames) {
@@ -787,7 +788,7 @@ func (s *state) Teleport() {
 		}
 		s.actor.Ref[Where] = where
 		s.actor.Ref[Where].In[s.actor.As[UID]] = s.actor
-		s.Msg(s.actor, "There is a loud 'Spang!'...\n")
+		s.Msg(s.actor, "There is a loud 'Spang!'...\r\n")
 		s.Look()
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
 			s.Msg(s.actor.Ref[Where], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
@@ -796,7 +797,7 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
-	s.Msg(s.actor, `
+	s.Msg(s.actor, strings.ReplaceAll(`
 
 WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
 
@@ -806,7 +807,7 @@ WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
     Fantasy             -- Server --
 
 Welcome to WolfMUD!
-	`)
+	`, "\n", "\r\n"))
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
 		s.Msg(s.actor.Ref[Where], "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
