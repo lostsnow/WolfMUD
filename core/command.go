@@ -758,14 +758,14 @@ func (s *state) Close() {
 func (s *state) Commands() {
 	cols := 7
 	split := (len(commandNames) / cols) + 1
-	pad := "               "
+	pad := []rune("␠␠␠␠␠␠␠␠␠␠␠␠␠")
 	s.Msg(s.actor, "Commands currently available:\n\n")
 	for x := 0; x < split; x++ {
 		for y := x; y < len(commandNames); y += split {
 			if y >= len(commandNames) {
 				continue
 			}
-			s.MsgAppend(s.actor, ("  " + commandNames[y] + pad)[:12])
+			s.MsgAppend(s.actor, "␠␠", commandNames[y], string(pad[:9-len(commandNames[y])]))
 		}
 		s.Msg(s.actor)
 	}
@@ -800,10 +800,10 @@ func (s *state) Poof() {
 
 WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
 
-    World                 WARNING!
-    Of                  -- Highly --
-    Living              Experimental
-    Fantasy             -- Server --
+    World␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠WARNING!
+    Of␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠-- Highly --
+    Living␠␠␠␠␠␠␠␠␠␠␠␠␠␠Experimental
+    Fantasy␠␠␠␠␠␠␠␠␠␠␠␠␠-- Server --
 
 Welcome to WolfMUD!
 	`)

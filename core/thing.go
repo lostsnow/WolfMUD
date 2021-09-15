@@ -15,6 +15,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // Thing is used to represent any and all items in the game world.
@@ -210,7 +211,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				}
 			}
 		case "DESCRIPTION":
-			t.As[Description] = decode.String(data)
+			t.As[Description] = string(text.Unfold([]byte(decode.String(data))))
 		case "DOOR":
 			for field, data := range decode.PairList(r["DOOR"]) {
 				b := []byte(data)

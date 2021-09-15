@@ -16,6 +16,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
+	"code.wolfmud.org/WolfMUD.git/text"
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
@@ -107,7 +108,7 @@ func player(conn *net.TCPConn) {
 					}
 					buf = append(buf, '>')
 					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-					if _, err = conn.Write(buf); err != nil {
+					if _, err = conn.Write(text.Fold(buf, 80)); err != nil {
 						log.Printf("[%s] conn error: %s", uid, err)
 						<-errState
 						errState <- err
