@@ -1151,6 +1151,10 @@ func (s *state) Hold() {
 					whys = append(whys, item.As[Name])
 				}
 			}
+			if len(whys) == 0 {
+				s.Msg(s.actor, text.Bad, "You are incapable of holding ", what.As[Name], " properly.")
+				return
+			}
 			s.Msg(s.actor, text.Bad, "You can't hold ", what.As[Name], " while holding ", text.List(whys), ".")
 		default:
 			what.Is |= Holding
@@ -1192,6 +1196,10 @@ func (s *state) Wear() {
 				if item.Is&Wearing != 0 && intersects(item.Any[Wearable], what.Any[Wearable]) {
 					whys = append(whys, item.As[Name])
 				}
+			}
+			if len(whys) == 0 {
+				s.Msg(s.actor, text.Bad, "You are incapable of wearing ", what.As[Name], " properly.")
+				return
 			}
 			s.Msg(s.actor, text.Bad, "You can't wear ", what.As[Name], " while wearing ", text.List(whys), ".")
 		default:
@@ -1236,7 +1244,7 @@ func (s *state) Wield() {
 				}
 			}
 			if len(whys) == 0 {
-				s.Msg(s.actor, text.Bad, "You are incapable of wielding ", what.As[Name], ".")
+				s.Msg(s.actor, text.Bad, "You are incapable of wielding ", what.As[Name], " properly.")
 				return
 			}
 			s.Msg(s.actor, text.Bad, "You can't wield ", what.As[Name], " while wielding ", text.List(whys), ".")
