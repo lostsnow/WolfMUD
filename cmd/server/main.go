@@ -103,9 +103,11 @@ func player(conn *net.TCPConn) {
 				if ok && err == nil {
 					buf = buf[:0]
 					if len(msg) > 0 {
+						buf = append(buf, text.Reset...)
 						buf = append(buf, msg...)
 						buf = append(buf, '\n')
 					}
+					buf = append(buf, text.Magenta...)
 					buf = append(buf, '>')
 					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 					if _, err = conn.Write(text.Fold(buf, 80)); err != nil {
@@ -118,6 +120,8 @@ func player(conn *net.TCPConn) {
 				}
 				if !ok {
 					mailbox.Delete(uid)
+					conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+					conn.Write([]byte(text.Reset))
 					conn.CloseWrite()
 					return
 				}

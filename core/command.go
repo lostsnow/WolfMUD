@@ -131,9 +131,9 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
-	s.Msg(s.actor, "You leave this world behind.\n\nBye bye!\n")
+	s.Msg(s.actor, text.Good, "You leave this world behind.\n\nBye bye!\n")
 	if len(where.Who) < CrowdSize {
-		s.Msg(where, s.actor.As[Name],
+		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
 }
@@ -143,13 +143,13 @@ func (s *state) Look() {
 
 	switch {
 	case where == nil:
-		s.Msg(s.actor, "[The Void]\n",
+		s.Msg(s.actor, text.Cyan, "[The Void]\n", text.Reset,
 			"You are in a dark void. Around you nothing.",
 			"No stars, no light, no heat and no sound.")
 	case where.Is&Dark == Dark:
-		s.Msg(s.actor, "It's too dark to see anything!")
+		s.Msg(s.actor, text.Bad, "It's too dark to see anything!")
 	default:
-		s.Msg(s.actor, "[", where.As[Name], "]")
+		s.Msg(s.actor, text.Cyan, "[", where.As[Name], "]", text.Reset)
 		s.Msg(s.actor, where.As[Description], "\n")
 		mark := s.buf[s.actor].Len()
 		if len(where.Who) < CrowdSize {
@@ -157,20 +157,20 @@ func (s *state) Look() {
 				if who == s.actor {
 					continue
 				}
-				s.Msg(s.actor, "You see ", who.As[Name], " here.")
+				s.Msg(s.actor, text.Green, "You see ", who.As[Name], " here.")
 			}
 			for _, item := range where.In.Sort() {
 				if item.Is&Narrative == Narrative || item == s.actor {
 					continue
 				}
-				s.Msg(s.actor, "You see ", item.As[Name], " here.")
+				s.Msg(s.actor, text.Yellow, "You see ", item.As[Name], " here.")
 			}
 			if mark != s.buf[s.actor].Len() {
 				s.Msg(s.actor)
 				mark = s.buf[s.actor].Len()
 			}
 		} else {
-			s.Msg(s.actor, "It's too crowded here to see anything.\n")
+			s.Msg(s.actor, text.Green, "It's too crowded here to see anything.\n")
 			mark = s.buf[s.actor].Len()
 		}
 
@@ -178,7 +178,7 @@ func (s *state) Look() {
 		for dir := North; dir <= Down; dir++ {
 			if where.Ref[dir] != nil {
 				if s.buf[s.actor].Len() == mark {
-					s.Msg(s.actor, "You see exits: ", DirToName[dir])
+					s.Msg(s.actor, text.Cyan, "You see exits: ", text.Reset, DirToName[dir])
 				} else {
 					s.MsgAppend(s.actor, ", ", DirToName[dir])
 				}
@@ -186,14 +186,14 @@ func (s *state) Look() {
 		}
 
 		if mark == s.buf[s.actor].Len() {
-			s.Msg(s.actor, "You see no obvious exits.")
+			s.Msg(s.actor, text.Cyan, "You see no obvious exits.")
 		}
 	}
 
 	// Only notify observers if actually looking and not $POOF or entering a
 	// location when moving.
 	if (s.cmd == "L" || s.cmd == "LOOK") && len(where.Who) < CrowdSize {
-		s.Msg(where, s.actor.As[Name], " starts looking around.")
+		s.Msg(where, text.Info, s.actor.As[Name], " starts looking around.")
 	}
 }
 
@@ -203,7 +203,7 @@ func (s *state) Move() {
 	where := s.actor.Ref[Where]
 
 	if where.Ref[dir] == nil {
-		s.Msg(s.actor, "You can't go ", DirToName[dir], ".")
+		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ".")
 		return
 	}
 
@@ -226,33 +226,33 @@ func (s *state) Move() {
 
 	switch {
 	case blocker != nil:
-		s.Msg(s.actor, "You can't go ", DirToName[dir], ". ",
+		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ". ",
 			blocker.As[Name], " is blocking your way.")
 	case where.Ref[dir] == nil:
-		s.Msg(s.actor, "Oops! You can't actually go ", DirToName[dir], ".")
+		s.Msg(s.actor, text.Bad, "Oops! You can't actually go ", DirToName[dir], ".")
 	case s.actor.Is&Player != Player:
 		delete(where.In, s.actor.As[UID])
 		if len(where.Who) < CrowdSize {
-			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
+			s.MsgAppend(where, text.Info, s.actor.As[Name], " leaves ", DirToName[dir], ".")
 		}
 
 		where = where.Ref[dir]
 		s.actor.Ref[Where] = where
 		where.In[s.actor.As[UID]] = s.actor
 		if len(where.Who) < CrowdSize {
-			s.MsgAppend(where, s.actor.As[Name], " enters.")
+			s.MsgAppend(where, text.Info, s.actor.As[Name], " enters.")
 		}
 	default:
 		delete(where.Who, s.actor.As[UID])
 		if len(where.Who) < CrowdSize {
-			s.MsgAppend(where, s.actor.As[Name], " leaves ", DirToName[dir], ".")
+			s.MsgAppend(where, text.Info, s.actor.As[Name], " leaves ", DirToName[dir], ".")
 		}
 
 		where = where.Ref[dir]
 		s.actor.Ref[Where] = where
 		where.Who[s.actor.As[UID]] = s.actor
 		if len(where.Who) < CrowdSize {
-			s.MsgAppend(where, s.actor.As[Name], " enters.")
+			s.MsgAppend(where, text.Info, s.actor.As[Name], " enters.")
 		}
 		s.Look()
 	}
@@ -264,7 +264,7 @@ func (s *state) Move() {
 func (s *state) Examine() {
 
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You examine this and that, find nothing special.")
+		s.Msg(s.actor, text.Info, "You examine this and that, find nothing special.")
 		return
 	}
 
@@ -280,13 +280,13 @@ func (s *state) Examine() {
 
 	switch {
 	case what == nil:
-		s.Msg(s.actor, "You see no '", uid, "' to examine.")
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to examine.")
 	case len(uids) > 1:
-		s.Msg(s.actor, "You can only examine one thing at a time.")
+		s.Msg(s.actor, text.Bad, "You can only examine one thing at a time.")
 	case uid == s.actor.As[UID]:
-		s.Msg(s.actor, "Looking fine!")
+		s.Msg(s.actor, text.Good, "Looking fine!")
 	default:
-		s.Msg(s.actor, "You examine ", what.As[Name], ".\n", what.As[Description])
+		s.Msg(s.actor, text.Good, "You examine ", what.As[Name], ".\n", text.Reset, what.As[Description])
 
 		// If a blocker, e.g. a door, is it open or closed?
 		switch {
@@ -360,9 +360,9 @@ func (s *state) Examine() {
 
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
 			if what.Is&Player == Player {
-				s.Msg(what, s.actor.As[Name], " studies you.")
+				s.Msg(what, text.Info, s.actor.As[Name], " studies you.")
 			}
-			s.Msg(s.actor.Ref[Where], s.actor.As[Name], " studies ", what.As[Name], ".")
+			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " studies ", what.As[Name], ".")
 		}
 	}
 }
@@ -370,7 +370,7 @@ func (s *state) Examine() {
 func (s *state) Inventory() {
 	switch {
 	case len(s.actor.In) == 0:
-		s.Msg(s.actor, "You are not carrying anything.")
+		s.Msg(s.actor, text.Info, "You are not carrying anything.")
 	default:
 		s.Msg(s.actor, "You are carrying:")
 		for _, what := range s.actor.In.Sort() {
@@ -386,7 +386,7 @@ func (s *state) Inventory() {
 			s.Msg(s.actor, "  ", what.As[Name], usage)
 		}
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
-			s.Msg(s.actor.Ref[Where], s.actor.As[Name], " checks over their gear.")
+			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " checks over their gear.")
 		}
 	}
 }
@@ -394,7 +394,7 @@ func (s *state) Inventory() {
 func (s *state) Drop() {
 
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to drop... something?")
+		s.Msg(s.actor, text.Info, "You go to drop... something?")
 		return
 	}
 
@@ -404,11 +404,11 @@ func (s *state) Drop() {
 		what := s.actor.In[uid]
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You do not have any '", uid, "' to drop.")
+			s.Msg(s.actor, text.Bad, "You do not have any '", uid, "' to drop.")
 		case what.As[VetoDrop] != "":
-			s.Msg(s.actor, what.As[VetoDrop])
+			s.Msg(s.actor, text.Bad, what.As[VetoDrop])
 		case what.Is&Using != 0:
-			s.Msg(s.actor, "You can't drop ", what.As[Name], " while using it.")
+			s.Msg(s.actor, text.Bad, "You can't drop ", what.As[Name], " while using it.")
 		default:
 			delete(s.actor.In, what.As[UID])
 			s.actor.Ref[Where].In[what.As[UID]] = what
@@ -416,9 +416,9 @@ func (s *state) Drop() {
 			what.Schedule(Cleanup)
 			what.Ref[Where] = s.actor.Ref[Where]
 			delete(what.As, DynamicQualifier)
-			s.Msg(s.actor, "You drop ", what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You drop ", what.As[Name], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " drops ", what.As[Name])
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " drops ", what.As[Name])
 			}
 		}
 	}
@@ -427,7 +427,7 @@ func (s *state) Drop() {
 func (s *state) Get() {
 
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to get... something?")
+		s.Msg(s.actor, text.Info, "You go to get... something?")
 		return
 	}
 
@@ -440,15 +440,15 @@ func (s *state) Get() {
 		}
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You see no '", uid, "' to get.")
+			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to get.")
 		case what.As[VetoGet] != "":
-			s.Msg(s.actor, what.As[VetoGet])
+			s.Msg(s.actor, text.Bad, what.As[VetoGet])
 		case uid == s.actor.As[UID]:
-			s.Msg(s.actor, "Trying to pick youreself up by your bootlaces?")
+			s.Msg(s.actor, text.Info, "Trying to pick youreself up by your bootlaces?")
 		case what.Is&Narrative == Narrative:
-			s.Msg(s.actor, "You cannot take ", what.As[Name], ".")
+			s.Msg(s.actor, text.Bad, "You cannot take ", what.As[Name], ".")
 		case what.Is&(NPC|Player) != 0 && len(what.Any[Holdable]) == 0:
-			s.Msg(s.actor, what.As[Name], " does not want to be taken!")
+			s.Msg(s.actor, text.Bad, what.As[Name], " does not want to be taken!")
 		default:
 			what.Suspend(Action)
 			what.Cancel(Cleanup)
@@ -465,9 +465,9 @@ func (s *state) Get() {
 			s.actor.In[what.As[UID]] = what
 			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
-			s.Msg(s.actor, "You get ", what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You get ", what.As[Name], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " picks up ", what.As[Name])
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " picks up ", what.As[Name])
 			}
 		}
 	}
@@ -476,7 +476,7 @@ func (s *state) Get() {
 func (s *state) Take() {
 
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to take something from something else...")
+		s.Msg(s.actor, text.Info, "You go to take something from something else...")
 		return
 	}
 
@@ -489,15 +489,15 @@ func (s *state) Take() {
 
 	switch {
 	case where == nil:
-		s.Msg(s.actor, "You see no '", uid, "' to take anything from.")
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to take anything from.")
 	case len(uids) > 1:
-		s.Msg(s.actor, "You can only take things from one container at a time.")
+		s.Msg(s.actor, text.Bad, "You can only take things from one container at a time.")
 	case where.Is&Container != Container:
-		s.Msg(s.actor, where.As[Name], " is not something you can take anything from.")
+		s.Msg(s.actor, text.Bad, where.As[Name], " is not something you can take anything from.")
 	case len(words) == 0:
-		s.Msg(s.actor, "You go to take something from ", where.As[Name], ".")
+		s.Msg(s.actor, text.Info, "You go to take something from ", where.As[Name], ".")
 	case where.As[VetoTakeOut] != "":
-		s.Msg(s.actor, where.As[VetoTakeOut])
+		s.Msg(s.actor, text.Bad, where.As[VetoTakeOut])
 	}
 	if s.buf[s.actor] != nil {
 		return
@@ -508,11 +508,11 @@ func (s *state) Take() {
 		what := where.In[uid]
 		switch {
 		case what == nil:
-			s.Msg(s.actor, where.As[Name], " does not seem to contain '", uid, "'.")
+			s.Msg(s.actor, text.Bad, where.As[Name], " does not seem to contain '", uid, "'.")
 		case what.As[VetoTake] != "":
-			s.Msg(s.actor, what.As[VetoTake])
+			s.Msg(s.actor, text.Bad, what.As[VetoTake])
 		case where.Is&NPC == NPC || what.Is&Narrative == Narrative:
-			s.Msg(s.actor, "You can't take ", what.As[Name], " from ", where.As[Name], ".")
+			s.Msg(s.actor, text.Bad, "You can't take ", what.As[Name], " from ", where.As[Name], ".")
 		default:
 			what.Cancel(Cleanup)
 			delete(where.In, what.As[UID])
@@ -520,20 +520,20 @@ func (s *state) Take() {
 			s.actor.In[what.As[UID]] = what
 			what.Ref[Where] = s.actor
 			what.As[DynamicQualifier] = "MY"
-			s.Msg(s.actor, "You take ", what.As[Name], " out of ", where.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You take ", what.As[Name], " out of ", where.As[Name], ".")
 			notify = true
 		}
 
 	}
 	if notify && len(s.actor.Ref[Where].Who) < CrowdSize {
-		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " takes something out of ", where.As[Name], ".")
+		s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " takes something out of ", where.As[Name], ".")
 	}
 }
 
 func (s *state) Put() {
 
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to put something into something else...")
+		s.Msg(s.actor, text.Info, "You go to put something into something else...")
 		return
 	}
 
@@ -546,17 +546,17 @@ func (s *state) Put() {
 
 	switch {
 	case where == nil:
-		s.Msg(s.actor, "You see no '", uid, "' to put anything into.")
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to put anything into.")
 	case len(uids) > 1:
-		s.Msg(s.actor, "You can only put things into one container at a time.")
+		s.Msg(s.actor, text.Bad, "You can only put things into one container at a time.")
 	case where.Is&Container != Container:
-		s.Msg(s.actor, where.As[Name], " is not something you can put anything into.")
+		s.Msg(s.actor, text.Bad, where.As[Name], " is not something you can put anything into.")
 	case len(words) == 0:
-		s.Msg(s.actor, "You go to put something into ", where.As[Name], ".")
+		s.Msg(s.actor, text.Bad, "You go to put something into ", where.As[Name], ".")
 	case where.As[VetoPutIn] != "":
-		s.Msg(s.actor, where.As[VetoPutIn])
+		s.Msg(s.actor, text.Bad, where.As[VetoPutIn])
 	case where.Is&(NPC|Player) != 0:
-		s.Msg(s.actor, "Taxidermist are we?")
+		s.Msg(s.actor, text.Info, "Taxidermist are we?")
 	}
 	if s.buf[s.actor] != nil {
 		return
@@ -569,13 +569,13 @@ func (s *state) Put() {
 		what := s.actor.In[uid]
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You have no '", uid, "' to put into ", where.As[Name], ".")
+			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to put into ", where.As[Name], ".")
 		case what.As[VetoPut] != "":
-			s.Msg(s.actor, what.As[VetoPut])
+			s.Msg(s.actor, text.Bad, what.As[VetoPut])
 		case what.Is&Using != 0:
-			s.Msg(s.actor, "You can't put ", what.As[Name], " anywhere while using it.")
+			s.Msg(s.actor, text.Bad, "You can't put ", what.As[Name], " anywhere while using it.")
 		case uid == where.As[UID]:
-			s.Msg(s.actor, "It might be interesting to put ", what.As[Name],
+			s.Msg(s.actor, text.Info, "It might be interesting to put ", what.As[Name],
 				" inside itself, but probably paradoxical as well.")
 		default:
 			delete(s.actor.In, what.As[UID])
@@ -588,19 +588,19 @@ func (s *state) Put() {
 			}
 
 			delete(what.As, DynamicQualifier)
-			s.Msg(s.actor, "You put ", what.As[Name], " into ", where.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You put ", what.As[Name], " into ", where.As[Name], ".")
 			notify = true
 		}
 	}
 
 	if notify && len(s.actor.Ref[Where].Who) < CrowdSize {
-		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " puts something into ", where.As[Name], ".")
+		s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " puts something into ", where.As[Name], ".")
 	}
 }
 
 func (s *state) Dump() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "What did you want to dump?")
+		s.Msg(s.actor, text.Info, "What did you want to dump?")
 		return
 	}
 	var uids []string
@@ -622,7 +622,7 @@ func (s *state) Dump() {
 		}
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You see no '", uid, "' to dump.")
+			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to dump.")
 		default:
 			s.Msg(s.actor, "DUMP: ", uid, "\n")
 			what.Dump(s.buf[s.actor], 80)
@@ -632,7 +632,7 @@ func (s *state) Dump() {
 
 func (s *state) Read() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to read something...")
+		s.Msg(s.actor, text.Info, "You go to read something...")
 		return
 	}
 	for _, uid := range Match(s.word, s.actor.Ref[Where], s.actor) {
@@ -645,13 +645,13 @@ func (s *state) Read() {
 		}
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You see no '", uid, "' here to read.")
+			s.Msg(s.actor, text.Bad, "You see no '", uid, "' here to read.")
 		case what.As[Writing] == "":
-			s.Msg(s.actor, "There is nothing on ", what.As[Name], " to read.")
+			s.Msg(s.actor, text.Bad, "There is nothing on ", what.As[Name], " to read.")
 		default:
-			s.Msg(s.actor, "You read ", what.As[Name], ". ", what.As[Writing])
+			s.Msg(s.actor, text.Good, "You read ", what.As[Name], ". ", what.As[Writing])
 			if len(s.actor.Ref[Where].Who) < CrowdSize {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " reads ", what.As[Name], ".")
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " reads ", what.As[Name], ".")
 			}
 		}
 	}
@@ -659,7 +659,7 @@ func (s *state) Read() {
 
 func (s *state) Open() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to open something...")
+		s.Msg(s.actor, text.Info, "You go to open something...")
 		return
 	}
 	for _, uid := range Match(s.word, s.actor.Ref[Where]) {
@@ -669,11 +669,11 @@ func (s *state) Open() {
 		}
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You see no '", uid, "' to open.")
+			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to open.")
 		case what.As[Blocker] == "":
-			s.Msg(s.actor, what.As[Name], " is not something you can open.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " is not something you can open.")
 		case what.Is&Open == Open:
-			s.Msg(s.actor, what.As[Name], " is already open.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " is already open.")
 		default:
 			what.Is |= Open
 			if what.Is&_Open == 0 {
@@ -688,10 +688,10 @@ func (s *state) Open() {
 			}
 
 			if s.actor != what {
-				s.Msg(s.actor, "You open ", what.As[Name], ".")
-				s.Msg(where, s.actor.As[Name], " opens ", what.As[Name], ".")
+				s.Msg(s.actor, text.Good, "You open ", what.As[Name], ".")
+				s.Msg(where, text.Info, s.actor.As[Name], " opens ", what.As[Name], ".")
 			} else {
-				s.Msg(where, what.As[Name], " opens.")
+				s.Msg(where, text.Info, what.As[Name], " opens.")
 			}
 
 			// Find location on other side...
@@ -701,14 +701,14 @@ func (s *state) Open() {
 			} else {
 				where = what.Ref[Where]
 			}
-			s.Msg(where, what.As[Name], " opens.")
+			s.Msg(where, text.Info, what.As[Name], " opens.")
 		}
 	}
 }
 
 func (s *state) Close() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to close something...")
+		s.Msg(s.actor, text.Info, "You go to close something...")
 		return
 	}
 	for _, uid := range Match(s.word, s.actor.Ref[Where]) {
@@ -718,11 +718,11 @@ func (s *state) Close() {
 		}
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You see no '", uid, "' to close.")
+			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to close.")
 		case what.As[Blocker] == "":
-			s.Msg(s.actor, what.As[Name], " is not something you can close.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " is not something you can close.")
 		case what.Is&Open == 0:
-			s.Msg(s.actor, what.As[Name], " is already closed.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " is already closed.")
 		default:
 			what.Is &^= Open
 			if what.Is&_Open == _Open {
@@ -737,10 +737,10 @@ func (s *state) Close() {
 			}
 
 			if s.actor != what {
-				s.Msg(s.actor, "You close ", what.As[Name], ".")
-				s.Msg(where, s.actor.As[Name], " closes ", what.As[Name], ".")
+				s.Msg(s.actor, text.Good, "You close ", what.As[Name], ".")
+				s.Msg(where, text.Info, s.actor.As[Name], " closes ", what.As[Name], ".")
 			} else {
-				s.Msg(where, what.As[Name], " closes.")
+				s.Msg(where, text.Info, what.As[Name], " closes.")
 			}
 
 			// Find location on other side...
@@ -750,7 +750,7 @@ func (s *state) Close() {
 			} else {
 				where = what.Ref[Where]
 			}
-			s.Msg(where, what.As[Name], " closes.")
+			s.Msg(where, text.Info, what.As[Name], " closes.")
 		}
 	}
 }
@@ -773,42 +773,45 @@ func (s *state) Commands() {
 
 func (s *state) Teleport() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "Where do you want to go?")
+		s.Msg(s.actor, text.Info, "Where do you want to go?")
 		return
 	}
 	where := World[s.word[0]]
 	switch {
 	case where == nil:
-		s.Msg(s.actor, "You don't know where '", s.word[0], "' is.")
+		s.Msg(s.actor, text.Bad, "You don't know where '", s.word[0], "' is.")
 	default:
 		delete(s.actor.Ref[Where].In, s.actor.As[UID])
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
-			s.Msg(s.actor.Ref[Where], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly disappears.")
+			s.Msg(s.actor.Ref[Where], text.Info, "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly disappears.")
 		}
 		s.actor.Ref[Where] = where
 		s.actor.Ref[Where].In[s.actor.As[UID]] = s.actor
-		s.Msg(s.actor, "There is a loud 'Spang!'...\n")
+		s.Msg(s.actor, text.Good, "There is a loud 'Spang!'...\n")
 		s.Look()
 		if len(s.actor.Ref[Where].Who) < CrowdSize {
-			s.Msg(s.actor.Ref[Where], "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
+			s.Msg(s.actor.Ref[Where], text.Info, "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
 		}
 	}
 }
 
-func (s *state) Poof() {
-	s.Msg(s.actor, `
+var greeting = string(text.Colorize([]byte(`
 
 WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
 
-    World␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠WARNING!
-    Of␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠-- Highly --
-    Living␠␠␠␠␠␠␠␠␠␠␠␠␠␠Experimental
-    Fantasy␠␠␠␠␠␠␠␠␠␠␠␠␠-- Server --
+    [GREEN]W[WHITE]orld␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]* WARNING! *
+    [GREEN]O[WHITE]f␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Highly --
+    [GREEN]L[WHITE]iving␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]Experimental
+    [GREEN]F[WHITE]antasy␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Server --
 
-Welcome to WolfMUD!
-	`)
+[YELLOW]Welcome to WolfMUD![RESET]
+`)))
+
+func (s *state) Poof() {
+
+	s.Msg(s.actor, greeting)
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
-		s.Msg(s.actor.Ref[Where], "There is a cloud of smoke from which ",
+		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
@@ -816,19 +819,19 @@ Welcome to WolfMUD!
 
 func (s *state) Act() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "What did you want to act out?")
+		s.Msg(s.actor, text.Info, "What did you want to act out?")
 		return
 	}
 
-	s.Msg(s.actor, s.actor.As[Name], " ", s.input)
+	s.Msg(s.actor, text.Good, s.actor.As[Name], " ", s.input)
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
-		s.Msg(s.actor.Ref[Where], s.actor.As[Name], " ", s.input)
+		s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " ", s.input)
 	}
 }
 
 func (s *state) Say() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "What did you want to say?")
+		s.Msg(s.actor, text.Info, "What did you want to say?")
 		return
 	}
 
@@ -836,20 +839,20 @@ func (s *state) Say() {
 	l := len(where.Who)
 
 	if l >= CrowdSize {
-		s.Msg(s.actor, "It's too crowded for you to be heard.")
+		s.Msg(s.actor, text.Info, "It's too crowded for you to be heard.")
 		return
 	}
 
 	if l == 1 {
-		s.Msg(s.actor, "Talking to yourself again?")
+		s.Msg(s.actor, text.Info, "Talking to yourself again?")
 	} else {
-		s.Msg(s.actor, "You say: ", s.input)
-		s.Msg(where, s.actor.As[Name], " says: ", s.input)
+		s.Msg(s.actor, text.Good, "You say: ", s.input)
+		s.Msg(where, text.Info, s.actor.As[Name], " says: ", s.input)
 	}
 
 	for _, where := range radius(1, where)[1] {
 		if l = len(where.Who); 0 < l && l < CrowdSize {
-			s.Msg(where, "You hear talking nearby.")
+			s.Msg(where, text.Info, "You hear talking nearby.")
 		}
 	}
 }
@@ -869,24 +872,24 @@ func (s *state) Action() {
 // goes through the roof.
 func (s *state) Sneeze() {
 
-	s.Msg(s.actor, "You sneeze. Aaahhhccchhhooo!")
+	s.Msg(s.actor, text.Good, "You sneeze. Aaahhhccchhhooo!")
 
 	// Don't propagate sneeze if it's crowded.
 	if len(s.actor.Ref[Where].Who) >= CrowdSize {
 		return
 	}
 
-	s.Msg(s.actor.Ref[Where], s.actor.As[Name], " sneezes.")
+	s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " sneezes.")
 
 	locs := radius(2, s.actor.Ref[Where])
 	for _, where := range locs[1] {
 		if l := len(where.Who); 0 < l && l < CrowdSize {
-			s.Msg(where, "You hear a loud sneeze.")
+			s.Msg(where, text.Info, "You hear a loud sneeze.")
 		}
 	}
 	for _, where := range locs[2] {
 		if l := len(where.Who); 0 < l && l < CrowdSize {
-			s.Msg(where, "You hear a sneeze.")
+			s.Msg(where, text.Info, "You hear a sneeze.")
 		}
 	}
 }
@@ -896,28 +899,28 @@ func (s *state) Sneeze() {
 // goes through the roof.
 func (s *state) Shout() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "What did you want to shout?")
+		s.Msg(s.actor, text.Info, "What did you want to shout?")
 		return
 	}
 
 	// Don't propagate shout if it's crowded.
 	if len(s.actor.Ref[Where].Who) >= CrowdSize {
-		s.Msg(s.actor, "Even shouting, it's too crowded for you to be heard.")
+		s.Msg(s.actor, text.Info, "Even shouting, it's too crowded for you to be heard.")
 		return
 	}
 
-	s.Msg(s.actor, "You shout: ", s.input)
-	s.Msg(s.actor.Ref[Where], s.actor.As[Name], " shouts: ", s.input)
+	s.Msg(s.actor, text.Good, "You shout: ", s.input)
+	s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " shouts: ", s.input)
 
 	locs := radius(2, s.actor.Ref[Where])
 	for _, where := range locs[1] {
 		if l := len(where.Who); 0 < l && l < CrowdSize {
-			s.Msg(where, "You hear someone shout: ", s.input)
+			s.Msg(where, text.Info, "You hear someone shout: ", s.input)
 		}
 	}
 	for _, where := range locs[2] {
 		if l := len(where.Who); 0 < l && l < CrowdSize {
-			s.Msg(where, "You hear shouting nearby.")
+			s.Msg(where, text.Info, "You hear shouting nearby.")
 		}
 	}
 }
@@ -1005,15 +1008,15 @@ func (s *state) Reset() {
 	}
 
 	if s.actor.As[OnReset] == "" {
-		s.Msg(where, "You notice ", s.actor.As[Name], " you didn't see before.")
+		s.Msg(where, text.Info, "You notice ", s.actor.As[Name], " you didn't see before.")
 		return
 	}
-	s.Msg(where, s.actor.As[OnReset])
+	s.Msg(where, text.Info, s.actor.As[OnReset])
 }
 
 func (s *state) Junk() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "Now what did you want to go and junk?")
+		s.Msg(s.actor, text.Info, "Now what did you want to go and junk?")
 		return
 	}
 
@@ -1023,15 +1026,15 @@ func (s *state) Junk() {
 		what := s.actor.In[uid]
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You have no '", uid, "' to junk.")
+			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to junk.")
 		case what.As[VetoJunk] != "":
-			s.Msg(s.actor, what.As[VetoJunk])
+			s.Msg(s.actor, text.Bad, what.As[VetoJunk])
 		case what.Is&Using != 0:
-			s.Msg(s.actor, "You can't junk ", what.As[Name], " while using it.")
+			s.Msg(s.actor, text.Bad, "You can't junk ", what.As[Name], " while using it.")
 		default:
-			s.Msg(s.actor, "You junk ", what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You junk ", what.As[Name], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " junks ", what.As[Name], ".")
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " junks ", what.As[Name], ".")
 			}
 			what.Junk()
 		}
@@ -1049,12 +1052,12 @@ func (s *state) Cleanup() {
 
 	if msg, ok := s.actor.As[OnCleanup]; ok {
 		if msg != "" {
-			s.Msg(where, msg)
+			s.Msg(where, text.Info, msg)
 		}
 		return
 	}
 
-	s.Msg(where, "You thought you noticed ", s.actor.As[Name], " here, but you can't see it now.")
+	s.Msg(where, text.Info, "You thought you noticed ", s.actor.As[Name], " here, but you can't see it now.")
 }
 
 // Trigger is used to process a trigger event for an item. The trigger type can
@@ -1074,7 +1077,7 @@ func (s *state) Trigger() {
 
 func (s *state) Remove() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to remove... something?")
+		s.Msg(s.actor, text.Info, "You go to remove... something?")
 		return
 	}
 
@@ -1101,17 +1104,17 @@ func (s *state) Remove() {
 
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You have no '", uid, "' to remove.")
+			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to remove.")
 		case what.Is&Using == 0:
-			s.Msg(s.actor, "You are not using ", what.As[Name], ".")
+			s.Msg(s.actor, text.Bad, "You are not using ", what.As[Name], ".")
 		case what.As[VetoRemove] != "":
-			s.Msg(s.actor, what.As[VetoRemove])
+			s.Msg(s.actor, text.Bad, what.As[VetoRemove])
 		default:
 			what.Is &^= Using
 			s.actor.Any[Body] = append(s.actor.Any[Body], slots...)
-			s.Msg(s.actor, "You stop", usage, what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You stop", usage, what.As[Name], ".")
 			if notify {
-				s.Msg(where, s.actor.As[Name], " stops", usage, what.As[Name], ".")
+				s.Msg(where, text.Info, s.actor.As[Name], " stops", usage, what.As[Name], ".")
 			}
 		}
 	}
@@ -1119,7 +1122,7 @@ func (s *state) Remove() {
 
 func (s *state) Hold() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to hold... something?")
+		s.Msg(s.actor, text.Info, "You go to hold... something?")
 		return
 	}
 
@@ -1130,17 +1133,17 @@ func (s *state) Hold() {
 
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You have no '", uid, "' to hold.")
+			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to hold.")
 		case what.Is&Holding == Holding:
-			s.Msg(s.actor, "You are already holding ", what.As[Name], ".")
+			s.Msg(s.actor, text.Info, "You are already holding ", what.As[Name], ".")
 		case what.Any[Holdable] == nil:
-			s.Msg(s.actor, what.As[Name], " isn't something you can hold.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " isn't something you can hold.")
 		case what.Is&Wearing == Wearing:
-			s.Msg(s.actor, "You can't hold ", what.As[Name], " while wearing it.")
+			s.Msg(s.actor, text.Bad, "You can't hold ", what.As[Name], " while wearing it.")
 		case what.Is&Wielding == Wielding:
-			s.Msg(s.actor, "You can't hold ", what.As[Name], " while wielding it.")
+			s.Msg(s.actor, text.Bad, "You can't hold ", what.As[Name], " while wielding it.")
 		case what.As[VetoHold] != "":
-			s.Msg(s.actor, what.As[VetoHold])
+			s.Msg(s.actor, text.Bad, what.As[VetoHold])
 		case !conatins(s.actor.Any[Body], what.Any[Holdable]):
 			var whys []string
 			for _, item := range s.actor.In {
@@ -1148,13 +1151,13 @@ func (s *state) Hold() {
 					whys = append(whys, item.As[Name])
 				}
 			}
-			s.Msg(s.actor, "You can't hold ", what.As[Name], " while holding ", text.List(whys), ".")
+			s.Msg(s.actor, text.Bad, "You can't hold ", what.As[Name], " while holding ", text.List(whys), ".")
 		default:
 			what.Is |= Holding
 			s.actor.Any[Body], _ = remainder(s.actor.Any[Body], what.Any[Holdable])
-			s.Msg(s.actor, "You hold ", what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You hold ", what.As[Name], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " holds ", what.As[Name], ".")
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " holds ", what.As[Name], ".")
 			}
 		}
 	}
@@ -1162,7 +1165,7 @@ func (s *state) Hold() {
 
 func (s *state) Wear() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to wear... something?")
+		s.Msg(s.actor, text.Info, "You go to wear... something?")
 		return
 	}
 
@@ -1172,17 +1175,17 @@ func (s *state) Wear() {
 		what := s.actor.In[uid]
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You have no '", uid, "' to wear.")
+			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to wear.")
 		case what.Is&Wearing == Wearing:
-			s.Msg(s.actor, "You are already wearing ", what.As[Name], ".")
+			s.Msg(s.actor, text.Info, "You are already wearing ", what.As[Name], ".")
 		case what.Any[Wearable] == nil:
-			s.Msg(s.actor, what.As[Name], " isn't something you can wear.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " isn't something you can wear.")
 		case what.Is&Holding == Holding:
-			s.Msg(s.actor, "You can't wear ", what.As[Name], " while holding it.")
+			s.Msg(s.actor, text.Bad, "You can't wear ", what.As[Name], " while holding it.")
 		case what.Is&Wielding == Wielding:
-			s.Msg(s.actor, "You can't wear ", what.As[Name], " while wielding it.")
+			s.Msg(s.actor, text.Bad, "You can't wear ", what.As[Name], " while wielding it.")
 		case what.As[VetoWear] != "":
-			s.Msg(s.actor, what.As[VetoWear])
+			s.Msg(s.actor, text.Bad, what.As[VetoWear])
 		case !conatins(s.actor.Any[Body], what.Any[Wearable]):
 			var whys []string
 			for _, item := range s.actor.In {
@@ -1190,13 +1193,13 @@ func (s *state) Wear() {
 					whys = append(whys, item.As[Name])
 				}
 			}
-			s.Msg(s.actor, "You can't wear ", what.As[Name], " while wearing ", text.List(whys), ".")
+			s.Msg(s.actor, text.Bad, "You can't wear ", what.As[Name], " while wearing ", text.List(whys), ".")
 		default:
 			what.Is |= Wearing
 			s.actor.Any[Body], _ = remainder(s.actor.Any[Body], what.Any[Wearable])
-			s.Msg(s.actor, "You wear ", what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You wear ", what.As[Name], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " wears ", what.As[Name], ".")
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " wears ", what.As[Name], ".")
 			}
 		}
 	}
@@ -1204,7 +1207,7 @@ func (s *state) Wear() {
 
 func (s *state) Wield() {
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "You go to wield... something?")
+		s.Msg(s.actor, text.Info, "You go to wield... something?")
 		return
 	}
 
@@ -1214,17 +1217,17 @@ func (s *state) Wield() {
 		what := s.actor.In[uid]
 		switch {
 		case what == nil:
-			s.Msg(s.actor, "You have no '", uid, "' to wield.")
+			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to wield.")
 		case what.Is&Wielding == Wielding:
-			s.Msg(s.actor, "You are already wielding ", what.As[Name], ".")
+			s.Msg(s.actor, text.Info, "You are already wielding ", what.As[Name], ".")
 		case what.Any[Wieldable] == nil:
-			s.Msg(s.actor, what.As[Name], " isn't something you can wield.")
+			s.Msg(s.actor, text.Bad, what.As[Name], " isn't something you can wield.")
 		case what.Is&Holding == Holding:
-			s.Msg(s.actor, "You can't wield ", what.As[Name], " while holding it.")
+			s.Msg(s.actor, text.Bad, "You can't wield ", what.As[Name], " while holding it.")
 		case what.Is&Wearing == Wearing:
-			s.Msg(s.actor, "You can't wield ", what.As[Name], " while wearing it.")
+			s.Msg(s.actor, text.Bad, "You can't wield ", what.As[Name], " while wearing it.")
 		case what.As[VetoWield] != "":
-			s.Msg(s.actor, what.As[VetoWield])
+			s.Msg(s.actor, text.Bad, what.As[VetoWield])
 		case !conatins(s.actor.Any[Body], what.Any[Wieldable]):
 			var whys []string
 			for _, item := range s.actor.In {
@@ -1233,16 +1236,16 @@ func (s *state) Wield() {
 				}
 			}
 			if len(whys) == 0 {
-				s.Msg(s.actor, "You are incapable of wielding ", what.As[Name], ".")
+				s.Msg(s.actor, text.Bad, "You are incapable of wielding ", what.As[Name], ".")
 				return
 			}
-			s.Msg(s.actor, "You can't wield ", what.As[Name], " while wielding ", text.List(whys), ".")
+			s.Msg(s.actor, text.Bad, "You can't wield ", what.As[Name], " while wielding ", text.List(whys), ".")
 		default:
 			what.Is |= Wielding
 			s.actor.Any[Body], _ = remainder(s.actor.Any[Body], what.Any[Wieldable])
-			s.Msg(s.actor, "You wield ", what.As[Name], ".")
+			s.Msg(s.actor, text.Good, "You wield ", what.As[Name], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], s.actor.As[Name], " wields ", what.As[Name], ".")
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[Name], " wields ", what.As[Name], ".")
 			}
 		}
 	}
