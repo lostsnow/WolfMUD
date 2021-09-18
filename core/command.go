@@ -372,7 +372,7 @@ func (s *state) Inventory() {
 	case len(s.actor.In) == 0:
 		s.Msg(s.actor, text.Info, "You are not carrying anything.")
 	default:
-		s.Msg(s.actor, "You are carrying:")
+		s.Msg(s.actor, "You currently have:")
 		for _, what := range s.actor.In.Sort() {
 			var usage string
 			switch {
