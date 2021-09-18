@@ -648,6 +648,8 @@ func (s *state) Read() {
 			s.Msg(s.actor, text.Bad, "You see no '", uid, "' here to read.")
 		case what.As[Writing] == "":
 			s.Msg(s.actor, text.Bad, "There is nothing on ", what.As[Name], " to read.")
+		case what.As[VetoRead] != "":
+			s.Msg(s.actor, text.Bad, what.As[VetoRead])
 		default:
 			s.Msg(s.actor, text.Good, "You read ", what.As[Name], ". ", what.As[Writing])
 			if len(s.actor.Ref[Where].Who) < CrowdSize {
