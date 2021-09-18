@@ -676,6 +676,8 @@ func (s *state) Open() {
 			s.Msg(s.actor, text.Bad, what.As[Name], " is not something you can open.")
 		case what.Is&Open == Open:
 			s.Msg(s.actor, text.Bad, what.As[Name], " is already open.")
+		case s.actor != what && what.As[VetoOpen] != "":
+			s.Msg(s.actor, text.Bad, what.As[VetoOpen])
 		default:
 			what.Is |= Open
 			if what.Is&_Open == 0 {
@@ -725,6 +727,8 @@ func (s *state) Close() {
 			s.Msg(s.actor, text.Bad, what.As[Name], " is not something you can close.")
 		case what.Is&Open == 0:
 			s.Msg(s.actor, text.Bad, what.As[Name], " is already closed.")
+		case s.actor != what && what.As[VetoClose] != "":
+			s.Msg(s.actor, text.Bad, what.As[VetoClose])
 		default:
 			what.Is &^= Open
 			if what.Is&_Open == _Open {

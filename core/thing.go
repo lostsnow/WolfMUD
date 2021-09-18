@@ -282,12 +282,16 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		case "VETO":
 			for cmd, msg := range decode.KeyedStringList(r[field]) {
 				switch cmd {
+				case "CLOSE":
+					t.As[VetoClose] = msg
 				case "DROP":
 					t.As[VetoDrop] = msg
 				case "GET":
 					t.As[VetoGet] = msg
 				case "JUNK":
 					t.As[VetoJunk] = msg
+				case "OPEN":
+					t.As[VetoOpen] = msg
 				case "PUT":
 					t.As[VetoPut] = msg
 				case "PUTIN":

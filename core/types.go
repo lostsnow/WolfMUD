@@ -102,10 +102,12 @@ const (
 	Ref              // Item's original reference (zone:ref or ref)
 	TriggerType      // Type of trigger event to send
 	UID              // Item's unique identifier
+	VetoClose        // Veto CLOSE command
 	VetoDrop         // Veto for DROP command
 	VetoGet          // Veto for GET command
 	VetoHold         // Veto HOLD command
 	VetoJunk         // Veto for JUNK command
+	VetoOpen         // Veto OPEN command
 	VetoPut          // Veto PUT command for item
 	VetoPutIn        // Veto for PUT command into container
 	VetoRead         // Veto READ command
@@ -134,10 +136,12 @@ var asNames = []string{
 	"Reference",
 	"TriggerType",
 	"UID",
+	"VetoClose",
 	"VetoDrop",
 	"VetoGet",
 	"VetoHold",
 	"VetoJunk",
+	"VetoOpen",
 	"VetoPut",
 	"VetoPutIn",
 	"VetoRead",
