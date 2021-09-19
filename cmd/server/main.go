@@ -159,7 +159,7 @@ func player(conn *net.TCPConn) {
 			cmd = s.Parse("QUIT")
 			break
 		}
-		cmd = s.Parse(input)
+		cmd = s.Parse(clean(input))
 		runtime.Gosched()
 	}
 
@@ -168,4 +168,31 @@ func player(conn *net.TCPConn) {
 
 	log.Printf("[%s] disconnect from: %s", uid, conn.RemoteAddr())
 	conn.CloseRead()
+}
+
+// clean incoming data. Invalid runes or C0 and C1 control codes are dropped.
+// An exception in the C0 control code is backspace ('\b', ASCII 0x08) which
+// will erase the previous rune. This can occur when the player's Telnet client
+// does not support line editing.
+func clean(in string) string {
+
+	o := make([]rune, len(in)) // oversize due to len = bytes
+	i := 0
+	for _, v := range in {
+		switch {
+		case v == '\uFFFD':
+			// drop invalid runes
+		case v == '\b' && i > 0:
+			i--
+		case v <= 0x1F:
+			// drop C0 control codes
+		case 0x80 <= v && v <= 0x9F:
+			// drop C1 control codes
+		default:
+			o[i] = v
+			i++
+		}
+	}
+
+	return string(o[:i])
 }
