@@ -140,7 +140,7 @@ func player(conn *net.TCPConn) {
 
 	var input string
 	var err error
-	r := bufio.NewReader(conn)
+	r := bufio.NewReaderSize(conn, 80)
 	for cmd != "QUIT" {
 		err = <-errState
 		if err != nil {
