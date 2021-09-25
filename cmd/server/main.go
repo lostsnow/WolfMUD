@@ -64,6 +64,9 @@ func player(conn *net.TCPConn) {
 	player := core.NewThing()
 	player.Is = player.Is | core.Player
 	player.As[core.Name] = "Player" + strconv.FormatUint(np, 10)
+	player.As[core.UName] = player.As[core.Name]
+	player.As[core.TheName] = player.As[core.Name]
+	player.As[core.UTheName] = player.As[core.Name]
 	player.As[core.Description] = "An adventurer, just like you."
 	player.As[core.DynamicAlias] = "PLAYER"
 	player.Any[core.Alias] = []string{"PLAYER" + strconv.FormatUint(np, 10)}

@@ -100,8 +100,11 @@ const (
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
 	Ref              // Item's original reference (zone:ref or ref)
+	TheName          // Item's name with a/an/some prefix changed to 'the'
 	TriggerType      // Type of trigger event to send
 	UID              // Item's unique identifier
+	UName            // Name with the initial character upper-cased
+	UTheName         // TheName with the initial character upper-cased
 	VetoClose        // Veto CLOSE command
 	VetoDrop         // Veto for DROP command
 	VetoGet          // Veto for GET command
@@ -134,8 +137,11 @@ var asNames = []string{
 	"OnCleanup",
 	"OnReset",
 	"Reference",
+	"TheName",
 	"TriggerType",
 	"UID",
+	"UName",
+	"UTheName",
 	"VetoClose",
 	"VetoDrop",
 	"VetoGet",

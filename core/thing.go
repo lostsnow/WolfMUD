@@ -252,6 +252,21 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			// Do nothing - only used by loader
 		case "NAME":
 			t.As[Name] = decode.String(data)
+			t.As[UName] = text.TitleFirst(t.As[Name])
+			switch {
+			case strings.HasPrefix(t.As[Name], "a "):
+				t.As[TheName] = "the" + strings.TrimPrefix(t.As[Name], "a")
+				t.As[UTheName] = "The" + strings.TrimPrefix(t.As[Name], "a")
+			case strings.HasPrefix(t.As[Name], "an "):
+				t.As[TheName] = "the" + strings.TrimPrefix(t.As[Name], "an")
+				t.As[UTheName] = "The" + strings.TrimPrefix(t.As[Name], "an")
+			case strings.HasPrefix(t.As[Name], "some "):
+				t.As[TheName] = "the" + strings.TrimPrefix(t.As[Name], "some")
+				t.As[UTheName] = "The" + strings.TrimPrefix(t.As[Name], "some")
+			default:
+				t.As[TheName] = t.As[Name]
+				t.As[UTheName] = t.As[UName]
+			}
 		case "NARRATIVE":
 			t.Is |= Narrative
 		case "ONACTION":
