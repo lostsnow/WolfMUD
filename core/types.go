@@ -136,7 +136,7 @@ var asNames = []string{
 	"Name",
 	"OnCleanup",
 	"OnReset",
-	"Reference",
+	"Ref",
 	"TheName",
 	"TriggerType",
 	"UID",
