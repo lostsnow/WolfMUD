@@ -294,7 +294,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 		case "START":
 			t.Is |= Start
-		case "VETO":
+		case "VETO", "VETOES":
 			for cmd, msg := range decode.KeyedStringList(r[field]) {
 				switch cmd {
 				case "CLOSE":
