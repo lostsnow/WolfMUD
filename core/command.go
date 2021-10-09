@@ -872,6 +872,7 @@ func (s *state) Say() {
 }
 
 func (s *state) Action() {
+	s.actor.Cancel(Action)
 	l := len(s.actor.Any[OnAction])
 	if l == 0 {
 		return
@@ -977,6 +978,7 @@ func radius(size int, where *Thing) [][]*Thing {
 }
 
 func (s *state) Reset() {
+	s.actor.Cancel(Reset)
 
 	// If actor should wait and has out of play items don't reset
 	if s.actor.Is&Wait == Wait && len(s.actor.Out) > 0 {
@@ -1056,6 +1058,7 @@ func (s *state) Junk() {
 }
 
 func (s *state) Cleanup() {
+	s.actor.Cancel(Cleanup)
 	defer s.actor.Junk()
 
 	where := s.actor.Ref[Where]
@@ -1078,6 +1081,7 @@ func (s *state) Cleanup() {
 // be set via Thing.As[TriggerType]. The item can be in or out of play at the
 // time.
 func (s *state) Trigger() {
+	s.actor.Cancel(Trigger)
 
 	switch s.actor.As[TriggerType] {
 	case "BLOCKER":

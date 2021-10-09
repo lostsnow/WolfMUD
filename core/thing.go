@@ -762,7 +762,6 @@ func (t *Thing) Schedule(event eventKey) {
 	t.Int[idx+DueAtOffset] = time.Now().Add(wait).UnixNano()
 	t.Event[event] = time.AfterFunc(
 		wait, func() {
-			t.Cancel(event)
 			NewState(t).Parse(eventCommands[event])
 		},
 	)
