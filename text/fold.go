@@ -139,7 +139,7 @@ func Fold(in []byte, width int) []byte {
 			op++
 			vc++
 
-		// Replace preserving hard-space '␠' U+2420
+		// Replace preserving hard-space '␠' U+2420, UTF8 bytes: 0xe2 0x90 0xa0
 		case in[ip] == 0xe2 && ip < len(in)-2 && in[ip+1] == 0x90 && in[ip+2] == 0xa0:
 			o[op] = ' '
 			op++
