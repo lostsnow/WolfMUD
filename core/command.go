@@ -6,6 +6,7 @@
 package core
 
 import (
+	"bytes"
 	"log"
 	"math/rand"
 	"runtime"
@@ -633,7 +634,9 @@ func (s *state) Dump() {
 			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to dump.")
 		default:
 			s.Msg(s.actor, "DUMP: ", uid, "\n")
-			what.Dump(s.buf[s.actor], 80)
+			buf := &bytes.Buffer{}
+			what.Dump(buf, 80)
+			s.buf[s.actor].Write(bytes.ReplaceAll(buf.Bytes(), []byte(" "), []byte("␠")))
 		}
 	}
 }
