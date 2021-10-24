@@ -15,6 +15,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -374,6 +375,235 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 
 	// Zone only needed during loading
 	delete(t.As, Zone)
+}
+
+// Marshal saves data from the Thing into the returned Record.
+//
+// BUG(diddymus): Doors save twice as we don't know what side we are on.
+// BUG(diddymus): Live saves don't record a due_in for events. This could be
+// calculated from due_at.
+func (t *Thing) Marshal() recordjar.Record {
+
+	type mss = map[string]string
+
+	body := mss{}
+	for _, slot := range t.Any[Body] {
+		body[slot] = incString(body[slot])
+	}
+
+	var holding, wearing, wielding []string
+	for _, item := range t.In {
+		if item.Is&Holding == Holding {
+			holding = append(holding, item.As[UID])
+			for _, slot := range item.Any[Holdable] {
+				body[slot] = incString(body[slot])
+			}
+		}
+		if item.Is&Wearing == Wearing {
+			wearing = append(wearing, item.As[UID])
+			for _, slot := range item.Any[Wearable] {
+				body[slot] = incString(body[slot])
+			}
+		}
+		if item.Is&Wielding == Wielding {
+			wielding = append(wielding, item.As[UID])
+			for _, slot := range item.Any[Wieldable] {
+				body[slot] = incString(body[slot])
+			}
+		}
+	}
+
+	holdable, wearable, wieldable := mss{}, mss{}, mss{}
+	for _, slot := range t.Any[Holdable] {
+		holdable[slot] = incString(holdable[slot])
+	}
+	for _, slot := range t.Any[Wearable] {
+		wearable[slot] = incString(wearable[slot])
+	}
+	for _, slot := range t.Any[Wieldable] {
+		wieldable[slot] = incString(wieldable[slot])
+	}
+
+	// Don't marshal auto-added holdable
+	if len(holdable) == 1 && holdable["HAND"] == "1" {
+		delete(holdable, "HAND")
+	}
+
+	exits := mss{}
+	for dir := North; dir < Down; dir++ {
+		if exit, ok := t.Ref[dir]; ok {
+			exits[DirToName[dir]] = exit.As[UID]
+		}
+	}
+
+	inv := []string{}
+	for _, item := range t.In {
+		inv = append(inv, item.As[UID])
+	}
+	for _, item := range t.Out {
+		inv = append(inv, "!"+item.As[UID])
+	}
+
+	aliases := []string{}
+	for _, alias := range t.Any[Alias] {
+		if alias == t.As[UID] {
+			continue
+		}
+		aliases = append(aliases, alias)
+	}
+	for _, alias := range t.Any[Qualifier] {
+		aliases = append(aliases, "+"+alias)
+	}
+
+	vetoes := mss{
+		"Close":   t.As[VetoClose],
+		"Drop":    t.As[VetoDrop],
+		"Get":     t.As[VetoGet],
+		"Junk":    t.As[VetoJunk],
+		"Open":    t.As[VetoOpen],
+		"Put":     t.As[VetoPut],
+		"PutIn":   t.As[VetoPutIn],
+		"Read":    t.As[VetoRead],
+		"Take":    t.As[VetoTake],
+		"TakeOut": t.As[VetoTakeOut],
+	}
+	for veto, data := range vetoes {
+		if data == "" {
+			delete(vetoes, veto)
+		}
+	}
+
+	r := recordjar.Record{}
+	if t.Int[ActionAfter]+t.Int[ActionJitter]+t.Int[ActionDueIn]+t.Int[ActionDueAt] > 0 {
+		action := mss{
+			"AFTER":  string(encode.Duration(time.Duration(t.Int[ActionAfter]))),
+			"JITTER": string(encode.Duration(time.Duration(t.Int[ActionJitter]))),
+		}
+		if at := t.Int[ActionDueIn]; at > 0 {
+			dueIn := time.Duration(at)
+			action["DUE_IN"] = string(encode.Duration(dueIn))
+		} else if at := t.Int[ActionDueAt]; at > 0 {
+			dueIn := time.Unix(0, at).Sub(time.Now())
+			action["DUE_IN"] = string(encode.Duration(dueIn))
+		}
+		r["Action"] = encode.PairList(action, '→')
+	}
+	if len(aliases) > 0 {
+		r["Alias"] = encode.KeywordList(aliases)
+	}
+	if len(body) > 0 {
+		r["Body"] = encode.PairList(body, '→')
+	}
+	if t.Int[CleanupAfter]+t.Int[CleanupJitter]+t.Int[CleanupDueIn]+t.Int[CleanupDueAt] > 0 {
+		cleanup := mss{
+			"AFTER":  string(encode.Duration(time.Duration(t.Int[CleanupAfter]))),
+			"JITTER": string(encode.Duration(time.Duration(t.Int[CleanupJitter]))),
+		}
+		if at := t.Int[CleanupDueIn]; at > 0 {
+			dueIn := time.Duration(at)
+			cleanup["DUE_IN"] = string(encode.Duration(dueIn))
+		} else if at := t.Int[CleanupDueAt]; at > 0 {
+			dueIn := time.Unix(0, at).Sub(time.Now())
+			cleanup["DUE_IN"] = string(encode.Duration(dueIn))
+		}
+		r["Cleanup"] = encode.PairList(cleanup, '→')
+	}
+	if _, ok := t.As[Description]; ok {
+		r["Description"] = encode.String(t.As[Description])
+	}
+	// BUG(diddymus) This will save the door twice as we don't know which side we
+	// are on.
+	if t.Int[TriggerAfter]+t.Int[TriggerJitter]+t.Int[TriggerDueIn]+t.Int[TriggerDueAt] > 0 {
+		door := mss{
+			"RESET":  string(encode.Duration(time.Duration(t.Int[TriggerAfter]))),
+			"JITTER": string(encode.Duration(time.Duration(t.Int[TriggerJitter]))),
+			"OPEN":   string(encode.Boolean(t.Is&_Open == _Open)),
+			"EXIT":   string(encode.Keyword(t.As[Blocker])),
+		}
+		if at := t.Int[TriggerDueIn]; at > 0 {
+			dueIn := time.Duration(at)
+			door["DUE_IN"] = string(encode.Duration(dueIn))
+		} else if at := t.Int[TriggerDueAt]; at > 0 {
+			dueIn := time.Unix(0, at).Sub(time.Now())
+			door["DUE_IN"] = string(encode.Duration(dueIn))
+		}
+		r["Door"] = encode.PairList(door, '→')
+	}
+	if len(exits) > 0 {
+		r["Exits"] = encode.PairList(exits, '→')
+	}
+	if _, ok := t.As[Gender]; ok {
+		r["Gender"] = encode.String(t.As[Gender])
+	}
+	if len(holdable) > 0 {
+		r["Holdable"] = encode.PairList(holdable, '→')
+	}
+	if len(holding) > 0 {
+		r["Holding"] = encode.KeywordList(holding)
+	}
+	if len(inv) > 0 {
+		r["Inventory"] = encode.KeywordList(inv)
+	}
+	// LOCATION - n/a?
+	if _, ok := t.As[Name]; ok {
+		r["Name"] = encode.String(t.As[Name])
+	}
+	if t.Is&Narrative == Narrative {
+		r["Narrative"] = []byte{}
+	}
+	if _, ok := t.Any[OnAction]; ok {
+		r["OnAction"] = encode.StringList(t.Any[OnAction])
+	}
+	if _, ok := t.As[OnCleanup]; ok {
+		r["OnCleanup"] = encode.String(t.As[OnCleanup])
+	}
+	if _, ok := t.As[OnReset]; ok {
+		r["OnReset"] = encode.String(t.As[OnReset])
+	}
+	if _, ok := t.As[UID]; ok {
+		r["Ref"] = encode.String(t.As[UID])
+	}
+
+	if t.Int[ResetAfter]+t.Int[ResetJitter]+t.Int[ResetDueIn]+t.Int[ResetDueAt] > 0 {
+		reset := mss{
+			"AFTER":  string(encode.Duration(time.Duration(t.Int[ResetAfter]))),
+			"JITTER": string(encode.Duration(time.Duration(t.Int[ResetJitter]))),
+			"SPAWN":  string(encode.Boolean(t.Is&Spawnable != 0)),
+			"WAIT":   string(encode.Boolean(t.Is&Wait != 0)),
+		}
+		if at := t.Int[ResetDueIn]; at > 0 {
+			dueIn := time.Duration(at)
+			reset["DUE_IN"] = string(encode.Duration(dueIn))
+		} else if at := t.Int[ResetDueAt]; at > 0 {
+			dueIn := time.Unix(0, at).Sub(time.Now())
+			reset["DUE_IN"] = string(encode.Duration(dueIn))
+		}
+		r["Reset"] = encode.PairList(reset, '→')
+	}
+	if t.Is&Start == Start {
+		r["Start"] = []byte{}
+	}
+	if len(vetoes) > 0 {
+		r["Vetoes"] = encode.KeyedStringList(vetoes, '→')
+	}
+	if len(wearable) > 0 {
+		r["Wearable"] = encode.PairList(wearable, '→')
+	}
+	if len(wearing) > 0 {
+		r["Wearing"] = encode.KeywordList(wearing)
+	}
+	if len(wieldable) > 0 {
+		r["Wieldable"] = encode.PairList(wieldable, '→')
+	}
+	if len(wielding) > 0 {
+		r["Wielding"] = encode.KeywordList(wielding)
+	}
+	if _, ok := t.As[Writing]; ok {
+		r["Writing"] = encode.String(t.As[Writing])
+	}
+	// ZONELINKS - n/a?
+
+	return r
 }
 
 // Copy returns a duplicate of the receiver Thing with only the UID and Who
@@ -808,4 +1038,26 @@ func (t *Thing) Suspend(event eventKey) {
 		t.Int[dueIn] = 0
 	}
 	t.Int[dueAt] = 0
+}
+
+// incString increments the passed numeric string by one and returns the new
+// string. For example incString("1") returns the string "2".
+func incString(s string) string {
+	if s == "" {
+		return "1"
+	}
+	d := []byte(s)
+	for p := len(d) - 1; p >= 0; p-- {
+		if d[p] < '9' {
+			d[p]++
+			return string(d)
+		}
+		d[p] = '0'
+		if p == 0 {
+			d = append(d, '0')
+			copy(d[1:], d[0:])
+			d[0] = '1'
+		}
+	}
+	return string(d)
 }
