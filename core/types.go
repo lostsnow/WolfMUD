@@ -96,6 +96,7 @@ const (
 	Description      // Item's description
 	DynamicAlias     // "PLAYER" or unset, "SELF" for actor performing a command
 	DynamicQualifier // Situation dependant e.g. GET sets "MY",DROP deleted "MY"
+	Gender           // Gender of a player or NPC
 	Name             // Item's name
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
@@ -133,6 +134,7 @@ var asNames = []string{
 	"Description",
 	"DynamicAlias",
 	"DynamicQualifier",
+	"Gender",
 	"Name",
 	"OnCleanup",
 	"OnReset",

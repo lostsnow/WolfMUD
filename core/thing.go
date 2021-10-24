@@ -236,6 +236,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				t.As[DirRefToAs[NameToDir[name]]] = t.As[Zone] + loc
 			}
 			t.Is |= Location
+		case "GENDER":
+			t.As[Gender] = decode.Keyword(r["GENDER"])
 		case "HOLDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
 				for x := 0; x < decodeInt(qty); x++ {
