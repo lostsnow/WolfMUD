@@ -812,21 +812,8 @@ func (s *state) Teleport() {
 	}
 }
 
-var greeting = string(text.Colorize([]byte(`
-
-WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
-
-    [GREEN]W[WHITE]orld␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]* WARNING! *
-    [GREEN]O[WHITE]f␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Highly --
-    [GREEN]L[WHITE]iving␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]Experimental
-    [GREEN]F[WHITE]antasy␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Server --
-
-[YELLOW]Welcome to WolfMUD![RESET]
-`)))
-
 func (s *state) Poof() {
-
-	s.Msg(s.actor, greeting)
+	s.Msg(s.actor, "") // BUG(diddymus): Needed to move off of prompt until we can hide the prompt
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")

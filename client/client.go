@@ -59,8 +59,10 @@ func New(conn *net.TCPConn) {
 	log.Printf("[%s] connection from: %s", c.uid, c.RemoteAddr())
 
 	go c.messenger()
-	c.enterWorld()
-	c.receive()
+	if c.frontend() {
+		c.enterWorld()
+		c.receive()
+	}
 
 	if err := c.error(); err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
@@ -74,6 +76,11 @@ func New(conn *net.TCPConn) {
 
 	mailbox.Delete(c.uid)
 	<-c.quit
+	if c.As[core.Account] != "" {
+		accountsMux.Lock()
+		delete(accounts, c.As[core.Account])
+		accountsMux.Unlock()
+	}
 	c.Free()
 	c.Close()
 }
