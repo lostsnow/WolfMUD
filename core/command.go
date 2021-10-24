@@ -131,6 +131,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	s.Save()
 	where := s.actor.Ref[Where]
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
