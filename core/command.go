@@ -9,9 +9,14 @@ import (
 	"bytes"
 	"log"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"runtime"
 	"sort"
+	"time"
 
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -87,6 +92,7 @@ func RegisterCommandHandlers() {
 		"WEAR":      (*state).Wear,
 		"WIELD":     (*state).Wield,
 		"VERSION":   (*state).Version,
+		"SAVE":      (*state).Save,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1269,6 +1275,42 @@ func (s *state) Wield() {
 
 func (s *state) Version() {
 	s.Msg(s.actor, "Version: ", commit, ", built with: ", runtime.Version(), " (", runtime.Compiler, ")")
+}
+
+// BUG(diddymus): paths hard coded
+func (s *state) Save() {
+
+	j := &recordjar.Jar{}
+	hdr := recordjar.Record{
+		"Account":  encode.String(s.actor.As[Account]),
+		"Created":  encode.DateTime(time.Unix(s.actor.Int[Created], 0)),
+		"Password": encode.String(s.actor.As[Password]),
+		"Salt":     encode.String(s.actor.As[Salt]),
+		"Player":   encode.String(s.actor.As[UID]),
+	}
+	*j = append(*j, hdr)
+	save(s.actor, j)
+
+	temp := filepath.Join("..", "data", "players", s.actor.As[Account]+".tmp")
+	real := filepath.Join("..", "data", "players", s.actor.As[Account]+".wrj")
+
+	wrj, _ := os.Create(temp)
+	wrj.Chmod(0660)
+	j.Write(wrj, "DESCRIPTION", preferredOrdering)
+	wrj.Close()
+	os.Rename(temp, real)
+
+	s.Msg(s.actor, text.Good, "You have been saved.")
+}
+
+func save(t *Thing, j *recordjar.Jar) {
+	*j = append(*j, t.Marshal())
+	for _, item := range t.In {
+		save(item, j)
+	}
+	for _, item := range t.Out {
+		save(item, j)
+	}
 }
 
 // intersects returns true if any elements of want are also in have, else false.
