@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+# Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
+#
+# Use of this source code is governed by the license in the LICENSE file
+# included with the source code.
+#
+usage=$(cat <<EOT
+
+Usage: newAcct [-f] [-d dir] account_id player_name password [male|female]
+
+  -f force overwriting of existing account file
+  -d specify alternate directory (default ../data/players/)
+
+The account id is case sensitive. The player name is case sensitive and must
+only contain the letters 'a' to 'z', 'A' to 'Z' or digits '0' to '9'.
+
+If the gender is not specified it will be randomly male or female.
+
+If -d is used to specify an alternate directory to save the player files to it
+must already exist.
+
+newAcct can be used to create a new WolfMUD player account without having to
+connect to the server. It is intended to be used in setting up large numbers of
+accounts for use as bots/robots for testing. For example the following will
+create 128 bot accounts with the password the same as the Id and a random
+gender assigned:
+
+  seq 0 127 | xargs -I+ ./newAcct BOT+ Bot+ BOT+
+
+WARNING: When using the -f flag the id of the file written may be different to
+the id in the existing player file - resulting in someone elses player file
+being overwritten. This can arise when there is a collision between the MD5
+hash of the new and existing ids.
+EOT
+)
+
+# By default don't overwrite existing account files, use -f to force overwriting
+overwrite="N"
+
+# Path to write accounts into, should end with a separator
+player_path="../data/players/"
+
+# Process input options
+while getopts ":fd:" opt; do
+	case $opt in
+		f ) overwrite="Y" ;;
+		d ) player_path=${OPTARG%/}"/" ;;
+		* ) echo "invalid flag specified"; echo "${usage}"; exit 1	;;
+	esac
+done
+shift $(($OPTIND - 1))
+
+# Check we have correct number of parameters
+if [ ${#@} -lt 3 -o ${#@} -gt 4 ]; then
+	echo "parameters missing"
+	echo "${usage}"
+	exit 1
+fi
+
+# Check directory to write to exists and is a directory
+if [ ! -e "${player_path}" ]; then
+	echo "directory does not exist: ${player_path}"
+	exit 1
+fi
+
+# Uppercase gender, Assign a random gender if we don't have one
+genders=(MALE FEMALE)
+gender=`echo $4 | tr "[:lower:]" "[:upper:]"`
+gender=${gender:-${genders[$((SRANDOM%2))]}}
+
+# Check gender is MALE or FEMALE if specified
+if [ "${gender}" != "MALE" -a "${gender}" != "FEMALE" ]; then
+	echo "newAcct: gender must be MALE or FEMALE if specified."
+	exit 1
+fi
+
+# Depending on locale, language, collation, etc (especially if set to
+# UTF-8/unicode) the ranges a-z, A-Z, 0-9 do not cover the ranges you think
+# they do... For example 0-9 can include '١' U+0661 ARABIC-INDIC DIGIT ONE.
+# Play safe and spell it out...
+name_re='^[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]+$'
+
+# Check id is valid
+name=$2
+if [[ ! "${name}" =~ ${name_re} ]]; then
+	echo "newAcct: player name contains invlid characters."
+	exit 1
+fi
+alias=`echo ${name} | tr "[:lower:]" "[:upper:]"`
+
+# Build account hash
+login=$1
+account=`echo -n "$login" | openssl dgst -md5 -r`
+account=${account%% *}
+
+# Check a file for the account hash does not exist
+file="${player_path}${account}.wrj"
+if [ -f "${file}" -a "${overwrite}" != "Y" ]; then
+	echo "newAcct: account file exists ${file}"
+	exit 1
+fi
+
+salt=`openssl rand -base64 32`
+password=`echo -n "${salt}${3}" | openssl dgst -sha512 -binary | openssl enc -a -A | tr "+/" "-_"`
+created=`date -u +"%a, %d %b %Y %X %z"`
+
+# Write out new account file
+(
+cat <<EOT
+    Salt: $salt
+ Account: $account
+Password: $password
+ Created: $created
+  Player: P1
+%%
+     Name: ${name}
+    Alias: ${alias} PLAYER
+   Gender: ${gender}
+      Ref: P1
+Inventory:
+
+This is an adventurer, just like you!
+%%
+EOT
+) > ${file}
+echo "New account: $login - ${gender} [$account]"
