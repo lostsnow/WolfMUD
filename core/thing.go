@@ -286,10 +286,13 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				case "JITTER":
 					t.Int[ResetJitter] = decode.Duration(b).Nanoseconds()
 				case "SPAWN":
-					t.Is |= Spawnable
+					if decode.Boolean(b) {
+						t.Is |= Spawnable
+					}
 				case "WAIT":
-					t.Is |= Wait
-
+					if decode.Boolean(b) {
+						t.Is |= Wait
+					}
 				}
 			}
 		case "START":
