@@ -132,7 +132,7 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
-	s.Msg(s.actor, text.Good, "You leave this world behind.\n\nBye bye!\n")
+	s.Msg(s.actor, text.Good, "You leave this world behind.")
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")

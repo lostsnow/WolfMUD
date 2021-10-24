@@ -8,9 +8,10 @@ package client
 
 import (
 	"bufio"
+	"errors"
 	"log"
-	"math/rand"
 	"net"
+	"os"
 	"runtime"
 	"time"
 
@@ -19,11 +20,20 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
+const (
+	frontendTimeout = 5 * time.Minute
+	ingameTimeout   = 60 * time.Minute
+)
+
+var idleDisconnect = text.Bad + "\nIdle connection terminated by server.\n" +
+	text.Reset
+
 type client struct {
 	*core.Thing
 	*net.TCPConn
 	err   chan error
 	queue <-chan string
+	quit  chan struct{}
 	uid   string // Can't touch c.As[core.UID] when not under BWL
 }
 
@@ -32,6 +42,7 @@ func New(conn *net.TCPConn) {
 		Thing:   core.NewThing(),
 		TCPConn: conn,
 		err:     make(chan error, 1),
+		quit:    make(chan struct{}, 1),
 	}
 
 	c.err <- nil
@@ -48,29 +59,37 @@ func New(conn *net.TCPConn) {
 	log.Printf("[%s] connection from: %s", c.uid, c.RemoteAddr())
 
 	go c.messenger()
+	c.enterWorld()
 	c.receive()
+
+	if err := c.error(); err != nil {
+		if errors.Is(err, os.ErrDeadlineExceeded) {
+			mailbox.Send(c.uid, true, idleDisconnect)
+		}
+		log.Printf("[%s] client error: %s", c.uid, err)
+	}
+
+	log.Printf("[%s] disconnect from: %s", c.uid, c.RemoteAddr())
+	mailbox.Send(c.uid, true, text.Good+"\n\nBye bye!\n\n"+text.Reset)
+
+	mailbox.Delete(c.uid)
+	<-c.quit
+	c.Free()
+	c.Close()
 }
 
 func (c *client) receive() {
 
 	s := core.NewState(c.Thing)
-
-	c.createPlayer()
-	core.BWL.Lock()
-	c.Ref[core.Where] = core.WorldStart[rand.Intn(len(core.WorldStart))]
-	c.Ref[core.Where].Who[c.uid] = c.Thing
-	core.BWL.Unlock()
 	cmd := s.Parse("$POOF")
 
 	var input string
 	var err error
 	r := bufio.NewReaderSize(c, 80)
 	for cmd != "QUIT" && c.error() == nil {
-		c.SetReadDeadline(time.Now().Add(60 * time.Minute))
+		c.SetReadDeadline(time.Now().Add(ingameTimeout))
 		if input, err = r.ReadString('\n'); err != nil {
-			log.Printf("[%s] read error: %s", c.uid, err)
 			c.setError(err)
-			cmd = s.Parse("QUIT")
 			break
 		}
 		if len(c.queue) > 10 {
@@ -80,70 +99,34 @@ func (c *client) receive() {
 		runtime.Gosched()
 	}
 
-	mailbox.Delete(c.uid)
-	c.Free()
-
-	log.Printf("[%s] disconnect from: %s", c.uid, c.RemoteAddr())
-	c.CloseRead()
+	if cmd != "QUIT" {
+		cmd = s.Parse("QUIT")
+	}
 }
 
 func (c *client) messenger() {
-	var err error
 	var buf []byte
 
 	for {
 		select {
 		case msg, ok := <-c.queue:
-			if ok && c.error() == nil {
-				buf = buf[:0]
-				if len(msg) > 0 {
-					buf = append(buf, text.Reset...)
-					buf = append(buf, msg...)
-					buf = append(buf, '\n')
-				}
-				buf = append(buf, text.Magenta...)
-				buf = append(buf, '>')
-				c.SetWriteDeadline(time.Now().Add(10 * time.Second))
-				if _, err = c.Write(text.Fold(buf, 80)); err != nil {
-					log.Printf("[%s] conn error: %s", c.uid, err)
-					c.setError(err)
-					mailbox.Delete(c.uid)
-					c.CloseWrite()
-				}
-			}
 			if !ok {
-				mailbox.Delete(c.uid)
-				c.SetWriteDeadline(time.Now().Add(10 * time.Second))
-				c.Write([]byte(text.Reset))
-				c.CloseWrite()
+				c.quit <- struct{}{}
 				return
 			}
-		}
-	}
-}
 
-func (c *client) createPlayer() {
-	c.Is = c.Is | core.Player
-	c.As[core.Name] = "Player"
-	c.As[core.UName] = c.As[core.Name]
-	c.As[core.TheName] = c.As[core.Name]
-	c.As[core.UTheName] = c.As[core.Name]
-	c.As[core.Description] = "An adventurer, just like you."
-	c.As[core.DynamicAlias] = "PLAYER"
-	c.Any[core.Alias] = []string{"PLAYER"}
-	c.Any[core.Body] = []string{
-		"HEAD",
-		"FACE", "EAR", "EYE", "NOSE", "EYE", "EAR",
-		"MOUTH", "UPPER_LIP", "LOWER_LIP",
-		"NECK",
-		"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
-		"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
-		"SHOULDER", "UPPER_ARM", "ELBOW", "LOWER_ARM", "WRIST",
-		"HAND", "FINGER", "FINGER", "FINGER", "FINGER", "THUMB",
-		"BACK", "CHEST",
-		"WAIST", "PELVIS",
-		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
-		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
+			buf = buf[:0]
+			if len(msg) > 0 {
+				buf = append(buf, text.Reset...)
+				buf = append(buf, msg...)
+				buf = append(buf, '\n')
+			}
+			buf = append(buf, text.Magenta...)
+			buf = append(buf, '>')
+
+			c.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			c.Write(text.Fold(buf, 80))
+		}
 	}
 }
 
