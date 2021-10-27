@@ -9,9 +9,14 @@ import (
 	"bytes"
 	"log"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"runtime"
 	"sort"
+	"time"
 
+	"code.wolfmud.org/WolfMUD.git/recordjar"
+	"code.wolfmud.org/WolfMUD.git/recordjar/encode"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -87,6 +92,7 @@ func RegisterCommandHandlers() {
 		"WEAR":      (*state).Wear,
 		"WIELD":     (*state).Wield,
 		"VERSION":   (*state).Version,
+		"SAVE":      (*state).Save,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -125,6 +131,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	s.Save()
 	where := s.actor.Ref[Where]
 	for uid, what := range s.actor.In {
 		delete(s.actor.In, uid)
@@ -132,7 +139,7 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
-	s.Msg(s.actor, text.Good, "You leave this world behind.\n\nBye bye!\n")
+	s.Msg(s.actor, text.Good, "You leave this world behind.")
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
@@ -812,21 +819,8 @@ func (s *state) Teleport() {
 	}
 }
 
-var greeting = string(text.Colorize([]byte(`
-
-WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
-
-    [GREEN]W[WHITE]orld␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]* WARNING! *
-    [GREEN]O[WHITE]f␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Highly --
-    [GREEN]L[WHITE]iving␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]Experimental
-    [GREEN]F[WHITE]antasy␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Server --
-
-[YELLOW]Welcome to WolfMUD![RESET]
-`)))
-
 func (s *state) Poof() {
-
-	s.Msg(s.actor, greeting)
+	s.Msg(s.actor, "") // BUG(diddymus): Needed to move off of prompt until we can hide the prompt
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
@@ -1282,6 +1276,42 @@ func (s *state) Wield() {
 
 func (s *state) Version() {
 	s.Msg(s.actor, "Version: ", commit, ", built with: ", runtime.Version(), " (", runtime.Compiler, ")")
+}
+
+// BUG(diddymus): paths hard coded
+func (s *state) Save() {
+
+	j := &recordjar.Jar{}
+	hdr := recordjar.Record{
+		"Account":  encode.String(s.actor.As[Account]),
+		"Created":  encode.DateTime(time.Unix(s.actor.Int[Created], 0)),
+		"Password": encode.String(s.actor.As[Password]),
+		"Salt":     encode.String(s.actor.As[Salt]),
+		"Player":   encode.String(s.actor.As[UID]),
+	}
+	*j = append(*j, hdr)
+	save(s.actor, j)
+
+	temp := filepath.Join("..", "data", "players", s.actor.As[Account]+".tmp")
+	real := filepath.Join("..", "data", "players", s.actor.As[Account]+".wrj")
+
+	wrj, _ := os.Create(temp)
+	wrj.Chmod(0660)
+	j.Write(wrj, "DESCRIPTION", preferredOrdering)
+	wrj.Close()
+	os.Rename(temp, real)
+
+	s.Msg(s.actor, text.Good, "You have been saved.")
+}
+
+func save(t *Thing, j *recordjar.Jar) {
+	*j = append(*j, t.Marshal())
+	for _, item := range t.In {
+		save(item, j)
+	}
+	for _, item := range t.Out {
+		save(item, j)
+	}
 }
 
 // intersects returns true if any elements of want are also in have, else false.

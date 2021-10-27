@@ -92,14 +92,18 @@ const (
 	_Up
 	_Down
 
+	Account          // MD5 hash of player's account
 	Blocker          // Name of direction being blocked ("E")
 	Description      // Item's description
 	DynamicAlias     // "PLAYER" or unset, "SELF" for actor performing a command
 	DynamicQualifier // Situation dependant e.g. GET sets "MY",DROP deleted "MY"
+	Gender           // Gender of a player or NPC
 	Name             // Item's name
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
+	Password         // Salted SHA512 hash of the account password
 	Ref              // Item's original reference (zone:ref or ref)
+	Salt             // Salt used for the account password
 	TheName          // Item's name with a/an/some prefix changed to 'the'
 	TriggerType      // Type of trigger event to send
 	UID              // Item's unique identifier
@@ -129,14 +133,18 @@ var asNames = []string{
 	"_South", "_Southwest", "_West", "_Northwest",
 	"_Up", "_Down",
 
+	"Account",
 	"Blocker",
 	"Description",
 	"DynamicAlias",
 	"DynamicQualifier",
+	"Gender",
 	"Name",
 	"OnCleanup",
 	"OnReset",
+	"Password",
 	"Ref",
+	"Salt",
 	"TheName",
 	"TriggerType",
 	"UID",
@@ -241,6 +249,7 @@ const (
 	CleanupJitter               // Maximum random delay to add to CleanupAfter
 	CleanupDueAt                // Time a scheduled clean-up is due
 	CleanupDueIn                // Time remaining for clean-up
+	Created                     // Timestamp of when item (player) created
 	ResetAfter                  // How soon a reset event should occur
 	ResetJitter                 // Maximum random delay to add to TesetAfter
 	ResetDueAt                  // Time a scheduled reset is due
@@ -261,6 +270,7 @@ var intNames = []string{
 	"CleanupJitter",
 	"CleanupDueAt",
 	"CleanupDueIn",
+	"Created",
 	"ResetAfter",
 	"ResetJitter",
 	"ResetDueAt",
@@ -329,4 +339,40 @@ var refNames = []string{
 
 	"Where",
 	"Origin",
+}
+
+// preferredOrdering defines the preferred sorting or for attributes when
+// marshaled. As much as possible the names used are predefined type names.
+var preferredOrdering = []string{
+	asNames[Ref],
+	asNames[Zone],
+	"Author",
+	"Disabled",
+	asNames[Name],
+	anyNames[Alias], "Aliases",
+	Start.setNames(),
+	"Exit", "Exits",
+	"ZoneLinks",
+	"Barrier",
+	"Door",
+	"Location",
+	asNames[Description],
+	anyNames[Body],
+	asNames[Gender],
+	"Inv", "Inventory",
+	Holding.setNames(),
+	Wearing.setNames(),
+	Wielding.setNames(),
+	Narrative.setNames(),
+	anyNames[Holdable],
+	anyNames[Wearable],
+	anyNames[Wieldable],
+	asNames[Writing],
+	"Veto", "Vetoes",
+	eventNames[Action],
+	"On" + eventNames[Action],
+	eventNames[Cleanup],
+	"On" + eventNames[Cleanup],
+	eventNames[Reset],
+	"On" + eventNames[Reset],
 }

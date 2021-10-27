@@ -87,9 +87,6 @@ func (b *Bot) connect(host, port string) (err error) {
 		return err
 	}
 
-	// FIXME: Currently there are no logins, for now we just bypass the logic.
-	return
-
 	for _, f := range []struct {
 		op   func(string) error
 		data string
@@ -98,8 +95,7 @@ func (b *Bot) connect(host, port string) (err error) {
 		{b.send, b.Id},
 		{b.recv, "\x1b[0mEnter the password...to cancel:\r\n\x1b[35m>"},
 		{b.send, b.Id},
-		{b.recv, "\x1b[32mWelcome back...option:\r\n\x1b[35m>"},
-		{b.send, "1"},
+		{b.recv, "\x1b[0m\x1b[32mWelcome back..."},
 	} {
 		if err = f.op(f.data); err != nil {
 			b.Close()
@@ -119,7 +115,6 @@ func (b *Bot) do() bool {
 		select {
 		case <-b.Quit:
 			b.send("QUIT")
-			b.send("0")
 			time.Sleep(time.Second)
 			b.Close()
 			return false
