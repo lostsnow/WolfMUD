@@ -386,6 +386,12 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.Is = p.Is | core.Player
 	c.Thing = p
 	c.InitOnce(nil)
+
+	// Set "MY" dynamic alias for player's immediate inventory items.
+	for _, item := range p.In {
+		item.As[core.DynamicQualifier] = "MY"
+	}
+
 	return
 }
 
