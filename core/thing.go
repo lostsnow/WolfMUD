@@ -541,7 +541,7 @@ func (t *Thing) Marshal() recordjar.Record {
 	if len(holding) > 0 {
 		r["Holding"] = encode.KeywordList(holding)
 	}
-	if len(inv) > 0 {
+	if t.Is&Container == Container || len(inv) > 0 {
 		r["Inventory"] = encode.KeywordList(inv)
 	}
 	// LOCATION - n/a?
