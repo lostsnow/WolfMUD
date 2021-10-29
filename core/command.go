@@ -131,10 +131,10 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	s.quitUniqueCheck(s.actor)
 	s.Save()
 	where := s.actor.Ref[Where]
-	for uid, what := range s.actor.In {
-		delete(s.actor.In, uid)
+	for _, what := range s.actor.In {
 		what.Is &^= Using
 		what.Junk()
 	}
@@ -143,6 +143,22 @@ func (s *state) Quit() {
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+	}
+}
+
+// quitUniqueCheck will force junk any unique items the player is carrying.
+// This is recursive and looks for unique items in nested containers.
+//
+// BUG(diddymus): Junking a unique container junks all its content.
+func (s *state) quitUniqueCheck(what *Thing) {
+	for _, item := range what.In {
+		if item.Ref[Origin] != nil {
+			s.Msg(s.actor, text.Red, "You cannot take ", item.As[TheName], " with you.")
+			item.Is &^= Using
+			item.Junk()
+		} else {
+			s.quitUniqueCheck(item)
+		}
 	}
 }
 
@@ -1305,7 +1321,9 @@ func (s *state) Save() {
 }
 
 func save(t *Thing, j *recordjar.Jar) {
-	*j = append(*j, t.Marshal())
+	if t.Ref[Origin] == nil {
+		*j = append(*j, t.Marshal())
+	}
 	for _, item := range t.In {
 		save(item, j)
 	}
