@@ -386,6 +386,7 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.Is = p.Is | core.Player
 	c.Thing = p
 	c.InitOnce(nil)
+	clearOrigins(c.Thing)
 
 	// Set "MY" dynamic alias for player's immediate inventory items.
 	for _, item := range p.In {
@@ -393,6 +394,19 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	}
 
 	return
+}
+
+// clearOrigins will remove any Thing.Ref[Origin], recursively for inventories,
+// for a Thing. By default assembling a player will make all items unique due
+// to calling Thing.InitOnce - this function undoes that.
+func clearOrigins(item *core.Thing) {
+	delete(item.Ref, core.Origin)
+	for _, item := range item.In {
+		clearOrigins(item)
+	}
+	for _, item := range item.Out {
+		clearOrigins(item)
+	}
 }
 
 func (c *client) createPlayer() {
