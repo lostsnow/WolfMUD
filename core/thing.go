@@ -116,6 +116,9 @@ func (t *Thing) InitOnce(parent *Thing) {
 	}
 	for _, item := range t.Out {
 		item.InitOnce(t)
+		if item.Int[ResetDueIn] != 0 {
+			item.Schedule(Reset)
+		}
 	}
 
 	t.Init()
