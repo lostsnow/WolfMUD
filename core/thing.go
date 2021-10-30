@@ -170,6 +170,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[ActionAfter] = decode.Duration(b).Nanoseconds()
 				case "JITTER":
 					t.Int[ActionJitter] = decode.Duration(b).Nanoseconds()
+				case "DUE_IN", "DUE-IN":
+					t.Int[ActionDueIn] = decode.Duration(b).Nanoseconds()
 				}
 			}
 		case "ALIAS", "ALIASES":
@@ -209,6 +211,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[CleanupAfter] = decode.Duration(b).Nanoseconds()
 				case "JITTER":
 					t.Int[CleanupJitter] = decode.Duration(b).Nanoseconds()
+				case "DUE_IN", "DUE-IN":
+					t.Int[CleanupDueIn] = decode.Duration(b).Nanoseconds()
 				}
 			}
 		case "DESCRIPTION":
@@ -288,6 +292,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[ResetAfter] = decode.Duration(b).Nanoseconds()
 				case "JITTER":
 					t.Int[ResetJitter] = decode.Duration(b).Nanoseconds()
+				case "DUE_IN", "DUE-IN":
+					t.Int[ResetDueIn] = decode.Duration(b).Nanoseconds()
 				case "SPAWN":
 					if decode.Boolean(b) {
 						t.Is |= Spawnable
