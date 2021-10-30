@@ -1,4 +1,4 @@
-# Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
+# Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
 #
 # Use of this source code is governed by the license in the LICENSE file
 # included with the source code.
@@ -26,8 +26,8 @@ export GORACE=history_size=7 halt_on_error=1
 export GOCACHE=/tmp/go-build
 export TZ=Europe/London
 
-VERSION := $(shell git describe --dirty)
-LDFLAGS := -ldflags "-X code.wolfmud.org/WolfMUD.git/cmd.commit=$(VERSION)"
+VERSION := $(shell git describe --dirty --always)
+LDFLAGS := -ldflags "-X code.wolfmud.org/WolfMUD.git/core.commit=$(VERSION)"
 
 # Standard native build
 build: version
@@ -87,7 +87,7 @@ bin/log:
 version: build/version.txt
 ifneq "$(shell cat build/version.txt)" "$(VERSION)"
 	echo $(VERSION) > build/version.txt ;\
-	touch ./cmd/version.go;
+	touch ./core/version.go;
 endif
 
 build/version.txt:
