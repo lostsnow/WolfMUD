@@ -160,6 +160,20 @@ FIELDS & VALUES
     minutes (m) and seconds (s). The following are examples of valid values:
     10s, 10m, 1h, 1h30m. The default rate is 10s - every 10 seconds.
 
+    Statistics will appear in the server log with the following format:
+
+           U[n ±n] A[±n] O[n ±n] T[n ±n] G[n ±n] W[n max] P[n max]
+
+    The values show the following data:
+
+      U[n  ±n] - used memory, change since last collection
+      A[   ±n] - number of memory allocations since last collection
+      O[n  ±n] - heap objects, change since last collection
+      T[n  ±n] - number of things in the world, change since last collection
+      G[n  ±n] - number of goroutines, change since last collection
+      W[n max] - Lock wait time since last collection / max wait since start
+      P[n max] - Current number of players / maximum players since start
+
   Stats.GC: true | false
     This value specifies whether garbage collection should be performed just
     before server statics are collected and displayed. The default value is

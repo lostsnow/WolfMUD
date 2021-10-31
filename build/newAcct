@@ -112,6 +112,7 @@ cat <<EOT
  Account: $account
 Password: $password
  Created: $created
+  Player: P1
 %%
      Name: ${name}
     Alias: ${alias} PLAYER

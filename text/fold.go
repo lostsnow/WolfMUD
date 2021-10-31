@@ -1,4 +1,4 @@
-// Copyright 2015 Andrew 'Diddymus' Rolfe. All rights reserved.
+// Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
@@ -6,30 +6,9 @@
 package text
 
 import (
-	"bytes"
+	"math"
 	"unicode"
-)
-
-// These constants are not really necessary but make the fold code easier to
-// read and understand. If chars or lines are defined too small there will
-// potentially be additional allocations needed but wasted space will be
-// reduced. If chars or lines are defined too large the allocations will be
-// reduced but unused space will be allocated.
-//
-// TODO: Tune chars and lines at runtime based on average text sizes being
-// processed? Will need to set maximum limits to avoid runaway sizing based on
-// deliberatly large text being sent by players causing a denial of service.
-const (
-	reset = 0  // Reset buffer to start (position zero) or test if at start
-	space = 1  // Width in bytes of a space
-	chars = 32 // Starting number of characters for initial word buffer sizing
-	lines = 24 // Starting number of lines for page initial buffer sizing
-)
-
-var (
-	lf   = []byte("\n")   // End of line used internally
-	crlf = []byte("\r\n") // End of line for network data
-	esc  = '\x1b'         // Escape control code - 0x1b 003 or Ctrl+'['
+	"unicode/utf8"
 )
 
 // Fold takes a []byte and attempts to reformat it so lines have a maximum
@@ -56,120 +35,150 @@ var (
 // It is expected that the end of line markers for incoming data are Unix line
 // feeds (LF, '\n') and outgoing data will have network line endings, carriage
 // return + line feed pairs (CR+LF, '\r\n').
-func Fold(in []byte, width int) (out []byte) {
-
-	// Can we take a short cut? If width is less than 1 output is not wrapped.
-	// Counting bytes is fine, although we may end up with a string shorter than
-	// we think it is if there are multibyte runes. We also strip off trailing
-	// whitespace except for line feeds '\n'.
-	if width < 1 || len(in) <= width {
-		out = bytes.TrimRightFunc(in, func(r rune) bool {
-			if r == '\n' {
-				return false
-			}
-			return unicode.IsSpace(r)
-		})
-		if bytes.Contains(out, []byte("␠")) {
-			out = bytes.Replace(out, []byte("␠"), []byte(" "), -1)
-		}
-		return bytes.Replace(out, lf, crlf, -1)
-	}
-
-	// Add extra line feed to end of input. Will cause final word and line to be
-	// 'flushed' from the buffers. The extra line feed itself will not be output
-	// because it will still be in the buffers - so we don't need to trim it off.
-	in = append(in, '\n')
+func Fold(in []byte, width int) []byte {
 
 	var (
-		word = bytes.NewBuffer(make([]byte, 0, chars))
-		line = bytes.NewBuffer(make([]byte, 0, width+chars))
-		page = bytes.NewBuffer(make([]byte, 0, len(in)+lines))
+		// output buffer, twice the input length is the pathalogical case of \n
+		// expanding to \r\n for every character in the input buffer.
+		o = make([]byte, len(in)*2)
+
+		ip int // Input position
+		is int // Input position of last space
+		op int // Output position
+		os int // Output position of last space
+		vc int // Perceived visual count of characters in current word
+
+		pre = true  // Preserve white-space mode
+		esc = false // Processing ANSI escape sequence
 	)
 
-	var (
-		wordLen, lineLen, pageLen = 0, 0, 0 // word, line and output length in runes
-		blank                     = true    // true when line is empty or only blanks
-		control                   = -1      // >= 0 when processing a control sequence
-	)
-
-	for _, r := range bytes.Runes(in) {
-
-		// Are we starting a control sequence?
-		if r == esc {
-			control = 0
-		}
-
-		// Control codes are zero width and do not add to the length of the word
-		// but are written out. Any character in the range 0x40 - 0x7E (ASCII '@'
-		// through to ASCII '~') ends a control sequence.
-		if control >= 0 {
-			word.WriteRune(r)
-			control++
-
-			// control > 2 prevents checking the CSI ("\x1b[" or ESC + '[')
-			if control > 2 && ('@' <= r && r <= '~') {
-				control = -1
-			}
-			continue
-		}
-
-		// Consider non-spacing and enclosing marks as zero width. This allows for
-		// the use of combining marks. For example a lower case 'a' plus combining
-		// grave accent to compose 'à' as well as a literal 'à' will work.
-		if r > '~' && unicode.In(r, unicode.Mn, unicode.Me) {
-			word.WriteRune(r)
-			continue
-		}
-
-		if (r != ' ' && r != '\n') || (r == ' ' && blank == true) {
-			word.WriteRune(r)
-			wordLen++
-			blank = blank && r == ' '
-			continue
-		}
-
-		if lineLen+space+wordLen > width {
-			if pageLen != reset && lineLen != reset {
-				page.Write(crlf)
-				pageLen++
-			}
-			line.WriteTo(page)
-			pageLen += lineLen
-			lineLen = reset
-		}
-
-		if wordLen != reset && lineLen != reset {
-			line.WriteByte(' ')
-			lineLen++
-		}
-		word.WriteTo(line)
-		lineLen += wordLen
-		wordLen = reset
-
-		if r == '\n' {
-
-			// An initial linefeed does not count towards the page length. This is
-			// normally used to move output off of the player's prompt line.
-			if pageLen == reset && lineLen == reset {
-				page.Write(crlf)
-				continue
-			}
-
-			if blank || (pageLen != reset && lineLen != reset) {
-				page.Write(crlf)
-				pageLen++
-			}
-			line.WriteTo(page)
-			pageLen += lineLen
-			lineLen = reset
-			blank = true
-		}
-
+	// If no wrapping (width < 1) go as wide as possible
+	if width < 1 {
+		width = math.MaxInt
 	}
 
-	out = page.Bytes()
-	if bytes.Contains(out, []byte("␠")) {
-		out = bytes.Replace(out, []byte("␠"), []byte(" "), -1)
+	for ip = 0; ip < len(in); ip++ {
+
+		switch {
+
+		// Start of CSI "ESC[" ANSI escape sequence
+		case !esc && in[ip] == 0x1b && ip < len(in)-1 && in[ip+1] == '[':
+			o[op] = 0x1b
+			op++
+			o[op] = '['
+			op++
+			ip++
+			esc = true
+
+		// Parameter and intermediate ANSI escape sequence bytes
+		case esc && ' ' <= in[ip] && in[ip] <= '?':
+			o[op] = in[ip]
+			op++
+
+		// Terminating ANSI escape sequence byte
+		case esc && '@' <= in[ip] && in[ip] <= '~':
+			o[op] = in[ip]
+			op++
+			esc = false
+
+		// Complete UTF-8 multibyte
+		case in[ip]&0b11000000 == 0b10000000:
+			o[op] = in[ip]
+			op++
+
+		// Width exceeded on a space - so break on space
+		case vc == width && in[ip] == ' ':
+			// Skip trailing white-space
+			for ; ip < len(in) && in[ip] == ' '; ip++ {
+			}
+			ip--
+
+			if ip < len(in)-1 {
+				o[op] = '\r'
+				op++
+				o[op] = '\n'
+				op++
+				pre = true
+			}
+			vc, os, is = 0, 0, 0
+
+		// Width exceeded on a non-space - need to break on previous space
+		case vc > width && os != 0:
+			// Skip trailing white-space
+			for ; ip < len(in) && in[ip] == ' '; ip++ {
+			}
+			ip--
+
+			if ip < len(in)-1 {
+				o[os] = '\r'
+				os++
+				o[os] = '\n'
+				os++
+				pre = true
+			}
+			op, ip = os, is
+			vc, os, is = 0, 0, 0
+
+		// Substitute '\n' in input with "\r\n" in output
+		case in[ip] == '\n':
+			o[op] = '\r'
+			op++
+			o[op] = '\n'
+			op++
+			vc, os, is = 0, 0, 0
+			pre = true
+
+		// Drop/remove consecutive white-space if not in preserve mode
+		case in[ip] == ' ' && !pre && op > 0 && o[op-1] == ' ':
+
+		case in[ip] == ' ':
+			o[op] = ' '
+			if !pre {
+				os, is = op, ip
+			}
+			op++
+			vc++
+
+		// Replace preserving hard-space '␠' U+2420, UTF8 bytes: 0xe2 0x90 0xa0
+		case in[ip] == 0xe2 && ip < len(in)-2 && in[ip+1] == 0x90 && in[ip+2] == 0xa0:
+			o[op] = ' '
+			op++
+			ip += 2
+			vc++
+			pre = true
+
+		// Plain ASCII
+		case in[ip] <= '~':
+			o[op] = in[ip]
+			op++
+			vc++
+			pre = false
+
+		default:
+			o[op] = in[ip]
+			op++
+			pre = false
+
+			// Only count UTF8 start byte and only if not combining
+			if in[ip]&0b11000000 == 0b11000000 {
+				r, _ := utf8.DecodeRune(in[ip:])
+				if !unicode.IsMark(r) {
+					vc++
+				}
+			}
+		}
 	}
-	return
+
+	if vc > width && os != 0 {
+		copy(o[os+1:], o[os:])
+		o[os] = '\r'
+		o[os+1] = '\n'
+		op++
+	}
+	if !pre {
+		for ; op > 0 && o[op-1] == ' '; op-- {
+		}
+	}
+
+	return o[:op]
 }

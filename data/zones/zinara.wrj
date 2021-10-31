@@ -761,12 +761,19 @@ away at it.
       Ref: L31N1
      Name: a pond
     Alias: FISHPOND POND
-Inventory: O4
+Inventory: O4 O4N1
 Narrative:
 
 This is a small fish pond. There are a few aquatic weeds and the water seems
 quite clear. As you peer in you see a few fish quickly dart for the shady
 cover of the weeds.
+%%
+      Ref: O4N1
+     Name: some weeds
+    Alias: +SOME WEEDS WEED
+Narrative:
+
+This are small, green aquatic weeds.
 %%
       Ref: L36N1
      Name: a rock

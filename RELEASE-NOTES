@@ -6,6 +6,47 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19-beta.1 Released Sunday 31st October, 2021
+==============================================================================
+
+Added
+
+  - Player commands can now refer to SELF and MY. For example "examine self",
+    "drop my sword", "drop all my weapon". The MY reference currently only
+    works on items in a player's inventory. If a player drops an item it is no
+    longer considered theirs until they pick it up again.
+
+Changed
+
+  - Nearly everything... the experiment branch has moved to the dev branch.
+    Version v0.0.19 will be a complete rewrite of WolfMUD v0.0.18 from the
+    ground up. The only code kept from v0.0.18 is the recordjar package. The
+    text package is mostly intact with some clean-up, Fold has been rewritten.
+  - The zone files are the same as v0.0.18 apart from a few fixed typos.
+  - The Makefile and build files are the same as v0.0.18, apart from a minor
+    tweak for retrieving versions from Git.
+  - The docs directory is from v0.0.18 and may be a little inaccurate.
+  - Existing player files should continue working 'as is'.
+  - Barriers to limit mobiles to an area are not implemented yet.
+  - Player health is not implemented yet.
+  - The player commands HIT, TALK, TELL, WHICH, WHISPER, WHO and /PROMPT are
+    not implemented yet.
+  - The behaviour of some player commands may differ to v0.0.18 and all player
+    commands need to be reviewed.
+
+Known Bugs / Issues
+
+  - The player display when quitting needs cleaning up.
+  - Network quotas are not implemented yet.
+  - IP addresses of players appear in the server log.
+  - Configuration settings are hard-coded and not via a configuration file.
+  - The commands #DUMP, #TELEPORT and #GOTO can be used by anyone.
+  - The #DUMP command output can be messy if there are long "words" that cannot
+    be broken on white-space.
+  - Statistics are not periodically logged by the server yet.
+  - Removal of stop words not implemented yet. This means "examine apple" will
+    work while "examine the apple" will not.
+
 v0.0.18 Released Sunday 11th April, 2021
 ==============================================================================
 

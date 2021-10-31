@@ -1,4 +1,4 @@
-# Copyright 2020 Andrew 'Diddymus' Rolfe. All rights reserved.
+# Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
 #
 # Use of this source code is governed by the license in the LICENSE file
 # included with the source code.
@@ -14,7 +14,7 @@ SHELL := /bin/bash
 info := $(shell ls ../[A-Z][A-Z]*)
 tars := linux-386 linux-amd64 linux-arm5 linux-arm6 linux-arm7
 zips := windows-386 windows-amd64
-version := $(shell git describe --dirty)
+version := $(shell git describe --dirty --always)
 goVersion := $(shell go version)
 
 # Don't build with a release with a dirty worktree otherwise the source
