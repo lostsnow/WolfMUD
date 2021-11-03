@@ -240,7 +240,7 @@ func (s *state) Move() {
 		blocking := NameToDir[item.As[Blocker]]
 		// If on 'other side' need opposite direction blocked
 		if item.Ref[Where] != s.actor.Ref[Where] {
-			blocking = blocking.ReverseDir()
+			blocking = ReverseDir[blocking]
 		}
 		if blocking == dir && item.Is&Open != Open {
 			blocker = item
