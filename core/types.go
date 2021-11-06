@@ -92,6 +92,7 @@ const (
 	_Down
 
 	Account          // MD5 hash of player's account
+	Barrier          // A barrier, value is direction of exit blocked ("E")
 	Blocker          // Name of direction being blocked ("E")
 	Description      // Item's description
 	DynamicAlias     // "PLAYER" or unset, "SELF" for actor performing a command
@@ -135,6 +136,7 @@ var asNames = []string{
 	"_Up", "_Down",
 
 	"Account",
+	"Barrier",
 	"Blocker",
 	"Description",
 	"DynamicAlias",
@@ -206,16 +208,18 @@ var (
 const (
 	BadAnyKey anyKey = iota
 
-	Alias     // Aliases for an item
-	Body      // Body slots available to an item
-	Holdable  // Body slots required to hold item
-	OnAction  // Actions that can be performed
-	Qualifier // Alias qualifiers
-	Wearable  // Body slots required to wear item
-	Wieldable // Body slots required to wield item
-	_Holding  // UIDs of items initially held
-	_Wearing  // UIDs of items initially worn
-	_Wielding // UIDs of items initially wielded
+	Alias        // Aliases for an item
+	BarrierAllow // Aliases allowed to pass barrier
+	BarrierDeny  // Aliases denied to pass barrier
+	Body         // Body slots available to an item
+	Holdable     // Body slots required to hold item
+	OnAction     // Actions that can be performed
+	Qualifier    // Alias qualifiers
+	Wearable     // Body slots required to wear item
+	Wieldable    // Body slots required to wield item
+	_Holding     // UIDs of items initially held
+	_Wearing     // UIDs of items initially worn
+	_Wielding    // UIDs of items initially wielded
 
 )
 
@@ -224,6 +228,8 @@ var anyNames = []string{
 	"BadAnyKey",
 
 	"Alias",
+	"BarrierAllow",
+	"BarrierDeny",
 	"Body",
 	"Holdable",
 	"OnAction",

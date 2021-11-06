@@ -461,7 +461,7 @@ ZONE RECORDS
     narrative barrier would need to have the BARRIER, NARRATIVE and REF fields
     specified. The advantage of defining barriers as narratives is that there
     can be more than one per location, unlike adding a BARRIER field directly
-    to a location - there can be only one BARRIER field which only allow for
+    to a location - there can be only one BARRIER field which only allows for
     blocking one exit. Narrative barriers can also be defined once and reused
     in multiple places. A barrier may also have aliases, a name and a
     description allowing it to be interacted with.
