@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
@@ -229,6 +230,45 @@ func (s *state) Move() {
 	if where.Ref[dir] == nil {
 		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ".")
 		return
+	}
+
+	// Alias is a helper closure that calculates the aliases for the actor when
+	// first called. Subsequent calls return the calculated value. For players
+	// we don't test barriers against the player's name alias. Otherwise some
+	// wise-ass is going to call themselves "NPC", "GUARD", etc.
+	aliases := func() func() []string {
+		var a []string
+		return func() []string {
+			if a != nil {
+				return a
+			}
+			a = s.actor.Any[Alias]
+			if s.actor.Is&Player == Player {
+				a, _ = remainder(a, []string{strings.ToUpper(s.actor.As[Name])})
+			}
+			return a
+		}
+	}()
+
+	// See if a location barrier is blocking our way
+	if NameToDir[where.As[Barrier]] == dir {
+		a, d := where.Any[BarrierAllow], where.Any[BarrierDeny]
+		if !intersects(a, aliases()) && (d == nil || intersects(d, aliases())) {
+			s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ", something is blocking your way.")
+			return
+		}
+	}
+
+	// See if any item barriers are blocking our way
+	for _, item := range where.In {
+		if NameToDir[item.As[Barrier]] != dir {
+			continue
+		}
+		a, d := item.Any[BarrierAllow], item.Any[BarrierDeny]
+		if !intersects(a, aliases()) && (d == nil || intersects(d, aliases())) {
+			s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ", ", or(item.As[TheName], "something"), " is blocking your way.")
+			return
+		}
 	}
 
 	// Try and find first blocker for direction we want to go
@@ -1387,4 +1427,11 @@ func remainder(have, want []string) (rem []string, had bool) {
 		}
 	}
 	return have, false
+}
+
+func or(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
 }
