@@ -679,7 +679,7 @@ func (s *state) Dump() {
 	if s.word[0] == "@" {
 		uids = []string{s.actor.Ref[Where].As[UID]}
 	} else {
-		uids = Match(s.word, s.actor, s.actor.Ref[Where])
+		uids = Match(s.word, s.actor.Ref[Where], s.actor)
 	}
 	for _, uid := range uids {
 		what := s.actor.In[uid]
