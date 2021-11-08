@@ -1390,7 +1390,7 @@ func intersects(have, want []string) bool {
 	return false
 }
 
-// conatins returns true if have contains all elements of of want, else false.
+// conatins returns true if have contains all elements of want, else false.
 func conatins(have, want []string) bool {
 	sort.Strings(have)
 	sort.Strings(want)
