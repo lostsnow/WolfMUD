@@ -64,6 +64,8 @@ func New(conn *net.TCPConn) {
 		c.receive()
 	}
 
+	mailbox.Suffix(c.uid, "")
+
 	if err := c.error(); err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			mailbox.Send(c.uid, true, idleDisconnect)
@@ -72,7 +74,7 @@ func New(conn *net.TCPConn) {
 	}
 
 	log.Printf("[%s] disconnect from: %s", c.uid, c.RemoteAddr())
-	mailbox.Send(c.uid, true, text.Good+"\n\nBye bye!\n\n"+text.Reset)
+	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
 
 	mailbox.Delete(c.uid)
 	<-c.quit
@@ -126,10 +128,7 @@ func (c *client) messenger() {
 			if len(msg) > 0 {
 				buf = append(buf, text.Reset...)
 				buf = append(buf, msg...)
-				buf = append(buf, '\n')
 			}
-			buf = append(buf, text.Magenta...)
-			buf = append(buf, '>')
 
 			c.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			c.Write(text.Fold(buf, 80))

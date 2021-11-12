@@ -132,6 +132,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	s.Prompt("")
 	s.quitUniqueCheck(s.actor)
 	s.Save()
 	where := s.actor.Ref[Where]
@@ -140,7 +141,7 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
-	s.Msg(s.actor, text.Good, "You leave this world behind.")
+	s.Msg(s.actor, text.Good, "You leave this world behind.\n")
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
@@ -876,7 +877,7 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
-	s.Msg(s.actor, "") // BUG(diddymus): Needed to move off of prompt until we can hide the prompt
+	s.Prompt("\n" + text.Magenta + ">")
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")

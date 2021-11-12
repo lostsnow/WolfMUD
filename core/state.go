@@ -142,3 +142,11 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 		s.buf[recipient].WriteString(t)
 	}
 }
+
+// Prompt sets the player's current prompt to the given text.
+//
+// NOTE: A future update will make the prompt configurable. The prompt will
+// also be  dynamic showing the players statistics.
+func (s *state) Prompt(text string) {
+	mailbox.Suffix(s.actor.As[UID], text)
+}
