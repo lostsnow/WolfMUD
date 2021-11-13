@@ -1224,7 +1224,7 @@ func (s *state) Hold() {
 			s.Msg(s.actor, text.Bad, "You can't hold ", what.As[TheName], " while wielding it.")
 		case what.As[VetoHold] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoHold])
-		case !conatins(s.actor.Any[Body], what.Any[Holdable]):
+		case !contains(s.actor.Any[Body], what.Any[Holdable]):
 			var whys []string
 			for _, item := range s.actor.In {
 				if item.Is&Holding != 0 && intersects(item.Any[Holdable], what.Any[Holdable]) {
@@ -1270,7 +1270,7 @@ func (s *state) Wear() {
 			s.Msg(s.actor, text.Bad, "You can't wear ", what.As[TheName], " while wielding it.")
 		case what.As[VetoWear] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoWear])
-		case !conatins(s.actor.Any[Body], what.Any[Wearable]):
+		case !contains(s.actor.Any[Body], what.Any[Wearable]):
 			var whys []string
 			for _, item := range s.actor.In {
 				if item.Is&Wearing != 0 && intersects(item.Any[Wearable], what.Any[Wearable]) {
@@ -1316,7 +1316,7 @@ func (s *state) Wield() {
 			s.Msg(s.actor, text.Bad, "You can't wield ", what.As[TheName], " while wearing it.")
 		case what.As[VetoWield] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoWield])
-		case !conatins(s.actor.Any[Body], what.Any[Wieldable]):
+		case !contains(s.actor.Any[Body], what.Any[Wieldable]):
 			var whys []string
 			for _, item := range s.actor.In {
 				if item.Is&Wielding != 0 && intersects(item.Any[Wieldable], what.Any[Wieldable]) {
@@ -1399,8 +1399,8 @@ func intersects(have, want []string) bool {
 	return false
 }
 
-// conatins returns true if have contains all elements of want, else false.
-func conatins(have, want []string) bool {
+// contains returns true if have contains all elements of want, else false.
+func contains(have, want []string) bool {
 	sort.Strings(have)
 	sort.Strings(want)
 	x := 0
