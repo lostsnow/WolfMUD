@@ -762,15 +762,17 @@ func (s *state) Open() {
 			}
 
 			where := s.actor.Ref[Where]
-			if len(where.Who) >= CrowdSize {
-				return
-			}
 
 			if s.actor != what {
 				s.Msg(s.actor, text.Good, "You open ", what.As[TheName], ".")
-				s.Msg(where, text.Info, s.actor.As[UTheName], " opens ", what.As[TheName], ".")
-			} else {
-				s.Msg(where, text.Info, what.As[UTheName], " opens.")
+			}
+
+			if len(where.Who) < CrowdSize {
+				if s.actor != what {
+					s.Msg(where, text.Info, s.actor.As[UTheName], " opens ", what.As[TheName], ".")
+				} else {
+					s.Msg(where, text.Info, what.As[UTheName], " opens.")
+				}
 			}
 
 			// Find location on other side...
@@ -780,7 +782,9 @@ func (s *state) Open() {
 			} else {
 				where = what.Ref[Where]
 			}
-			s.Msg(where, text.Info, what.As[UTheName], " opens.")
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, text.Info, what.As[UTheName], " opens.")
+			}
 		}
 	}
 }
@@ -813,15 +817,17 @@ func (s *state) Close() {
 			}
 
 			where := s.actor.Ref[Where]
-			if len(where.Who) >= CrowdSize {
-				return
-			}
 
 			if s.actor != what {
 				s.Msg(s.actor, text.Good, "You close ", what.As[TheName], ".")
-				s.Msg(where, text.Info, s.actor.As[UTheName], " closes ", what.As[TheName], ".")
-			} else {
-				s.Msg(where, text.Info, what.As[UTheName], " closes.")
+			}
+
+			if len(where.Who) < CrowdSize {
+				if s.actor != what {
+					s.Msg(where, text.Info, s.actor.As[UTheName], " closes ", what.As[TheName], ".")
+				} else {
+					s.Msg(where, text.Info, what.As[UTheName], " closes.")
+				}
 			}
 
 			// Find location on other side...
@@ -831,7 +837,9 @@ func (s *state) Close() {
 			} else {
 				where = what.Ref[Where]
 			}
-			s.Msg(where, text.Info, what.As[UTheName], " closes.")
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, text.Info, what.As[UTheName], " closes.")
+			}
 		}
 	}
 }
