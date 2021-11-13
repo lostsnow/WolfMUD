@@ -29,6 +29,17 @@ type state struct {
 	word  []string
 }
 
+// stopWords is a lookup table of words that can be removed from parsed input.
+var stopWords = func() map[string]struct{} {
+	m := make(map[string]struct{})
+	for _, word := range []string{
+		"A", "AN", "FROM", "IN", "INTO", "OF", "OUT", "SOME", "THE", "TO", "WITH",
+	} {
+		m[word] = struct{}{}
+	}
+	return m
+}()
+
 var newline = []byte("\n")
 
 func NewState(t *Thing) *state {
@@ -49,6 +60,22 @@ func (s *state) Parse(input string) (cmd string) {
 
 func (s *state) parse(input string) {
 	s.word = strings.Fields(strings.ToUpper(input))
+
+	// Simple stop word removal
+	keep := s.word[:0]
+	for _, word := range s.word {
+		if _, found := stopWords[word]; !found {
+			keep = append(keep, word)
+		}
+	}
+	s.word = keep
+
+	// Nothing left?
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "Eh?")
+		return
+	}
+
 	s.cmd, s.word = s.word[0], s.word[1:]
 	s.input = strings.TrimSpace(input[len(s.cmd):])
 
