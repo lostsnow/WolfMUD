@@ -128,7 +128,6 @@ func RegisterCommandHandlers() {
 	log.Printf("Registered %d command handlers", len(commandHandlers))
 }
 
-// FIXME: Currently we just force junk everything in the player's inventory.
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
