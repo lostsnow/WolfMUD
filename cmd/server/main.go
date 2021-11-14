@@ -16,12 +16,8 @@ import (
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
-var nextPlayer chan uint64
-
 func main() {
 
-	nextPlayer = make(chan uint64, 1)
-	nextPlayer <- 1
 	rand.Seed(time.Now().UnixNano())
 
 	core.RegisterCommandHandlers()
