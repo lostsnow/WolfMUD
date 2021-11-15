@@ -109,7 +109,7 @@ func (c *client) receive() {
 	}
 
 	if cmd != "QUIT" {
-		cmd = s.Parse("QUIT")
+		cmd = s.Parse("$QUIT")
 	}
 }
 

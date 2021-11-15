@@ -107,6 +107,7 @@ func RegisterCommandHandlers() {
 		"$RESET":   (*state).Reset,
 		"$CLEANUP": (*state).Cleanup,
 		"$TRIGGER": (*state).Trigger,
+		"$QUIT":    (*state).Quit,
 	}
 
 	eventCommands = map[eventKey]string{
@@ -132,6 +133,12 @@ func RegisterCommandHandlers() {
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
 	s.Prompt("")
+
+	// If scripting QUIT user has not hit enter so nudge them off the prompt
+	if s.cmd == "$QUIT" {
+		s.Msg(s.actor, "")
+	}
+
 	s.quitUniqueCheck(s.actor)
 	s.Save()
 	where := s.actor.Ref[Where]
@@ -140,6 +147,7 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
+
 	s.Msg(s.actor, text.Good, "You leave this world behind.\n")
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
