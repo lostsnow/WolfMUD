@@ -75,13 +75,12 @@ func (is isKey) setNames() string {
 }
 
 // Constants for use as keys in a Thing.As field.
-//
-// NOTE: The first 10 direction constants are fixed and their values SHOULD NOT
-// BE CHANGED. The other constants should be kept in alphabetical order as new
-// ones are added.
 const (
-	// Location reference exit leads to ("L1") - ONLY USED BY LOADER
-	_North asKey = iota
+	BadAsKey asKey = iota
+
+	// Exit directions should always be consecutive constants in given order
+	// These direction keys are only used by the loader.
+	_North
 	_Northeast
 	_East
 	_Southeast
@@ -93,6 +92,7 @@ const (
 	_Down
 
 	Account          // MD5 hash of player's account
+	Barrier          // A barrier, value is direction of exit blocked ("E")
 	Blocker          // Name of direction being blocked ("E")
 	Description      // Item's description
 	DynamicAlias     // "PLAYER" or unset, "SELF" for actor performing a command
@@ -129,11 +129,14 @@ const (
 
 // asNames maps asKey values to their string name.
 var asNames = []string{
+	"BadAsKey",
+
 	"_North", "_Northeast", "_East", "_Southeast",
 	"_South", "_Southwest", "_West", "_Northwest",
 	"_Up", "_Down",
 
 	"Account",
+	"Barrier",
 	"Blocker",
 	"Description",
 	"DynamicAlias",
@@ -192,40 +195,41 @@ var (
 		South: _South, Southwest: _Southwest, West: _West, Northwest: _Northwest,
 		Up: _Up, Down: _Down,
 	}
-)
 
-// ReverseDir returns the reverse or opposite direction. For example if passed
-// the constant East it will return West. If the passed value is not one of the
-// direction constants it will be returned unchanged.
-func (dir refKey) ReverseDir() refKey {
-	switch {
-	case dir > Down:
-		return dir
-	case dir < Up:
-		return dir ^ 1<<2
-	default:
-		return dir ^ 1
+	// ReverseDir maps a Thing.Ref direction to its opposite direction
+	ReverseDir = map[refKey]refKey{
+		North: South, Northeast: Southwest, East: West, Southeast: Northwest,
+		South: North, Southwest: Northeast, West: East, Northwest: Southeast,
+		Up: Down, Down: Up,
 	}
-}
+)
 
 // Constants for Thing.Any keys
 const (
-	Alias     anyKey = iota // Aliases for an item
-	Body                    // Body slots available to an item
-	Holdable                // Body slots required to hold item
-	OnAction                // Actions that can be performed
-	Qualifier               // Alias qualifiers
-	Wearable                // Body slots required to wear item
-	Wieldable               // Body slots required to wield item
-	_Holding                // UIDs of items initially held
-	_Wearing                // UIDs of items initially worn
-	_Wielding               // UIDs of items initially wielded
+	BadAnyKey anyKey = iota
+
+	Alias        // Aliases for an item
+	BarrierAllow // Aliases allowed to pass barrier
+	BarrierDeny  // Aliases denied to pass barrier
+	Body         // Body slots available to an item
+	Holdable     // Body slots required to hold item
+	OnAction     // Actions that can be performed
+	Qualifier    // Alias qualifiers
+	Wearable     // Body slots required to wear item
+	Wieldable    // Body slots required to wield item
+	_Holding     // UIDs of items initially held
+	_Wearing     // UIDs of items initially worn
+	_Wielding    // UIDs of items initially wielded
 
 )
 
 // anyNames maps anyKey values to their string name.
 var anyNames = []string{
+	"BadAnyKey",
+
 	"Alias",
+	"BarrierAllow",
+	"BarrierDeny",
 	"Body",
 	"Holdable",
 	"OnAction",
@@ -241,27 +245,31 @@ var anyNames = []string{
 //
 // NOTE: See also comments for eventKey constants.
 const (
-	ActionAfter   intKey = iota // How often an action event should occur
-	ActionJitter                // Maximum random delay to add to ActionAfter
-	ActionDueAt                 // Time a scheduled Action is due
-	ActionDueIn                 // Time remaining for Action
-	CleanupAfter                // How soon a clean-up event should occur
-	CleanupJitter               // Maximum random delay to add to CleanupAfter
-	CleanupDueAt                // Time a scheduled clean-up is due
-	CleanupDueIn                // Time remaining for clean-up
-	Created                     // Timestamp of when item (player) created
-	ResetAfter                  // How soon a reset event should occur
-	ResetJitter                 // Maximum random delay to add to TesetAfter
-	ResetDueAt                  // Time a scheduled reset is due
-	ResetDueIn                  // Time remaining for reset
-	TriggerAfter                // How soon a trigger should occur
-	TriggerJitter               // Maximum random delay to add to trigger
-	TriggerDueAt                // Time a scheduled trigger event is due
-	TriggerDueIn                // Time remaining for trigger event
+	BadIntKey intKey = iota
+
+	ActionAfter   // How often an action event should occur
+	ActionJitter  // Maximum random delay to add to ActionAfter
+	ActionDueAt   // Time a scheduled Action is due
+	ActionDueIn   // Time remaining for Action
+	CleanupAfter  // How soon a clean-up event should occur
+	CleanupJitter // Maximum random delay to add to CleanupAfter
+	CleanupDueAt  // Time a scheduled clean-up is due
+	CleanupDueIn  // Time remaining for clean-up
+	Created       // Timestamp of when item (player) created
+	ResetAfter    // How soon a reset event should occur
+	ResetJitter   // Maximum random delay to add to TesetAfter
+	ResetDueAt    // Time a scheduled reset is due
+	ResetDueIn    // Time remaining for reset
+	TriggerAfter  // How soon a trigger should occur
+	TriggerJitter // Maximum random delay to add to trigger
+	TriggerDueAt  // Time a scheduled trigger event is due
+	TriggerDueIn  // Time remaining for trigger event
 )
 
 // intNames maps intKey values to their string name.
 var intNames = []string{
+	"BadIntKey",
+
 	"ActionAfter",
 	"ActionJitter",
 	"ActionDueAt",
@@ -312,11 +320,11 @@ var eventNames = map[eventKey]string{
 }
 
 // Constants for Thing.Ref keys
-//
-// NOTE: The first 10 direction constants are fixed and their values SHOULD NOT
-// BE CHANGED. The other constants should be kept in alphabetical order as new
 const (
-	North refKey = iota
+	BadRefKey refKey = iota
+
+	// Exit directions should always be consecutive constants in given order
+	North
 	Northeast
 	East
 	Southeast
@@ -333,6 +341,8 @@ const (
 
 // refNames maps refKey values to their string name.
 var refNames = []string{
+	"BadRefKey",
+
 	"North", "Northeast", "East", "Southeast",
 	"South", "Southwest", "West", "Northwest",
 	"Up", "Down",

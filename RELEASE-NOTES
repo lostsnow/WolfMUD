@@ -6,6 +6,51 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19-beta.2 Released Wednesday 17th November, 2021
+==============================================================================
+
+Added
+
+  - Barriers are now implemented to restrict mobiles to a certain area or to
+    prevent mobiles going into a certain area. This implementation accepts only
+    setting ALLOW or DENY aliases.
+  - A suffix, that is appended to sent messages, can now be set for mailboxes.
+  - Stop word removal has been implemented. The current sto words are: A, AN,
+    FROM, IN, INTO, OF, OUT, SOME, THE, TO and WITH.
+
+Changed
+
+  - Updated docs/zone-files.txt documentation for barriers with clarifications.
+  - The #DUMP command now looks for items at a location, then items carried by
+    the actor. To specifically look at items carried by the actor the 'MY'
+    qualifier can be used.
+  - The internal implementation of mailboxes has been cleaned up with a new
+    mailbox type.
+  - The player's prompt is now implemented using the new mailbox suffix. This
+    sets the groundwork for dynamic prompts that can display player statistics.
+  - The player's display for the front-end and entering/exiting the game has
+    been cleaned up.
+
+Fixed
+
+  - An issue where failed lookups returned a zero value that also mapped to a
+    valid key has been fixed. For example if NameToDir[item.As[Blocker]] failed
+    it would return the zero value, which is mapped to the constant for North.
+    Failed lookups will now result in a "bad key" where appropriate: BadAsKey,
+    BadAnyKey, BadIntKey or BadRefKey.
+  - Notifications for the OPEN and CLOSE commands have been fixed.
+  - Corrected typo in function name, core.conatins -> core.contains
+
+Known Bugs / Issues
+
+  - Network quotas are not implemented yet.
+  - IP addresses of players appear in the server log.
+  - Configuration settings are hard-coded and not via a configuration file.
+  - The commands #DUMP, #TELEPORT and #GOTO can be used by anyone.
+  - The #DUMP command output can be messy if there are long "words" that cannot
+    be broken on white-space.
+  - Statistics are not periodically logged by the server yet.
+
 v0.0.19-beta.1 Released Sunday 31st October, 2021
 ==============================================================================
 

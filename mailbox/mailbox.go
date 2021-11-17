@@ -18,20 +18,28 @@ import (
 // start being dropped, oldest first.
 const size = 100
 
-// Mailbox is where messages/output for players is written to. The key for the
-// mailbox is the player's UID.
-var mboxLock sync.RWMutex
-var mbox = make(map[string]chan string)
-var last = make(map[string]string)
+type mailbox struct {
+	queue   chan string // Queued messages waiting to be sent
+	lastMsg string      // Last message sent, for de-duplicating
+	suffix  string      // Suffix to append to sent messages
+}
+
+// mbox stores all of the currenly active mailboxes, indexed by player UID.
+var (
+	mboxLock sync.RWMutex
+	mbox     = make(map[string]*mailbox)
+)
 
 // Add a mailbox for the given UID and return a channel for receiving mailbox
 // messages.
 func Add(uid string) <-chan string {
-	q := make(chan string, size)
+	b := &mailbox{
+		queue: make(chan string, size),
+	}
 	mboxLock.Lock()
-	mbox[uid] = q
+	mbox[uid] = b
 	mboxLock.Unlock()
-	return q
+	return b.queue
 }
 
 // Delete removes the mailbox for the given UID. Any messages send to a deleted
@@ -41,9 +49,8 @@ func Delete(uid string) {
 	mboxLock.Lock()
 	defer mboxLock.Unlock()
 	if mbox[uid] != nil {
-		close(mbox[uid])
+		close(mbox[uid].queue)
 		delete(mbox, uid)
-		delete(last, uid)
 	}
 }
 
@@ -75,20 +82,30 @@ func Send(uid string, priority bool, msg string) {
 	}
 
 	if !priority {
-		if last[uid] == msg {
+		if mbox[uid].lastMsg == msg {
 			return
 		}
-		last[uid] = msg
+		mbox[uid].lastMsg = msg
 	}
+
+	msg = msg + mbox[uid].suffix
 
 retry:
 	select {
-	case mbox[uid] <- msg:
+	case mbox[uid].queue <- msg:
 	default:
 		select {
-		case <-mbox[uid]:
+		case <-mbox[uid].queue:
 		default:
 		}
 		goto retry
 	}
+}
+
+// Suffix sets the current suffix to be appended to sent messages. Setting a
+// new suffix only effects new messages and not messages already queued.
+func Suffix(uid string, new string) {
+	mboxLock.Lock()
+	defer mboxLock.Unlock()
+	mbox[uid].suffix = new
 }

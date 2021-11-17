@@ -200,6 +200,17 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			for qualifier := range q {
 				t.Any[Qualifier] = append(t.Any[Qualifier], qualifier)
 			}
+		case "BARRIER":
+			for k, v := range decode.PairList(r[field]) {
+				switch k {
+				case "ALLOW":
+					t.Any[BarrierAllow] = strings.Split(strings.ToUpper(v), ",")
+				case "DENY":
+					t.Any[BarrierDeny] = strings.Split(strings.ToUpper(v), ",")
+				case "EXIT":
+					t.As[Barrier] = v
+				}
+			}
 		case "BODY":
 			for slot, qty := range decode.PairList(r[field]) {
 				for x := 0; x < decodeInt(qty); x++ {
@@ -499,6 +510,16 @@ func (t *Thing) Marshal() recordjar.Record {
 	}
 	if len(aliases) > 0 {
 		r["Alias"] = encode.KeywordList(aliases)
+	}
+	if t.As[Barrier] != "" {
+		barrier := mss{"EXIT": string(encode.Keyword(t.As[Barrier]))}
+		if len(t.Any[BarrierAllow]) > 0 {
+			barrier["ALLOW"] = strings.ReplaceAll(string(encode.KeywordList(t.Any[BarrierAllow])), " ", ",")
+		}
+		if len(t.Any[BarrierDeny]) > 0 {
+			barrier["DENY"] = strings.ReplaceAll(string(encode.KeywordList(t.Any[BarrierDeny])), " ", ",")
+		}
+		r["Barrier"] = encode.PairList(barrier, '→')
 	}
 	if len(body) > 0 {
 		r["Body"] = encode.PairList(body, '→')

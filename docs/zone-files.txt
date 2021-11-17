@@ -444,7 +444,7 @@ ZONE RECORDS
 
     ALLOW is a comma separated list of aliases that are specifically allowed
     to pass through the barrier. If an alias matches the ALLOW list then the
-    mobile will be allowed through the barrier, even if one of it's aliases
+    mobile will be allowed through the barrier, even if one of its aliases
     also matches the DENY list. Note, there should be no white space in the
     comma separated list.
 
@@ -453,15 +453,38 @@ ZONE RECORDS
     an alias of GUARD or WARDEN. When defining mobiles it is generally a good
     idea to specify a general group alias, such as CREATURE, NPC or GROUP1 as
     well as a more specific alias such as GUARD, WARDEN or IMP. This makes it
-    easier to block large groups while allowing for specific mobiles. It
-    should also be noted that all players have the group alias PLAYER.
+    easier to block large groups while allowing for specific mobiles.
+
+    It should also be noted that all players have the group alias PLAYER. For
+    players, ALLOW and DENY do not apply to the alias that is the player's
+    name. This means it is not possible to block specific players by name.
+    Otherwise a player calling themselves 'Guard', 'Creature' or 'Admin' could
+    cause mischief.
+
+    If only ALLOW is specified then all other aliases are denied by default.
+    This permits a barrier to be specified with just ALLOW set to work as
+    expected.
+
+    For example, a barrier that only allows mobiles with an alias of GUARD or
+    WARDEN to go south while blocking everyone else:
+
+      BARRIER: EXIT→S ALLOW→GUARD,WARDEN
+
+    If only DENY is specified then all other aliases are allowed by default.
+
+    For example, a barrier that only denies mobiles with an alias of CREATURE
+    from going south while allowing everyone else:
+
+      BARRIER: EXIT→S DENY→CREATURE
+
+    If neither ALLOW or DENY are specified the barrier blocks everyone.
 
     An invisible BARRIER may be specified as part of the definition of a
     location. A barrier may also be defined as a narrative. At a minimum a
     narrative barrier would need to have the BARRIER, NARRATIVE and REF fields
     specified. The advantage of defining barriers as narratives is that there
     can be more than one per location, unlike adding a BARRIER field directly
-    to a location - there can be only one BARRIER field which only allow for
+    to a location - there can be only one BARRIER field which only allows for
     blocking one exit. Narrative barriers can also be defined once and reused
     in multiple places. A barrier may also have aliases, a name and a
     description allowing it to be interacted with.

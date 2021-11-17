@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/recordjar"
@@ -106,6 +107,7 @@ func RegisterCommandHandlers() {
 		"$RESET":   (*state).Reset,
 		"$CLEANUP": (*state).Cleanup,
 		"$TRIGGER": (*state).Trigger,
+		"$QUIT":    (*state).Quit,
 	}
 
 	eventCommands = map[eventKey]string{
@@ -127,10 +129,16 @@ func RegisterCommandHandlers() {
 	log.Printf("Registered %d command handlers", len(commandHandlers))
 }
 
-// FIXME: Currently we just force junk everything in the player's inventory.
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	s.Prompt("")
+
+	// If scripting QUIT user has not hit enter so nudge them off the prompt
+	if s.cmd == "$QUIT" {
+		s.Msg(s.actor, "")
+	}
+
 	s.quitUniqueCheck(s.actor)
 	s.Save()
 	where := s.actor.Ref[Where]
@@ -139,7 +147,8 @@ func (s *state) Quit() {
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
-	s.Msg(s.actor, text.Good, "You leave this world behind.")
+
+	s.Msg(s.actor, text.Good, "You leave this world behind.\n")
 	if len(where.Who) < CrowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
@@ -231,6 +240,45 @@ func (s *state) Move() {
 		return
 	}
 
+	// Alias is a helper closure that calculates the aliases for the actor when
+	// first called. Subsequent calls return the calculated value. For players
+	// we don't test barriers against the player's name alias. Otherwise some
+	// wise-ass is going to call themselves "NPC", "GUARD", etc.
+	aliases := func() func() []string {
+		var a []string
+		return func() []string {
+			if a != nil {
+				return a
+			}
+			a = s.actor.Any[Alias]
+			if s.actor.Is&Player == Player {
+				a, _ = remainder(a, []string{strings.ToUpper(s.actor.As[Name])})
+			}
+			return a
+		}
+	}()
+
+	// See if a location barrier is blocking our way
+	if NameToDir[where.As[Barrier]] == dir {
+		a, d := where.Any[BarrierAllow], where.Any[BarrierDeny]
+		if !intersects(a, aliases()) && (d == nil || intersects(d, aliases())) {
+			s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ", something is blocking your way.")
+			return
+		}
+	}
+
+	// See if any item barriers are blocking our way
+	for _, item := range where.In {
+		if NameToDir[item.As[Barrier]] != dir {
+			continue
+		}
+		a, d := item.Any[BarrierAllow], item.Any[BarrierDeny]
+		if !intersects(a, aliases()) && (d == nil || intersects(d, aliases())) {
+			s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ", ", or(item.As[TheName], "something"), " is blocking your way.")
+			return
+		}
+	}
+
 	// Try and find first blocker for direction we want to go
 	var blocker *Thing
 	for _, item := range where.In {
@@ -240,7 +288,7 @@ func (s *state) Move() {
 		blocking := NameToDir[item.As[Blocker]]
 		// If on 'other side' need opposite direction blocked
 		if item.Ref[Where] != s.actor.Ref[Where] {
-			blocking = blocking.ReverseDir()
+			blocking = ReverseDir[blocking]
 		}
 		if blocking == dir && item.Is&Open != Open {
 			blocker = item
@@ -639,7 +687,7 @@ func (s *state) Dump() {
 	if s.word[0] == "@" {
 		uids = []string{s.actor.Ref[Where].As[UID]}
 	} else {
-		uids = Match(s.word, s.actor, s.actor.Ref[Where])
+		uids = Match(s.word, s.actor.Ref[Where], s.actor)
 	}
 	for _, uid := range uids {
 		what := s.actor.In[uid]
@@ -721,15 +769,17 @@ func (s *state) Open() {
 			}
 
 			where := s.actor.Ref[Where]
-			if len(where.Who) >= CrowdSize {
-				return
-			}
 
 			if s.actor != what {
 				s.Msg(s.actor, text.Good, "You open ", what.As[TheName], ".")
-				s.Msg(where, text.Info, s.actor.As[UTheName], " opens ", what.As[TheName], ".")
-			} else {
-				s.Msg(where, text.Info, what.As[UTheName], " opens.")
+			}
+
+			if len(where.Who) < CrowdSize {
+				if s.actor != what {
+					s.Msg(where, text.Info, s.actor.As[UTheName], " opens ", what.As[TheName], ".")
+				} else {
+					s.Msg(where, text.Info, what.As[UTheName], " opens.")
+				}
 			}
 
 			// Find location on other side...
@@ -739,7 +789,9 @@ func (s *state) Open() {
 			} else {
 				where = what.Ref[Where]
 			}
-			s.Msg(where, text.Info, what.As[UTheName], " opens.")
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, text.Info, what.As[UTheName], " opens.")
+			}
 		}
 	}
 }
@@ -772,15 +824,17 @@ func (s *state) Close() {
 			}
 
 			where := s.actor.Ref[Where]
-			if len(where.Who) >= CrowdSize {
-				return
-			}
 
 			if s.actor != what {
 				s.Msg(s.actor, text.Good, "You close ", what.As[TheName], ".")
-				s.Msg(where, text.Info, s.actor.As[UTheName], " closes ", what.As[TheName], ".")
-			} else {
-				s.Msg(where, text.Info, what.As[UTheName], " closes.")
+			}
+
+			if len(where.Who) < CrowdSize {
+				if s.actor != what {
+					s.Msg(where, text.Info, s.actor.As[UTheName], " closes ", what.As[TheName], ".")
+				} else {
+					s.Msg(where, text.Info, what.As[UTheName], " closes.")
+				}
 			}
 
 			// Find location on other side...
@@ -790,7 +844,9 @@ func (s *state) Close() {
 			} else {
 				where = what.Ref[Where]
 			}
-			s.Msg(where, text.Info, what.As[UTheName], " closes.")
+			if len(where.Who) < CrowdSize {
+				s.Msg(where, text.Info, what.As[UTheName], " closes.")
+			}
 		}
 	}
 }
@@ -836,7 +892,7 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
-	s.Msg(s.actor, "") // BUG(diddymus): Needed to move off of prompt until we can hide the prompt
+	s.Prompt("\n" + text.Magenta + ">")
 	if len(s.actor.Ref[Where].Who) < CrowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
@@ -1175,7 +1231,7 @@ func (s *state) Hold() {
 			s.Msg(s.actor, text.Bad, "You can't hold ", what.As[TheName], " while wielding it.")
 		case what.As[VetoHold] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoHold])
-		case !conatins(s.actor.Any[Body], what.Any[Holdable]):
+		case !contains(s.actor.Any[Body], what.Any[Holdable]):
 			var whys []string
 			for _, item := range s.actor.In {
 				if item.Is&Holding != 0 && intersects(item.Any[Holdable], what.Any[Holdable]) {
@@ -1221,7 +1277,7 @@ func (s *state) Wear() {
 			s.Msg(s.actor, text.Bad, "You can't wear ", what.As[TheName], " while wielding it.")
 		case what.As[VetoWear] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoWear])
-		case !conatins(s.actor.Any[Body], what.Any[Wearable]):
+		case !contains(s.actor.Any[Body], what.Any[Wearable]):
 			var whys []string
 			for _, item := range s.actor.In {
 				if item.Is&Wearing != 0 && intersects(item.Any[Wearable], what.Any[Wearable]) {
@@ -1267,7 +1323,7 @@ func (s *state) Wield() {
 			s.Msg(s.actor, text.Bad, "You can't wield ", what.As[TheName], " while wearing it.")
 		case what.As[VetoWield] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoWield])
-		case !conatins(s.actor.Any[Body], what.Any[Wieldable]):
+		case !contains(s.actor.Any[Body], what.Any[Wieldable]):
 			var whys []string
 			for _, item := range s.actor.In {
 				if item.Is&Wielding != 0 && intersects(item.Any[Wieldable], what.Any[Wieldable]) {
@@ -1350,8 +1406,8 @@ func intersects(have, want []string) bool {
 	return false
 }
 
-// conatins returns true if have contains all elements of of want, else false.
-func conatins(have, want []string) bool {
+// contains returns true if have contains all elements of want, else false.
+func contains(have, want []string) bool {
 	sort.Strings(have)
 	sort.Strings(want)
 	x := 0
@@ -1387,4 +1443,11 @@ func remainder(have, want []string) (rem []string, had bool) {
 		}
 	}
 	return have, false
+}
+
+func or(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
 }
