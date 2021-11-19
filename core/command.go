@@ -39,12 +39,9 @@ var eventCommands map[eventKey]string
 
 // RegisterCommandHandlers initialises the commandHandlers, commandNames and
 // eventCommands. It needs to be called before any player, admin or scripting
-// commands are used. RegisterCommandHandlers should not be called while
-// holding core.BWL as it will acquire core.BWL itself.
+// commands are used. RegisterCommandHandlers should be called while core.BWL
+// is held.
 func RegisterCommandHandlers() {
-
-	BWL.Lock()
-	defer BWL.Unlock()
 
 	commandHandlers = map[string]func(*state){
 		"":          func(*state) {},

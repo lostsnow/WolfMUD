@@ -20,8 +20,11 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
+	// Stop the world while we are building it
+	core.BWL.Lock()
 	core.RegisterCommandHandlers()
 	world.Load()
+	core.BWL.Unlock()
 
 	addr, _ := net.ResolveTCPAddr("tcp", ":4001")
 	listener, err := net.ListenTCP("tcp", addr)
