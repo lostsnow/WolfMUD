@@ -332,9 +332,9 @@ func (c *client) frontend() bool {
 
 func (c *client) enterWorld() {
 	core.BWL.Lock()
+	defer core.BWL.Unlock()
 	c.Ref[core.Where] = core.WorldStart[rand.Intn(len(core.WorldStart))]
 	c.Ref[core.Where].Who[c.uid] = c.Thing
-	core.BWL.Unlock()
 }
 
 func (c *client) assemblePlayer(jar recordjar.Jar) {
