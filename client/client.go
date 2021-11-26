@@ -25,9 +25,6 @@ const (
 	ingameTimeout   = 60 * time.Minute
 )
 
-var idleDisconnect = text.Bad + "\nIdle connection terminated by server.\n" +
-	text.Reset
-
 type client struct {
 	*core.Thing
 	*net.TCPConn
@@ -37,7 +34,7 @@ type client struct {
 	uid   string // Can't touch c.As[core.UID] when not under BWL
 }
 
-func New(conn *net.TCPConn) {
+func New(conn *net.TCPConn) *client {
 	c := &client{
 		Thing:   core.NewThing(),
 		TCPConn: conn,
@@ -58,17 +55,26 @@ func New(conn *net.TCPConn) {
 
 	log.Printf("[%s] connection from: %s", c.uid, c.RemoteAddr())
 
+	return c
+}
+
+func (c *client) Play() {
 	go c.messenger()
 	if c.frontend() {
 		c.enterWorld()
 		c.receive()
 	}
+	c.cleanup()
+}
 
+func (c *client) cleanup() {
 	mailbox.Suffix(c.uid, "")
 
 	if err := c.error(); err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			mailbox.Send(c.uid, true, idleDisconnect)
+			mailbox.Send(c.uid, true,
+				text.Bad+"\nIdle connection terminated by server.\n"+text.Reset,
+			)
 		}
 		log.Printf("[%s] client error: %s", c.uid, err)
 	}
@@ -78,11 +84,13 @@ func New(conn *net.TCPConn) {
 
 	mailbox.Delete(c.uid)
 	<-c.quit
+
 	if c.As[core.Account] != "" {
 		accountsMux.Lock()
+		defer accountsMux.Unlock()
 		delete(accounts, c.As[core.Account])
-		accountsMux.Unlock()
 	}
+
 	c.Free()
 	c.Close()
 }

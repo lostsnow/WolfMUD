@@ -40,6 +40,7 @@ func main() {
 			log.Printf("Error accepting connection: %s", err)
 			continue
 		}
-		go client.New(conn)
+		c := client.New(conn)
+		go c.Play()
 	}
 }
