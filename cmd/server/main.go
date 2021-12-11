@@ -66,6 +66,7 @@ func main() {
 			}
 		}
 		Config(c)
+		world.Config(c)
 
 		if !c.Debug.LongLog {
 			log.SetFlags(log.LstdFlags | log.LUTC)
