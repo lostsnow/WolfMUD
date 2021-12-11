@@ -21,10 +21,6 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
-// CrowdSize represents the minimum number of players considered to be a crowd.
-// FIXME(diddymus): This needs to be configurable.
-const CrowdSize = 11
-
 // commandHandlers maps command strings to the implementing methods. It is
 // typically initialised by calling RegisterCommandHandlers.
 var commandHandlers map[string]func(*state)
@@ -146,7 +142,7 @@ func (s *state) Quit() {
 	delete(where.Who, s.actor.As[UID])
 
 	s.Msg(s.actor, text.Good, "You leave this world behind.\n")
-	if len(where.Who) < CrowdSize {
+	if len(where.Who) < cfg.crowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
@@ -182,7 +178,7 @@ func (s *state) Look() {
 		s.Msg(s.actor, text.Cyan, "[", where.As[Name], "]", text.Reset)
 		s.Msg(s.actor, where.As[Description], "\n")
 		mark := s.buf[s.actor].Len()
-		if len(where.Who) < CrowdSize {
+		if len(where.Who) < cfg.crowdSize {
 			for _, who := range where.Who.Sort() {
 				if who == s.actor {
 					continue
@@ -222,7 +218,7 @@ func (s *state) Look() {
 
 	// Only notify observers if actually looking and not $POOF or entering a
 	// location when moving.
-	if (s.cmd == "L" || s.cmd == "LOOK") && len(where.Who) < CrowdSize {
+	if (s.cmd == "L" || s.cmd == "LOOK") && len(where.Who) < cfg.crowdSize {
 		s.Msg(where, text.Info, s.actor.As[UTheName], " starts looking around.")
 	}
 }
@@ -301,26 +297,26 @@ func (s *state) Move() {
 		s.Msg(s.actor, text.Bad, "Oops! You can't actually go ", DirToName[dir], ".")
 	case s.actor.Is&Player != Player:
 		delete(where.In, s.actor.As[UID])
-		if len(where.Who) < CrowdSize {
+		if len(where.Who) < cfg.crowdSize {
 			s.MsgAppend(where, text.Info, s.actor.As[UTheName], " leaves ", DirToName[dir], ".")
 		}
 
 		where = where.Ref[dir]
 		s.actor.Ref[Where] = where
 		where.In[s.actor.As[UID]] = s.actor
-		if len(where.Who) < CrowdSize {
+		if len(where.Who) < cfg.crowdSize {
 			s.MsgAppend(where, text.Info, s.actor.As[UName], " enters.")
 		}
 	default:
 		delete(where.Who, s.actor.As[UID])
-		if len(where.Who) < CrowdSize {
+		if len(where.Who) < cfg.crowdSize {
 			s.MsgAppend(where, text.Info, s.actor.As[UTheName], " leaves ", DirToName[dir], ".")
 		}
 
 		where = where.Ref[dir]
 		s.actor.Ref[Where] = where
 		where.Who[s.actor.As[UID]] = s.actor
-		if len(where.Who) < CrowdSize {
+		if len(where.Who) < cfg.crowdSize {
 			s.MsgAppend(where, text.Info, s.actor.As[UName], " enters.")
 		}
 		s.Look()
@@ -427,7 +423,7 @@ func (s *state) Examine() {
 			}
 		}
 
-		if len(s.actor.Ref[Where].Who) < CrowdSize {
+		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			if what.Is&Player == Player {
 				s.Msg(what, text.Info, s.actor.As[UTheName], " studies you.")
 			}
@@ -454,7 +450,7 @@ func (s *state) Inventory() {
 			}
 			s.Msg(s.actor, "  ", what.As[Name], usage)
 		}
-		if len(s.actor.Ref[Where].Who) < CrowdSize {
+		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " checks over their gear.")
 		}
 	}
@@ -467,7 +463,7 @@ func (s *state) Drop() {
 		return
 	}
 
-	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -500,7 +496,7 @@ func (s *state) Get() {
 		return
 	}
 
-	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor.Ref[Where]) {
 		what := s.actor.Ref[Where].In[uid]
@@ -594,7 +590,7 @@ func (s *state) Take() {
 		}
 
 	}
-	if notify && len(s.actor.Ref[Where].Who) < CrowdSize {
+	if notify && len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		if s.actor.In[where.As[UID]] == nil {
 			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " takes something out of ", where.As[TheName], ".")
 		} else {
@@ -666,7 +662,7 @@ func (s *state) Put() {
 		}
 	}
 
-	if notify && len(s.actor.Ref[Where].Who) < CrowdSize {
+	if notify && len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		if s.actor.In[where.As[UID]] == nil {
 			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " puts something into ", where.As[TheName], ".")
 		} else {
@@ -731,7 +727,7 @@ func (s *state) Read() {
 			s.Msg(s.actor, text.Bad, what.As[VetoRead])
 		default:
 			s.Msg(s.actor, text.Good, "You read ", what.As[TheName], ". ", what.As[Writing])
-			if len(s.actor.Ref[Where].Who) < CrowdSize {
+			if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " reads ", what.As[Name], ".")
 			}
 		}
@@ -771,7 +767,7 @@ func (s *state) Open() {
 				s.Msg(s.actor, text.Good, "You open ", what.As[TheName], ".")
 			}
 
-			if len(where.Who) < CrowdSize {
+			if len(where.Who) < cfg.crowdSize {
 				if s.actor != what {
 					s.Msg(where, text.Info, s.actor.As[UTheName], " opens ", what.As[TheName], ".")
 				} else {
@@ -786,7 +782,7 @@ func (s *state) Open() {
 			} else {
 				where = what.Ref[Where]
 			}
-			if len(where.Who) < CrowdSize {
+			if len(where.Who) < cfg.crowdSize {
 				s.Msg(where, text.Info, what.As[UTheName], " opens.")
 			}
 		}
@@ -826,7 +822,7 @@ func (s *state) Close() {
 				s.Msg(s.actor, text.Good, "You close ", what.As[TheName], ".")
 			}
 
-			if len(where.Who) < CrowdSize {
+			if len(where.Who) < cfg.crowdSize {
 				if s.actor != what {
 					s.Msg(where, text.Info, s.actor.As[UTheName], " closes ", what.As[TheName], ".")
 				} else {
@@ -841,7 +837,7 @@ func (s *state) Close() {
 			} else {
 				where = what.Ref[Where]
 			}
-			if len(where.Who) < CrowdSize {
+			if len(where.Who) < cfg.crowdSize {
 				s.Msg(where, text.Info, what.As[UTheName], " closes.")
 			}
 		}
@@ -875,14 +871,14 @@ func (s *state) Teleport() {
 		s.Msg(s.actor, text.Bad, "You don't know where '", s.word[0], "' is.")
 	default:
 		delete(s.actor.Ref[Where].In, s.actor.As[UID])
-		if len(s.actor.Ref[Where].Who) < CrowdSize {
+		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			s.Msg(s.actor.Ref[Where], text.Info, "There is a loud 'Spang!' and ", s.actor.As[TheName], " suddenly disappears.")
 		}
 		s.actor.Ref[Where] = where
 		s.actor.Ref[Where].In[s.actor.As[UID]] = s.actor
 		s.Msg(s.actor, text.Good, "There is a loud 'Spang!'...\n")
 		s.Look()
-		if len(s.actor.Ref[Where].Who) < CrowdSize {
+		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			s.Msg(s.actor.Ref[Where], text.Info, "There is a loud 'Spang!' and ", s.actor.As[Name], " suddenly appears.")
 		}
 	}
@@ -890,7 +886,7 @@ func (s *state) Teleport() {
 
 func (s *state) Poof() {
 	s.Prompt("\n" + text.Magenta + ">")
-	if len(s.actor.Ref[Where].Who) < CrowdSize {
+	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
@@ -904,7 +900,7 @@ func (s *state) Act() {
 	}
 
 	s.Msg(s.actor, text.Good, s.actor.As[UTheName], " ", s.input)
-	if len(s.actor.Ref[Where].Who) < CrowdSize {
+	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " ", s.input)
 	}
 }
@@ -918,7 +914,7 @@ func (s *state) Say() {
 	where := s.actor.Ref[Where]
 	l := len(where.Who)
 
-	if l >= CrowdSize {
+	if l >= cfg.crowdSize {
 		s.Msg(s.actor, text.Info, "It's too crowded for you to be heard.")
 		return
 	}
@@ -931,7 +927,7 @@ func (s *state) Say() {
 	}
 
 	for _, where := range radius(1, where)[1] {
-		if l = len(where.Who); 0 < l && l < CrowdSize {
+		if l = len(where.Who); 0 < l && l < cfg.crowdSize {
 			s.Msg(where, text.Info, "You hear talking nearby.")
 		}
 	}
@@ -956,7 +952,7 @@ func (s *state) Sneeze() {
 	s.Msg(s.actor, text.Good, "You sneeze. Aaahhhccchhhooo!")
 
 	// Don't propagate sneeze if it's crowded.
-	if len(s.actor.Ref[Where].Who) >= CrowdSize {
+	if len(s.actor.Ref[Where].Who) >= cfg.crowdSize {
 		return
 	}
 
@@ -964,12 +960,12 @@ func (s *state) Sneeze() {
 
 	locs := radius(2, s.actor.Ref[Where])
 	for _, where := range locs[1] {
-		if l := len(where.Who); 0 < l && l < CrowdSize {
+		if l := len(where.Who); 0 < l && l < cfg.crowdSize {
 			s.Msg(where, text.Info, "You hear a loud sneeze.")
 		}
 	}
 	for _, where := range locs[2] {
-		if l := len(where.Who); 0 < l && l < CrowdSize {
+		if l := len(where.Who); 0 < l && l < cfg.crowdSize {
 			s.Msg(where, text.Info, "You hear a sneeze.")
 		}
 	}
@@ -985,7 +981,7 @@ func (s *state) Shout() {
 	}
 
 	// Don't propagate shout if it's crowded.
-	if len(s.actor.Ref[Where].Who) >= CrowdSize {
+	if len(s.actor.Ref[Where].Who) >= cfg.crowdSize {
 		s.Msg(s.actor, text.Info, "Even shouting, it's too crowded for you to be heard.")
 		return
 	}
@@ -995,12 +991,12 @@ func (s *state) Shout() {
 
 	locs := radius(2, s.actor.Ref[Where])
 	for _, where := range locs[1] {
-		if l := len(where.Who); 0 < l && l < CrowdSize {
+		if l := len(where.Who); 0 < l && l < cfg.crowdSize {
 			s.Msg(where, text.Info, "You hear someone shout: ", s.input)
 		}
 	}
 	for _, where := range locs[2] {
-		if l := len(where.Who); 0 < l && l < CrowdSize {
+		if l := len(where.Who); 0 < l && l < cfg.crowdSize {
 			s.Msg(where, text.Info, "You hear shouting nearby.")
 		}
 	}
@@ -1085,7 +1081,7 @@ func (s *state) Reset() {
 	}
 
 	// If where message is being sent is crowded we won't see it
-	if len(where.Who) >= CrowdSize {
+	if len(where.Who) >= cfg.crowdSize {
 		return
 	}
 
@@ -1102,7 +1098,7 @@ func (s *state) Junk() {
 		return
 	}
 
-	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -1129,7 +1125,7 @@ func (s *state) Cleanup() {
 
 	where := s.actor.Ref[Where]
 
-	if where.Is&Container == Container || len(where.Who) >= CrowdSize {
+	if where.Is&Container == Container || len(where.Who) >= cfg.crowdSize {
 		return
 	}
 
@@ -1166,7 +1162,7 @@ func (s *state) Remove() {
 	}
 
 	where := s.actor.Ref[Where]
-	notify := len(where.Who) < CrowdSize
+	notify := len(where.Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -1210,7 +1206,7 @@ func (s *state) Hold() {
 		return
 	}
 
-	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -1257,7 +1253,7 @@ func (s *state) Wear() {
 		return
 	}
 
-	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]
@@ -1303,7 +1299,7 @@ func (s *state) Wield() {
 		return
 	}
 
-	notify := len(s.actor.Ref[Where].Who) < CrowdSize
+	notify := len(s.actor.Ref[Where].Who) < cfg.crowdSize
 
 	for _, uid := range Match(s.word, s.actor) {
 		what := s.actor.In[uid]

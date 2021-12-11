@@ -66,6 +66,7 @@ func main() {
 			}
 		}
 		Config(c)
+		core.Config(c)
 		world.Config(c)
 		client.Config(c)
 

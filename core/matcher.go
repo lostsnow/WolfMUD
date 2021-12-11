@@ -92,7 +92,7 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 	data := []*Thing{}
 	for _, inv := range where {
 		// For performance don't include all of the players if there is a crowd.
-		if len(inv.Who) < CrowdSize {
+		if len(inv.Who) < cfg.crowdSize {
 			data = append(data, inv.Who.Sort()...)
 		}
 		data = append(data, inv.In.Sort()...)
