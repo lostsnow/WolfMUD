@@ -12,18 +12,43 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
-const (
-	frontendTimeout = 5 * time.Minute
-	ingameTimeout   = 60 * time.Minute
-)
+type pkgConfig struct {
+	accountMin      int
+	passwordMin     int
+	saltLength      int
+	frontendTimeout time.Duration
+	ingameTimeout   time.Duration
+	greeting        string
+	playerPath      string
+}
+
+// cfg setup by Config and should be treated as immutable and not changed.
+var cfg pkgConfig
+
+// Config sets up package configuration for settings that can't be constants.
+// It should be called by main, only once, before anything else starts. Once
+// the configuration is set it should be treated as immutable an not changed.
+func Config(c config.Config) {
+	cfg = pkgConfig{
+		accountMin:      c.Login.AccountLength,
+		passwordMin:     c.Login.PasswordLength,
+		saltLength:      c.Login.SaltLength,
+		frontendTimeout: c.Login.Timeout,
+		ingameTimeout:   c.Server.IdleTimeout,
+		greeting:        c.Greeting + "\n",
+		playerPath:      filepath.Join(c.Server.DataPath, "players"),
+	}
+}
 
 type client struct {
 	*core.Thing
@@ -104,7 +129,7 @@ func (c *client) receive() {
 	var err error
 	r := bufio.NewReaderSize(c, 80)
 	for cmd != "QUIT" && c.error() == nil {
-		c.SetReadDeadline(time.Now().Add(ingameTimeout))
+		c.SetReadDeadline(time.Now().Add(cfg.ingameTimeout))
 		if input, err = r.ReadString('\n'); err != nil {
 			c.setError(err)
 			break

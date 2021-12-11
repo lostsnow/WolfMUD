@@ -27,28 +27,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
-const (
-	AccountMin  = 10
-	PasswordMin = 10
-	SaltLength  = 32
-)
-
-var playerDir = filepath.Join("..", "data", "players")
-
 var verifyName = regexp.MustCompile(`^[a-zA-Z]+$`)
-
-var greeting = string(text.Colorize([]byte(`
-
-WolfMUD Copyright 1984-2021 Andrew 'Diddymus' Rolfe
-
-    [GREEN]W[WHITE]orld␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]* WARNING! *
-    [GREEN]O[WHITE]f␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Highly --
-    [GREEN]L[WHITE]iving␠␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]Experimental
-    [GREEN]F[WHITE]antasy␠␠␠␠␠␠␠␠␠␠␠␠␠[RED]-- Server --
-
-[YELLOW]Welcome to WolfMUD![RESET]
-
-`)))
 
 var (
 	accountsMux sync.RWMutex
@@ -59,7 +38,7 @@ func (c *client) input() string {
 	var input string
 	var err error
 	r := bufio.NewReaderSize(c, 80)
-	c.SetReadDeadline(time.Now().Add(frontendTimeout))
+	c.SetReadDeadline(time.Now().Add(cfg.frontendTimeout))
 	if input, err = r.ReadString('\n'); err != nil {
 		c.setError(err)
 	}
@@ -94,7 +73,7 @@ func (c *client) frontend() bool {
 		// Write question for current stage to player
 		switch stage {
 		case welcome:
-			buf = append(buf, greeting...)
+			buf = append(buf, cfg.greeting...)
 			stage = account
 			continue
 
@@ -110,7 +89,7 @@ func (c *client) frontend() bool {
 
 		case explainAccount:
 			buf = append(buf, "Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least "...)
-			buf = append(buf, strconv.Itoa(AccountMin)...)
+			buf = append(buf, strconv.Itoa(cfg.accountMin)...)
 			buf = append(buf, " characters long.\n\nThis is NOT your character's name, it is for your account ID for logging in only.\n\n"...)
 			stage = newAccount
 			continue
@@ -182,7 +161,7 @@ func (c *client) frontend() bool {
 				stage = account
 				continue
 			}
-			f := filepath.Join(playerDir, c.As[core.Account]+".wrj")
+			f := filepath.Join(cfg.playerPath, c.As[core.Account]+".wrj")
 			wrj, err := os.Open(f)
 			if err != nil {
 				buf = append(buf, text.Bad...)
@@ -235,10 +214,10 @@ func (c *client) frontend() bool {
 				stage = cancelCreate
 				continue
 			}
-			if len(input) < AccountMin {
+			if len(input) < cfg.accountMin {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID must be at least "...)
-				buf = append(buf, strconv.Itoa(AccountMin)...)
+				buf = append(buf, strconv.Itoa(cfg.accountMin)...)
 				buf = append(buf, " characters long.\n\n"...)
 				buf = append(buf, text.Reset...)
 				stage = newAccount
@@ -246,7 +225,7 @@ func (c *client) frontend() bool {
 			}
 			hash := md5.Sum([]byte(input))
 			c.As[core.Account] = hex.EncodeToString(hash[:])
-			if _, err := os.Stat(filepath.Join(playerDir, c.As[core.Account]+".wrj")); err == nil {
+			if _, err := os.Stat(filepath.Join(cfg.playerPath, c.As[core.Account]+".wrj")); err == nil {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "The specified Account ID is currently unavailable.\n\n"...)
 				buf = append(buf, text.Reset...)
@@ -259,16 +238,16 @@ func (c *client) frontend() bool {
 				stage = cancelCreate
 				continue
 			}
-			if len(input) < PasswordMin {
+			if len(input) < cfg.passwordMin {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Password must be at least "...)
-				buf = append(buf, strconv.Itoa(PasswordMin)...)
+				buf = append(buf, strconv.Itoa(cfg.passwordMin)...)
 				buf = append(buf, " characters long.\n\n"...)
 				buf = append(buf, text.Reset...)
 				stage = newPassword
 				continue
 			}
-			salt := make([]byte, SaltLength)
+			salt := make([]byte, cfg.saltLength)
 			rand.Read(salt)
 			c.As[core.Salt] = base64.URLEncoding.EncodeToString(salt)
 			hash := sha512.Sum512([]byte(c.As[core.Salt] + input))
