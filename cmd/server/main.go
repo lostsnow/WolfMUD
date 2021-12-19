@@ -16,6 +16,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/client"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
+	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
@@ -66,6 +67,7 @@ func main() {
 			}
 		}
 		Config(c)
+		stats.Config(c)
 		core.Config(c)
 		world.Config(c)
 		client.Config(c)
@@ -75,6 +77,8 @@ func main() {
 			log.Printf("Switching to short log format")
 		}
 	}
+
+	stats.Start()
 
 	// Stop the world while we are building it
 	core.BWL.Lock()
