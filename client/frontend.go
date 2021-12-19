@@ -366,6 +366,7 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.As[core.Salt] = c.As[core.Salt]
 	p.Int[core.Created] = c.Int[core.Created]
 	p.Is = p.Is | core.Player
+	c.Thing.Free()
 	c.Thing = p
 	c.InitOnce(nil)
 	clearOrigins(c.Thing)
@@ -373,6 +374,12 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	// Set "MY" dynamic alias for player's immediate inventory items.
 	for _, item := range p.In {
 		item.As[core.DynamicQualifier] = "MY"
+	}
+
+	// Tear down temporary store
+	for ref, item := range store {
+		item.Free()
+		delete(store, ref)
 	}
 
 	return
