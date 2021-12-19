@@ -45,10 +45,23 @@ type Events map[eventKey]*time.Timer
 // Thing. It is setup and initialised via the init function.
 var nextUID chan uint
 
+// thingCount records the current number of Thing in the world. The current
+// Thing count can be retrieved by calling the core.ThingCount function.
+var thingCount chan int
+
+// eventCount records the current number of in-flight/active events. The
+// current event count can be retrieved by calling the core.EventCount
+// function.
+var eventCount chan int
+
 // init is used to setup and initialise the nextUID channel.
 func init() {
 	nextUID = make(chan uint, 1)
 	nextUID <- 0
+	thingCount = make(chan int, 1)
+	thingCount <- 0
+	eventCount = make(chan int, 1)
+	eventCount <- 0
 }
 
 // NewThing returns a new initialised Thing with no properties set.
@@ -69,6 +82,9 @@ func NewThing() *Thing {
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
+
+	thingCount <- <-thingCount + 1
+
 	return t
 }
 
@@ -842,6 +858,8 @@ func (t *Thing) Free() {
 		delete(t.Who, k)
 	}
 	t.Who = nil
+
+	thingCount <- <-thingCount - 1
 }
 
 // Dump will write a pretty ASCII tree representing the details of a Thing.
@@ -1030,6 +1048,7 @@ func (t *Thing) Schedule(event eventKey) {
 			NewState(t).Parse(eventCommands[event])
 		},
 	)
+	eventCount <- <-eventCount + 1
 }
 
 // Cancel an event for a Thing. The remaining time for the event is not
@@ -1059,6 +1078,7 @@ func (t *Thing) Suspend(event eventKey) {
 	}
 
 	t.Event[event] = nil
+	eventCount <- <-eventCount - 1
 
 	idx := intKey(event)
 	dueAt, dueIn := idx+DueAtOffset, idx+DueInOffset
@@ -1090,4 +1110,18 @@ func incString(s string) string {
 		}
 	}
 	return string(d)
+}
+
+// ThingCount returns the current number of Thing making up the game world.
+func ThingCount() (count int) {
+	count = <-thingCount
+	thingCount <- count
+	return count
+}
+
+// EventCount returns the current number of in-flight/active events.
+func EventCount() (count int) {
+	count = <-eventCount
+	eventCount <- count
+	return count
 }
