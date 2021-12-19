@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/config"
@@ -28,6 +29,7 @@ type pkgConfig struct {
 	saltLength      int
 	frontendTimeout time.Duration
 	ingameTimeout   time.Duration
+	debugPanic      bool
 	greeting        string
 	playerPath      string
 }
@@ -45,6 +47,7 @@ func Config(c config.Config) {
 		saltLength:      c.Login.SaltLength,
 		frontendTimeout: c.Login.Timeout,
 		ingameTimeout:   c.Server.IdleTimeout,
+		debugPanic:      c.Debug.Panic,
 		greeting:        c.Greeting + "\n",
 		playerPath:      filepath.Join(c.Server.DataPath, "players"),
 	}
@@ -123,6 +126,18 @@ func (c *client) cleanup() {
 func (c *client) receive() {
 
 	s := core.NewState(c.Thing)
+
+	// If a client panics we don't want to bring the whole server down...
+	if !cfg.debugPanic {
+		defer func() {
+			if err := recover(); err != nil {
+				c.setError(errors.New("client panicked"))
+				log.Printf("[%s] client panicked: %s\n%s", c.uid, err, debug.Stack())
+				s.Parse("$QUIT")
+			}
+		}()
+	}
+
 	cmd := s.Parse("$POOF")
 
 	var input string
