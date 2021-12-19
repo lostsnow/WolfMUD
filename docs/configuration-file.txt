@@ -162,17 +162,15 @@ FIELDS & VALUES
 
     Statistics will appear in the server log with the following format:
 
-           U[n ±n] A[±n] O[n ±n] T[n ±n] G[n ±n] W[n max] P[n max]
+                    A[n] O[n ±n] T[n ±n] E[n ±n] P[n max]
 
     The values show the following data:
 
-      U[n  ±n] - used memory, change since last collection
-      A[   ±n] - number of memory allocations since last collection
-      O[n  ±n] - heap objects, change since last collection
-      T[n  ±n] - number of things in the world, change since last collection
-      G[n  ±n] - number of goroutines, change since last collection
-      W[n max] - Lock wait time since last collection / max wait since start
-      P[n max] - Current number of players / maximum players since start
+      A[    n] - runtime allocations since last collection
+      O[n  ±n] - runtime objects / change since last collection
+      T[n  ±n] - Thing in the world / change since last collection
+      E[n  ±n] - in-flight active events / change since last collection
+      P[n max] - current number of players / maximum number of players
 
   Stats.GC: true | false
     This value specifies whether garbage collection should be performed just
