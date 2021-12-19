@@ -1343,7 +1343,6 @@ func (s *state) Version() {
 	s.Msg(s.actor, "Version: ", commit, ", built with: ", runtime.Version(), " (", runtime.Compiler, ")")
 }
 
-// BUG(diddymus): paths hard coded
 func (s *state) Save() {
 
 	j := &recordjar.Jar{}
@@ -1357,8 +1356,8 @@ func (s *state) Save() {
 	*j = append(*j, hdr)
 	save(s.actor, j)
 
-	temp := filepath.Join("..", "data", "players", s.actor.As[Account]+".tmp")
-	real := filepath.Join("..", "data", "players", s.actor.As[Account]+".wrj")
+	temp := filepath.Join(cfg.playerPath, s.actor.As[Account]+".tmp")
+	real := filepath.Join(cfg.playerPath, s.actor.As[Account]+".wrj")
 
 	wrj, _ := os.Create(temp)
 	wrj.Chmod(0660)
