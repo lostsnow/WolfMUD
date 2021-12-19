@@ -6,6 +6,7 @@
 package core
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -23,7 +24,8 @@ var (
 )
 
 type pkgConfig struct {
-	crowdSize int // Represents minimum number of players considered a crowd
+	crowdSize  int // Represents minimum number of players considered a crowd
+	playerPath string
 }
 
 // cfg setup by Config and should be treated as immutable and not changed.
@@ -34,7 +36,8 @@ var cfg pkgConfig
 // the configuration is set it should be treated as immutable an not changed.
 func Config(c config.Config) {
 	cfg = pkgConfig{
-		crowdSize: c.Inventory.CrowdSize,
+		crowdSize:  c.Inventory.CrowdSize,
+		playerPath: filepath.Join(c.Server.DataPath, "players"),
 	}
 }
 
