@@ -672,6 +672,10 @@ func (s *state) Put() {
 }
 
 func (s *state) Dump() {
+	if !cfg.allowDump {
+		s.Msg(s.actor, text.Bad, "The #DUMP command is unavailable.")
+		return
+	}
 	if len(s.word) == 0 {
 		s.Msg(s.actor, text.Info, "What did you want to dump?")
 		return
