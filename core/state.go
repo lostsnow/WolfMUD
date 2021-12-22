@@ -24,9 +24,10 @@ var (
 )
 
 type pkgConfig struct {
-	crowdSize  int // Represents minimum number of players considered a crowd
-	allowDump  bool
-	playerPath string
+	crowdSize   int // Represents minimum number of players considered a crowd
+	debugThings bool
+	allowDump   bool
+	playerPath  string
 }
 
 // cfg setup by Config and should be treated as immutable and not changed.
@@ -37,9 +38,10 @@ var cfg pkgConfig
 // the configuration is set it should be treated as immutable an not changed.
 func Config(c config.Config) {
 	cfg = pkgConfig{
-		crowdSize:  c.Inventory.CrowdSize,
-		allowDump:  c.Debug.AllowDump,
-		playerPath: filepath.Join(c.Server.DataPath, "players"),
+		crowdSize:   c.Inventory.CrowdSize,
+		debugThings: c.Debug.Things,
+		allowDump:   c.Debug.AllowDump,
+		playerPath:  filepath.Join(c.Server.DataPath, "players"),
 	}
 }
 

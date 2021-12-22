@@ -8,7 +8,9 @@ package core
 import (
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -82,6 +84,13 @@ func NewThing() *Thing {
 	}
 	t.As[UID] = fmt.Sprintf("#UID-%X", uid)
 	t.Any[Alias] = append(t.Any[Alias], t.As[UID])
+
+	if cfg.debugThings {
+		runtime.SetFinalizer(t, func(t *Thing) {
+			log.Printf("Finalizing: %p - #UID-%X (Freed: %t)", t, uid, t.Is == Freed)
+		})
+		log.Printf("NewThing: %p - #UID-%X", t, uid)
+	}
 
 	thingCount <- <-thingCount + 1
 
@@ -814,6 +823,11 @@ func (t *Thing) Free() {
 	if t == nil || t.Is&Freed == Freed {
 		return
 	}
+
+	if cfg.debugThings {
+		log.Printf("Freed: %p - %s (%s)", t, t.As[UID], t.As[Name])
+	}
+
 	t.Is = Freed
 
 	for eventId := range t.Event {
