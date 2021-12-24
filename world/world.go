@@ -11,10 +11,27 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
 )
+
+type pkgConfig struct {
+	zonePath string
+}
+
+// cfg setup by Config and should be treated as immutable and not changed.
+var cfg pkgConfig
+
+// Config sets up package configuration for settings that can't be constants.
+// It should be called by main, only once, before anything else starts. Once
+// the configuration is set it should be treated as immutable an not changed.
+func Config(c config.Config) {
+	cfg = pkgConfig{
+		zonePath: filepath.Join(c.Server.DataPath, "zones", "*.wrj"),
+	}
+}
 
 // taggedThing is a *Thing with additional information only stored during the
 // loading process.
@@ -25,27 +42,19 @@ type taggedThing struct {
 	zoneLinks map[string]string
 }
 
-const zoneDir = "../data/zones/*.wrj"
-
 // Load creates the game world.
-//
-// FIXME(diddymus): Hard-coded zone files and paths.
 //
 // BUG(diddymus): Load will populate core.World directly as a side effect of
 // being called. The core package can't import the world package as it would
 // cause a cyclic import.
 func Load() {
 
-	log.Printf("Loading zones from: %s", zoneDir)
-
-	// Stop the world while we are building it
-	core.BWL.Lock()
-	defer core.BWL.Unlock()
+	log.Printf("Loading zones from: %s", cfg.zonePath)
 
 	core.World = make(map[string]*core.Thing)
 	refToUID := make(map[string]string)
 
-	filenames, err := filepath.Glob(zoneDir)
+	filenames, err := filepath.Glob(cfg.zonePath)
 	if err != nil || len(filenames) == 0 {
 		log.Fatalf("Cannot load any zone files. Server not started.")
 		return

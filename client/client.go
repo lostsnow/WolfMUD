@@ -12,21 +12,46 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"time"
 
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
-const (
-	frontendTimeout = 5 * time.Minute
-	ingameTimeout   = 60 * time.Minute
-)
+type pkgConfig struct {
+	accountMin      int
+	passwordMin     int
+	saltLength      int
+	frontendTimeout time.Duration
+	ingameTimeout   time.Duration
+	debugPanic      bool
+	greeting        string
+	playerPath      string
+}
 
-var idleDisconnect = text.Bad + "\nIdle connection terminated by server.\n" +
-	text.Reset
+// cfg setup by Config and should be treated as immutable and not changed.
+var cfg pkgConfig
+
+// Config sets up package configuration for settings that can't be constants.
+// It should be called by main, only once, before anything else starts. Once
+// the configuration is set it should be treated as immutable an not changed.
+func Config(c config.Config) {
+	cfg = pkgConfig{
+		accountMin:      c.Login.AccountLength,
+		passwordMin:     c.Login.PasswordLength,
+		saltLength:      c.Login.SaltLength,
+		frontendTimeout: c.Login.Timeout,
+		ingameTimeout:   c.Server.IdleTimeout,
+		debugPanic:      c.Debug.Panic,
+		greeting:        c.Greeting + "\n",
+		playerPath:      filepath.Join(c.Server.DataPath, "players"),
+	}
+}
 
 type client struct {
 	*core.Thing
@@ -37,7 +62,7 @@ type client struct {
 	uid   string // Can't touch c.As[core.UID] when not under BWL
 }
 
-func New(conn *net.TCPConn) {
+func New(conn *net.TCPConn) *client {
 	c := &client{
 		Thing:   core.NewThing(),
 		TCPConn: conn,
@@ -58,17 +83,26 @@ func New(conn *net.TCPConn) {
 
 	log.Printf("[%s] connection from: %s", c.uid, c.RemoteAddr())
 
+	return c
+}
+
+func (c *client) Play() {
 	go c.messenger()
 	if c.frontend() {
 		c.enterWorld()
 		c.receive()
 	}
+	c.cleanup()
+}
 
+func (c *client) cleanup() {
 	mailbox.Suffix(c.uid, "")
 
 	if err := c.error(); err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
-			mailbox.Send(c.uid, true, idleDisconnect)
+			mailbox.Send(c.uid, true,
+				text.Bad+"\nIdle connection terminated by server.\n"+text.Reset,
+			)
 		}
 		log.Printf("[%s] client error: %s", c.uid, err)
 	}
@@ -78,11 +112,13 @@ func New(conn *net.TCPConn) {
 
 	mailbox.Delete(c.uid)
 	<-c.quit
+
 	if c.As[core.Account] != "" {
 		accountsMux.Lock()
+		defer accountsMux.Unlock()
 		delete(accounts, c.As[core.Account])
-		accountsMux.Unlock()
 	}
+
 	c.Free()
 	c.Close()
 }
@@ -90,13 +126,25 @@ func New(conn *net.TCPConn) {
 func (c *client) receive() {
 
 	s := core.NewState(c.Thing)
+
+	// If a client panics we don't want to bring the whole server down...
+	if !cfg.debugPanic {
+		defer func() {
+			if err := recover(); err != nil {
+				c.setError(errors.New("client panicked"))
+				log.Printf("[%s] client panicked: %s\n%s", c.uid, err, debug.Stack())
+				s.Parse("$QUIT")
+			}
+		}()
+	}
+
 	cmd := s.Parse("$POOF")
 
 	var input string
 	var err error
 	r := bufio.NewReaderSize(c, 80)
 	for cmd != "QUIT" && c.error() == nil {
-		c.SetReadDeadline(time.Now().Add(ingameTimeout))
+		c.SetReadDeadline(time.Now().Add(cfg.ingameTimeout))
 		if input, err = r.ReadString('\n'); err != nil {
 			c.setError(err)
 			break

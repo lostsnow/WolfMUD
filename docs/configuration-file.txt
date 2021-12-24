@@ -162,17 +162,15 @@ FIELDS & VALUES
 
     Statistics will appear in the server log with the following format:
 
-           U[n ±n] A[±n] O[n ±n] T[n ±n] G[n ±n] W[n max] P[n max]
+                    A[n] O[n ±n] T[n ±n] E[n ±n] P[n max]
 
     The values show the following data:
 
-      U[n  ±n] - used memory, change since last collection
-      A[   ±n] - number of memory allocations since last collection
-      O[n  ±n] - heap objects, change since last collection
-      T[n  ±n] - number of things in the world, change since last collection
-      G[n  ±n] - number of goroutines, change since last collection
-      W[n max] - Lock wait time since last collection / max wait since start
-      P[n max] - Current number of players / maximum players since start
+      A[    n] - runtime allocations since last collection
+      O[n  ±n] - runtime objects / change since last collection
+      T[n  ±n] - Thing in the world / change since last collection
+      E[n  ±n] - in-flight active events / change since last collection
+      P[n max] - current number of players / maximum number of players
 
   Stats.GC: true | false
     This value specifies whether garbage collection should be performed just
@@ -187,12 +185,12 @@ FIELDS & VALUES
 
   Inventory.CrowdSize:
     This value determines how many players are considered to be a crowd. If
-    there are more than Inventory.CrowdSize players at the same location the
+    there are Inventory.CrowdSize players or more at the same location the
     location is said to be crowded. If a location is crowded the individual
     players are not listed, instead players are informed that there is a crowd
     there. Also if a player performs an action observing players are not
     notified, but if a player is interacted with directly they will still be
-    notified. The default value for Inventory.CrowdSize is 10.
+    notified. The default value for Inventory.CrowdSize is 11.
 
   Login.AccountLength:
     This value is the minimum number of characters allowed for account IDs
@@ -206,6 +204,13 @@ FIELDS & VALUES
     This value is the default length of salts generated for passwords when
     accounts are created. The default value is 32. You should not need to
     change this value.
+
+  Login.Timeout: period
+    The amount of time of inactivity, while in the login or account creation
+    menus, after which the server should close an idle connection. The period
+    can use a combination of hours (h), minutes (m) and seconds (s). The
+    following are examples of valid values: 10s, 10m, 1h, 1h30m. The default
+    timeout for idle connections is 1m - 1 minute.
 
   Debug.LongLog
     This value determines whether the long logging format is used or a shorter
@@ -280,10 +285,11 @@ EXAMPLES
   Stats.Rate:           10s
   Stats.GC:             false
   Inventory.Compact:    8
-  Inventory.CrowdSize:  10
+  Inventory.CrowdSize:  11
   Login.AccountLength:  10
   Login.PasswordLength: 10
   Login.SaltLength:     32
+  Login.Timeout:        1m
   Debug.Panic:          false
   Debug.AllowDump:      false
   Debug.AllowDebug:     false

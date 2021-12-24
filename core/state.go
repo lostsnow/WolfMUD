@@ -6,9 +6,11 @@
 package core
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 
+	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
 )
 
@@ -20,6 +22,28 @@ var (
 	World      Things   // All top level locations
 	WorldStart []*Thing // Starting locations
 )
+
+type pkgConfig struct {
+	crowdSize   int // Represents minimum number of players considered a crowd
+	debugThings bool
+	allowDump   bool
+	playerPath  string
+}
+
+// cfg setup by Config and should be treated as immutable and not changed.
+var cfg pkgConfig
+
+// Config sets up package configuration for settings that can't be constants.
+// It should be called by main, only once, before anything else starts. Once
+// the configuration is set it should be treated as immutable an not changed.
+func Config(c config.Config) {
+	cfg = pkgConfig{
+		crowdSize:   c.Inventory.CrowdSize,
+		debugThings: c.Debug.Things,
+		allowDump:   c.Debug.AllowDump,
+		playerPath:  filepath.Join(c.Server.DataPath, "players"),
+	}
+}
 
 type state struct {
 	actor *Thing

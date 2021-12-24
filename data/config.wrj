@@ -26,7 +26,7 @@
 //
 // Inventory configuration
 //
-  Inventory.CrowdSize:  10
+  Inventory.CrowdSize:  11
 //
 // Login configuration
 //
@@ -35,6 +35,7 @@
   Login.AccountLength:  10
   Login.PasswordLength: 10
   Login.SaltLength:     32
+  Login.Timeout:        1m
 //
 // Debug configuration
 //
