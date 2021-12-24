@@ -6,6 +6,37 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19-beta.3 Released Friday 24th December, 2021
+==============================================================================
+
+Added
+
+  - New config package to load the server configuration. Configuration is
+    coordinated by the main method, which also configures the packages. The
+    package configuration, while not idea does allow packages to be configured
+    differently for the testing framework.
+  - New stats package for runtime statistics logging. Statistics are
+    coordinated from the server main package
+  - core.Thing now records Thing and Event counts for statistics reporting.
+  - Added a panic handler to the client.receive method. Panic handler is
+    configured via the Debug.Panic setting in the server configuration.
+
+Changed
+
+  - All setup locking is now coordinated through the server main method instead
+    of separately in world.Load and core.RegisterCommandHandlers functions.
+  - Client creation has been split into client.New to create the client and
+    client.Play to run the client.
+  - The core, world, client and stats packages now have package configuration.
+  - The #DUMP command availability is now configured via Debug.AllowDump in the
+    server configuration.
+  - Enable Thing debug logging showing when Thing created, freed and finalised.
+    Configured via Debug.Things in the server configuration.
+
+Fixed
+
+  - The client.assemblePlayer method now frees temporary Thing via Thing.Free.
+
 v0.0.19-beta.2 Released Wednesday 17th November, 2021
 ==============================================================================
 
