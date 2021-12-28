@@ -1036,6 +1036,10 @@ func simpleFold(s string, width int) (lines []string) {
 // suspended, and then resumed by rescheduling it. A scheduled event may be
 // cancelled, in which case rescheduling will cause the timers to start over.
 func (t *Thing) Schedule(event eventKey) {
+	t.schedule(event)
+}
+
+func (t *Thing) schedule(event eventKey) {
 
 	var (
 		idx    = intKey(event)
@@ -1055,7 +1059,7 @@ func (t *Thing) Schedule(event eventKey) {
 	}
 
 	wait := time.Duration(delay)
-	t.Cancel(event)
+	t.cancel(event)
 	t.Int[idx+DueAtOffset] = time.Now().Add(wait).UnixNano()
 	t.Event[event] = time.AfterFunc(
 		wait, func() {
@@ -1069,7 +1073,11 @@ func (t *Thing) Schedule(event eventKey) {
 // recorded. If the event is rescheduled the timers will start over. A
 // suspended event may be subsequently cancelled.
 func (t *Thing) Cancel(event eventKey) {
-	t.Suspend(event)
+	t.cancel(event)
+}
+
+func (t *Thing) cancel(event eventKey) {
+	t.suspend(event)
 	t.Int[intKey(event)+DueInOffset] = 0
 }
 
@@ -1078,6 +1086,10 @@ func (t *Thing) Cancel(event eventKey) {
 // it fires so that the timers can be resumed when the event is rescheduled. A
 // suspended event may be subsequently cancelled.
 func (t *Thing) Suspend(event eventKey) {
+	t.suspend(event)
+}
+
+func (t *Thing) suspend(event eventKey) {
 	if t.Event[event] == nil {
 		return
 	}
