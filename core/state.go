@@ -26,6 +26,7 @@ var (
 type pkgConfig struct {
 	crowdSize   int // Represents minimum number of players considered a crowd
 	debugThings bool
+	debugEvents bool
 	allowDump   bool
 	playerPath  string
 }
@@ -40,6 +41,7 @@ func Config(c config.Config) {
 	cfg = pkgConfig{
 		crowdSize:   c.Inventory.CrowdSize,
 		debugThings: c.Debug.Things,
+		debugEvents: c.Debug.Events,
 		allowDump:   c.Debug.AllowDump,
 		playerPath:  filepath.Join(c.Server.DataPath, "players"),
 	}
