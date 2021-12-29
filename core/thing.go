@@ -1096,6 +1096,7 @@ func (t *Thing) Cancel(event eventKey) {
 
 func (t *Thing) cancel(event eventKey) bool {
 	suspend := t.suspend(event)
+	delete(t.Event, event)
 	t.Int[intKey(event)+DueInOffset] = 0
 	return suspend
 }
