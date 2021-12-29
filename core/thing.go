@@ -1116,6 +1116,23 @@ func (t *Thing) suspend(event eventKey) {
 	t.Int[dueAt] = 0
 }
 
+func (t *Thing) logEvent(action string, event eventKey) {
+	if !cfg.debugEvents {
+		return
+	}
+	dueAt, dueIn := "-", "-"
+	if at := t.Int[intKey(event)+DueAtOffset]; at > 0 {
+		unix := time.Unix(0, int64(at))
+		dueAt = unix.Format(time.Stamp)
+		dueIn = unix.Sub(time.Now()).Truncate(time.Millisecond).String()
+	}
+	if in := t.Int[intKey(event)+DueInOffset]; in > 0 {
+		dueIn = time.Duration(in).Truncate(time.Millisecond).String()
+	}
+	log.Printf("Event %s: %s, for: %s (%s), at: %s, in: %s",
+		action, eventNames[event], t.As[UID], t.As[Name], dueAt, dueIn)
+}
+
 // incString increments the passed numeric string by one and returns the new
 // string. For example incString("1") returns the string "2".
 func incString(s string) string {
