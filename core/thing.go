@@ -1036,10 +1036,18 @@ func simpleFold(s string, width int) (lines []string) {
 // suspended, and then resumed by rescheduling it. A scheduled event may be
 // cancelled, in which case rescheduling will cause the timers to start over.
 func (t *Thing) Schedule(event eventKey) {
-	t.schedule(event)
+	suspended := t.Int[intKey(event)+DueInOffset] > 0
+	if !t.schedule(event) {
+		return
+	}
+	if suspended {
+		t.logEvent("re-schedule", event)
+		return
+	}
+	t.logEvent("schedule", event)
 }
 
-func (t *Thing) schedule(event eventKey) {
+func (t *Thing) schedule(event eventKey) bool {
 
 	var (
 		idx    = intKey(event)
@@ -1050,7 +1058,7 @@ func (t *Thing) schedule(event eventKey) {
 
 	switch {
 	case delay+jitter+dueIn == 0:
-		return
+		return false
 	case dueIn != 0:
 		delay, jitter = dueIn, 0
 		t.Int[idx+DueInOffset] = 0
@@ -1063,22 +1071,33 @@ func (t *Thing) schedule(event eventKey) {
 	t.Int[idx+DueAtOffset] = time.Now().Add(wait).UnixNano()
 	t.Event[event] = time.AfterFunc(
 		wait, func() {
+			// This is expensive but we don't hold the BRL...
+			if cfg.debugEvents {
+				BWL.Lock()
+				t.logEvent("delivered", event)
+				BWL.Unlock()
+			}
 			NewState(t).Parse(eventCommands[event])
 		},
 	)
 	eventCount <- <-eventCount + 1
+	return true
 }
 
 // Cancel an event for a Thing. The remaining time for the event is not
 // recorded. If the event is rescheduled the timers will start over. A
 // suspended event may be subsequently cancelled.
 func (t *Thing) Cancel(event eventKey) {
-	t.cancel(event)
+	if !t.cancel(event) {
+		return
+	}
+	t.logEvent("cancel", event)
 }
 
-func (t *Thing) cancel(event eventKey) {
-	t.suspend(event)
+func (t *Thing) cancel(event eventKey) bool {
+	suspend := t.suspend(event)
 	t.Int[intKey(event)+DueInOffset] = 0
+	return suspend
 }
 
 // Suspend an event for a Thing. If the event is not in-flight no action is
@@ -1086,12 +1105,14 @@ func (t *Thing) cancel(event eventKey) {
 // it fires so that the timers can be resumed when the event is rescheduled. A
 // suspended event may be subsequently cancelled.
 func (t *Thing) Suspend(event eventKey) {
-	t.suspend(event)
+	if t.suspend(event) {
+		t.logEvent("suspend", event)
+	}
 }
 
-func (t *Thing) suspend(event eventKey) {
+func (t *Thing) suspend(event eventKey) bool {
 	if t.Event[event] == nil {
-		return
+		return false
 	}
 
 	var suspended bool // True if we stop timer before it fires
@@ -1114,6 +1135,7 @@ func (t *Thing) suspend(event eventKey) {
 		t.Int[dueIn] = 0
 	}
 	t.Int[dueAt] = 0
+	return true
 }
 
 func (t *Thing) logEvent(action string, event eventKey) {
