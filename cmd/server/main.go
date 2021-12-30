@@ -16,7 +16,9 @@ import (
 	"code.wolfmud.org/WolfMUD.git/client"
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
+	"code.wolfmud.org/WolfMUD.git/mailbox"
 	"code.wolfmud.org/WolfMUD.git/stats"
+	"code.wolfmud.org/WolfMUD.git/text"
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
@@ -39,6 +41,12 @@ func Config(c config.Config) {
 		maxPlayers: c.Server.MaxPlayers,
 	}
 }
+
+var serverFull = []byte(
+	text.Bad +
+		"\nServer too busy. Please come back in a short while.\n\n" +
+		text.Reset,
+)
 
 func main() {
 
@@ -94,14 +102,19 @@ func main() {
 		return
 	}
 
-	log.Printf("Accepting connections on: %s", addr)
+	log.Printf("Accepting connections on: %s (max players: %d)",
+		addr, cfg.maxPlayers)
+
 	for {
 		conn, err := listener.AcceptTCP()
-		if err != nil {
+		switch {
+		case err != nil:
 			log.Printf("Error accepting connection: %s", err)
-			continue
+		case mailbox.Len() >= cfg.maxPlayers:
+			conn.Write(serverFull)
+			conn.Close()
+		default:
+			go client.New(conn).Play()
 		}
-		c := client.New(conn)
-		go c.Play()
 	}
 }
