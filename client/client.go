@@ -9,12 +9,14 @@ package client
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/config"
@@ -24,6 +26,7 @@ import (
 )
 
 type pkgConfig struct {
+	logClient       bool
 	accountMin      int
 	passwordMin     int
 	saltLength      int
@@ -42,6 +45,7 @@ var cfg pkgConfig
 // the configuration is set it should be treated as immutable an not changed.
 func Config(c config.Config) {
 	cfg = pkgConfig{
+		logClient:       c.Server.LogClient,
 		accountMin:      c.Login.AccountLength,
 		passwordMin:     c.Login.PasswordLength,
 		saltLength:      c.Login.SaltLength,
@@ -93,6 +97,35 @@ func (c *client) Play() {
 		c.receive()
 	}
 	c.cleanup()
+}
+
+// Log takes the same parameters as fmt.Printf and writes the resulting
+// message to the log. The message will automatically be appended with the UID
+// uniquely identifying the connection with the current log, for example:
+//
+//  [#UID-6] connection from: 127.0.0.1:35848
+//
+// If the server configuration value Server.LogClient is set to false then an
+// attempt is made to rewrite the connecting IP address as "???". For example:
+//
+//  [#UID-6] connection from: ???:35848
+//  [#UID-6] client error: read tcp 127.0.0.1:4001->???:35848: i/o timeout
+//  [#UID-6] disconnect from: ???:35848
+//
+func (c *client) Log(f string, a ...interface{}) {
+	f = fmt.Sprintf("[%s] %s", c.uid, f)
+
+	if cfg.logClient {
+		log.Printf(f, a...)
+		return
+	}
+
+	f = fmt.Sprintf(f, a...)
+	saddr := c.RemoteAddr().String()
+	if _, port, err := net.SplitHostPort(saddr); err == nil {
+		f = strings.ReplaceAll(f, saddr, "???:"+port)
+	}
+	log.Print(f)
 }
 
 func (c *client) cleanup() {
