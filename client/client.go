@@ -85,7 +85,7 @@ func New(conn *net.TCPConn) *client {
 	c.queue = mailbox.Add(c.As[core.UID])
 	c.uid = c.As[core.UID]
 
-	log.Printf("[%s] connection from: %s", c.uid, c.RemoteAddr())
+	c.Log("connection from: %s", c.RemoteAddr())
 
 	return c
 }
@@ -137,10 +137,10 @@ func (c *client) cleanup() {
 				text.Bad+"\nIdle connection terminated by server.\n"+text.Reset,
 			)
 		}
-		log.Printf("[%s] client error: %s", c.uid, err)
+		c.Log("client error: %s", err)
 	}
 
-	log.Printf("[%s] disconnect from: %s", c.uid, c.RemoteAddr())
+	c.Log("disconnect from: %s", c.RemoteAddr())
 	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
 
 	mailbox.Delete(c.uid)
@@ -165,7 +165,7 @@ func (c *client) receive() {
 		defer func() {
 			if err := recover(); err != nil {
 				c.setError(errors.New("client panicked"))
-				log.Printf("[%s] client panicked: %s\n%s", c.uid, err, debug.Stack())
+				c.Log("client panicked: %s\n%s", err, debug.Stack())
 				s.Parse("$QUIT")
 			}
 		}()

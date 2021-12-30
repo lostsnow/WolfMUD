@@ -10,7 +10,6 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -167,7 +166,7 @@ func (c *client) frontend() bool {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
 				buf = append(buf, text.Reset...)
-				log.Printf("[%s] Invalid account", c.uid)
+				c.Log("Invalid account")
 				stage = account
 				continue
 			}
@@ -183,7 +182,7 @@ func (c *client) frontend() bool {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
 				buf = append(buf, text.Reset...)
-				log.Printf("[%s] Invalid password for: %s", c.uid, c.As[core.Account])
+				c.Log("Invalid password for: %s", c.As[core.Account])
 				stage = account
 				continue
 			}
@@ -203,7 +202,7 @@ func (c *client) frontend() bool {
 			accountsMux.Lock()
 			accounts[c.As[core.Account]] = struct{}{}
 			accountsMux.Unlock()
-			log.Printf("[%s] Login for: %s", c.uid, c.As[core.Account])
+			c.Log("Login for: %s", c.As[core.Account])
 			c.assemblePlayer(jar[1:])
 			mailbox.Suffix(c.uid, "")
 			mailbox.Send(c.uid, true, text.Good+"Welcome back "+c.As[core.Name]+"!\n\n")
@@ -345,7 +344,7 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 					item.In[what.As[core.UID]] = what
 				}
 			} else {
-				log.Printf("load warning, ref not found for inventory: %s\n", ref)
+				c.Log("load warning, ref not found for inventory: %s\n", ref)
 			}
 		}
 	}
