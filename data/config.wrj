@@ -13,11 +13,13 @@
   Server.MaxPlayers:  1024
   Server.LogClient:   false
 //
-// Per IP connection quotas
+// Per IP connection quota. Allows x slots/connections within window period
 //
-  Quota.Window:  0
-  Quota.Timeout: 0
-  Quota.Stats:   0
+// NOTE: Maximum slots/connections tracked is 63, minimum window is 1 second.
+//       If Quota.Slots or Quota.Window is 0 quotas are disabled.
+//
+  Quota.Slots:  0
+  Quota.Window: 0s
 //
 // Stats configuration
 //

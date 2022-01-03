@@ -75,9 +75,9 @@ type Server struct {
 }
 
 type Quota struct {
-	Window  int
-	Timeout int
-	Stats   int
+	Slots  int
+	Window time.Duration
+	Stats  int
 }
 
 type Stats struct {
@@ -168,10 +168,10 @@ func (c Config) Read(r io.Reader) (Config, error) {
 				c.Server.LogClient = decode.Boolean(data)
 
 			// Quota settings
+			case "QUOTA.SLOTS":
+				c.Quota.Slots = decode.Integer(data)
 			case "QUOTA.WINDOW":
-				c.Quota.Window = decode.Integer(data)
-			case "QUOTA.TIMEOUT":
-				c.Quota.Timeout = decode.Integer(data)
+				c.Quota.Window = decode.Duration(data)
 			case "QUOTA.STATS":
 				c.Quota.Stats = decode.Integer(data)
 
