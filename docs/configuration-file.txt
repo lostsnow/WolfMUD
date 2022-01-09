@@ -28,6 +28,9 @@ FIELDS & VALUES
     should listen on for incoming client connections. The default is 127.0.0.1
     for local connections only.
 
+    If IP address or host name is not specified the server will listen on all
+    available interfaces.
+
   Server.Port: port number | service name
     The port the server should listen on for incoming client connections. The
     port can be specified as an integer number, e.g. 4001, or as a service
