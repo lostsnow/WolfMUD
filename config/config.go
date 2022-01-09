@@ -103,6 +103,7 @@ type Debug struct {
 	AllowDebug bool
 	Events     bool
 	Things     bool
+	Quota      bool
 }
 
 // Default returns the default, built-in server configuration. Failure to
@@ -208,6 +209,8 @@ func (c Config) Read(r io.Reader) (Config, error) {
 				c.Debug.Events = decode.Boolean(data)
 			case "DEBUG.THINGS":
 				c.Debug.Things = decode.Boolean(data)
+			case "DEBUG.QUOTA":
+				c.Debug.Quota = decode.Boolean(data)
 
 			case "GREETING":
 				c.Greeting = string(text.Colorize(data))

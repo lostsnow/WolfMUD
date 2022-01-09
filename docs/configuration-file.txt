@@ -236,6 +236,24 @@ FIELDS & VALUES
     setting this value to true is only recommended when developing or
     debugging. The default value for Debug.Things is false.
 
+  Debug.Quota
+    This value determines if quota cache information is written to the server
+    log or not. If enabled lines of the following format will be written to
+    the log for each IP address in the quota cache:
+
+      QC[1  ] M[00000000...000000001 ] X[18:17:55] A[127.0.0.1]
+      QC[2  ] M[00000000...000000111*] X[18:17:56] A[127.0.0.2]
+
+    The QC value is the cache line number, starting at 1 for each report. The
+    M value shows the 64 bit slot mask with 0 being an unused slot and 1 a
+    used slot. If the M value ends with an asterisk '*' the IP address shown
+    in the A value is over quota and cannot connect. The X value is the expiry
+    time for the cache entry. The A value shows the IP address for the cache
+    entry. The default value for Debug.Quota is false.
+
+    NOTE: The IP address will be shown even if Server.LogClient is set to
+    false to not log IP addresses.
+
   Free text block:
     The free text block contains text that is displayed as soon as a player
     connects to the server.
@@ -268,6 +286,7 @@ EXAMPLES
   Debug.AllowDebug:     false
   Debug.Events:         false
   Debug.Things:         false
+  Debug.Quota:          false
 
 
 WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe

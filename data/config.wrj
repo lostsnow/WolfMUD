@@ -47,6 +47,7 @@
   Debug.AllowDebug:   false
   Debug.Events:       false
   Debug.Things:       false
+  Debug.Quota:        false
 //
 // Initial client connection greeting
 
