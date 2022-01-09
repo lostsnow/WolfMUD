@@ -8,7 +8,6 @@ package main
 
 import (
 	"log"
-	"math/bits"
 	"math/rand"
 	"net"
 	"os"
@@ -18,18 +17,16 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
+	"code.wolfmud.org/WolfMUD.git/quota"
 	"code.wolfmud.org/WolfMUD.git/stats"
 	"code.wolfmud.org/WolfMUD.git/text"
 	"code.wolfmud.org/WolfMUD.git/world"
 )
 
 type pkgConfig struct {
-	port        string
-	host        string
-	maxPlayers  int
-	quotaSlots  int
-	quotaMask   uint64
-	quotaWindow time.Duration
+	port       string
+	host       string
+	maxPlayers int
 }
 
 // cfg setup by Config and should be treated as immutable and not changed.
@@ -40,20 +37,10 @@ var cfg pkgConfig
 // the configuration is set it should be treated as immutable an not changed.
 func Config(c config.Config) {
 
-	// Max limit of 63 quota slots due to bits in uint64 for mask + 1 extra bit
-	slots := c.Quota.Slots
-	if slots > 63 {
-		log.Printf("WARNING: Limiting Quota.Slots to 63, was %d", slots)
-		slots = 63
-	}
-
 	cfg = pkgConfig{
-		host:        c.Server.Host,
-		port:        c.Server.Port,
-		maxPlayers:  c.Server.MaxPlayers,
-		quotaSlots:  slots,
-		quotaMask:   uint64((1 << (slots + 1)) - 1),
-		quotaWindow: c.Quota.Window,
+		host:       c.Server.Host,
+		port:       c.Server.Port,
+		maxPlayers: c.Server.MaxPlayers,
 	}
 }
 
@@ -96,15 +83,16 @@ func main() {
 			}
 		}
 		Config(c)
-		stats.Config(c)
-		core.Config(c)
-		world.Config(c)
-		client.Config(c)
-
 		if !c.Debug.LongLog {
 			log.SetFlags(log.LstdFlags | log.LUTC)
 			log.Printf("Switching to short log format")
 		}
+
+		stats.Config(c)
+		core.Config(c)
+		world.Config(c)
+		quota.Config(c, time.Now)
+		client.Config(c)
 	}
 
 	stats.Start()
@@ -115,6 +103,8 @@ func main() {
 	world.Load()
 	core.BWL.Unlock()
 
+	quota.Status()
+
 	server := net.JoinHostPort(cfg.host, cfg.port)
 	addr, _ := net.ResolveTCPAddr("tcp", server)
 	listener, err := net.ListenTCP("tcp", addr)
@@ -123,21 +113,23 @@ func main() {
 		return
 	}
 
-	if cfg.quotaSlots == 0 || cfg.quotaWindow == 0 {
-		log.Printf("IP Quotas disabled, set Quota.Slots and Quota.Window to enable")
-	} else {
-		log.Printf("IP Quotas enabled, limiting to %d connections per IP address in %s", cfg.quotaSlots, cfg.quotaWindow)
-	}
-
 	log.Printf("Accepting connections on: %s (max players: %d)",
 		addr, cfg.maxPlayers)
 
+	var (
+		conn *net.TCPConn
+		ip   string
+	)
+
 	for {
-		conn, err := listener.AcceptTCP()
+		conn, err = listener.AcceptTCP()
+		if err == nil {
+			ip, _, err = net.SplitHostPort(conn.RemoteAddr().String())
+		}
 		switch {
 		case err != nil:
 			log.Printf("Error accepting connection: %s", err)
-		case !quota(conn):
+		case !quota.Accept(ip):
 			conn.Write(tooManyConnections)
 			conn.Close()
 		case mailbox.Len() >= cfg.maxPlayers:
@@ -147,49 +139,4 @@ func main() {
 			go client.New(conn).Play()
 		}
 	}
-}
-
-// quotaCache records connection attempts and the timestamp of the last
-// connection attempt. The attempts field contains bits representing an
-// interval cfg.quotaWindow apart.
-var quotaCache = map[string]struct {
-	when     time.Time
-	attempts uint64
-}{}
-
-// Quota check per IP connection quotas. Quota will return true Quota will
-// return true if there are less than Quota.Slots connections in a Quota.Window
-// period else false.
-//
-// NOTE: There is a maximum limit of 63 for Quota.Slots
-func quota(conn *net.TCPConn) (allowed bool) {
-	if cfg.quotaSlots == 0 || cfg.quotaWindow == 0 {
-		return true
-	}
-
-	now := time.Now()
-	ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
-
-	// Purge any expired cache entries
-	expiry := now.Add(-time.Duration(cfg.quotaSlots) * cfg.quotaWindow)
-	for addr, c := range quotaCache {
-		if ip != addr && c.when.Before(expiry) {
-			delete(quotaCache, ip)
-		}
-	}
-
-	c, found := quotaCache[ip]
-	if !found {
-		c.when, c.attempts = now, 1
-		quotaCache[ip] = c
-		return true
-	}
-
-	s := int(now.Sub(c.when)/cfg.quotaWindow) + 1
-	c.when, c.attempts = now, c.attempts<<s
-	c.attempts++
-	tries := bits.OnesCount64(c.attempts & cfg.quotaMask)
-	quotaCache[ip] = c
-
-	return tries <= cfg.quotaSlots
 }
