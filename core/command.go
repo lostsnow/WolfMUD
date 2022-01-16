@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/pprof"
 	"sort"
 	"strings"
 	"time"
@@ -92,6 +93,7 @@ func RegisterCommandHandlers() {
 		"#DUMP":     (*state).Dump,
 		"#TELEPORT": (*state).Teleport,
 		"#GOTO":     (*state).Teleport,
+		"#DEBUG":    (*state).Debug,
 
 		// Scripting only commands
 		"$POOF":    (*state).Poof,
@@ -1381,6 +1383,74 @@ func save(t *Thing, j *recordjar.Jar) {
 	}
 	for _, item := range t.Out {
 		save(item, j)
+	}
+}
+
+var cpuProfile *os.File
+
+func (s *state) Debug() {
+	if !cfg.allowDebug {
+		s.Msg(s.actor, text.Bad, "The #DEBUG command is unavailable.")
+		return
+	}
+
+	if len(s.word) < 1 {
+		s.Msg(s.actor, text.Info,
+			"#DEBUG requires a sub-command: CPUPROF|MEMPROF|PANIC",
+		)
+		return
+	}
+
+	switch s.word[0] {
+	case "CPUPROF":
+		if len(s.word) < 2 {
+			s.Msg(s.actor, text.Info,
+				"#DEBUG CPUPROF requires an action: ON|OFF|START|STOP|END",
+			)
+			return
+		}
+		switch s.word[1] {
+		case "ON", "START":
+			if cpuProfile != nil {
+				s.Msg(s.actor, text.Bad, "CPU profile already started.")
+				return
+			}
+			cpuProfile, _ = os.Create("./cpuprof")
+			cpuProfile.Chmod(0660)
+			pprof.StartCPUProfile(cpuProfile)
+			s.Msg(s.actor, text.Info, "CPU profile started.")
+		case "OFF", "END", "STOP":
+			if cpuProfile == nil {
+				s.Msg(s.actor, text.Bad, "CPU profile not started.")
+				return
+			}
+			pprof.StopCPUProfile()
+			cpuProfile.Close()
+			cpuProfile = nil
+			s.Msg(s.actor, text.Info, "CPU profile stopped.")
+		}
+	case "MEMPROF":
+		if len(s.word) < 2 {
+			s.Msg(s.actor, text.Info,
+				"#DEBUG MEMPROF requires an action: ON|OFF|START|STOP|END",
+			)
+			return
+		}
+		switch s.word[1] {
+		case "ON", "START":
+			runtime.MemProfileRate = 1
+			s.Msg(s.actor, text.Info, "Memory profile started.")
+		case "OFF", "END", "STOP":
+			f, _ := os.Create("./memprof")
+			f.Chmod(0660)
+			runtime.GC()
+			pprof.WriteHeapProfile(f)
+			runtime.MemProfileRate = 0
+			s.Msg(s.actor, text.Info, "Memory profile stopped.")
+		}
+	case "PANIC":
+		s.Msg(s.actor, "You panic!")
+		panic("User panicked.")
 	}
 }
 
