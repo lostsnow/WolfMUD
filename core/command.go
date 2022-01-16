@@ -876,12 +876,12 @@ func (s *state) Teleport() {
 	case where == nil:
 		s.Msg(s.actor, text.Bad, "You don't know where '", s.word[0], "' is.")
 	default:
-		delete(s.actor.Ref[Where].In, s.actor.As[UID])
+		delete(s.actor.Ref[Where].Who, s.actor.As[UID])
 		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			s.Msg(s.actor.Ref[Where], text.Info, "There is a loud 'Spang!' and ", s.actor.As[TheName], " suddenly disappears.")
 		}
 		s.actor.Ref[Where] = where
-		s.actor.Ref[Where].In[s.actor.As[UID]] = s.actor
+		s.actor.Ref[Where].Who[s.actor.As[UID]] = s.actor
 		s.Msg(s.actor, text.Good, "There is a loud 'Spang!'...\n")
 		s.Look()
 		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
