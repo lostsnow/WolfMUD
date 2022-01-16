@@ -28,6 +28,7 @@ type pkgConfig struct {
 	debugThings bool
 	debugEvents bool
 	allowDump   bool
+	allowDebug  bool
 	playerPath  string
 }
 
@@ -43,6 +44,7 @@ func Config(c config.Config) {
 		debugThings: c.Debug.Things,
 		debugEvents: c.Debug.Events,
 		allowDump:   c.Debug.AllowDump,
+		allowDebug:  c.Debug.AllowDebug,
 		playerPath:  filepath.Join(c.Server.DataPath, "players"),
 	}
 }
