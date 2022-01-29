@@ -130,9 +130,10 @@ func (s *state) subparse(input string) {
 
 // mailman delivers queued messages to player's mailboxes. Messages can be
 // queued for a specific player or for a location. If queued for a location,
-// messages will be sent to all player at the location - unless they have
-// received a specific message. Messages sent to the actor are always priority
-// messages, others are not. See mailbox.Send for details of message priority.
+// messages will be sent to all players at the location - unless they have
+// received a specific message. Messages sent to specific players are always
+// priority messages, other messages are not priority. See mailbox.Send for
+// details of message priority.
 //
 // Note that even though commands are processed under the BWL mailboxes can be
 // deleted at anytime due to network errors. This is not a problem, if the UID
@@ -141,9 +142,9 @@ func (s *state) subparse(input string) {
 func (s *state) mailman() {
 
 	for ref, buf := range s.buf {
-		// Send to specific players - race between Exists & Send is okay
+		// Send to specific players - Exists/Send race ok, handled by mailbox
 		if mailbox.Exists(ref.As[UID]) {
-			mailbox.Send(ref.As[UID], ref == s.actor, buf.String())
+			mailbox.Send(ref.As[UID], true, buf.String())
 			continue
 		}
 		// Send to players at location, omitting players that are receiving
