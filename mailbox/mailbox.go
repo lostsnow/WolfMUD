@@ -104,8 +104,10 @@ retry:
 
 // Suffix sets the current suffix to be appended to sent messages. Setting a
 // new suffix only effects new messages and not messages already queued.
-func Suffix(uid string, new string) {
+func Suffix(uid string, suffix string) {
 	mboxLock.Lock()
 	defer mboxLock.Unlock()
-	mbox[uid].suffix = new
+	if m, found := mbox[uid]; found {
+		m.suffix = suffix
+	}
 }
