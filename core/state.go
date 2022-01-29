@@ -6,6 +6,7 @@
 package core
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -198,10 +199,7 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 	}
 }
 
-// Prompt sets the player's current prompt to the given text.
-//
-// NOTE: A future update will make the prompt configurable. The prompt will
-// also be  dynamic showing the players statistics.
-func (s *state) Prompt(text string) {
-	mailbox.Suffix(s.actor.As[UID], text)
+// Prompt sets the given player's current prompt to the given text.
+func (s *state) Prompt(who *Thing, f string, args ...interface{}) {
+	mailbox.Suffix(who.As[UID], fmt.Sprintf(f, args...))
 }

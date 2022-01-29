@@ -127,7 +127,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
-	s.Prompt("")
+	s.Prompt(s.actor, "")
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
 	if s.cmd == "$QUIT" {
@@ -891,7 +891,7 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
-	s.Prompt("\n" + text.Magenta + ">")
+	s.Prompt(s.actor, "\n%s>", text.Magenta)
 	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
