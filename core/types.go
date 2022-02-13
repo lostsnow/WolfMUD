@@ -110,6 +110,7 @@ const (
 	UName            // Name with the initial character upper-cased
 	UTheName         // TheName with the initial character upper-cased
 	VetoClose        // Veto CLOSE command
+	VetoCombat       // Veto fighting commands
 	VetoDrop         // Veto for DROP command
 	VetoGet          // Veto for GET command
 	VetoHold         // Veto HOLD command
@@ -154,6 +155,7 @@ var asNames = []string{
 	"UName",
 	"UTheName",
 	"VetoClose",
+	"VetoCombat",
 	"VetoDrop",
 	"VetoGet",
 	"VetoHold",

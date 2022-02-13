@@ -350,6 +350,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				switch cmd {
 				case "CLOSE":
 					t.As[VetoClose] = msg
+				case "COMBAT":
+					t.As[VetoCombat] = msg
 				case "DROP":
 					t.As[VetoDrop] = msg
 				case "GET":
@@ -502,6 +504,7 @@ func (t *Thing) Marshal() recordjar.Record {
 
 	vetoes := mss{
 		"Close":   t.As[VetoClose],
+		"Combat":  t.As[VetoCombat],
 		"Drop":    t.As[VetoDrop],
 		"Get":     t.As[VetoGet],
 		"Junk":    t.As[VetoJunk],
