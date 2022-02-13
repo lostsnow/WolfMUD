@@ -146,6 +146,10 @@ func (c *client) cleanup() {
 	mailbox.Delete(c.uid)
 	<-c.quit
 
+	// Grab the BRL before player clean-up as player has been in the world
+	core.BWL.Lock()
+	defer core.BWL.Unlock()
+
 	if c.As[core.Account] != "" {
 		accountsMux.Lock()
 		defer accountsMux.Unlock()
