@@ -1074,13 +1074,23 @@ func (t *Thing) schedule(event eventKey) bool {
 	t.Int[idx+DueAtOffset] = time.Now().Add(wait).UnixNano()
 	t.Event[event] = time.AfterFunc(
 		wait, func() {
-			// This is expensive but we don't hold the BRL...
-			if cfg.debugEvents {
-				BWL.Lock()
-				t.logEvent("delivered", event)
-				BWL.Unlock()
+			BWL.Lock()
+			defer BWL.Unlock()
+
+			// Drop stale events for a Thing that has already been freed. We can't
+			// report the stale event as the details were also freed.
+			if t.Is&Freed == Freed {
+				return
 			}
-			NewState(t).Parse(eventCommands[event])
+			if cfg.debugEvents {
+				t.logEvent("delivered", event)
+			}
+
+			// Manually process event command, we already have the BRL and calling
+			// state.Parse would deadlock.
+			s := NewState(t)
+			s.parse(eventCommands[event])
+			s.mailman()
 		},
 	)
 	eventCount <- <-eventCount + 1
