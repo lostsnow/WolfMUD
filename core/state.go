@@ -128,6 +128,32 @@ func (s *state) subparse(input string) {
 	s2.parse(input)
 }
 
+// subparseFor parses new input for an alternative actor reusing the current
+// buffers from the current state. This is useful for commands that want to
+// cause an alternative actor to perform a command. For example a GIVE command
+// could be implemented as the actor performing a DROP and the receiver
+// performing a GET.
+//
+// NOTE: The performed command is not passed back to the alternative actor's
+// client. This means, for example, the HIT command cannot use the QUIT command
+// if the alternative actor is killed - the client code will not see the QUIT.
+func (s *state) subparseFor(actor *Thing, input string) {
+
+	// 'mark' messages already sent to the original actor and current location
+	markA := s.buf[s.actor].Len()
+	markL := s.buf[s.actor.Ref[Where]].Len()
+
+	s2 := &state{actor: actor, buf: s.buf}
+	s2.parse(input)
+
+	// If the original actor already had messages and we have new location
+	// messages, copy the additional location messages to the actor as they will
+	// not be regarded as observers - as they already had specific messages.
+	if markA != 0 && markL != s.buf[s.actor.Ref[Where]].Len() {
+		s.buf[s.actor].WriteString(s.buf[s.actor.Ref[Where]].String()[markL:])
+	}
+}
+
 // mailman delivers queued messages to player's mailboxes. Messages can be
 // queued for a specific player or for a location. If queued for a location,
 // messages will be sent to all players at the location - unless they have
