@@ -557,6 +557,9 @@ func (s *state) Take() {
 	if where == nil {
 		where = s.actor.Ref[Where].In[uid]
 	}
+	if where == nil {
+		where = s.actor.Ref[Where].Who[uid]
+	}
 
 	switch {
 	case where == nil:
@@ -617,6 +620,9 @@ func (s *state) Put() {
 	where := s.actor.In[uid]
 	if where == nil {
 		where = s.actor.Ref[Where].In[uid]
+	}
+	if where == nil {
+		where = s.actor.Ref[Where].Who[uid]
 	}
 
 	switch {
