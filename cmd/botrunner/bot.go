@@ -30,6 +30,8 @@ var commands = [2][]string{
 		"WHISPER PLAYER Hi!",
 		"SHOUT Hello!",
 		"TELL PLAYER Nice weather!",
+		"HIT CREATURE",
+		"HIT PLAYER",
 	},
 }
 
