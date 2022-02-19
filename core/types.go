@@ -249,6 +249,7 @@ var anyNames = []string{
 const (
 	BadIntKey intKey = iota
 
+	// Events
 	ActionAfter   // How often an action event should occur
 	ActionJitter  // Maximum random delay to add to ActionAfter
 	ActionDueAt   // Time a scheduled Action is due
@@ -257,7 +258,10 @@ const (
 	CleanupJitter // Maximum random delay to add to CleanupAfter
 	CleanupDueAt  // Time a scheduled clean-up is due
 	CleanupDueIn  // Time remaining for clean-up
-	Created       // Timestamp of when item (player) created
+	HealthAfter   // How soon a healing event should occur
+	HealthJitter  // Maximum random delay to add to HealthAfter
+	HealthDueAt   // Time a scheduled healing event is due
+	HealthDueIn   // Time remaining for healing event
 	ResetAfter    // How soon a reset event should occur
 	ResetJitter   // Maximum random delay to add to TesetAfter
 	ResetDueAt    // Time a scheduled reset is due
@@ -266,12 +270,19 @@ const (
 	TriggerJitter // Maximum random delay to add to trigger
 	TriggerDueAt  // Time a scheduled trigger event is due
 	TriggerDueIn  // Time remaining for trigger event
+
+	// Non-events
+	Created       // Timestamp of when item (player) created
+	HealthCurrent // Current health of a player/mobile
+	HealthMaximum // Maximum health a player/mobile heals up to.
+	HealthRestore // Health restored per healing event
 )
 
 // intNames maps intKey values to their string name.
 var intNames = []string{
 	"BadIntKey",
 
+	// Events
 	"ActionAfter",
 	"ActionJitter",
 	"ActionDueAt",
@@ -280,7 +291,10 @@ var intNames = []string{
 	"CleanupJitter",
 	"CleanupDueAt",
 	"CleanupDueIn",
-	"Created",
+	"HealthAfter",
+	"HealthJitter",
+	"HealthDueAt",
+	"HealthDueIn",
 	"ResetAfter",
 	"ResetJitter",
 	"ResetDueAt",
@@ -289,6 +303,12 @@ var intNames = []string{
 	"TriggerJitter",
 	"TriggerDueAt",
 	"TriggerDueIn",
+
+	// Non-events
+	"Created",
+	"HealthCurrent",
+	"HealthMaximum",
+	"HealthRestore",
 }
 
 // Standard offsets for Event related values. Given an eventKey we can add the
@@ -309,6 +329,7 @@ const (
 const (
 	Action  eventKey = eventKey(ActionAfter)
 	Cleanup          = eventKey(CleanupAfter)
+	Health           = eventKey(HealthAfter)
 	Reset            = eventKey(ResetAfter)
 	Trigger          = eventKey(TriggerAfter)
 )
@@ -317,6 +338,7 @@ const (
 var eventNames = map[eventKey]string{
 	Action:  "Action",
 	Cleanup: "Cleanup",
+	Health:  "Health",
 	Reset:   "Reset",
 	Trigger: "Trigger",
 }
