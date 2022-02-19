@@ -1486,6 +1486,29 @@ func (s *state) Health() {
 	s.buildPrompt(s.actor)
 }
 
+func createCorpse(t *Thing) *Thing {
+	c := NewThing()
+	c.As[Name] = "a corpse of " + t.As[Name]
+	c.As[UName] = "A corpse of " + t.As[Name]
+	c.As[TheName] = "the corpse of " + t.As[Name]
+	c.As[UTheName] = "The corpse of " + t.As[Name]
+	c.As[Description] = t.As[Description]
+	c.Any[Alias] = append(c.Any[Alias], t.Any[Alias]...)
+	c.Ref[Where] = t.Ref[Where]
+	c.Ref[Where].In[c.As[UID]] = t
+	c.Int[CleanupAfter] = time.Duration(60 * time.Second).Nanoseconds()
+	c.As[OnCleanup] = c.As[UTheName] + " turns to dust."
+
+	// Replace original UID alias with "CORPSE" (new UID was added by NewThing)
+	for x, alias := range c.Any[Alias] {
+		if alias == t.As[UID] {
+			c.Any[Alias][x] = "CORPSE"
+		}
+	}
+
+	return c
+}
+
 // intersects returns true if any elements of want are also in have, else false.
 func intersects(have, want []string) bool {
 	sort.Strings(have)
