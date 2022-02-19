@@ -904,7 +904,7 @@ OnAction: $ACT squeaks.
 This is a small, furry, grey mouse.
 %%
       Ref: M6
-     Name: the barkeep
+     Name: a barkeep
   Aliases: BARKEEP MAN NPC
      Body: @MOBILE
 Inventory: M6O1
