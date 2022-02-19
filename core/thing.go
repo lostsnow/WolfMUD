@@ -187,6 +187,9 @@ func decodeInt(qty string) int {
 }
 
 // Unmarshal loads data from the passed Record into a Thing.
+//
+// BUG(diddymus): Players will be mistaken for NPCs when they are loaded.
+// Currently the client.assemblePlayer method will correct the flags.
 func (t *Thing) Unmarshal(r recordjar.Record) {
 	for field, data := range r {
 		switch field {
@@ -424,20 +427,20 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		}
 	}
 
-	// If we have a body and not a Player assume it's an NPC
-	if t.Is&Player != Player && len(t.Any[Body]) != 0 {
+	// If we have maximum health assume it's an NPC
+	if t.Int[HealthMaximum] != 0 || len(t.Any[Body]) != 0 {
 		t.Is |= NPC
 	}
 
-	// If it's a location, player or NPC it's not a container
-	if t.Is&(Location|Player|NPC) != 0 {
+	// If it's a location or NPC it's not a container
+	if t.Is&(Location|NPC) != 0 {
 		t.Is &^= Container
 	}
 
-	// All items are holdable in one hand except for locations, players, NPCs
-	// and narratives. This can be overridden with a VetoHold or by defining an
+	// All items are holdable in one hand except for locations, NPCs and
+	// narratives. This can be overridden with a VetoHold or by defining an
 	// explicit Holdable field for the item.
-	if t.Is&(Location|Player|NPC|Narrative) == 0 && t.Any[Holdable] == nil {
+	if t.Is&(Location|NPC|Narrative) == 0 && t.Any[Holdable] == nil {
 		t.Any[Holdable] = append(t.Any[Holdable], "HAND")
 	}
 

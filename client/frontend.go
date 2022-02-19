@@ -376,7 +376,8 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.As[core.Password] = c.As[core.Password]
 	p.As[core.Salt] = c.As[core.Salt]
 	p.Int[core.Created] = c.Int[core.Created]
-	p.Is = p.Is | core.Player
+	p.Is |= core.Player
+	p.Is &^= core.NPC
 	c.Thing.Free()
 	c.Thing = p
 	c.InitOnce(nil)
@@ -410,7 +411,7 @@ func clearOrigins(item *core.Thing) {
 }
 
 func (c *client) createPlayer() {
-	c.Is = c.Is | core.Player
+	c.Is |= core.Player
 	c.As[core.UName] = c.As[core.Name]
 	c.As[core.TheName] = c.As[core.Name]
 	c.As[core.UTheName] = c.As[core.Name]

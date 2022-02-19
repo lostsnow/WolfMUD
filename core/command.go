@@ -582,7 +582,7 @@ func (s *state) Take() {
 			s.Msg(s.actor, text.Bad, where.As[UTheName], " does not seem to contain '", uid, "'.")
 		case what.As[VetoTake] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoTake])
-		case where.Is&NPC == NPC || what.Is&Narrative == Narrative:
+		case where.Is&(NPC|Player) != 0 || what.Is&Narrative == Narrative:
 			s.Msg(s.actor, text.Bad, "You can't take ", what.As[TheName], " from ", where.As[TheName], ".")
 		default:
 			what.Cancel(Cleanup)
