@@ -891,12 +891,19 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
-	s.Prompt(s.actor, "\n%s>", text.Magenta)
+	s.buildPrompt(s.actor)
+
 	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
+}
+
+func (s *state) buildPrompt(actor *Thing) {
+	s.Prompt(actor, "\n%sH:%d/%d%s>",
+		text.Blue, actor.Int[HealthCurrent], actor.Int[HealthMaximum], text.Magenta,
+	)
 }
 
 func (s *state) Act() {
