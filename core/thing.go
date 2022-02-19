@@ -794,6 +794,10 @@ func (t *Thing) Junk() {
 		return
 	}
 
+	for event := range t.Event {
+		t.Cancel(event)
+	}
+
 	delete(t.As, DynamicQualifier)
 
 	if t.Ref[Origin] != nil {
@@ -834,8 +838,7 @@ func (t *Thing) Free() {
 	t.Is = Freed
 
 	for eventId := range t.Event {
-		t.Suspend(eventId)
-		delete(t.Event, eventId)
+		t.Cancel(eventId)
 	}
 	t.Event = nil
 
