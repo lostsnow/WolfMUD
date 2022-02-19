@@ -566,6 +566,8 @@ func (s *state) Take() {
 		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to take anything from.")
 	case len(uids) > 1:
 		s.Msg(s.actor, text.Bad, "You can only take things from one container at a time.")
+	case where.Is&(NPC|Player) != 0:
+		s.Msg(s.actor, text.Bad, where.As[UTheName], " does not want you taking anything of theirs!")
 	case where.Is&Container != Container:
 		s.Msg(s.actor, text.Bad, where.As[UTheName], " is not something you can take anything from.")
 	case len(words) == 0:
