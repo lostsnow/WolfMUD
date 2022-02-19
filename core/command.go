@@ -103,6 +103,7 @@ func RegisterCommandHandlers() {
 		"$CLEANUP": (*state).Cleanup,
 		"$TRIGGER": (*state).Trigger,
 		"$QUIT":    (*state).Quit,
+		"$HEALTH":  (*state).Health,
 	}
 
 	eventCommands = map[eventKey]string{
@@ -110,6 +111,7 @@ func RegisterCommandHandlers() {
 		Reset:   "$RESET",
 		Cleanup: "$CLEANUP",
 		Trigger: "$TRIGGER",
+		Health:  "$HEALTH",
 	}
 
 	// precompute a sorted list of available player and admin commands. Scripting
@@ -892,6 +894,9 @@ func (s *state) Teleport() {
 
 func (s *state) Poof() {
 	s.buildPrompt(s.actor)
+	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
+		s.actor.Schedule(Health)
+	}
 
 	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
@@ -1459,6 +1464,26 @@ func (s *state) Debug() {
 		s.Msg(s.actor, "You panic!")
 		panic("User panicked.")
 	}
+}
+
+func (s *state) Health() {
+	s.actor.Cancel(Health)
+	if s.actor.Int[HealthCurrent] >= s.actor.Int[HealthMaximum] {
+		return
+	}
+
+	s.actor.Int[HealthCurrent] += s.actor.Int[HealthRestore]
+
+	if s.actor.Int[HealthCurrent] >= s.actor.Int[HealthMaximum] {
+		s.actor.Int[HealthCurrent] = s.actor.Int[HealthMaximum]
+		s.Msg(s.actor, text.Good, "\nYou feel healthy.")
+		s.Msg(s.actor.Ref[Where], text.Info,
+			s.actor.As[UName], " looks healthy.")
+	} else {
+		s.actor.Schedule(Health)
+	}
+
+	s.buildPrompt(s.actor)
 }
 
 // intersects returns true if any elements of want are also in have, else false.
