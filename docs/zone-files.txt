@@ -328,7 +328,7 @@ ZONE RECORDS
 
       ACTION: AFTER→5m JITTER→2m30s
 
-    AFTER and JITTER specify the period to wait between executing a action to
+    AFTER and JITTER specify the period to wait between executing an action to
     be between AFTER and AFTER+JITTER. In the example an action will occur
     every five to seven and a half minutes.
 
