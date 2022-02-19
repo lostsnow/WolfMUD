@@ -6,6 +6,7 @@ package client
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/md5"
 	"crypto/sha512"
 	"encoding/base64"
@@ -315,12 +316,23 @@ func (c *client) enterWorld() {
 	c.Ref[core.Where].Who[c.uid] = c.Thing
 }
 
+// TODO(diddymus): Need to add a proper player file upgrade path + versions
 func (c *client) assemblePlayer(jar recordjar.Jar) {
 	store := make(map[string]*core.Thing)
 	invs := make(map[string][]string)
 
 	// TODO(diddymus): add bounds cheddcking for broken jar...
 	pref := decode.Keyword(jar[0]["REF"])
+
+	// Upgrade and add HELTH if missing
+	if _, found := jar[0]["HEALTH"]; !found {
+		jar[0]["HEALTH"] = []byte("AFTER→10S MAXIMUM→30 RESTORE→2")
+	}
+	// If old HEALTH record upgrade fields
+	jar[0]["HEALTH"] =
+		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
+	jar[0]["HEALTH"] =
+		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -420,4 +432,8 @@ func (c *client) createPlayer() {
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 	}
 	c.Int[core.Created] = time.Now().Unix()
+	c.Int[core.HealthAfter] = (10 * time.Second).Nanoseconds()
+	c.Int[core.HealthRestore] = 2
+	c.Int[core.HealthCurrent] = 30
+	c.Int[core.HealthMaximum] = 30
 }
