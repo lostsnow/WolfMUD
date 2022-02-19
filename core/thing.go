@@ -282,6 +282,27 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.Is |= Location
 		case "GENDER":
 			t.As[Gender] = decode.Keyword(r["GENDER"])
+		case "HEALTH":
+			for k, v := range decode.PairList(r[field]) {
+				b := []byte(v)
+				switch k {
+				case "AFTER":
+					t.Int[HealthAfter] = decode.Duration(b).Nanoseconds()
+				case "JITTER":
+					t.Int[HealthJitter] = decode.Duration(b).Nanoseconds()
+				case "DUE_IN", "DUE-IN":
+					t.Int[HealthDueIn] = decode.Duration(b).Nanoseconds()
+				case "CURRENT":
+					t.Int[HealthCurrent] = int64(decode.Integer(b))
+				case "MAXIMUM":
+					t.Int[HealthMaximum] = int64(decode.Integer(b))
+				case "RESTORE":
+					t.Int[HealthRestore] = int64(decode.Integer(b))
+				}
+			}
+			if t.Int[HealthMaximum] != 0 && t.Int[HealthCurrent] == 0 {
+				t.Int[HealthCurrent] = t.Int[HealthMaximum]
+			}
 		case "HOLDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
 				for x := 0; x < decodeInt(qty); x++ {
@@ -592,6 +613,23 @@ func (t *Thing) Marshal() recordjar.Record {
 	}
 	if _, ok := t.As[Gender]; ok {
 		r["Gender"] = encode.String(t.As[Gender])
+	}
+	if _, ok := t.Int[HealthCurrent]; ok {
+		health := mss{
+			"AFTER":   string(encode.Duration(time.Duration(t.Int[HealthAfter]))),
+			"JITTER":  string(encode.Duration(time.Duration(t.Int[HealthJitter]))),
+			"CURRENT": string(encode.Integer(int(t.Int[HealthCurrent]))),
+			"MAXIMUM": string(encode.Integer(int(t.Int[HealthMaximum]))),
+			"RESTORE": string(encode.Integer(int(t.Int[HealthRestore]))),
+		}
+		if at := t.Int[HealthDueIn]; at > 0 {
+			dueIn := time.Duration(at)
+			health["DUE_IN"] = string(encode.Duration(dueIn))
+		} else if at := t.Int[HealthDueAt]; at > 0 {
+			dueIn := time.Unix(0, at).Sub(time.Now())
+			health["DUE_IN"] = string(encode.Duration(dueIn))
+		}
+		r["Health"] = encode.PairList(health, '→')
 	}
 	if len(holdable) > 0 {
 		r["Holdable"] = encode.PairList(holdable, '→')
