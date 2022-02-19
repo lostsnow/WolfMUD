@@ -123,6 +123,7 @@ Password: $password
    Gender: ${gender}
       Ref: P1
 Inventory:
+   Health: AFTER→10S CURRENT→30 MAXIMUM→30 RESTORE→2
 
 This is an adventurer, just like you!
 %%
