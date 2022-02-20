@@ -836,7 +836,7 @@ Holdable: HAND→2
 OnAction: $ACT hops around a bit.
         : $ACT twitches its little nose, Ahh...
         : $ACT makes a soft squeaking and chattering noise.
-        : HIT PLAYER
+        : HIT ANY PLAYER
         : @ACT_MOVE
    Reset: @MOBILE
  OnReset: A rabbit hops into view.
@@ -854,7 +854,7 @@ Holdable: HAND
 OnAction: $ACT croaks a bit.
         : $ACT leaps high into the air.
         : $ACT hops around a bit.
-        : HIT PLAYER
+        : HIT ANY PLAYER
         : @ACT_MOVE
    Reset: @MOBILE
  OnReset: A frog hops into view.
@@ -960,7 +960,7 @@ OnAction: $ACT starts to slowly spin another web.
         : $ACT reaches out a long leg and tests one of the webs.
         : EXAMINE WEBS
         : EXAMINE BUNDLE
-        : EXAMINE PLAYER
+        : EXAMINE ANY PLAYER
    Reset: @MOBILE
  OnReset: A giant spider crawls in.
 
@@ -1704,7 +1704,7 @@ OnAction: $ACT looks at you, then quickly looks away again.
         : SAY Where did I put...
         : SAY What was I going to say?
         : SAY Is it that time already?
-        : EXAMINE PLAYER
+        : EXAMINE ANY PLAYER
         : SNEEZE
 %%
        // General actions for traders
