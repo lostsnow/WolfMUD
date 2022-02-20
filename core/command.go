@@ -1606,6 +1606,7 @@ func createCorpse(t *Thing) *Thing {
 	c.As[UTheName] = "The corpse of " + t.As[Name]
 	c.As[Description] = t.As[Description]
 	c.Any[Alias] = append(c.Any[Alias], t.Any[Alias]...)
+	c.Any[Qualifier] = append(c.Any[Qualifier], t.Any[Qualifier]...)
 	c.Ref[Where] = t.Ref[Where]
 	c.Ref[Where].In[c.As[UID]] = t
 	c.Int[CleanupAfter] = time.Duration(60 * time.Second).Nanoseconds()
