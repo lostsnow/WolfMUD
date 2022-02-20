@@ -6,6 +6,7 @@
 package core
 
 import (
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -46,6 +47,7 @@ import (
 //
 //	ALL   - all matches
 //	LAST  - the last item matched
+//	ANY   - one random item matched
 //	N/Nth - the Nth item matched (or last item if N > matches)
 //
 // NOTE: For performance reasons, if a thing being searched is considered
@@ -169,6 +171,9 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 			for x := len(matches) - 1; x > -1; x-- {
 				results = append(results, matches[x].As[UID])
 			}
+			pos--
+		case words[pos-1] == "ANY":
+			results = append(results, matches[rand.Intn(len(matches))].As[UID])
 			pos--
 		case words[pos-1] == "LAST":
 			results = append(results, matches[len(matches)-1].As[UID])
