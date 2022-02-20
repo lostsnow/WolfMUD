@@ -217,8 +217,11 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					q[parts[0][1:]] = struct{}{}
 				case len(parts) == 1:
 					a[parts[0]] = struct{}{}
-				case len(parts) == 2:
+				case len(parts) == 2 && parts[0][0] == '+':
 					q[alias[1:]] = struct{}{}
+					a[parts[1]] = struct{}{}
+				case len(parts) == 2 && parts[0][0] != '+':
+					q[alias] = struct{}{}
 					a[parts[1]] = struct{}{}
 				}
 			}

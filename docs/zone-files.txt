@@ -404,6 +404,10 @@ ZONE RECORDS
     result the command 'GET SHORT SHORTSWORD' would not be recognised as
     'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'.
 
+    For a bound qualifier the leading '+' is optional. For example, either
+    'SHORT:SWORD' or '+SHORT:SWORD' can be used, although the latter is
+    preferred to match unbound qualifiers.
+
     When a bound alias is used the alias does not have to be defined
     separately. In the above example the bound alias '+SHORT:SWORD' will
     define the alias 'SWORD' automatically, although it can still be specified
