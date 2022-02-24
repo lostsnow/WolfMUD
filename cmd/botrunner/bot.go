@@ -26,12 +26,12 @@ var commands = [2][]string{
 	{ // Low frequency commands
 		"SNEEZE",
 		"SAY Hi!",
-		"EXAMINE PLAYER",
-		"WHISPER PLAYER Hi!",
+		"EXAMINE ANY PLAYER",
+		//"WHISPER ANY PLAYER Hi!",
 		"SHOUT Hello!",
-		"TELL PLAYER Nice weather!",
-		"HIT CREATURE",
-		"HIT PLAYER",
+		//"TELL ANY PLAYER Nice weather!",
+		"HIT ANY CREATURE",
+		"HIT ANY PLAYER",
 	},
 }
 
