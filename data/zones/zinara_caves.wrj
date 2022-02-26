@@ -3,9 +3,9 @@
 // Use of this file is governed by the license in the LICENSE file included
 // with the source code.
 %%
-    Ref: ZINARACAVES
-   Zone: Caves near Zinara
- Author: Andrew 'Diddymus' Rolfe
+     Ref: ZINARACAVES
+    Zone: Caves near Zinara
+  Author: Andrew 'Diddymus' Rolfe
 Disabled: FALSE
 
 This are the caves south of Zinara.
@@ -127,7 +127,7 @@ lead downward.
     Ref: L15
    Name: Stairs
 Aliases: STAIRS
-    Exits: U→L14 D→L16
+  Exits: U→L14 D→L16
 
 You are on a set of stairs that curl their way through the solid rock around
 you. In the darkness below you can make out a passage. Above the stairs out
@@ -318,7 +318,7 @@ twinkles as you turn it this way and that.
      Name: some white sand
   Aliases: SAND
 Narrative:
-  Vetoes: GET→The sand quickly flows through your fingers.
+   Vetoes: GET→The sand quickly flows through your fingers.
 
 This is very fine white sand. As you pick some up to examine it closer it
 escapes through your fingers.
@@ -370,8 +370,8 @@ This is a small basin fixed to the wall at a height of about 4 foot.
     Ref: L10N3
    Name: some water
 Aliases: WATER
-   Vetoes: TAKE→You try to take some water from the basin but it flows through
-           your fingers.
+ Vetoes: TAKE→You try to take some water from the basin but it flows through
+         your fingers.
 
 This water is slightly pink in colour, but seems to be fresh.
 %%
