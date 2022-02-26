@@ -93,6 +93,7 @@ func RegisterCommandHandlers() {
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
+		"#LDUMP":    (*state).Dump,
 		"#TELEPORT": (*state).Teleport,
 		"#GOTO":     (*state).Teleport,
 		"#DEBUG":    (*state).Debug,
@@ -687,7 +688,7 @@ func (s *state) Put() {
 
 func (s *state) Dump() {
 	if !cfg.allowDump {
-		s.Msg(s.actor, text.Bad, "The #DUMP command is unavailable.")
+		s.Msg(s.actor, text.Bad, "The #DUMP and #LDUMP commands are unavailable.")
 		return
 	}
 	if len(s.word) == 0 {
@@ -714,6 +715,11 @@ func (s *state) Dump() {
 		switch {
 		case what == nil:
 			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to dump.")
+		case s.cmd == "#LDUMP":
+			buf := &bytes.Buffer{}
+			what.Dump(buf, 132)
+			log.Printf("DUMP: %s\n%s", uid, buf.Bytes())
+			s.Msg(s.actor, text.Info, "Dumped to log: ", uid)
 		default:
 			s.Msg(s.actor, "DUMP: ", uid, "\n")
 			buf := &bytes.Buffer{}
