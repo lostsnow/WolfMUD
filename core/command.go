@@ -12,7 +12,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/pprof"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,11 +89,14 @@ func RegisterCommandHandlers() {
 		"WIELD":     (*state).Wield,
 		"VERSION":   (*state).Version,
 		"SAVE":      (*state).Save,
+		"HIT":       (*state).Hit,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
+		"#LDUMP":    (*state).Dump,
 		"#TELEPORT": (*state).Teleport,
 		"#GOTO":     (*state).Teleport,
+		"#DEBUG":    (*state).Debug,
 
 		// Scripting only commands
 		"$POOF":    (*state).Poof,
@@ -101,6 +106,7 @@ func RegisterCommandHandlers() {
 		"$CLEANUP": (*state).Cleanup,
 		"$TRIGGER": (*state).Trigger,
 		"$QUIT":    (*state).Quit,
+		"$HEALTH":  (*state).Health,
 	}
 
 	eventCommands = map[eventKey]string{
@@ -108,6 +114,7 @@ func RegisterCommandHandlers() {
 		Reset:   "$RESET",
 		Cleanup: "$CLEANUP",
 		Trigger: "$TRIGGER",
+		Health:  "$HEALTH",
 	}
 
 	// precompute a sorted list of available player and admin commands. Scripting
@@ -125,7 +132,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
-	s.Prompt("")
+	s.Prompt(s.actor, "")
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
 	if s.cmd == "$QUIT" {
@@ -551,12 +558,17 @@ func (s *state) Take() {
 	if where == nil {
 		where = s.actor.Ref[Where].In[uid]
 	}
+	if where == nil {
+		where = s.actor.Ref[Where].Who[uid]
+	}
 
 	switch {
 	case where == nil:
 		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to take anything from.")
 	case len(uids) > 1:
 		s.Msg(s.actor, text.Bad, "You can only take things from one container at a time.")
+	case where.Is&(NPC|Player) != 0:
+		s.Msg(s.actor, text.Bad, where.As[UTheName], " does not want you taking anything of theirs!")
 	case where.Is&Container != Container:
 		s.Msg(s.actor, text.Bad, where.As[UTheName], " is not something you can take anything from.")
 	case len(words) == 0:
@@ -576,7 +588,7 @@ func (s *state) Take() {
 			s.Msg(s.actor, text.Bad, where.As[UTheName], " does not seem to contain '", uid, "'.")
 		case what.As[VetoTake] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoTake])
-		case where.Is&NPC == NPC || what.Is&Narrative == Narrative:
+		case where.Is&(NPC|Player) != 0 || what.Is&Narrative == Narrative:
 			s.Msg(s.actor, text.Bad, "You can't take ", what.As[TheName], " from ", where.As[TheName], ".")
 		default:
 			what.Cancel(Cleanup)
@@ -611,6 +623,9 @@ func (s *state) Put() {
 	where := s.actor.In[uid]
 	if where == nil {
 		where = s.actor.Ref[Where].In[uid]
+	}
+	if where == nil {
+		where = s.actor.Ref[Where].Who[uid]
 	}
 
 	switch {
@@ -673,7 +688,7 @@ func (s *state) Put() {
 
 func (s *state) Dump() {
 	if !cfg.allowDump {
-		s.Msg(s.actor, text.Bad, "The #DUMP command is unavailable.")
+		s.Msg(s.actor, text.Bad, "The #DUMP and #LDUMP commands are unavailable.")
 		return
 	}
 	if len(s.word) == 0 {
@@ -700,6 +715,11 @@ func (s *state) Dump() {
 		switch {
 		case what == nil:
 			s.Msg(s.actor, text.Bad, "You see no '", uid, "' to dump.")
+		case s.cmd == "#LDUMP":
+			buf := &bytes.Buffer{}
+			what.Dump(buf, 132)
+			log.Printf("DUMP: %s\n%s", uid, buf.Bytes())
+			s.Msg(s.actor, text.Info, "Dumped to log: ", uid)
 		default:
 			s.Msg(s.actor, "DUMP: ", uid, "\n")
 			buf := &bytes.Buffer{}
@@ -874,12 +894,12 @@ func (s *state) Teleport() {
 	case where == nil:
 		s.Msg(s.actor, text.Bad, "You don't know where '", s.word[0], "' is.")
 	default:
-		delete(s.actor.Ref[Where].In, s.actor.As[UID])
+		delete(s.actor.Ref[Where].Who, s.actor.As[UID])
 		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			s.Msg(s.actor.Ref[Where], text.Info, "There is a loud 'Spang!' and ", s.actor.As[TheName], " suddenly disappears.")
 		}
 		s.actor.Ref[Where] = where
-		s.actor.Ref[Where].In[s.actor.As[UID]] = s.actor
+		s.actor.Ref[Where].Who[s.actor.As[UID]] = s.actor
 		s.Msg(s.actor, text.Good, "There is a loud 'Spang!'...\n")
 		s.Look()
 		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
@@ -889,12 +909,22 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
-	s.Prompt("\n" + text.Magenta + ">")
+	s.buildPrompt(s.actor)
+	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
+		s.actor.Schedule(Health)
+	}
+
 	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 		s.Msg(s.actor.Ref[Where], text.Info, "There is a cloud of smoke from which ",
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
+}
+
+func (s *state) buildPrompt(actor *Thing) {
+	s.Prompt(actor, "\n%sH:%d/%d%s>",
+		text.Blue, actor.Int[HealthCurrent], actor.Int[HealthMaximum], text.Magenta,
+	)
 }
 
 func (s *state) Act() {
@@ -1382,6 +1412,220 @@ func save(t *Thing, j *recordjar.Jar) {
 	for _, item := range t.Out {
 		save(item, j)
 	}
+}
+
+var cpuProfile *os.File
+
+func (s *state) Debug() {
+	if !cfg.allowDebug {
+		s.Msg(s.actor, text.Bad, "The #DEBUG command is unavailable.")
+		return
+	}
+
+	if len(s.word) < 1 {
+		s.Msg(s.actor, text.Info,
+			"#DEBUG requires a sub-command: CPUPROF|MEMPROF|PANIC",
+		)
+		return
+	}
+
+	switch s.word[0] {
+	case "CPUPROF":
+		if len(s.word) < 2 {
+			s.Msg(s.actor, text.Info,
+				"#DEBUG CPUPROF requires an action: ON|OFF|START|STOP|END",
+			)
+			return
+		}
+		switch s.word[1] {
+		case "ON", "START":
+			if cpuProfile != nil {
+				s.Msg(s.actor, text.Bad, "CPU profile already started.")
+				return
+			}
+			cpuProfile, _ = os.Create("./cpuprof")
+			cpuProfile.Chmod(0660)
+			pprof.StartCPUProfile(cpuProfile)
+			s.Msg(s.actor, text.Info, "CPU profile started.")
+		case "OFF", "END", "STOP":
+			if cpuProfile == nil {
+				s.Msg(s.actor, text.Bad, "CPU profile not started.")
+				return
+			}
+			pprof.StopCPUProfile()
+			cpuProfile.Close()
+			cpuProfile = nil
+			s.Msg(s.actor, text.Info, "CPU profile stopped.")
+		}
+	case "MEMPROF":
+		if len(s.word) < 2 {
+			s.Msg(s.actor, text.Info,
+				"#DEBUG MEMPROF requires an action: ON|OFF|START|STOP|END",
+			)
+			return
+		}
+		switch s.word[1] {
+		case "ON", "START":
+			runtime.MemProfileRate = 1
+			s.Msg(s.actor, text.Info, "Memory profile started.")
+		case "OFF", "END", "STOP":
+			f, _ := os.Create("./memprof")
+			f.Chmod(0660)
+			runtime.GC()
+			pprof.WriteHeapProfile(f)
+			runtime.MemProfileRate = 0
+			s.Msg(s.actor, text.Info, "Memory profile stopped.")
+		}
+	case "PANIC":
+		s.Msg(s.actor, "You panic!")
+		panic("User panicked.")
+	}
+}
+
+func (s *state) Health() {
+	s.actor.Cancel(Health)
+	if s.actor.Int[HealthCurrent] >= s.actor.Int[HealthMaximum] {
+		return
+	}
+
+	s.actor.Int[HealthCurrent] += s.actor.Int[HealthRestore]
+
+	if s.actor.Int[HealthCurrent] >= s.actor.Int[HealthMaximum] {
+		s.actor.Int[HealthCurrent] = s.actor.Int[HealthMaximum]
+		s.Msg(s.actor, text.Good, "\nYou feel healthy.")
+		s.Msg(s.actor.Ref[Where], text.Info,
+			s.actor.As[UName], " looks healthy.")
+	} else {
+		s.actor.Schedule(Health)
+	}
+
+	s.buildPrompt(s.actor)
+}
+
+func (s *state) Hit() {
+
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "You go to hit... someone?")
+		return
+	}
+
+	damage := 2 + rand.Int63n(2+1)
+	damageTxt := strconv.FormatInt(damage, 10)
+	where := s.actor.Ref[Where]
+	notify := len(where.Who) < cfg.crowdSize
+
+	uids := Match(s.word, where)
+	uid := uids[0]
+	what := where.Who[uid]
+	if what == nil {
+		what = where.In[uid]
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to hit.")
+	case s.actor == what:
+		s.Msg(s.actor, text.Good, "You give yourself a slap. Awake now?")
+		s.Msg(where, text.Info, s.actor.As[UName], " slaps themself.")
+	case where.As[VetoCombat] != "":
+		s.Msg(s.actor, text.Bad, where.As[VetoCombat])
+	case !notify:
+		s.Msg(s.actor, text.Bad, "It's too crowded to start a fight.")
+	case what.Int[HealthMaximum] == 0:
+		s.Msg(s.actor, text.Bad, "You cannot kill ", what.As[Name], ".")
+	case what.Int[HealthCurrent] <= damage:
+
+		// Helper to center text within 80 columns
+		center := func(text string) string {
+			pad := (80 - len(text)) / 2
+			return strings.ReplaceAll(strings.Repeat("␠", pad)+text, " ", "␠")
+		}
+
+		s.Msg(s.actor, text.Good, "You kill ", what.As[TheName], " (", damageTxt, ").")
+		s.Msg(what, text.Bad, s.actor.As[TheName],
+			" kills you (", damageTxt, ").",
+			text.Cyan,
+			"\n",
+			"\n", center(" :==[ Rest In Peace ]==:"),
+			"\n",
+			"\n", center(what.As[Name]),
+			"\n", center("Slain By"),
+			"\n", center(s.actor.As[Name]),
+			text.Good,
+			"\n\nYou must know people in high places, you are to be given another chance...\n",
+		)
+
+		s.Msg(where, text.Info,
+			"You see ", s.actor.As[TheName], " kill ", what.As[Name], ".")
+
+		// Create and place corpse
+		c := createCorpse(what)
+		where.In[c.As[UID]] = c
+		c.Schedule(Cleanup)
+
+		// Remove original
+		if what.Is&Player == 0 {
+			what.Int[HealthCurrent] = what.Int[HealthMaximum]
+			what.Junk()
+		} else {
+			what.Int[HealthCurrent] = 1
+			delete(where.Who, what.As[UID])
+			start := WorldStart[rand.Intn(len(WorldStart))]
+			what.Ref[Where] = start
+			start.Who[what.As[UID]] = what
+			s.subparseFor(what, "$POOF")
+		}
+		s.buildPrompt(what)
+
+	default:
+		what.Int[HealthCurrent] -= damage
+		if what.Event[Health] == nil && what.Int[HealthCurrent] < what.Int[HealthMaximum] {
+			what.Schedule(Health)
+		}
+		s.buildPrompt(what)
+
+		s.Msg(s.actor, text.Good, "You hit ", what.As[TheName], " (", damageTxt, ").")
+		s.Msg(what, text.Bad, s.actor.As[UTheName], " hits you (", damageTxt, ").")
+		s.Msg(where, text.Info,
+			"You see ", s.actor.As[Name], " hit ", what.As[Name], ".")
+
+		if what.Int[HealthCurrent] < 4 {
+			s.MsgAppend(s.actor, text.Good, " ", what.As[UTheName], " looks nearly dead.")
+			s.MsgAppend(what, text.Bad, " You are almost dead.")
+			s.MsgAppend(where, text.Info, " ", what.As[UTheName], " is almost dead.")
+		}
+
+		locs := radius(1, s.actor.Ref[Where])
+		for _, where := range locs[1] {
+			if l := len(where.Who); 0 < l && l < cfg.crowdSize {
+				s.Msg(where, text.Info, "You hear fighting nearby.")
+			}
+		}
+	}
+}
+
+func createCorpse(t *Thing) *Thing {
+	c := NewThing()
+	c.As[Name] = "a corpse of " + t.As[Name]
+	c.As[UName] = "A corpse of " + t.As[Name]
+	c.As[TheName] = "the corpse of " + t.As[Name]
+	c.As[UTheName] = "The corpse of " + t.As[Name]
+	c.As[Description] = t.As[Description]
+	c.Any[Alias] = append(c.Any[Alias], t.Any[Alias]...)
+	c.Any[Qualifier] = append(c.Any[Qualifier], t.Any[Qualifier]...)
+	c.Ref[Where] = t.Ref[Where]
+	c.Ref[Where].In[c.As[UID]] = t
+	c.Int[CleanupAfter] = time.Duration(60 * time.Second).Nanoseconds()
+	c.As[OnCleanup] = c.As[UTheName] + " turns to dust."
+
+	// Replace original UID alias with "CORPSE" (new UID was added by NewThing)
+	for x, alias := range c.Any[Alias] {
+		if alias == t.As[UID] {
+			c.Any[Alias][x] = "CORPSE"
+		}
+	}
+
+	return c
 }
 
 // intersects returns true if any elements of want are also in have, else false.

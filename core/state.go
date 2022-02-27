@@ -6,6 +6,7 @@
 package core
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -26,7 +27,9 @@ var (
 type pkgConfig struct {
 	crowdSize   int // Represents minimum number of players considered a crowd
 	debugThings bool
+	debugEvents bool
 	allowDump   bool
+	allowDebug  bool
 	playerPath  string
 }
 
@@ -40,7 +43,9 @@ func Config(c config.Config) {
 	cfg = pkgConfig{
 		crowdSize:   c.Inventory.CrowdSize,
 		debugThings: c.Debug.Things,
+		debugEvents: c.Debug.Events,
 		allowDump:   c.Debug.AllowDump,
+		allowDebug:  c.Debug.AllowDebug,
 		playerPath:  filepath.Join(c.Server.DataPath, "players"),
 	}
 }
@@ -123,11 +128,38 @@ func (s *state) subparse(input string) {
 	s2.parse(input)
 }
 
+// subparseFor parses new input for an alternative actor reusing the current
+// buffers from the current state. This is useful for commands that want to
+// cause an alternative actor to perform a command. For example a GIVE command
+// could be implemented as the actor performing a DROP and the receiver
+// performing a GET.
+//
+// NOTE: The performed command is not passed back to the alternative actor's
+// client. This means, for example, the HIT command cannot use the QUIT command
+// if the alternative actor is killed - the client code will not see the QUIT.
+func (s *state) subparseFor(actor *Thing, input string) {
+
+	// 'mark' messages already sent to the original actor and current location
+	markA := s.buf[s.actor].Len()
+	markL := s.buf[s.actor.Ref[Where]].Len()
+
+	s2 := &state{actor: actor, buf: s.buf}
+	s2.parse(input)
+
+	// If the original actor already had messages and we have new location
+	// messages, copy the additional location messages to the actor as they will
+	// not be regarded as observers - as they already had specific messages.
+	if markA != 0 && markL != s.buf[s.actor.Ref[Where]].Len() {
+		s.buf[s.actor].WriteString(s.buf[s.actor.Ref[Where]].String()[markL:])
+	}
+}
+
 // mailman delivers queued messages to player's mailboxes. Messages can be
 // queued for a specific player or for a location. If queued for a location,
-// messages will be sent to all player at the location - unless they have
-// received a specific message. Messages sent to the actor are always priority
-// messages, others are not. See mailbox.Send for details of message priority.
+// messages will be sent to all players at the location - unless they have
+// received a specific message. Messages sent to specific players are always
+// priority messages, other messages are not priority. See mailbox.Send for
+// details of message priority.
 //
 // Note that even though commands are processed under the BWL mailboxes can be
 // deleted at anytime due to network errors. This is not a problem, if the UID
@@ -136,9 +168,9 @@ func (s *state) subparse(input string) {
 func (s *state) mailman() {
 
 	for ref, buf := range s.buf {
-		// Send to specific players - race between Exists & Send is okay
+		// Send to specific players - Exists/Send race ok, handled by mailbox
 		if mailbox.Exists(ref.As[UID]) {
-			mailbox.Send(ref.As[UID], ref == s.actor, buf.String())
+			mailbox.Send(ref.As[UID], true, buf.String())
 			continue
 		}
 		// Send to players at location, omitting players that are receiving
@@ -194,10 +226,7 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 	}
 }
 
-// Prompt sets the player's current prompt to the given text.
-//
-// NOTE: A future update will make the prompt configurable. The prompt will
-// also be  dynamic showing the players statistics.
-func (s *state) Prompt(text string) {
-	mailbox.Suffix(s.actor.As[UID], text)
+// Prompt sets the given player's current prompt to the given text.
+func (s *state) Prompt(who *Thing, f string, args ...interface{}) {
+	mailbox.Suffix(who.As[UID], fmt.Sprintf(f, args...))
 }

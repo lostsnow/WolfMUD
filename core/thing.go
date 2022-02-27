@@ -187,6 +187,9 @@ func decodeInt(qty string) int {
 }
 
 // Unmarshal loads data from the passed Record into a Thing.
+//
+// BUG(diddymus): Players will be mistaken for NPCs when they are loaded.
+// Currently the client.assemblePlayer method will correct the flags.
 func (t *Thing) Unmarshal(r recordjar.Record) {
 	for field, data := range r {
 		switch field {
@@ -214,8 +217,11 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					q[parts[0][1:]] = struct{}{}
 				case len(parts) == 1:
 					a[parts[0]] = struct{}{}
-				case len(parts) == 2:
+				case len(parts) == 2 && parts[0][0] == '+':
 					q[alias[1:]] = struct{}{}
+					a[parts[1]] = struct{}{}
+				case len(parts) == 2 && parts[0][0] != '+':
+					q[alias] = struct{}{}
 					a[parts[1]] = struct{}{}
 				}
 			}
@@ -282,6 +288,27 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.Is |= Location
 		case "GENDER":
 			t.As[Gender] = decode.Keyword(r["GENDER"])
+		case "HEALTH":
+			for k, v := range decode.PairList(r[field]) {
+				b := []byte(v)
+				switch k {
+				case "AFTER":
+					t.Int[HealthAfter] = decode.Duration(b).Nanoseconds()
+				case "JITTER":
+					t.Int[HealthJitter] = decode.Duration(b).Nanoseconds()
+				case "DUE_IN", "DUE-IN":
+					t.Int[HealthDueIn] = decode.Duration(b).Nanoseconds()
+				case "CURRENT":
+					t.Int[HealthCurrent] = int64(decode.Integer(b))
+				case "MAXIMUM":
+					t.Int[HealthMaximum] = int64(decode.Integer(b))
+				case "RESTORE":
+					t.Int[HealthRestore] = int64(decode.Integer(b))
+				}
+			}
+			if t.Int[HealthMaximum] != 0 && t.Int[HealthCurrent] == 0 {
+				t.Int[HealthCurrent] = t.Int[HealthMaximum]
+			}
 		case "HOLDABLE":
 			for slot, qty := range decode.PairList(r[field]) {
 				for x := 0; x < decodeInt(qty); x++ {
@@ -350,6 +377,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				switch cmd {
 				case "CLOSE":
 					t.As[VetoClose] = msg
+				case "COMBAT":
+					t.As[VetoCombat] = msg
 				case "DROP":
 					t.As[VetoDrop] = msg
 				case "GET":
@@ -401,20 +430,20 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		}
 	}
 
-	// If we have a body and not a Player assume it's an NPC
-	if t.Is&Player != Player && len(t.Any[Body]) != 0 {
+	// If we have maximum health assume it's an NPC
+	if t.Int[HealthMaximum] != 0 || len(t.Any[Body]) != 0 {
 		t.Is |= NPC
 	}
 
-	// If it's a location, player or NPC it's not a container
-	if t.Is&(Location|Player|NPC) != 0 {
+	// If it's a location or NPC it's not a container
+	if t.Is&(Location|NPC) != 0 {
 		t.Is &^= Container
 	}
 
-	// All items are holdable in one hand except for locations, players, NPCs
-	// and narratives. This can be overridden with a VetoHold or by defining an
+	// All items are holdable in one hand except for locations, NPCs and
+	// narratives. This can be overridden with a VetoHold or by defining an
 	// explicit Holdable field for the item.
-	if t.Is&(Location|Player|NPC|Narrative) == 0 && t.Any[Holdable] == nil {
+	if t.Is&(Location|NPC|Narrative) == 0 && t.Any[Holdable] == nil {
 		t.Any[Holdable] = append(t.Any[Holdable], "HAND")
 	}
 
@@ -502,6 +531,7 @@ func (t *Thing) Marshal() recordjar.Record {
 
 	vetoes := mss{
 		"Close":   t.As[VetoClose],
+		"Combat":  t.As[VetoCombat],
 		"Drop":    t.As[VetoDrop],
 		"Get":     t.As[VetoGet],
 		"Junk":    t.As[VetoJunk],
@@ -589,6 +619,23 @@ func (t *Thing) Marshal() recordjar.Record {
 	}
 	if _, ok := t.As[Gender]; ok {
 		r["Gender"] = encode.String(t.As[Gender])
+	}
+	if _, ok := t.Int[HealthCurrent]; ok {
+		health := mss{
+			"AFTER":   string(encode.Duration(time.Duration(t.Int[HealthAfter]))),
+			"JITTER":  string(encode.Duration(time.Duration(t.Int[HealthJitter]))),
+			"CURRENT": string(encode.Integer(int(t.Int[HealthCurrent]))),
+			"MAXIMUM": string(encode.Integer(int(t.Int[HealthMaximum]))),
+			"RESTORE": string(encode.Integer(int(t.Int[HealthRestore]))),
+		}
+		if at := t.Int[HealthDueIn]; at > 0 {
+			dueIn := time.Duration(at)
+			health["DUE_IN"] = string(encode.Duration(dueIn))
+		} else if at := t.Int[HealthDueAt]; at > 0 {
+			dueIn := time.Unix(0, at).Sub(time.Now())
+			health["DUE_IN"] = string(encode.Duration(dueIn))
+		}
+		r["Health"] = encode.PairList(health, '→')
 	}
 	if len(holdable) > 0 {
 		r["Holdable"] = encode.PairList(holdable, '→')
@@ -791,6 +838,10 @@ func (t *Thing) Junk() {
 		return
 	}
 
+	for event := range t.Event {
+		t.Cancel(event)
+	}
+
 	delete(t.As, DynamicQualifier)
 
 	if t.Ref[Origin] != nil {
@@ -831,8 +882,7 @@ func (t *Thing) Free() {
 	t.Is = Freed
 
 	for eventId := range t.Event {
-		t.Suspend(eventId)
-		delete(t.Event, eventId)
+		t.Cancel(eventId)
 	}
 	t.Event = nil
 
@@ -1036,6 +1086,18 @@ func simpleFold(s string, width int) (lines []string) {
 // suspended, and then resumed by rescheduling it. A scheduled event may be
 // cancelled, in which case rescheduling will cause the timers to start over.
 func (t *Thing) Schedule(event eventKey) {
+	suspended := t.Int[intKey(event)+DueInOffset] > 0
+	if !t.schedule(event) {
+		return
+	}
+	if suspended {
+		t.logEvent("re-schedule", event)
+		return
+	}
+	t.logEvent("schedule", event)
+}
+
+func (t *Thing) schedule(event eventKey) bool {
 
 	var (
 		idx    = intKey(event)
@@ -1046,7 +1108,7 @@ func (t *Thing) Schedule(event eventKey) {
 
 	switch {
 	case delay+jitter+dueIn == 0:
-		return
+		return false
 	case dueIn != 0:
 		delay, jitter = dueIn, 0
 		t.Int[idx+DueInOffset] = 0
@@ -1055,22 +1117,48 @@ func (t *Thing) Schedule(event eventKey) {
 	}
 
 	wait := time.Duration(delay)
-	t.Cancel(event)
+	t.cancel(event)
 	t.Int[idx+DueAtOffset] = time.Now().Add(wait).UnixNano()
 	t.Event[event] = time.AfterFunc(
 		wait, func() {
-			NewState(t).Parse(eventCommands[event])
+			BWL.Lock()
+			defer BWL.Unlock()
+
+			// Drop stale events for a Thing that has already been freed. We can't
+			// report the stale event as the details were also freed.
+			if t.Is&Freed == Freed {
+				return
+			}
+			if cfg.debugEvents {
+				t.logEvent("delivered", event)
+			}
+
+			// Manually process event command, we already have the BRL and calling
+			// state.Parse would deadlock.
+			s := NewState(t)
+			s.parse(eventCommands[event])
+			s.mailman()
 		},
 	)
 	eventCount <- <-eventCount + 1
+	return true
 }
 
 // Cancel an event for a Thing. The remaining time for the event is not
 // recorded. If the event is rescheduled the timers will start over. A
 // suspended event may be subsequently cancelled.
 func (t *Thing) Cancel(event eventKey) {
-	t.Suspend(event)
+	if !t.cancel(event) {
+		return
+	}
+	t.logEvent("cancel", event)
+}
+
+func (t *Thing) cancel(event eventKey) bool {
+	suspend := t.suspend(event)
+	delete(t.Event, event)
 	t.Int[intKey(event)+DueInOffset] = 0
+	return suspend
 }
 
 // Suspend an event for a Thing. If the event is not in-flight no action is
@@ -1078,8 +1166,14 @@ func (t *Thing) Cancel(event eventKey) {
 // it fires so that the timers can be resumed when the event is rescheduled. A
 // suspended event may be subsequently cancelled.
 func (t *Thing) Suspend(event eventKey) {
+	if t.suspend(event) {
+		t.logEvent("suspend", event)
+	}
+}
+
+func (t *Thing) suspend(event eventKey) bool {
 	if t.Event[event] == nil {
-		return
+		return false
 	}
 
 	var suspended bool // True if we stop timer before it fires
@@ -1102,6 +1196,24 @@ func (t *Thing) Suspend(event eventKey) {
 		t.Int[dueIn] = 0
 	}
 	t.Int[dueAt] = 0
+	return true
+}
+
+func (t *Thing) logEvent(action string, event eventKey) {
+	if !cfg.debugEvents {
+		return
+	}
+	dueAt, dueIn := "-", "-"
+	if at := t.Int[intKey(event)+DueAtOffset]; at > 0 {
+		unix := time.Unix(0, int64(at))
+		dueAt = unix.Format(time.Stamp)
+		dueIn = unix.Sub(time.Now()).Truncate(time.Millisecond).String()
+	}
+	if in := t.Int[intKey(event)+DueInOffset]; in > 0 {
+		dueIn = time.Duration(in).Truncate(time.Millisecond).String()
+	}
+	log.Printf("Event %s: %s, for: %s (%s), at: %s, in: %s",
+		action, eventNames[event], t.As[UID], t.As[Name], dueAt, dueIn)
 }
 
 // incString increments the passed numeric string by one and returns the new

@@ -9,12 +9,14 @@ package client
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"code.wolfmud.org/WolfMUD.git/config"
@@ -24,6 +26,7 @@ import (
 )
 
 type pkgConfig struct {
+	logClient       bool
 	accountMin      int
 	passwordMin     int
 	saltLength      int
@@ -42,6 +45,7 @@ var cfg pkgConfig
 // the configuration is set it should be treated as immutable an not changed.
 func Config(c config.Config) {
 	cfg = pkgConfig{
+		logClient:       c.Server.LogClient,
 		accountMin:      c.Login.AccountLength,
 		passwordMin:     c.Login.PasswordLength,
 		saltLength:      c.Login.SaltLength,
@@ -81,7 +85,7 @@ func New(conn *net.TCPConn) *client {
 	c.queue = mailbox.Add(c.As[core.UID])
 	c.uid = c.As[core.UID]
 
-	log.Printf("[%s] connection from: %s", c.uid, c.RemoteAddr())
+	c.Log("connection from: %s", c.RemoteAddr())
 
 	return c
 }
@@ -95,6 +99,35 @@ func (c *client) Play() {
 	c.cleanup()
 }
 
+// Log takes the same parameters as fmt.Printf and writes the resulting
+// message to the log. The message will automatically be appended with the UID
+// uniquely identifying the connection with the current log, for example:
+//
+//  [#UID-6] connection from: 127.0.0.1:35848
+//
+// If the server configuration value Server.LogClient is set to false then an
+// attempt is made to rewrite the connecting IP address as "???". For example:
+//
+//  [#UID-6] connection from: ???:35848
+//  [#UID-6] client error: read tcp 127.0.0.1:4001->???:35848: i/o timeout
+//  [#UID-6] disconnect from: ???:35848
+//
+func (c *client) Log(f string, a ...interface{}) {
+	f = fmt.Sprintf("[%s] %s", c.uid, f)
+
+	if cfg.logClient {
+		log.Printf(f, a...)
+		return
+	}
+
+	f = fmt.Sprintf(f, a...)
+	saddr := c.RemoteAddr().String()
+	if _, port, err := net.SplitHostPort(saddr); err == nil {
+		f = strings.ReplaceAll(f, saddr, "???:"+port)
+	}
+	log.Print(f)
+}
+
 func (c *client) cleanup() {
 	mailbox.Suffix(c.uid, "")
 
@@ -104,14 +137,18 @@ func (c *client) cleanup() {
 				text.Bad+"\nIdle connection terminated by server.\n"+text.Reset,
 			)
 		}
-		log.Printf("[%s] client error: %s", c.uid, err)
+		c.Log("client error: %s", err)
 	}
 
-	log.Printf("[%s] disconnect from: %s", c.uid, c.RemoteAddr())
+	c.Log("disconnect from: %s", c.RemoteAddr())
 	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
 
 	mailbox.Delete(c.uid)
 	<-c.quit
+
+	// Grab the BRL before player clean-up as player has been in the world
+	core.BWL.Lock()
+	defer core.BWL.Unlock()
 
 	if c.As[core.Account] != "" {
 		accountsMux.Lock()
@@ -132,7 +169,7 @@ func (c *client) receive() {
 		defer func() {
 			if err := recover(); err != nil {
 				c.setError(errors.New("client panicked"))
-				log.Printf("[%s] client panicked: %s\n%s", c.uid, err, debug.Stack())
+				c.Log("client panicked: %s\n%s", err, debug.Stack())
 				s.Parse("$QUIT")
 			}
 		}()

@@ -6,11 +6,11 @@ package client
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/md5"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -167,7 +167,7 @@ func (c *client) frontend() bool {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
 				buf = append(buf, text.Reset...)
-				log.Printf("[%s] Invalid account", c.uid)
+				c.Log("Invalid account")
 				stage = account
 				continue
 			}
@@ -183,7 +183,7 @@ func (c *client) frontend() bool {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
 				buf = append(buf, text.Reset...)
-				log.Printf("[%s] Invalid password for: %s", c.uid, c.As[core.Account])
+				c.Log("Invalid password for: %s", c.As[core.Account])
 				stage = account
 				continue
 			}
@@ -203,7 +203,7 @@ func (c *client) frontend() bool {
 			accountsMux.Lock()
 			accounts[c.As[core.Account]] = struct{}{}
 			accountsMux.Unlock()
-			log.Printf("[%s] Login for: %s", c.uid, c.As[core.Account])
+			c.Log("Login for: %s", c.As[core.Account])
 			c.assemblePlayer(jar[1:])
 			mailbox.Suffix(c.uid, "")
 			mailbox.Send(c.uid, true, text.Good+"Welcome back "+c.As[core.Name]+"!\n\n")
@@ -316,12 +316,23 @@ func (c *client) enterWorld() {
 	c.Ref[core.Where].Who[c.uid] = c.Thing
 }
 
+// TODO(diddymus): Need to add a proper player file upgrade path + versions
 func (c *client) assemblePlayer(jar recordjar.Jar) {
 	store := make(map[string]*core.Thing)
 	invs := make(map[string][]string)
 
 	// TODO(diddymus): add bounds cheddcking for broken jar...
 	pref := decode.Keyword(jar[0]["REF"])
+
+	// Upgrade and add HELTH if missing
+	if _, found := jar[0]["HEALTH"]; !found {
+		jar[0]["HEALTH"] = []byte("AFTER→10S MAXIMUM→30 RESTORE→2")
+	}
+	// If old HEALTH record upgrade fields
+	jar[0]["HEALTH"] =
+		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
+	jar[0]["HEALTH"] =
+		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -345,7 +356,7 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 					item.In[what.As[core.UID]] = what
 				}
 			} else {
-				log.Printf("load warning, ref not found for inventory: %s\n", ref)
+				c.Log("load warning, ref not found for inventory: %s\n", ref)
 			}
 		}
 	}
@@ -365,7 +376,8 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.As[core.Password] = c.As[core.Password]
 	p.As[core.Salt] = c.As[core.Salt]
 	p.Int[core.Created] = c.Int[core.Created]
-	p.Is = p.Is | core.Player
+	p.Is |= core.Player
+	p.Is &^= core.NPC
 	c.Thing.Free()
 	c.Thing = p
 	c.InitOnce(nil)
@@ -399,7 +411,7 @@ func clearOrigins(item *core.Thing) {
 }
 
 func (c *client) createPlayer() {
-	c.Is = c.Is | core.Player
+	c.Is |= core.Player
 	c.As[core.UName] = c.As[core.Name]
 	c.As[core.TheName] = c.As[core.Name]
 	c.As[core.UTheName] = c.As[core.Name]
@@ -421,4 +433,8 @@ func (c *client) createPlayer() {
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 	}
 	c.Int[core.Created] = time.Now().Unix()
+	c.Int[core.HealthAfter] = (10 * time.Second).Nanoseconds()
+	c.Int[core.HealthRestore] = 2
+	c.Int[core.HealthCurrent] = 30
+	c.Int[core.HealthMaximum] = 30
 }

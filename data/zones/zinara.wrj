@@ -830,11 +830,13 @@ threads of silk.
     Name: a rabbit
    Alias: RABBIT CREATURE
 Location: L34
+  Health: MAXIMUM→10 RESTORE→2 AFTER→10s
 Holdable: HAND→2
   Action: @MOBILE
 OnAction: $ACT hops around a bit.
         : $ACT twitches its little nose, Ahh...
         : $ACT makes a soft squeaking and chattering noise.
+        : HIT ANY PLAYER
         : @ACT_MOVE
    Reset: @MOBILE
  OnReset: A rabbit hops into view.
@@ -846,11 +848,13 @@ doesn't seem to be late for anything!
     Name: a small frog
    Alias: FROG CREATURE
 Location: L36
+  Health: MAXIMUM→5 RESTORE→1 AFTER→10s
 Holdable: HAND
   Action: @MOBILE
 OnAction: $ACT croaks a bit.
         : $ACT leaps high into the air.
         : $ACT hops around a bit.
+        : HIT ANY PLAYER
         : @ACT_MOVE
    Reset: @MOBILE
  OnReset: A frog hops into view.
@@ -860,6 +864,7 @@ It is a small, lime green frog. It's slimy and croaks. What more can you say?
      Ref: M4
     Name: the tavern cat
    Alias: CAT CREATURE
+  Health: MAXIMUM→10 RESTORE→2 AFTER→10s
     Veto: GET→The cat looks at your hand, then looks at you. Hrm, probably a
           bad idea.
   Action: @MOBILE
@@ -882,6 +887,7 @@ one of its own.
     Name: a small mouse
    Alias: MOUSE CREATURE
 Location: L39
+  Health: MAXIMUM→2 RESTORE→1 AFTER→10s
   Action: AFTER→5s JITTER→5s
 OnAction: $ACT squeaks.
         : $ACT washes its face with its paws.
@@ -898,7 +904,7 @@ OnAction: $ACT squeaks.
 This is a small, furry, grey mouse.
 %%
       Ref: M6
-     Name: the barkeep
+     Name: a barkeep
   Aliases: BARKEEP MAN NPC
      Body: @MOBILE
 Inventory: M6O1
@@ -954,7 +960,7 @@ OnAction: $ACT starts to slowly spin another web.
         : $ACT reaches out a long leg and tests one of the webs.
         : EXAMINE WEBS
         : EXAMINE BUNDLE
-        : EXAMINE PLAYER
+        : EXAMINE ANY PLAYER
    Reset: @MOBILE
  OnReset: A giant spider crawls in.
 
@@ -1698,7 +1704,7 @@ OnAction: $ACT looks at you, then quickly looks away again.
         : SAY Where did I put...
         : SAY What was I going to say?
         : SAY Is it that time already?
-        : EXAMINE PLAYER
+        : EXAMINE ANY PLAYER
         : SNEEZE
 %%
        // General actions for traders

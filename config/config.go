@@ -75,9 +75,9 @@ type Server struct {
 }
 
 type Quota struct {
-	Window  int
-	Timeout int
-	Stats   int
+	Slots  int
+	Window time.Duration
+	Stats  int
 }
 
 type Stats struct {
@@ -103,6 +103,7 @@ type Debug struct {
 	AllowDebug bool
 	Events     bool
 	Things     bool
+	Quota      bool
 }
 
 // Default returns the default, built-in server configuration. Failure to
@@ -168,10 +169,10 @@ func (c Config) Read(r io.Reader) (Config, error) {
 				c.Server.LogClient = decode.Boolean(data)
 
 			// Quota settings
+			case "QUOTA.SLOTS":
+				c.Quota.Slots = decode.Integer(data)
 			case "QUOTA.WINDOW":
-				c.Quota.Window = decode.Integer(data)
-			case "QUOTA.TIMEOUT":
-				c.Quota.Timeout = decode.Integer(data)
+				c.Quota.Window = decode.Duration(data)
 			case "QUOTA.STATS":
 				c.Quota.Stats = decode.Integer(data)
 
@@ -208,6 +209,8 @@ func (c Config) Read(r io.Reader) (Config, error) {
 				c.Debug.Events = decode.Boolean(data)
 			case "DEBUG.THINGS":
 				c.Debug.Things = decode.Boolean(data)
+			case "DEBUG.QUOTA":
+				c.Debug.Quota = decode.Boolean(data)
 
 			case "GREETING":
 				c.Greeting = string(text.Colorize(data))

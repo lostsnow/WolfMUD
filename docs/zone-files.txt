@@ -328,7 +328,7 @@ ZONE RECORDS
 
       ACTION: AFTER→5m JITTER→2m30s
 
-    AFTER and JITTER specify the period to wait between executing a action to
+    AFTER and JITTER specify the period to wait between executing an action to
     be between AFTER and AFTER+JITTER. In the example an action will occur
     every five to seven and a half minutes.
 
@@ -403,6 +403,10 @@ ZONE RECORDS
     qualifier 'SHORT' is only valid when used with the alias 'SWORD'. As a
     result the command 'GET SHORT SHORTSWORD' would not be recognised as
     'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'.
+
+    For a bound qualifier the leading '+' is optional. For example, either
+    'SHORT:SWORD' or '+SHORT:SWORD' can be used, although the latter is
+    preferred to match unbound qualifiers.
 
     When a bound alias is used the alias does not have to be defined
     separately. In the above example the bound alias '+SHORT:SWORD' will
@@ -666,6 +670,37 @@ ZONE RECORDS
 
     If an EXITS field is added to something an inventory will be automatically
     added as well even if there is no specific INVENTORY field.
+
+  HEALTH: <PAIR LIST>
+    The HEALTH field specifies the current, maximum and healing rate of a
+    player's or mobile's health. The pairs that are valid for HEALTH are:
+
+      AFTER→<period>
+      JITTER→<period>
+      CURRENT→<integer>
+      MAXIMUM→<integer>
+      RESTORE→<integer>
+
+    For example:
+
+      HEALTH: AFTER→10S CURRENT→50 JITTER→0S MAXIMUM→30 RESTORE→2
+
+    AFTER and JITTER specify the period that health is restored when CURRENT
+    health is below MAXIMUM health to be between AFTER and AFTER+JITTER. In
+    the example 2 points of health will be restored every 10 seconds.
+
+    Specifying JITTER is optional. If both AFTER and JITTER are not specified
+    health is not automatically restored.
+
+    The current health of a player or mobile is specified using CURRENT. The
+    maximum health that can be restored is specified using MAXIMUM. CURRENT
+    health may go above MAXIMUM but healing will not take HEALTH above the
+    MAXIMUM value. If CURRENT goes below 1 the player or mobile has been
+    killed. Only mobiles with HEALTH can be attacked and killed.
+
+    If CURRENT is not specified it will initially be set equal to MAXIMUM.
+
+    The amount of health restored is specified by RESTORE.
 
   HOLDABLE: <PAIR LIST>
     The HOLDABLE field specifies that an item can be held and the BODY slots

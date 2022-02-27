@@ -3,9 +3,9 @@
 // Use of this file is governed by the license in the LICENSE file included
 // with the source code.
 %%
-    Ref: ZINARACAVES
-   Zone: Caves near Zinara
- Author: Andrew 'Diddymus' Rolfe
+     Ref: ZINARACAVES
+    Zone: Caves near Zinara
+  Author: Andrew 'Diddymus' Rolfe
 Disabled: FALSE
 
 This are the caves south of Zinara.
@@ -15,6 +15,7 @@ This are the caves south of Zinara.
   Aliases: ENTRANCE
     Exits: S→L2
 ZoneLinks: N→ZINARASOUTH:L13
+  Barrier: EXIT→N DENY→CREATURE
 
 You have found the entrance to some caves. Heading south takes you into the
 caves. To the north a more plesant looking track runs off into the forest.
@@ -97,6 +98,7 @@ archway.
   Aliases: CHAMBER
     Exits: N→L12 E→L11 S→L24 W→L9
 Inventory: L10N1 L10N2
+  Barrier: EXIT→S ALLOW→PLAYER
 
 You are in a large square chamber. The walls of this chamber have been lined
 with smooth blocks of stone. A basin has been attached to one of the walls
@@ -125,7 +127,7 @@ lead downward.
     Ref: L15
    Name: Stairs
 Aliases: STAIRS
-    Exits: U→L14 D→L16
+  Exits: U→L14 D→L16
 
 You are on a set of stairs that curl their way through the solid rock around
 you. In the darkness below you can make out a passage. Above the stairs out
@@ -145,6 +147,7 @@ here leading up.
   Aliases: CAVERN
     Exits: E→L19 S→L18 W→L16
 Inventory: N3
+  Barrier: EXIT→W DENY→SLUG
 
 You are in a huge cavern. It is very damp and cool providing ideal conditions
 for a huge type of toadstool to grow here. Some of them are over ten feet tall
@@ -185,6 +188,7 @@ disappear through a hole in the cap.
   Aliases: CAVERN
     Exits: N→L23 S→L22 W→L19
 Inventory: N3
+  Barrier: EXIT→N ALLOW→PLAYER
 
 You are in a huge cavern. It is very damp and cool providing ideal conditions
 for a huge type of toadstool to grow here. Some of the are over ten feet tall
@@ -278,6 +282,34 @@ OnCleanup: There is a small plinking noise as the glass ball turns black,
 
 As you peer into it you see a small twinkle of light right at its centre.
 %%
+      Ref: O2
+     Name: a pointed stick
+    Alias: +POINTED:STICK +POINTY:STICK
+Wieldable: HAND
+  Cleanup: @ITEM
+    Reset: @SPAWN
+
+This is a stout wooden stick about two fee long and sharpened at one end. A
+simple yet effective weapon.
+%%
+      Ref: O3
+     Name: a small leather pouch
+  Aliases: +SMALL:POUCH +LEATHER:POUCH
+Inventory: O4
+  Cleanup: @ITEM
+    Reset: @SPAWN WAIT
+
+This is a small pouch made of soft dark leather.
+%%
+      Ref: O4
+     Name: a small crystal
+    Alias: CRYSTAL SAPPHIRE
+  Cleanup: @ITEM
+    Reset: @SPAWN
+
+This is a small sapphire blue crystal. While you are examining the crystal it
+twinkles as you turn it this way and that.
+%%
 //
 // Narratives
 //
@@ -286,7 +318,7 @@ As you peer into it you see a small twinkle of light right at its centre.
      Name: some white sand
   Aliases: SAND
 Narrative:
-  Vetoes: GET→The sand quickly flows through your fingers.
+   Vetoes: GET→The sand quickly flows through your fingers.
 
 This is very fine white sand. As you pick some up to examine it closer it
 escapes through your fingers.
@@ -338,8 +370,8 @@ This is a small basin fixed to the wall at a height of about 4 foot.
     Ref: L10N3
    Name: some water
 Aliases: WATER
-   Vetoes: TAKE→You try to take some water from the basin but it flows through
-           your fingers.
+ Vetoes: TAKE→You try to take some water from the basin but it flows through
+         your fingers.
 
 This water is slightly pink in colour, but seems to be fresh.
 %%
@@ -391,4 +423,154 @@ Narrative:
 
 They are very fragile and break when you touch them, causing a tiny shiver to
 disperse across the rest like a wave.
+%%
+//
+// MOBILES
+//
+%%
+      Ref: M1
+     Name: a taunting imp
+    Alias: +TAUNTING:IMP CREATURE
+     Body: HAND→2
+Inventory: O2
+ Wielding: O2
+ Location: L3
+   Health: MAXIMUM→10 RESTORE→2 AFTER→10s
+   Action: @MOBILE
+ OnAction: $ACT flutters around a bit watching you.
+         : $ACT jeers at you and pulls faces.
+         : $ACT keeps flapping around you.
+         : $ACT flaps around you, pulling at your clothing and hair.
+         : $ACT chitters.
+         : $ACT bares its teeth.
+         : $ACT makes a lurid face at you.
+         : $ACT gestures and jeers at you.
+         : $ACT slowly swishes its tail.
+         : HIT ANY PLAYER
+         : HIT ANY PLAYER
+         : HIT ANY PLAYER
+         : HIT ANY PLAYER
+         : HIT ANY PLAYER
+         : HIT ANY SLUG
+         : HIT ANY SLUG
+         : @ACT_MOVE
+    Reset: @MOBILE
+  OnReset: An imp flutters in.
+
+This is a small red devilish Imp. The bane of all adventurers. It has a small
+humanoid body, two small wings attached to it's back and a short tail.
+%%
+        Ref: M2
+       Name: a cowardly imp
+      Alias: +COWARDLY:IMP CREATURE
+       Body: HAND→2
+  Inventory: O2
+   Wielding: O2
+   Location: L20
+Description: @M1
+     Health: @M1
+     Action: @MOBILE
+   OnAction: $ACT flutters around a bit watching you from a distance.
+           : $ACT settles down keeping out of your way.
+           : $ACT tries to hide in the shadows of the ceiling.
+           : $ACT softly chitters.
+           : $ACT slowly swishes its tail.
+           : HIT ANY SLUG
+           : HIT ANY SLUG
+           : @ACT_MOVE
+      Reset: @MOBILE
+    OnReset: @M1
+%%
+        Ref: M3
+       Name: an ugly imp
+      Alias: +UGLY:IMP CREATURE
+       Body: HAND→2
+  Inventory: O2 O3
+    Holding: O3
+   Wielding: O2
+   Location: L4
+Description: @M1
+     Health: @M1
+     Action: @MOBILE
+           : $ACT chitters.
+           : $ACT bares its teeth.
+           : $ACT slowly swishes its tail.
+           : $ACT makes a lurid face at you.
+           : HIT ANY PLAYER
+           : HIT ANY PLAYER
+           : HIT ANY PLAYER
+           : HIT ANY PLAYER
+           : HIT ANY PLAYER
+           : HIT ANY SLUG
+           : HIT ANY SLUG
+           : @ACT_MOVE
+      Reset: @MOBILE
+    OnReset: @M1
+%%
+        Ref: M4
+       Name: a giant fungus slug
+      Alias: +GIANT:SLUG +FUNGUS:SLUG CREATURE
+   Location: L17 L20 L21
+     Health: MAXIMUM→40 RESTORE→2 AFTER→10s
+     Action: @MOBILE
+   OnAction: $ACT dissolves a toadstool and starts feeding on it.
+           : $ACT moves slowly around leaving a trail of mucus.
+           : $ACT makes a soft wet, sticky noise as it moves slowly around.
+           : $ACT slowly waves its tentacle feelers in the air.
+           : HIT IMP
+           : N
+           : E
+           : S
+           : W
+
+This is a giant white slug almost 12 feet long and 2 feet high. It has two
+long tentacle feelers, each a foot long, extending from its head. It lives in
+the deep caves feeding on the fungus and mold.
+%%
+//
+// DEFAULT DEFINITIONS
+//
+%%
+      // Defaults for items
+    Ref: ITEM
+   Door: RESET→1m JITTER→1m
+Cleanup: AFTER→10m
+  Reset: AFTER→1m JITTER→5m
+%%
+    // Default spawnable item
+  Ref: SPAWN
+Reset: @ITEM SPAWN
+%%
+      // Defaults for junk items
+    Ref: JUNK
+Cleanup: AFTER→1m
+  Reset: @QUICK
+%%
+      // Defaults for 'quick' items
+    Ref: QUICK
+Cleanup: AFTER→1m JITTER→1m
+  Reset: AFTER→1m JITTER→1m
+%%
+      // Defaults for items to reset 'now'
+    Ref: NOW
+Cleanup: AFTER→1s
+  Reset: AFTER→1s
+%%
+     // Default for mobiles/NPCs
+   Ref: MOBILE
+Action: AFTER→15s JITTER→15s
+ Reset: AFTER→1m WAIT
+%%
+//
+// STOCK ACTIONS
+//
+%%
+       // Movement actions for wandering mobiles
+     Ref: ACT_MOVE
+OnAction: N
+        : S
+        : E
+        : W
+        : U
+        : D
 %%

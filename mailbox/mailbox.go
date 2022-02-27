@@ -11,6 +11,7 @@
 package mailbox
 
 import (
+	"hash/maphash"
 	"sync"
 )
 
@@ -20,7 +21,7 @@ const size = 100
 
 type mailbox struct {
 	queue   chan string // Queued messages waiting to be sent
-	lastMsg string      // Last message sent, for de-duplicating
+	lastMsg uint64      // Hash of last non-priority message sent
 	suffix  string      // Suffix to append to sent messages
 }
 
@@ -28,6 +29,8 @@ type mailbox struct {
 var (
 	mboxLock sync.RWMutex
 	mbox     = make(map[string]*mailbox)
+	hash     maphash.Hash
+	sum      uint64
 )
 
 // Add a mailbox for the given UID and return a channel for receiving mailbox
@@ -82,10 +85,13 @@ func Send(uid string, priority bool, msg string) {
 	}
 
 	if !priority {
-		if mbox[uid].lastMsg == msg {
+		hash.Reset()
+		hash.WriteString(msg)
+		sum = hash.Sum64()
+		if mbox[uid].lastMsg == sum {
 			return
 		}
-		mbox[uid].lastMsg = msg
+		mbox[uid].lastMsg = sum
 	}
 
 	msg = msg + mbox[uid].suffix
@@ -104,8 +110,10 @@ retry:
 
 // Suffix sets the current suffix to be appended to sent messages. Setting a
 // new suffix only effects new messages and not messages already queued.
-func Suffix(uid string, new string) {
+func Suffix(uid string, suffix string) {
 	mboxLock.Lock()
 	defer mboxLock.Unlock()
-	mbox[uid].suffix = new
+	if m, found := mbox[uid]; found {
+		m.suffix = suffix
+	}
 }

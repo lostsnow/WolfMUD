@@ -28,6 +28,9 @@ FIELDS & VALUES
     should listen on for incoming client connections. The default is 127.0.0.1
     for local connections only.
 
+    If IP address or host name is not specified the server will listen on all
+    available interfaces.
+
   Server.Port: port number | service name
     The port the server should listen on for incoming client connections. The
     port can be specified as an integer number, e.g. 4001, or as a service
@@ -50,109 +53,84 @@ FIELDS & VALUES
     The default maximum number of players is 1024.
 
   Server.LogClient
-    Determines if the IP address and source port number of the connecting
-    client should be logged in the server log. Depending on legislation and
-    regulations it may be prohibited to log and save this information. Some
-    error messages may contain the client IP address and source port number.
-    In these cases if Server.LogClient is false the IP address and port will
-    be replaced with '???' instead:
+    Determines if the IP address of the connecting client should be logged in
+    the server log. Depending on legislation and regulations (e.g. GDPR) the
+    IP address may be considered personal data and storing of the IP address
+    maybe prohibited or restricted. Some error messages may contain the client
+    IP address, in these cases if Server.LogClient is false the IP address
+    will be replaced with '???' instead:
 
       connection error: write tcp 127.0.0.1:4001->127.0.0.1:36200: write:
       broken pipe
 
     becomes:
 
-      connection error: write tcp 127.0.0.1:4001->???: write: broken pipe
+      connection error: write tcp 127.0.0.1:4001->???:36200: write: broken
+      pipe
 
-    The default value is false, to NOT log the incoming IP address and source
-    port number.
+    The default value is false, to NOT log the incoming IP address.
 
-  Quota.Window: period
+  Quota.Slots: int
 
-    Every IP address connecting to the server has a quota of 4 connection
-    attempts unless quotas are disabled. If an IP address uses up its quota it
-    will be banned from connecting until its quota expire.
-
-    Every time an IP address connects to the server it uses one of its quota.
-    While the IP address is not over its quota each quota will expire after
-    the Quota.Window period has passed.
-
-    If an IP address goes over its quota then quota are expired based on the
-    setting of Quote.Timeout instead. See Quota.Timeout for details.
-
-    Example configuration entry:
-
-      Quota.Window:  10s
-
-    In this example if an IP address uses up its quota of 4 connections within
-    10 seconds it will be banned from connecting to the server.
+    This is the number of connection attempts an IP address can make to the
+    server in a Quota.Window period. If an IP address uses up all of its slots
+    within a Quota.Window period it will be banned from connecting until a
+    slot expires after a Quota.Window period.
 
     Limiting connections from a client does not restrict the number of allowed
     connections. It only limits how quickly the connections are allowed to be
     made. For example an IP address could have hundreds of connections, so
     long as they are not made in rapid succession.
 
-    If Quota.Window is set to 0 then quotas are disabled. The default value
-    for Quota.Window is 0.
+    Example configuration entry:
 
-    NOTE: For performance reasons the number of quota per IP address is fixed
-          at 4 at compile time. (See comms/ring.go, ringSize)
+      Quota.Slots:   5
+      Quota.Window:  10s
+
+    This example would allow an IP address to connect to the server up to five
+    times in a 10 second window. If the IP address tries to connect at a rate
+    faster than 5 connections in 10 seconds then the additional connections
+    after the first five will be disconnected with the message:
+
+      "Too many connection attempts, please wait before trying again."
+
+    If Quota.Slots is set to 0 then IP quotas are disabled. The default value
+    for Quota.Slots is 0. The maximum value for Quota.Slots is limited to 63.
 
   Quota.Timeout: period
 
-    When an IP address goes over its quota of connection attempts it will be
-    banned from connecting to the server until its used quota expire. The
-    length of time it takes for the used quota to expire is determined by the
-    Quota.Timeout setting.
+    This configuration value is no longer used.
 
-    If Quota.Timeout is not zero then the time taken for the used quota to
-    expire is the Quote.Timeout period. If Quota.Timeout is 0 then the time
-    taken for the used quota to expire is the Quote.Window period. However, if
-    the IP address tries to connect during this period it will be banned for a
-    further Quote.Window period from the time of the connection attempt. This
-    means that if the IP address persistently tries connecting to the server
-    when over its quota it will be persistently banned.
+  Quota.Window: period
+
+    The Quota.Window period is used to limit the rate at which Quota.Slots can
+    be used up by an IP address before connections to the server start being
+    refused.
+
+    Any single IP address can connect to the server up to Quota.Slots times
+    within a Quota.Window period. Additional connections after Quota.Slots has
+    been reached within the Quota.Window period will be disconnected with the
+    message:
+
+      "Too many connection attempts, please wait before trying again."
+
+    If a persistent client still tries to connect repeatedly the expiry period
+    will start again from the time of the last connection attempt. That is a
+    client will have to wait a minimum time of Quota.Window before that IP
+    address can connect again.
 
     For example:
 
+      Quota.Slots:   5
       Quota.Window:  10s
-      Quota.Timeout: 30m
 
-    In this example an IP address can connect to the server up to 4 times
-    within a 10 second window. If the IP address connects to the server more
-    than 4 times within 10 seconds it will be banned from connecting to the
-    server for 30 minutes.
+    If an IP address tries to connect to the server more than five times in 10
+    seconds the sixth attempt will fail. The client will then have to wait at
+    least 10 seconds before they can try again to connect. If they try within
+    10 seconds they will have to wait 10 seconds from the last attempt made.
 
-    Another example:
-
-      Quota.Window:  30s
-      Quota.Timeout: 0
-
-    In this example an IP address can connect to the server up to 4 times
-    within a 30 second window. If the IP address connects to the server more
-    than 4 times within 30 seconds it will be banned from connecting to the
-    server for 30 seconds. If the IP address tries connecting to the server
-    within the 30 second timeout window the 30 second timeout window will
-    start over again from the time of the connection attempt.
-
-    The default value for Quota.Timeout is 0.
-
-  Quota.Stats: period
-
-    The period is the minimum amount of time between logging of quota
-    statistics. If Quota.Stats is set to 0 no statistics will be logged. If
-    Quota.Stats is not 0 then statistics will be logged showing the current
-    quota cache state. Logging is performed the next time an IP address
-    connects, that is not banned, after the Quota.Stats period as elapsed:
-
-      quota cache: 6 entries [3 evicted, 2 over quota, 1 recent]
-
-    This shows the total number of IP addresses cached (6) of which 3 are
-    stale and have just been evicted, 2 are currently over quota and banned,
-    and 1 IP address has recently connected but still has a quota of
-    connection attempts left.
-
-    The default value for Quota.Stats is 0.
+    If Quota.Window is set to 0 then IP quotas are disabled. The default value
+    for Quota.Window is 0.
 
   Stats.Rate: period
     The period is the frequency at which statistics are collected and
@@ -248,19 +226,37 @@ FIELDS & VALUES
     set to true the #DEBUG command is available, if set to false it is not.
     The default value for Debug.AllowDebug is false.
 
-  Debug.Events
+  Debug.Events:
     This value determines if messages are written to the log when an event is
-    queued, cancelled or delivered. This can make the log very noisy and is
-    usually only required for development and debugging. If set to true event
-    messages will be written to the log, if set to false they will not. The
-    default value for Debug.Events is false.
+    scheduled, suspended, cancelled or delivered. This can make the log very
+    noisy and is usually only required for development and debugging. If set
+    to true event messages will be written to the log, if set to false they
+    will not. The default value for Debug.Events is false.
 
-  Debug.Things
+  Debug.Things:
     This value determines if messages are written to the log pertaining to
     Things. If set to true messages will be written when a Thing is created,
     disposed of, and finalized. These messages can make the log very noisy so
     setting this value to true is only recommended when developing or
     debugging. The default value for Debug.Things is false.
+
+  Debug.Quota:
+    This value determines if quota cache information is written to the server
+    log or not. If enabled lines of the following format will be written to
+    the log for each IP address in the quota cache:
+
+      QC[1  ] M[00000000...000000001 ] X[18:17:55] A[127.0.0.1]
+      QC[2  ] M[00000000...000000111*] X[18:17:56] A[127.0.0.2]
+
+    The QC value is the cache line number, starting at 1 for each report. The
+    M value shows the 64 bit slot mask with 0 being an unused slot and 1 a
+    used slot. If the M value ends with an asterisk '*' the IP address shown
+    in the A value is over quota and cannot connect. The X value is the expiry
+    time for the cache entry. The A value shows the IP address for the cache
+    entry. The default value for Debug.Quota is false.
+
+    NOTE: The IP address will be shown even if Server.LogClient is set to
+    false to not log IP addresses.
 
   Free text block:
     The free text block contains text that is displayed as soon as a player
@@ -279,9 +275,8 @@ EXAMPLES
   Server.IdleTimeout:   10m
   Server.MaxPlayers:    1024
   Server.LogClient:     false
-  Quota.Window:         0
-  Quota.Timeout:        0
-  Quota.Stats:          0
+  Quota.Slots:          0
+  Quota.Window:         0s
   Stats.Rate:           10s
   Stats.GC:             false
   Inventory.Compact:    8
@@ -295,9 +290,10 @@ EXAMPLES
   Debug.AllowDebug:     false
   Debug.Events:         false
   Debug.Things:         false
+  Debug.Quota:          false
 
 
-WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+WolfMUD Copyright 1984-2022 Andrew 'Diddymus' Rolfe
 
     World
     Of
