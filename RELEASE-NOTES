@@ -6,6 +6,106 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19-beta.4 Released Sunday 27th February, 2022
+==============================================================================
+
+IMPORTANT FILE CHANGES
+
+  Configuration file changes:
+
+    - The Quota section has dropped Quota.Timeout and now uses Quota.Slots
+    - The Debug section has a new Debug.Quota
+
+  Server owners should check their data/config.wrj configuration files, details
+  of the new fields can be found in docs/configuration-file.txt
+
+  Zone and player file changes:
+
+    - The Health record now uses AFTER/JITTER instead of FREQUENCY to bring it
+      in line with other events.
+    - The Health record now uses RESTORE instead of REGENERATES.
+
+  Player files will be automatically upgraded. Details on the Health field can
+  be found in docs/zone-files.txt
+
+Added
+
+  - New Thing.logEvent helper added. Updated documented Debug.Events flag in
+    docs/configuration-file.txt as the events logged have changed from queued,
+    cancelled or delivered to scheduled, suspended, cancelled or delivered.
+  - Event logging added for Thing Schedule/Suspend/Cancel events.
+  - Per IP address quotas are now implemented. These are configured via the
+    Quota.Slots and Quota.Window configuration settings in the data/config.wrj
+    file. The Quota.Timeout setting is no longer used. The documentation in
+    docs/configuration-file.txt has been updated.
+  - A new Debug.Quota setting has been added to data/config.wrj to write quota
+    debugging information to the server log. For details see Debug.Quota in the
+    data/config.wrj documentation.
+  - The #DEBUG command with MEMPROF, CPUPROF and PANIC sub-commands is now
+    implemented. The configuration Debug.AllowDebug needs to be set to true in
+    data/config.wrj to enable the #DEBUG command.
+  - New state.subparseFor method to allow commands to perform sub-commands for
+    an alternative actor.
+  - New Health attribute added for players and NPCs. Existing player files will
+    be upgraded when the player next logs in. Updated docs/zone-files.txt to
+    document new Health field.
+  - Health events, via a new $HEALTH command, have been added for players and
+    NPCs to regenerate Health.
+  - The build/newAcct script now creates accounts with HEALTH defined.
+  - New state.build method to construct dynamic prompts.
+  - New core.createCorpse function to create corpses of killed players/NPCs.
+  - New HIT command for testing Health, Health regeneration and a bit of fun.
+  - The matcher now has an ANY modifier to pick a random match for commands.
+  - Added #LDUMP command to write the dump output of a Thing to the server log.
+  - Imps and fungus slug mobiles added to the caves zone zones/zinara_caves.wrj
+
+Changed
+
+  - The Thing Schedule, Cancel and Suspend methods are now wrappers to new
+    schedule, cancel and suspend methods to enable event logging.
+  - The state.Prompt method now takes fmt.Printf like parameters.
+  - All messages sent to a specific player are now flagged priority.
+  - In data/zones/zinara.wrj the frog, rabbit, mouse and cat have been updated
+    with a Health field. A 'HIT ANY PLAYER' action has been added to the frog
+    and rabbit.
+  - In data/zones/zinara.wrj 'the barkeep' is now 'a barkeep'.
+  - The bots now have "HIT ANY CREATURE" and "HIT ANY PLAYER" actions.
+  - The mailbox now stores the maphash of the last message seen instead of the
+    whole string of the message.
+  - Improved messages for TAKE/GET responses when used on players and NPCs.
+  - Allow leading '+' to be omitted from bound qualifiers in zone files.
+  - Updated actions in data/zones/zinara.wrj that target players to use ANY
+    modifier to target a random player.
+  - White-space clean-up in data/zones/zinara_caves.wrj
+  - Tidy up Debug flag section in docs/configuration-file.txt
+
+Fixed
+
+  - The Thing.Event entry for an event is cleaned up if the event is cancelled.
+  - Server now enforces the Server.MaxPlayers configuration setting and will
+    turn away players if the server is full.
+  - The server now honours the Server.LogClient setting. If set to false, the
+    default, the client's IP address will not be logged. Instead the client IP
+    address will be replaced with '???'. For example:
+
+      [#UID-6] connection from: ???:35848
+      [#UID-6] client error: read tcp 127.0.0.1:4001->???:35848: i/o timeout
+      [#UID-6] disconnect from: ???:35848
+
+  - In docs/configuration-file.txt note that Server.Host may be left blank to
+    cause the server to listen on all available interfaces.
+  - The #GOTO/#TELEPORT command has been fixed.
+  - The mailbox.Suffix method no longer panics if the mailbox is invalid.
+  - A data race has been fixed when a player quits and is disposed of.
+  - The COMBAT veto is now handled by the Thing.Unmarshal and Thing.Marshal
+    methods.
+  - The Thing.Schedule method now handles stale events when they fire.
+  - The build/newAcct script now creates accounts with a BODY defined.
+  - The Thing.Junk and Thing.Free methods now cancel in-flight events.
+  - Minor grammar fix in zone-files.txt documentation.
+  - Fixed confusion of players and NPC/Player flags not working properly.
+  - Fixed TAKE/PUT command messages when used on a player.
+
 v0.0.19-beta.3 Released Friday 24th December, 2021
 ==============================================================================
 
