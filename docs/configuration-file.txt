@@ -293,7 +293,7 @@ EXAMPLES
   Debug.Quota:          false
 
 
-WolfMUD Copyright 1984-2016 Andrew 'Diddymus' Rolfe
+WolfMUD Copyright 1984-2022 Andrew 'Diddymus' Rolfe
 
     World
     Of
