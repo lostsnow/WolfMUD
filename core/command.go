@@ -1631,7 +1631,7 @@ func createCorpse(t *Thing) *Thing {
 	return c
 }
 
-func (s state) Tell() {
+func (s *state) Tell() {
 	if len(s.word) == 0 {
 		s.Msg(s.actor, text.Info, "You go to tell someone something...")
 		return
@@ -1672,7 +1672,7 @@ func (s state) Tell() {
 	}
 }
 
-func (s state) Whisper() {
+func (s *state) Whisper() {
 	if len(s.word) == 0 {
 		s.Msg(s.actor, text.Info, "You go to whisper something to someone...")
 		return
