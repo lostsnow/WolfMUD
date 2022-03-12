@@ -660,7 +660,7 @@ on shelves and tables are various articles of clothing.
 %%
       Ref: N1
      Name: some rubbish
-    Alias: +SOME:RUBBISH
+    Alias: RUBBISH
  Location: L38 L39
 Inventory:
 Narrative:
@@ -770,7 +770,7 @@ cover of the weeds.
 %%
       Ref: O4N1
      Name: some weeds
-    Alias: +SOME WEEDS WEED
+    Alias: WEEDS WEED
 Narrative:
 
 This are small, green aquatic weeds.
