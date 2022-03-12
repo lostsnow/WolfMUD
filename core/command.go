@@ -90,6 +90,8 @@ func RegisterCommandHandlers() {
 		"VERSION":   (*state).Version,
 		"SAVE":      (*state).Save,
 		"HIT":       (*state).Hit,
+		"TELL":      (*state).Tell,
+		"TALK":      (*state).Tell,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1626,6 +1628,47 @@ func createCorpse(t *Thing) *Thing {
 	}
 
 	return c
+}
+
+func (s state) Tell() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "You go to tell someone something...")
+		return
+	}
+
+	uids := Match(s.word, s.actor.Ref[Where])
+	uid := uids[0]
+
+	what := s.actor.Ref[Where].Who[uid]
+	if what == nil {
+		what = s.actor.Ref[Where].In[uid]
+	}
+
+	where := s.actor.Ref[Where]
+	l := len(where.Who)
+
+	if l >= cfg.crowdSize {
+		s.Msg(s.actor, text.Info, "It's too crowded for you to be heard.")
+		return
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", s.word[0], "' to talk to.")
+	case len(s.word) == 1:
+		s.Msg(s.actor, text.Info, "What did you want to say to ", what.As[TheName], "?")
+	default:
+		txt := StripMatch(what, s.input)
+		s.Msg(s.actor, text.Good, "You say to ", what.As[TheName], ": ", txt)
+		s.Msg(what, text.Good, s.actor.As[UTheName], " says to you: ", txt)
+		s.Msg(where, text.Info, s.actor.As[UTheName], " says to ", what.As[TheName], ": ", txt)
+
+		for _, where := range radius(1, where)[1] {
+			if l = len(where.Who); 0 < l && l < cfg.crowdSize {
+				s.Msg(where, text.Info, "You hear talking nearby.")
+			}
+		}
+	}
 }
 
 // intersects returns true if any elements of want are also in have, else false.
