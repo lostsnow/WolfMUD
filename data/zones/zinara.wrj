@@ -916,7 +916,8 @@ Inventory: M6O1
          : $ACT drums his fingers on the bar.
          : $ACT starts to whistle a little ditty.
          : $ACT examines an old rag. He finds a hole in it.
-         : SAY Can I get you something?
+         : SAY Can I get anyone something?
+         : TALK ANY PLAYER Can I get you something?
          : SNEEZE
          : EXAMINE BAR
          : EXAMINE BOTTLES
@@ -942,6 +943,7 @@ Inventory: M7O1 M7O2
          : $ACT looks at you with pleading eyes.
          : $ACT holds out some flowers for you to see.
          : SAY Buy a flower? Very cheap.
+         : TALK ANY PLAYER Buy a flower? Very cheap.
          : @ACT_GENERAL
          : @ACT_MOVE
     Reset: @MOBILE
@@ -979,6 +981,7 @@ OnAction: $ACT looks around for passing punters.
         : SHOUT Sausages ina bun, get 'em while they're hot.
         : SHOUT Meat ona stick, get 'em while they're hot.
         : SHOUT Hot food! Hot food!
+        : TALK ANY PLAYER Something to eat?
         : @ACT_GENERAL
    Reset: @MOBILE
  OnReset: A street vendor walks in.
@@ -994,8 +997,8 @@ Location: L57 L64 L69
 OnAction: $ACT watches you suspiciously.
         : $ACT slowly paces backwards and forwards before the gates.
         : $ACT tries to stifle a yawn.
-        : SAY Mind how you go and keep out of trouble.
-        : SAY I'm watching you.
+        : TELL ANY PLAYER Mind how you go and keep out of trouble.
+        : TELL ANY PLAYER I'm watching you.
         : @ACT_GENERAL
         : @ACT_MOVE
    Reset: @MOBILE
@@ -1017,8 +1020,8 @@ Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
  OnAction: $ACT watches you suspiciously.
          : $ACT paces up and down a bit.
          : $ACT cocks one ear, listening for trouble.
-         : SAY Mind how you go and keep out of trouble.
-         : SAY I'm watching you.
+         : TELL ANY PLAYER Mind how you go and keep out of trouble.
+         : TELL ANY PLAYER I'm watching you.
          : @ACT_GENERAL
          : @ACT_MOVE
     Reset: @MOBILE
@@ -1050,9 +1053,9 @@ Location: L6
   Action: @MOBILE
 OnAction: $ACT starts to make some more pastries.
         : $ACT puts a fresh batch of cooking out for sale.
-        : SAY Careful dear, some of those are still hot.
-        : SAY What can I tempt you with today?
-        : SAY It all smells so lovely!
+        : TELL ANY PLAYER Careful dear, some of those are still hot.
+        : TELL ANY PLAYER What can I tempt you with today?
+        : SAY Doesn't it all smells so lovely!
         : @ACT_GENERAL
         : @ACT_TRADER
    Reset: @MOBILE
@@ -1101,8 +1104,8 @@ Location: L8
   Action: @MOBILE
 OnAction: $ACT idly dusts a few random items.
         : $ACT tidies up some of the junk laying around.
-        : SAY Please don't touch dear.
-        : SAY If you break anything you still pay for it.
+        : TELL ANY PLAYER Please don't touch dear.
+        : TELL ANY PLAYER If you break anything you still pay for it.
         : @ACT_GENERAL
         : @ACT_TRADER
    Reset: @MOBILE
@@ -1130,7 +1133,7 @@ Location: L73
     Body: @MOBILE
   Action: @MOBILE
 OnAction: $ACT folds some clothing and puts it back on a table.
-        : SAY Please look around, there must be something here you like?
+        : TELL ANY PLAYER Please look around, there must be something here you like?
         : EXAMINE CLOTHING
         : @ACT_GENERAL
         : @ACT_TRADER
@@ -1697,8 +1700,8 @@ OnAction: $ACT looks at you, then quickly looks away again.
         : $ACT gives a sigh.
         : $ACT coughs.
         : $ACT starts muttering to themselves.
-        : SAY Hello!
-        : SAY Hi there!
+        : TELL ANY PLAYER Hello!
+        : TELL ANY PLAYER Hi there!
         : SAY Nice weather for it...
         : SAY Now let me see...
         : SAY Where did I put...
@@ -1715,5 +1718,5 @@ OnAction: $ACT cautiously watches you as you browse around the store.
         : $ACT walks around the store a bit, keeping an eye on things.
         : $ACT starts to tidy away some newer items.
         : $ACT watches you as you browse around the store.
-        : SAY See anything you like?
+        : TELL ANY PLAYER See anything you like?
 %%
