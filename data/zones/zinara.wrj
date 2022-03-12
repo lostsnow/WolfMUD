@@ -932,7 +932,7 @@ Always ready to listen to a drinking patron, dispensing advice when required.
 %%
       Ref: M7
      Name: a sweet flower girl
-  Aliases: FLOWERGIRL GIRL NPC
+  Aliases: +FLOWER:GIRL NPC
  Location: L7
      Body: @MOBILE
 Inventory: M7O1 M7O2
@@ -970,7 +970,7 @@ This is a giant spider. It's black, hairy and looks very dangerous.
 %%
      Ref: M9
     Name: a street vendor
- Aliases: VENDOR MAN NPC
+ Aliases: +STREET:VENDOR MAN NPC
 Location: L14
     Body: @MOBILE
   Action: @MOBILE
@@ -990,7 +990,7 @@ This is a typical, shifty looking street vendor.
 %%
      Ref: M10
     Name: a gate warden
- Aliases: GATEWARDEN WARDEN MAN NPC
+ Aliases: GATEWARDEN +GATE:WARDEN MAN NPC
 Location: L57 L64 L69
     Body: @MOBILE
   Action: AFTER→15s JITTER→15s
@@ -1009,7 +1009,7 @@ undesirables from the city.
 %%
       Ref: M11
      Name: a city guard
-  Aliases: CITYGUARD GUARD WOMAN NPC
+  Aliases: +CITY:GUARD CITYGUARD WOMAN NPC
  Location: L14
      Body: @MOBILE
 Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
@@ -1032,7 +1032,7 @@ doers.
 %%
         Ref: M12
        Name: @M11
-    Aliases: CITYGUARD GUARD MAN NPC
+    Aliases: +CITY:GUARD CITYGUARD MAN NPC
    Location: L21 L26 L61
        Body: @MOBILE
   Inventory: @M11
@@ -1169,7 +1169,7 @@ This is a small iron key.
 %%
      Ref: O3
     Name: a lucky charm
-   Alias: LUCKY CHARM
+   Alias: +LUCKY:CHARM
 Location: N2
  Cleanup: @ITEM
    Reset: @NOW
@@ -1242,7 +1242,7 @@ This is a tiny doll's hat.
 %%
       Ref: L16O1
      Name: an iron bound chest
-  Aliases: CHEST
+  Aliases: +IRON:CHEST
  Location: @M17
 Inventory:
   Cleanup: @ITEM
@@ -1273,7 +1273,7 @@ This is a small, red, rubber ball.
 %%
       Ref: L16O4
      Name: a small sack
-  Aliases: SACK
+  Aliases: +SMALL:SACK
  Location: @M17
 Inventory:
   Cleanup: @ITEM
@@ -1283,7 +1283,7 @@ This is a small sack, handy for carrying things in.
 %%
       Ref: L16O5
      Name: a small bag
-  Aliases: BAG
+  Aliases: +SMALL:BAG
  Location: @M17
 Inventory:
   Cleanup: @ITEM
