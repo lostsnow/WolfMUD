@@ -92,6 +92,7 @@ func RegisterCommandHandlers() {
 		"HIT":       (*state).Hit,
 		"TELL":      (*state).Tell,
 		"TALK":      (*state).Tell,
+		"WHISPER":   (*state).Whisper,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1668,6 +1669,41 @@ func (s state) Tell() {
 				s.Msg(where, text.Info, "You hear talking nearby.")
 			}
 		}
+	}
+}
+
+func (s state) Whisper() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "You go to whisper something to someone...")
+		return
+	}
+
+	uids := Match(s.word, s.actor.Ref[Where])
+	uid := uids[0]
+
+	what := s.actor.Ref[Where].Who[uid]
+	if what == nil {
+		what = s.actor.Ref[Where].In[uid]
+	}
+
+	where := s.actor.Ref[Where]
+	l := len(where.Who)
+
+	if l >= cfg.crowdSize {
+		s.Msg(s.actor, text.Info, "It's too crowded for you to be heard.")
+		return
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", s.word[0], "' to whisper to.")
+	case len(s.word) == 1:
+		s.Msg(s.actor, text.Info, "What did you want to whisper to ", what.As[TheName], "?")
+	default:
+		txt := StripMatch(what, s.input)
+		s.Msg(s.actor, text.Good, "You whisper to ", what.As[TheName], ": ", txt)
+		s.Msg(what, text.Good, s.actor.As[UTheName], " whispers to you: ", txt)
+		s.Msg(where, text.Info, s.actor.As[UTheName], " whispers something to ", what.As[TheName], ".")
 	}
 }
 
