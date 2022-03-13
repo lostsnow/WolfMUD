@@ -193,7 +193,7 @@ func Load() {
 	// between zones work properly.
 	//
 	// NOTE: If we didn't allow one side of a door to be in one zone and the
-	// other side of the door to be in a different zone we could call enable when
+	// other side of the door to be in a different zone we could initialise when
 	// copying to the world.
 	log.Print("Final item setup")
 	for _, loc := range core.World {
