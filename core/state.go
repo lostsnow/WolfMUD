@@ -20,8 +20,8 @@ import (
 // by the BWL (Big World Lock).
 var (
 	BWL        sync.Mutex
-	World      Things   // All top level locations
-	WorldStart []*Thing // Starting locations
+	WorldStart []*Thing       // Starting locations
+	World      = make(Things) // All top level locations
 )
 
 type pkgConfig struct {

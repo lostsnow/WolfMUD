@@ -51,7 +51,6 @@ func Load() {
 
 	log.Printf("Loading zones from: %s", cfg.zonePath)
 
-	core.World = make(map[string]*core.Thing)
 	refToUID := make(map[string]string)
 
 	filenames, err := filepath.Glob(cfg.zonePath)
