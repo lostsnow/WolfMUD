@@ -13,7 +13,7 @@ DESCRIPTION
   extension from the zones sub directory, located in the server's data
   directory. For more details see: running-the-server.txt
 
-  Zone files contain an option zone header record giving brief information
+  Zone files contain an optional zone header record giving brief information
   about the zone such as its name and the name of the author. The rest of the
   records detail locations and objects within the world.
 
@@ -34,11 +34,13 @@ DESCRIPTION
     This is the city of Zinara.
     %%
            Ref: L1
-         Start:
           Name: Fireplace
        Aliases: TAVERN FIREPLACE
+         Start:
          Exits: E→L3 SE→L4 S→L2
      Inventory: L1N1
+          Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and
+                heal, not fight.
 
     You are in the corner of the common room in the dragon's breath tavern. A
     fire burns merrily in an ornate fireplace, giving comfort to weary
@@ -47,9 +49,11 @@ DESCRIPTION
     continues and east the common room leads to the tavern entrance.
     %%
            Ref: L1N1
-     Narrative:
           Name: an ornate fireplace
-         Alias: FIRE FIREPLACE
+         Alias: FIREPLACE
+     Narrative:
+          Veto: GET→For some inexplicable reason you can't just rip out the
+                fireplace and take it!
 
     This is a very ornate fireplace carved from marble. Either side a dragon
     curls downward until the head is below the fire looking upward, giving the
@@ -59,16 +63,17 @@ DESCRIPTION
          Name: a curious brass lattice
       Aliases: LATTICE
      Location: L1
-        Reset: AFTER→2m JITTER→1m
-      OnReset: There is a gentle, musical ping and a curious brass lattice
-               suddenly appears from nowhere.
+         Veto: JUNK→The lattice cannot be junked.
+       Action: AFTER→5m JITTER→2m30s
+     OnAction: $ACT quietly chimes.
+             : $ACT quietly hums.
       Cleanup: AFTER→10m
     OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
                gains speed and then suddenly collapses in on itself and
                disappears.
-       Action: AFTER→5m JITTER→2m30s
-     OnAction: $ACT quietly chimes.
-             : $ACT quietly hums.
+        Reset: AFTER→2m JITTER→1m
+      OnReset: There is a gentle, musical ping and a curious brass lattice
+               suddenly appears from nowhere.
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -80,21 +85,27 @@ FIELD DATA TYPES
   a specific format. This section lists the different formats.
 
   STRING
-    The data is a simple string of characters.
+    The data is a simple string of characters. For example:
+
+      Name: a curious brass lattice
 
   KEYWORD
-    The data is a single case insensitive word.
+    The data is a single case insensitive word, usually written upper-cased.
+    For example:
+
+      Ref: L1
 
   KEYWORD LIST
-    The data is a list of white space separated, case insensitive words.
+    The data is a list of white space separated, case insensitive words. Each
+    word is usually written upper-cased. For example:
+
+       Aliases: TAVERN FIREPLACE
 
   PAIR LIST
     The data is a white space separated list of pairs. Each pair is separated
     by a non-digit, non-letter, non-hyphen/minus '-' or non-underscore '_'
     character. That is, the keyword before the separator may contain digits,
-    letters, hyphen/minus or an underscore.
-
-    For example:
+    letters, hyphen/minus or an underscore. For example:
 
       Exits: E→L3 SE→L4 S→L2
 
@@ -110,7 +121,7 @@ FIELD DATA TYPES
     follow will detail when a leading exclamation mark is valid for a keyword.
 
   STRING LIST
-    The data is separated into strings using a colon (:) as a separator. For
+    The data is separated into strings using a colon ':' as a separator. For
     example:
 
       Actions: The rabbit hops around a bit.
@@ -176,7 +187,8 @@ AT REFERENCE / @REF
     %%
 
   We can then specify an @ref that references an event, in this case Reset,
-  and also specify additional values such as SPAWN:
+  and also specify additional values such as SPAWN as only the @ref @SHORT is
+  replaced:
 
     Reset: @SHORT SPAWN
 
@@ -234,6 +246,24 @@ AT REFERENCE / @REF
   SPAWN. This means that the Reset field on the ball expands to:
 
     Reset: AFTER→1m JITTER→1m SPAWN
+
+  An @ref will not overwrite values that have already been set. For example:
+
+    %%
+      Ref: RESET
+    Reset: AFTER→1m JITTER→1m SPAWN
+    %%
+      Ref: BALL
+     Name: a ball
+    Alias: BALL
+    Reset: SPAWN→FALSE @RESET
+
+    This is a ball.
+    %%
+
+  For the Reset field we are setting SPAWN to false before the @ref. This will
+  have the effect of overriding the SPAWN used on the @ref, which will not
+  overwrite the value previously set.
 
   See also: REF
 
@@ -530,9 +560,9 @@ ZONE RECORDS
     limited to single handed weapons - so no bows for example. It should also
     be noted that a mythical creature with four arms/hands would be able to
     use two bows or a bow and two single handed weapons - simply by having the
-    approbate body slots available.
+    appropriate body slots available.
 
-    A body can be defined using only a few general slots. For example a
+    A body can be defined using only a few general slots. For example, a
     minimal body would be:
 
       BODY: TORSO HAND→2
