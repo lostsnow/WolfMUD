@@ -95,7 +95,8 @@ func RegisterCommandHandlers() {
 		"WHISPER":   (*state).Whisper,
 
 		// Out of character commands
-		"/WHO": (*state).Who,
+		"/WHO":    (*state).Who,
+		"/WHOAMI": (*state).WhoAmI,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1729,6 +1730,10 @@ func (s state) Who() {
 		s.MsgAppend(s.actor, "␠␠", player.As[Name], "\n")
 	}
 	s.Msg(s.actor, text.Good, "Current player population: ", pop)
+}
+
+func (s state) WhoAmI() {
+	s.Msg(s.actor, text.Good, "You are ", s.actor.As[UName], ".")
 }
 
 // intersects returns true if any elements of want are also in have, else false.
