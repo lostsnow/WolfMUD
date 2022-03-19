@@ -94,6 +94,9 @@ func RegisterCommandHandlers() {
 		"TALK":      (*state).Tell,
 		"WHISPER":   (*state).Whisper,
 
+		// Out of character commands
+		"/WHO": (*state).Who,
+
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
 		"#LDUMP":    (*state).Dump,
@@ -1707,6 +1710,25 @@ func (s *state) Whisper() {
 		s.Msg(what, text.Good, s.actor.As[UTheName], " whispers to you: ", txt)
 		s.Msg(where, text.Info, s.actor.As[UTheName], " whispers something to ", what.As[TheName], ".")
 	}
+}
+
+func (s state) Who() {
+	if len(Players) == 1 {
+		s.Msg(s.actor, text.Good, "You are all alone in this world.")
+		return
+	}
+
+	auid := s.actor.As[UID]
+	pop := strconv.Itoa(len(Players))
+
+	s.Msg(s.actor, text.Good, "Other players:\n\n", text.Reset)
+	for uid, player := range Players {
+		if uid == auid {
+			continue
+		}
+		s.MsgAppend(s.actor, "␠␠", player.As[Name], "\n")
+	}
+	s.Msg(s.actor, text.Good, "Current player population: ", pop)
 }
 
 // intersects returns true if any elements of want are also in have, else false.
