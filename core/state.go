@@ -22,6 +22,7 @@ var (
 	BWL        sync.Mutex
 	WorldStart []*Thing       // Starting locations
 	World      = make(Things) // All top level locations
+	Players    = make(Things) // Current in-game players
 )
 
 type pkgConfig struct {

@@ -135,6 +135,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	delete(Players, s.actor.As[UID])
 	s.Prompt(s.actor, "")
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
@@ -912,6 +913,7 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
+	Players[s.actor.As[UID]] = s.actor
 	s.buildPrompt(s.actor)
 	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
 		s.actor.Schedule(Health)
