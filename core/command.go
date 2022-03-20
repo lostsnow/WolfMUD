@@ -1214,6 +1214,8 @@ func (s *state) Remove() {
 			slots []string
 		)
 		switch {
+		case what == nil:
+			// Do nothing, avoids nil panic accessing a nil what's fields
 		case what.Is&Holding == Holding:
 			usage = " holding "
 			slots = what.Any[Holdable]
