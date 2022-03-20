@@ -409,8 +409,8 @@ func (s *state) Examine() {
 			}
 		}
 
-		// If player or mobile/NPC describe items being worn, held or wielded.
-		if what.Is&(Player|NPC) != 0 {
+		// If we have a body describe items being worn, held or wielded.
+		if what.Is&HasBody == HasBody {
 			var wearing, holding, wielding []string
 			for _, item := range what.In {
 				switch {

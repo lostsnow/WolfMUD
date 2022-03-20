@@ -256,6 +256,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Any[Body] = append(t.Any[Body], slot)
 				}
 			}
+			t.Is |= HasBody
 		case "CLEANUP":
 			for k, v := range decode.PairList(r[field]) {
 				b := []byte(v)
@@ -443,8 +444,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		t.Is |= NPC
 	}
 
-	// If it's a location or NPC it's not a container
-	if t.Is&(Location|NPC) != 0 {
+	// If it's a location or has a body it's not a container
+	if t.Is&(Location|HasBody) != 0 {
 		t.Is &^= Container
 	}
 
