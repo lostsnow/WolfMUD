@@ -103,12 +103,17 @@ func NewThing() *Thing {
 // empty string. The parent is enabled before any inventory items. As its name
 // implies InitOnce is only called once for a Thing - when it is first put into
 // the world.
+//
+// TODO(diddymus): Handle DOOR/blockers as part of location definitions?
 func (t *Thing) InitOnce(parent *Thing) {
 
-	// If it's a blocker setup the 'other side'
+	// If it's a blocker setup the 'other side'. Note that if parent is nil the
+	// blocker is on a location itself which is not handled... yet?
 	if t.As[Blocker] != "" && t.Ref[Where] == parent {
-		other := parent.Ref[NameToDir[t.As[Blocker]]]
-		other.In[t.As[UID]] = t
+		if parent != nil {
+			other := parent.Ref[NameToDir[t.As[Blocker]]]
+			other.In[t.As[UID]] = t
+		}
 	}
 
 	// Hard-link exits - convert from Thing.As UIDs to Thing.Ref *Thing

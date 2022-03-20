@@ -669,9 +669,10 @@ ZONE RECORDS
     If RESET and JITTER are both set to 0s the DOOR will not automatically
     reset to its initial state.
 
-    NOTE: A DOOR attribute should only be added to narrative items in a
-    location. Adding a DOOR directly to a location or a moveable item may
-    result in unexpected/odd behaviour.
+    NOTE: A DOOR attribute should only be added as a narrative item in a
+    location. Adding a DOOR attribute as part of a location's definition is
+    not supported and the DOOR will be ignored. Adding a DOOR directly to a
+    moveable item may result in unexpected/odd behaviour.
 
   EXIT: <PAIR LIST>
   EXITS: <PAIR LIST>
