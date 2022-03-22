@@ -826,6 +826,22 @@ func (t *Thing) spawn() *Thing {
 	return T
 }
 
+// selfHeals determins whether a Thing is capable of self healing and
+// regenerating health. Returns true if Thing can self heal and regenerate
+// health, otherwise returns false.
+func (t *Thing) selfHeals() bool {
+	switch {
+	case t.Int[HealthAfter]+t.Int[HealthJitter] == 0:
+		return false
+	case t.Int[HealthMaximum] == 0:
+		return false
+	case t.Int[HealthRestore] == 0:
+		return false
+	default:
+		return true
+	}
+}
+
 // Junk removes an item from the world and either schedules it to reset if it
 // is unique or spawnable, otherwise it is freed for the garbage collector. If
 // the item has inventory it is also junked.
