@@ -315,7 +315,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[HealthRestore] = int64(decode.Integer(b))
 				}
 			}
-			if t.Int[HealthMaximum] != 0 && t.Int[HealthCurrent] == 0 {
+
+			// If Thing can self heal set current health if not set
+			if t.selfHeals() && t.Int[HealthCurrent] == 0 {
 				t.Int[HealthCurrent] = t.Int[HealthMaximum]
 			}
 		case "HOLDABLE":
