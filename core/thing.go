@@ -441,8 +441,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		}
 	}
 
-	// If we have maximum health assume it's an NPC
-	if t.Int[HealthMaximum] != 0 || len(t.Any[Body]) != 0 {
+	// If Thing can self heal assume it's an NPC
+	if t.selfHeals() {
 		t.Is |= NPC
 	}
 
