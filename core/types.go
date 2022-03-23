@@ -395,6 +395,7 @@ var preferredOrdering = []string{
 	asNames[Description],
 	anyNames[Body],
 	asNames[Gender],
+	eventNames[Health],
 	"Inv", "Inventory",
 	Holding.setNames(),
 	Wearing.setNames(),
