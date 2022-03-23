@@ -907,6 +907,7 @@ This is a small, furry, grey mouse.
      Name: a barkeep
   Aliases: BARKEEP MAN NPC
      Body: @MOBILE
+   Health: @MOBILE
 Inventory: M6O1
   Holding: M6O1
    Action: @MOBILE
@@ -935,6 +936,7 @@ Always ready to listen to a drinking patron, dispensing advice when required.
   Aliases: +FLOWER:GIRL NPC
  Location: L7
      Body: @MOBILE
+   Health: @MOBILE
 Inventory: M7O1 M7O2
   Holding: M7O1
   Wearing: M7O2
@@ -955,6 +957,8 @@ This is a sweet little girl selling flowers to make some money.
     Name: a giant spider
  Aliases: SPIDER CREATURE
 Location: L37
+       // Hard to kill, but slow to recover...
+  Health: MAXIMUM→100 AFTER→30s JITTER→5s RESTORE→10
   Action: @MOBILE
 OnAction: $ACT starts to slowly spin another web.
         : $ACT silently sits amongst the webs, watching.
@@ -973,6 +977,7 @@ This is a giant spider. It's black, hairy and looks very dangerous.
  Aliases: +STREET:VENDOR MAN NPC
 Location: L14
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
@@ -993,6 +998,7 @@ This is a typical, shifty looking street vendor.
  Aliases: GATEWARDEN +GATE:WARDEN MAN NPC
 Location: L57 L64 L69
     Body: @MOBILE
+  Health: @MOBILE
   Action: AFTER→15s JITTER→15s
 OnAction: $ACT watches you suspiciously.
         : $ACT slowly paces backwards and forwards before the gates.
@@ -1012,6 +1018,8 @@ undesirables from the city.
   Aliases: +CITY:GUARD CITYGUARD WOMAN NPC
  Location: L14
      Body: @MOBILE
+        // The city guard are supposed to be 'unkillable' peacekeepers ;)
+   Health: MAXIMUM→2000000000 AFTER→15s RESTORE→2000000000
 Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
   Wearing: L11O1 L11O2 L73O1 L73O7
  Wielding: L13O1
@@ -1035,6 +1043,7 @@ doers.
     Aliases: +CITY:GUARD CITYGUARD MAN NPC
    Location: L21 L26 L61
        Body: @MOBILE
+     Health: @M11
   Inventory: @M11
     Wearing: @M11
    Wielding: @M11
@@ -1050,6 +1059,7 @@ Description: @M11
  Aliases: BAKER WOMAN LADY NPC
 Location: L6
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT starts to make some more pastries.
         : $ACT puts a fresh batch of cooking out for sale.
@@ -1069,6 +1079,7 @@ so good it's irresistible.
  Aliases: BAKER MAN NPC
 Location: L13
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT works at honing the blade of a dagger.
         : $ACT watches you idly while tossing a small blade up and down.
@@ -1085,6 +1096,7 @@ he wears an apron.
  Aliases: ARMOURER MAN NPC
 Location: L11
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT starts to polish some plate mail while keeping an eye on you.
         : $ACT starts to whistle and hum softly to himself.
@@ -1101,6 +1113,7 @@ The Armourer is of a rough looking sort.
  Aliases: LADY NPC
 Location: L8
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT idly dusts a few random items.
         : $ACT tidies up some of the junk laying around.
@@ -1118,6 +1131,7 @@ This is a little old lady. The sort everyone wants as their grandmother.
  Aliases: HEWMAN TRADER NPC
 Location: L16
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: @ACT_GENERAL
         : @ACT_TRADER
@@ -1131,6 +1145,7 @@ This is a very large, serious looking man.
  Aliases: MERKLE CLOTHIER NPC
 Location: L73
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT folds some clothing and puts it back on a table.
         : TELL ANY PLAYER Please look around, there must be something here you like?
@@ -1612,6 +1627,7 @@ Cleanup: AFTER→1s
      // Default for mobiles/NPCs
    Ref: MOBILE
   Body: @HUMANOID
+Health: MAXIMUM→20 AFTER→15s JITTER→5s RESTORE→2
 Action: AFTER→15s JITTER→15s
  Reset: AFTER→1m WAIT
 %%
