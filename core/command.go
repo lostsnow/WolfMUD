@@ -662,6 +662,8 @@ func (s *state) Put() {
 		switch {
 		case what == nil:
 			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to put into ", where.As[TheName], ".")
+		case what.Is&NPC == NPC:
+			s.Msg(s.actor, text.Bad, what.As[UTheName], " does not want to be put into ", where.As[TheName], ".")
 		case what.As[VetoPut] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoPut])
 		case what.Is&Using != 0:
