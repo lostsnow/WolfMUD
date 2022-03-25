@@ -722,21 +722,40 @@ ZONE RECORDS
       HEALTH: AFTER→10S CURRENT→50 JITTER→0S MAXIMUM→30 RESTORE→2
 
     AFTER and JITTER specify the period that health is restored when CURRENT
-    health is below MAXIMUM health to be between AFTER and AFTER+JITTER. In
-    the example 2 points of health will be restored every 10 seconds.
+    health is below MAXIMUM health to be between AFTER and AFTER+JITTER. The
+    amount of health restored is specified by RESTORE. In the example 2 points
+    of health will be restored every 10 seconds.
 
     Specifying JITTER is optional. If both AFTER and JITTER are not specified
     health is not automatically restored.
 
     The current health of a player or mobile is specified using CURRENT. The
     maximum health that can be restored is specified using MAXIMUM. CURRENT
-    health may go above MAXIMUM but healing will not take HEALTH above the
-    MAXIMUM value. If CURRENT goes below 1 the player or mobile has been
-    killed. Only mobiles with HEALTH can be attacked and killed.
+    health may temporarly go above MAXIMUM, but healing will not take HEALTH
+    above the MAXIMUM value. If CURRENT goes below 1 the player or mobile has
+    been killed. Only mobiles with HEALTH can be attacked and killed.
 
-    If CURRENT is not specified it will initially be set equal to MAXIMUM.
+    SELF HEALING
 
-    The amount of health restored is specified by RESTORE.
+      Something can self heal if it has a HEALTH field defined with MAXIMUM,
+      RESTORE, AFTER and/or JITTER set. If something can self heal and CURRENT
+      is not specified then CURRENT will be set equal to MAXIMUM when it is
+      loaded into the game world.
+
+    MOBILES & NPCs
+
+      A mobile, or non-player character (NPC), is considered to be anything
+      that can self heal.
+
+      Mobiles and NPCs cannot be picked up using the GET command - unless
+      allowed specifically by defining the mobile or NPC as being HOLDABLE.
+      Items cannot be taken from a mobile/NPC using the TAKE command. Items
+      cannot be given to a mobile/NPC using the PUT command.
+
+      A mobile or NPC need not have a BODY defined. For example, you do not
+      need to create a body for every critter and creepy-crawly.
+
+      See also: BODY
 
   HOLDABLE: <PAIR LIST>
     The HOLDABLE field specifies that an item can be held and the BODY slots
