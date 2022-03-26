@@ -547,7 +547,7 @@ ZONE RECORDS
 
       "You cannot go <dir> <name> is blocking your way."
 
-    See also the section on ALIASES.
+    See also: ALIASES
 
   BODY: <PAIR LIST>
     BODY is used to specify the body slots of players and mobiles. Body slots
@@ -597,7 +597,7 @@ ZONE RECORDS
     wieldable items that currently use the MOUTH, UPPER_LIP or LOWER_LIP
     slots.
 
-    See also HOLDABLE, WEARABLE and WIELDABLE for more details.
+    See also: HOLDABLE, WEARABLE and WIELDABLE
 
   CLEANUP: <PAIR LIST>
     CLEANUP is used to specify how long to wait, after an item is dropped,
@@ -794,7 +794,7 @@ ZONE RECORDS
     the holder and must also be free - not holding, wearing or wielding other
     items in the required slots.
 
-    See also: BODY, WEARABLE and WIELDABLE for more details.
+    See also: BODY, WEARABLE and WIELDABLE
 
   HOLDING: <KEYWORD LIST>
     The HOLDING field specifies items that should be held by a mobile when the
@@ -810,7 +810,7 @@ ZONE RECORDS
     mobile's inventory and the mobile should have a BODY defined with the BODY
     parts required to hold the items.
 
-    See also: BODY, HOLDABLE, WEARING, WIELDING for more details.
+    See also: BODY, HOLDABLE, WEARING and WIELDING
 
   INVENTORY: <KEYWORD LIST>
     The INVENTORY field defines something as being a container or location. It
@@ -835,7 +835,7 @@ ZONE RECORDS
     It is also possible for players to enter containers even though it may not
     have EXITS defining it as an actual location.
 
-    See also LOCATION.
+    See also: LOCATION
 
   LOCATION: <KEYWORD LIST>
     LOCATION fields are used to put something into one or more inventories.
@@ -860,7 +860,7 @@ ZONE RECORDS
     rule of thumb use LOCATION for things unique to a location, such as
     narratives, and use INVENTORY to place things in multiple places.
 
-    See also INVENTORY.
+    See also: INVENTORY
 
   NAME: <STRING>
     A short descriptive name. For example: a curious brass lattice
@@ -886,7 +886,7 @@ ZONE RECORDS
     time ONACTION fires one action will be picked at random from the actions
     defined by ONACTION.
 
-    See also ACTION for how to schedule actions for an item.
+    See also: ACTION
 
   ONCLEANUP: <string>
     ONCLEANUP can be used to provide a custom message when an item is cleaned
@@ -909,7 +909,7 @@ ZONE RECORDS
     be seen, specify an ONCLEANUP with no message. In this case the item will
     simply disappear with no notification at all.
 
-    See also CLEANUP for how to schedule an item for automatic clean up.
+    See also: CLEANUP
 
   ONRESET: <string>
     ONRESET can be used to provide a custom message when an item is reset or
@@ -942,8 +942,7 @@ ZONE RECORDS
     otherwise be seen, specify an ONRESET with no message. In this case the
     item will simply appear with no notification at all.
 
-    See also RESET for how to schedule an item for automatic resets and
-    respawning.
+    See also: RESET
 
   REF: <KEYWORD>
     REF is a unique reference to something. It only needs to be unique within
@@ -1005,16 +1004,19 @@ ZONE RECORDS
     Reset event. If the item is disabled when the zone is first loaded the
     Reset event will be resumed. This can be used to delay putting items into
     a zone when the server is started. The DUE_IN or DUE-IN period can be
-    longer or shorter than AFTER+JITTER. See also INVENTORY and LOCATION for
-    how to load disabled items into a zone. If the item is not disabled when
-    loaded the DUE_IN or DUE-IN value is ignored. Once the resumed RESET event
-    completes the normal AFTER and JITTER values will come into effect.
+    longer or shorter than AFTER+JITTER. See the INVENTORY and LOCATION
+    sections for how to load disabled items into a zone. If the item is not
+    disabled when loaded the DUE_IN or DUE-IN value is ignored. Once the
+    resumed RESET event completes the normal AFTER and JITTER values will come
+    into effect.
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.
 
-    Custom messages can be displayed when an item is reset or respawned. See
-    ONRESET for more details.
+    Custom messages can be displayed when an item is reset or respawned by
+    defining ONRESET for an item.
+
+    See also: INVENTORY, LOCATION and ONRESET
 
   START:
     The START field defines a location as a starting point where players may
@@ -1058,7 +1060,7 @@ ZONE RECORDS
     the wearer and must also be free - not holding, wearing or wielding other
     items in the required slots.
 
-    See also: BODY, HOLDABLE and WIELDABLE for more details.
+    See also: BODY, HOLDABLE and WIELDABLE
 
   WEARING: <KEYWORD LIST>
     The WEARING field specifies items that should be worn by a mobile when the
@@ -1074,7 +1076,7 @@ ZONE RECORDS
     mobile's inventory and the mobile should have a BODY defined with the BODY
     parts required to wear the items.
 
-    See also: BODY, WEARABLE, HOLDING, WIELDING for more details.
+    See also: BODY, WEARABLE, HOLDING and WIELDING
 
   WIELDABLE: <PAIR LIST>
     The WIELDABLE field specifies that an item can be wielded as a weapon and
@@ -1091,7 +1093,7 @@ ZONE RECORDS
     to the wielder and must also be free - not holding, wearing or wielding
     other items in the required slots.
 
-    See also: BODY, HOLDABLE and WEARABLE for more details.
+    See also: BODY, HOLDABLE and WEARABLE
 
   WIELDING: <KEYWORD LIST>
     The WIELDING field specifies items that should be wielded by a mobile when
@@ -1107,7 +1109,7 @@ ZONE RECORDS
     the mobile's inventory and the mobile should have a BODY defined with the
     BODY parts required to wield the items.
 
-    See also: BODY, WIELDABLE, HOLDING, WEARING for more details.
+    See also: BODY, WIELDABLE, HOLDING and WEARING
 
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored
