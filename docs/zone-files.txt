@@ -491,7 +491,7 @@ ZONE RECORDS
     also matches the DENY list. Note, there should be no white space in the
     comma separated list.
 
-    In the example above, the barrier is defined as blocking all mobile from
+    In the example above, the barrier is defined as blocking all mobiles from
     moving south if they have an alias of CREATURE or NPC - unless they have
     an alias of GUARD or WARDEN. When defining mobiles it is generally a good
     idea to specify a general group alias, such as CREATURE, NPC or GROUP1 as
@@ -532,10 +532,10 @@ ZONE RECORDS
     in multiple places. A barrier may also have aliases, a name and a
     description allowing it to be interacted with.
 
-    A barrier may also be defined on items allowing it to be portable. If the
-    item is picked up the barrier will stop blocking until dropped again. If a
-    barrier is defined as a narrative for an item it will apply to the content
-    of the item and not the location the item is in.
+    A barrier may also be defined as, or on, an item allowing the barrier to
+    be portable. If the item is picked up the barrier will stop blocking until
+    dropped again. If a barrier is defined as a narrative as part of item it
+    will apply to the content of the item and not the location the item is in.
 
     If a barrier is defined on a location, or as a narrative with no NAME
     attribute, a player prevented from moving would see:
@@ -543,7 +543,7 @@ ZONE RECORDS
       "You cannot go <dir> something is blocking your way."
 
     If a barrier is defined on an item or as a narrative with a NAME attribute
-    the item/narrative will be used:
+    the name of the item or narrative will be used:
 
       "You cannot go <dir> <name> is blocking your way."
 
