@@ -213,6 +213,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[ActionDueIn] = decode.Duration(b).Nanoseconds()
 				}
 			}
+			if t.Int[ActionAfter]+t.Int[ActionJitter]+t.Int[ActionDueIn] == 0 {
+				t.Int[ActionAfter] = time.Second.Nanoseconds()
+			}
 		case "ALIAS", "ALIASES":
 			a := make(map[string]struct{})
 			q := make(map[string]struct{})
@@ -268,6 +271,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				case "DUE_IN", "DUE-IN":
 					t.Int[CleanupDueIn] = decode.Duration(b).Nanoseconds()
 				}
+			}
+			if t.Int[CleanupAfter]+t.Int[CleanupJitter]+t.Int[CleanupDueIn] == 0 {
+				t.Int[CleanupAfter] = time.Second.Nanoseconds()
 			}
 		case "DESCRIPTION":
 			t.As[Description] = string(text.Unfold([]byte(decode.String(data))))
@@ -380,6 +386,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 						t.Is |= Wait
 					}
 				}
+			}
+			if t.Int[ResetAfter]+t.Int[ResetJitter]+t.Int[ResetDueIn] == 0 {
+				t.Int[ResetAfter] = time.Second.Nanoseconds()
 			}
 		case "START":
 			t.Is |= Start

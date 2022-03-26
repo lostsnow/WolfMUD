@@ -362,7 +362,8 @@ ZONE RECORDS
     be between AFTER and AFTER+JITTER. In the example an action will occur
     every five to seven and a half minutes.
 
-    If AFTER and JITTER are not specified the minimum period will be 1 second.
+    If ACTION is specified but AFTER, JITTER and DUE_IN are not defined the
+    minimum period will be 1 second.
 
     The actions to be executed are specified via ONACTION. See ONACTION for
     more details.
@@ -604,10 +605,10 @@ ZONE RECORDS
       CLEANUP: AFTER→2m JITTER→1m
 
     AFTER and JITTER specify the period to wait before cleaning up the item to
-    be between AFTER and AFTER+JITTER.
+    be between AFTER and AFTER+JITTER. If CLEANUP is specified but AFTER,
+    JITTER and DUE_IN are not defined the minimum clean up period will be 1
+    second.
 
-    If AFTER and JITTER are not specified the minimum clean up period will be
-    1 second.
 
     Custom messages can be displayed when an item is cleaned up. See
     ONCLEANUP for more details.
@@ -969,8 +970,9 @@ ZONE RECORDS
     being disposed of first. Non-unique items may be kept and collected by
     players.
 
-    If AFTER and JITTER are not specified the minimum reset period will be 1
-    second. If SPAWN is not specified it will default to false.
+    If RESET is specified but AFTER, JITTER and DUE_IN are not defined the
+    minimum reset period will be 1 second. If SPAWN is not specified it will
+    default to false.
 
     Just specifying SPAWN with no value is a shorthand for SPAWN→True.
 
