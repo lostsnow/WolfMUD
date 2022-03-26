@@ -826,8 +826,8 @@ ZONE RECORDS
     If the item reference is prefixed with an exclamation mark '!' the item
     will initially be added to the Inventory in a disabled, out of play state.
     The item can be enabled and put into play by a suspended RESET event. A
-    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
-    period. See RESET for more details.
+    suspended RESET event is defined by a RESET field with a DUE_IN period.
+    See RESET for more details.
 
     It is possible to put containers inside other containers. However you
     cannot put something or a location directly inside itself.
@@ -850,10 +850,10 @@ ZONE RECORDS
     This says to put copies of the item the LOCATION field is defined on into
     the inventories of the things with references (REF) of L1 and L2.
 
-    If the inventory reference is prefixed with an exclamation mark '!' the item
-    will initially be added to the Inventory in a disabled, out of play state.
-    The item can be enabled and put into play by a suspended RESET event. A
-    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
+    If the inventory reference is prefixed with an exclamation mark '!' the
+    item will initially be added to the Inventory in a disabled, out of play
+    state. The item can be enabled and put into play by a suspended RESET
+    event. A suspended RESET event is defined by a RESET field with a DUE_IN
     period. See RESET for more details.
 
     When deciding whether to use LOCATION or INVENTORY to place things as a
@@ -958,7 +958,7 @@ ZONE RECORDS
       JITTER→<period>
       SPAWN→<boolean>
       WAIT→<boolean>
-      DUE_IN→<period> | DUE-IN→<period>
+      DUE_IN→<period>
 
     For example:
 
@@ -1000,15 +1000,14 @@ ZONE RECORDS
     not be waited on - unless the unique container happens to have a reset
     pending already.
 
-    The DUE_IN or DUE-IN period records the time remaining for a suspended
-    Reset event. If the item is disabled when the zone is first loaded the
-    Reset event will be resumed. This can be used to delay putting items into
-    a zone when the server is started. The DUE_IN or DUE-IN period can be
-    longer or shorter than AFTER+JITTER. See the INVENTORY and LOCATION
-    sections for how to load disabled items into a zone. If the item is not
-    disabled when loaded the DUE_IN or DUE-IN value is ignored. Once the
-    resumed RESET event completes the normal AFTER and JITTER values will come
-    into effect.
+    The DUE_IN period records the time remaining for a suspended Reset event.
+    If the item is disabled when the zone is first loaded the Reset event will
+    be resumed. This can be used to delay putting items into a zone when the
+    server is started. The DUE_IN period can be longer or shorter than
+    AFTER+JITTER. See the INVENTORY and LOCATION sections for how to load
+    disabled items into a zone. If the item is not disabled when loaded the
+    DUE_IN value is ignored. Once the resumed RESET event completes the normal
+    AFTER and JITTER values will come into effect.
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.
