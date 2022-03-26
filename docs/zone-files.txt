@@ -600,7 +600,7 @@ ZONE RECORDS
     See also HOLDABLE, WEARABLE and WIELDABLE for more details.
 
   CLEANUP: <PAIR LIST>
-    CLEANUP is used to specify how long to wait after an item is dropped
+    CLEANUP is used to specify how long to wait, after an item is dropped,
     before it is automatically cleaned up and either reset or disposed of. If
     an item does not have a CLEANUP it will be left laying around. The pairs
     that are valid for CLEANUP are:
@@ -617,9 +617,10 @@ ZONE RECORDS
     JITTER and DUE_IN are not defined the minimum clean up period will be 1
     second.
 
+    Custom messages can be displayed when an item is cleaned up by defining
+    ONCLEANUP for the item.
 
-    Custom messages can be displayed when an item is cleaned up. See
-    ONCLEANUP for more details.
+    See also: ONCLEANUP
 
   DESCRIPTION: <STRING>
     A DESCRIPTION provides the descriptive text for a location, mobile or
