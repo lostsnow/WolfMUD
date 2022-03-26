@@ -431,22 +431,30 @@ ZONE RECORDS
       Aliases: +WOODEN +SHORT:SWORD SHORTSWORD
 
     The bound qualifier here is '+SHORT:SWORD'. This specifies that the
-    qualifier 'SHORT' is only valid when used with the alias 'SWORD'. As a
-    result the command 'GET SHORT SHORTSWORD' would not be recognised as
-    'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'.
+    qualifier 'SHORT' is only valid when used with the alias 'SWORD'. That is,
+    the qualifier 'SHORT' is bound to the alias 'SWORD'. This means the player
+    can now use only the following:
 
-    For a bound qualifier the leading '+' is optional. For example, either
-    'SHORT:SWORD' or '+SHORT:SWORD' can be used, although the latter is
-    preferred to match unbound qualifiers.
+      GET SWORD
+      GET SHORTSWORD
+      GET SHORT SWORD
+      GET WOODEN SWORD
+      GET WOODEN SHORT SWORD
+      GET WOODEN SHORTSWORD
 
-    When a bound alias is used the alias does not have to be defined
+    The command 'GET SHORT SHORTSWORD' would no longer be recognised as
+    'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'. Also note
+    that the qualifier 'WOODEN' is still unbound and so can be used with any
+    other alias and/or qualifier.
+
+    When defining a bound qualifier the leading '+' is optional. For example,
+    either 'SHORT:SWORD' or '+SHORT:SWORD' can be used, although the latter is
+    preferred to match the definition of unbound qualifiers.
+
+    When defining a bound qualifier the alias does not have to be defined
     separately. In the above example the bound alias '+SHORT:SWORD' will
     define the alias 'SWORD' automatically, although it can still be specified
     for clarity if needed.
-
-    It should be noted that the qualifier 'WOODEN' is still unbound and so
-    'GET WOODEN SWORD', 'GET WOODEN SHORTSWORD', 'GET WOODEN SHORT SWORD' and
-    'GET SHORT WOODEN SWORD' are all valid.
 
     A good use of qualifiers, bound or unbound, is when differentiating items
     by size, colour or material. It should also be noted that all players have
