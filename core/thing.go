@@ -294,7 +294,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				default:
 					//fmt.Printf("Unknown attribute: %s\n", field)
 				}
-				t.As[TriggerType] = "BLOCKER"
+				if t.Int[TriggerAfter]+t.Int[TriggerJitter] > 0 {
+					t.As[TriggerType] = "BLOCKER"
+				}
 			}
 		case "EXIT", "EXITS":
 			for name, loc := range decode.PairList(r["EXITS"]) {
