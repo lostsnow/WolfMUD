@@ -91,7 +91,7 @@ func Load() {
 		log.Print("  Loading temporary store")
 		store := make(map[string]taggedThing)
 		for _, record := range jar {
-			ref := decode.String(record["REF"])
+			ref := decode.Keyword(record["REF"])
 			store[ref] = taggedThing{
 				Thing:     core.NewThing(),
 				inventory: decode.KeywordList(record["INVENTORY"]),
