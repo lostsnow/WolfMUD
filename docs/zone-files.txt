@@ -829,7 +829,6 @@ ZONE RECORDS
     will initially be added to the Inventory in a disabled, out of play state.
     The item can be enabled and put into play by a suspended RESET event. A
     suspended RESET event is defined by a RESET field with a DUE_IN period.
-    See RESET for more details.
 
     It is possible to put containers inside other containers. However you
     cannot put something or a location directly inside itself.
@@ -837,7 +836,7 @@ ZONE RECORDS
     It is also possible for players to enter containers even though it may not
     have EXITS defining it as an actual location.
 
-    See also: LOCATION
+    See also: LOCATION and RESET
 
   LOCATION: <KEYWORD LIST>
     LOCATION fields are used to put something into one or more inventories.
