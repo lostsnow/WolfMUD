@@ -851,17 +851,17 @@ ZONE RECORDS
     This says to put copies of the item the LOCATION field is defined on into
     the inventories of the things with references (REF) of L1 and L2.
 
-    If the inventory reference is prefixed with an exclamation mark '!' the
-    item will initially be added to the Inventory in a disabled, out of play
-    state. The item can be enabled and put into play by a suspended RESET
-    event. A suspended RESET event is defined by a RESET field with a DUE_IN
-    period. See RESET for more details.
+    If the location reference is prefixed with an exclamation mark '!' the
+    item will initially be added to the location's inventory in a disabled,
+    out of play state. The item can be enabled and put into play by a
+    suspended RESET event. A suspended RESET event is defined by a RESET field
+    with a DUE_IN period.
 
     When deciding whether to use LOCATION or INVENTORY to place things as a
     rule of thumb use LOCATION for things unique to a location, such as
     narratives, and use INVENTORY to place things in multiple places.
 
-    See also: INVENTORY
+    See also: INVENTORY and RESET
 
   NAME: <STRING>
     A short descriptive name. For example: a curious brass lattice
