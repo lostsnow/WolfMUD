@@ -479,7 +479,7 @@ ZONE RECORDS
       BARRIER: EXIT→S DENY→CREATURE,NPC ALLOW→GUARD,WARDEN
 
     EXIT defines the direction the barrier is blocking. The direction can be
-    specified in long or short form (SEE EXITS). If the specified exit does
+    specified in long or short form (See EXITS). If the specified exit does
     not exist the barrier will be ignored.
 
     DENY is a comma separated list of aliases that are not allowed to pass
@@ -658,7 +658,7 @@ ZONE RECORDS
       DOOR: EXIT→E RESET→2m JITTER→1m OPEN→false
 
     EXIT defines the direction that is blocked when the DOOR is closed. The
-    direction can be specified in long or short form (SEE EXITS). If an EXIT
+    direction can be specified in long or short form (See EXITS). If an EXIT
     is not specified the DOOR will not block travel but can still be open and
     closed - perhaps it's just leaning against a wall? :)
 
