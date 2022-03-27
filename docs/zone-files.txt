@@ -864,7 +864,26 @@ ZONE RECORDS
     See also: INVENTORY and RESET
 
   NAME: <STRING>
-    A short descriptive name. For example: a curious brass lattice
+    A short descriptive name for an item.
+
+    For example: a curious brass lattice
+
+    The name should be should be all lower case, except for proper names. This
+    is, prefer "a curious brass lattice" to "A curious brass lattice". The
+    name will be uppercased depending on the situation. For example:
+
+      A rabbit enters.
+      >
+      Diddymus studies a rabbit.
+      >
+
+    It is preferable to begin the name with "a", "an" or "some" as this is
+    substituted for "the" depending on the situation. For example:
+
+      You see a curious brass lattice here.
+      >GET LATTICE
+      You get the curious brass lattice.
+      >
 
   NARRATIVE:
     A NARRATIVE field marks something as being immoveable. Narratives are also
