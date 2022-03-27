@@ -30,7 +30,7 @@ func PreProcessor(j recordjar.Jar) {
 
 	p := &preprocess{
 		Jar:       j,
-		findAtRef: regexp.MustCompile("(?:@)(\\w+)(?:\\W|$)").FindSubmatchIndex,
+		findAtRef: regexp.MustCompile("(?:@)([\\pL\\d_-]+)(?:[^\\pL\\d_-]|$)").FindSubmatchIndex,
 	}
 	p.buildRefLookup()
 	p.process()

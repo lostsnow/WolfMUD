@@ -13,7 +13,7 @@ DESCRIPTION
   extension from the zones sub directory, located in the server's data
   directory. For more details see: running-the-server.txt
 
-  Zone files contain an option zone header record giving brief information
+  Zone files contain an optional zone header record giving brief information
   about the zone such as its name and the name of the author. The rest of the
   records detail locations and objects within the world.
 
@@ -34,11 +34,13 @@ DESCRIPTION
     This is the city of Zinara.
     %%
            Ref: L1
-         Start:
           Name: Fireplace
        Aliases: TAVERN FIREPLACE
+         Start:
          Exits: E→L3 SE→L4 S→L2
      Inventory: L1N1
+          Veto: COMBAT→The tavern is a sanctuary for all. A place to rest and
+                heal, not fight.
 
     You are in the corner of the common room in the dragon's breath tavern. A
     fire burns merrily in an ornate fireplace, giving comfort to weary
@@ -47,9 +49,11 @@ DESCRIPTION
     continues and east the common room leads to the tavern entrance.
     %%
            Ref: L1N1
-     Narrative:
           Name: an ornate fireplace
-         Alias: FIRE FIREPLACE
+         Alias: FIREPLACE
+     Narrative:
+          Veto: GET→For some inexplicable reason you can't just rip out the
+                fireplace and take it!
 
     This is a very ornate fireplace carved from marble. Either side a dragon
     curls downward until the head is below the fire looking upward, giving the
@@ -59,16 +63,17 @@ DESCRIPTION
          Name: a curious brass lattice
       Aliases: LATTICE
      Location: L1
-        Reset: AFTER→2m JITTER→1m
-      OnReset: There is a gentle, musical ping and a curious brass lattice
-               suddenly appears from nowhere.
+         Veto: JUNK→The lattice cannot be junked.
+       Action: AFTER→5m JITTER→2m30s
+     OnAction: $ACT quietly chimes.
+             : $ACT quietly hums.
       Cleanup: AFTER→10m
     OnCleanup: The curious brass lattice starts to slowly spin. It rapidly
                gains speed and then suddenly collapses in on itself and
                disappears.
-       Action: AFTER→5m JITTER→2m30s
-     OnAction: $ACT quietly chimes.
-             : $ACT quietly hums.
+        Reset: AFTER→2m JITTER→1m
+      OnReset: There is a gentle, musical ping and a curious brass lattice
+               suddenly appears from nowhere.
 
     This is a finely crafted, intricate lattice of fine brass wires forming a
     roughly ball shaped curiosity.
@@ -80,21 +85,28 @@ FIELD DATA TYPES
   a specific format. This section lists the different formats.
 
   STRING
-    The data is a simple string of characters.
+    The data is a simple string of characters. For example:
+
+      Name: a curious brass lattice
 
   KEYWORD
-    The data is a single case insensitive word.
+    The data is a single case insensitive word, usually written upper-cased. A
+    keyword may contain any Unicode letter, the digits 0-9, underscore '_' or
+    hyphen '-'. A keyword will be automatically upper-cased. For example:
+
+      Ref: L1
 
   KEYWORD LIST
-    The data is a list of white space separated, case insensitive words.
+    The data is a list of white space separated, case insensitive words. Each
+    word is usually written upper-cased. For example:
+
+       Aliases: TAVERN FIREPLACE
 
   PAIR LIST
     The data is a white space separated list of pairs. Each pair is separated
     by a non-digit, non-letter, non-hyphen/minus '-' or non-underscore '_'
     character. That is, the keyword before the separator may contain digits,
-    letters, hyphen/minus or an underscore.
-
-    For example:
+    letters, hyphen/minus or an underscore. For example:
 
       Exits: E→L3 SE→L4 S→L2
 
@@ -110,7 +122,7 @@ FIELD DATA TYPES
     follow will detail when a leading exclamation mark is valid for a keyword.
 
   STRING LIST
-    The data is separated into strings using a colon (:) as a separator. For
+    The data is separated into strings using a colon ':' as a separator. For
     example:
 
       Actions: The rabbit hops around a bit.
@@ -176,7 +188,8 @@ AT REFERENCE / @REF
     %%
 
   We can then specify an @ref that references an event, in this case Reset,
-  and also specify additional values such as SPAWN:
+  and also specify additional values such as SPAWN as only the @ref @SHORT is
+  replaced:
 
     Reset: @SHORT SPAWN
 
@@ -234,6 +247,24 @@ AT REFERENCE / @REF
   SPAWN. This means that the Reset field on the ball expands to:
 
     Reset: AFTER→1m JITTER→1m SPAWN
+
+  An @ref will not overwrite values that have already been set. For example:
+
+    %%
+      Ref: RESET
+    Reset: AFTER→1m JITTER→1m SPAWN
+    %%
+      Ref: BALL
+     Name: a ball
+    Alias: BALL
+    Reset: SPAWN→FALSE @RESET
+
+    This is a ball.
+    %%
+
+  For the Reset field we are setting SPAWN to false before the @ref. This will
+  have the effect of overriding the SPAWN used on the @ref, which will not
+  overwrite the value previously set.
 
   See also: REF
 
@@ -332,10 +363,12 @@ ZONE RECORDS
     be between AFTER and AFTER+JITTER. In the example an action will occur
     every five to seven and a half minutes.
 
-    If AFTER and JITTER are not specified the minimum period will be 1 second.
+    If ACTION is specified but AFTER, JITTER and DUE_IN are not defined the
+    minimum period will be 1 second.
 
-    The actions to be executed are specified via ONACTION. See ONACTION for
-    more details.
+    The actions to be executed are specified via ONACTION.
+
+    See also: ONACTION
 
   ALIAS: <KEYWORD LIST>
   ALIASES: <KEYWORD LIST>
@@ -400,22 +433,30 @@ ZONE RECORDS
       Aliases: +WOODEN +SHORT:SWORD SHORTSWORD
 
     The bound qualifier here is '+SHORT:SWORD'. This specifies that the
-    qualifier 'SHORT' is only valid when used with the alias 'SWORD'. As a
-    result the command 'GET SHORT SHORTSWORD' would not be recognised as
-    'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'.
+    qualifier 'SHORT' is only valid when used with the alias 'SWORD'. That is,
+    the qualifier 'SHORT' is bound to the alias 'SWORD'. This means the player
+    can now use only the following:
 
-    For a bound qualifier the leading '+' is optional. For example, either
-    'SHORT:SWORD' or '+SHORT:SWORD' can be used, although the latter is
-    preferred to match unbound qualifiers.
+      GET SWORD
+      GET SHORTSWORD
+      GET SHORT SWORD
+      GET WOODEN SWORD
+      GET WOODEN SHORT SWORD
+      GET WOODEN SHORTSWORD
 
-    When a bound alias is used the alias does not have to be defined
+    The command 'GET SHORT SHORTSWORD' would no longer be recognised as
+    'SHORT' is only a qualifier for 'SWORD' and not 'SHORTSWORD'. Also note
+    that the qualifier 'WOODEN' is still unbound and so can be used with any
+    other alias and/or qualifier.
+
+    When defining a bound qualifier the leading '+' is optional. For example,
+    either 'SHORT:SWORD' or '+SHORT:SWORD' can be used, although the latter is
+    preferred to match the definition of unbound qualifiers.
+
+    When defining a bound qualifier the alias does not have to be defined
     separately. In the above example the bound alias '+SHORT:SWORD' will
     define the alias 'SWORD' automatically, although it can still be specified
     for clarity if needed.
-
-    It should be noted that the qualifier 'WOODEN' is still unbound and so
-    'GET WOODEN SWORD', 'GET WOODEN SHORTSWORD', 'GET WOODEN SHORT SWORD' and
-    'GET SHORT WOODEN SWORD' are all valid.
 
     A good use of qualifiers, bound or unbound, is when differentiating items
     by size, colour or material. It should also be noted that all players have
@@ -438,7 +479,7 @@ ZONE RECORDS
       BARRIER: EXIT→S DENY→CREATURE,NPC ALLOW→GUARD,WARDEN
 
     EXIT defines the direction the barrier is blocking. The direction can be
-    specified in long or short form (SEE EXITS). If the specified exit does
+    specified in long or short form (See EXITS). If the specified exit does
     not exist the barrier will be ignored.
 
     DENY is a comma separated list of aliases that are not allowed to pass
@@ -452,7 +493,7 @@ ZONE RECORDS
     also matches the DENY list. Note, there should be no white space in the
     comma separated list.
 
-    In the example above, the barrier is defined as blocking all mobile from
+    In the example above, the barrier is defined as blocking all mobiles from
     moving south if they have an alias of CREATURE or NPC - unless they have
     an alias of GUARD or WARDEN. When defining mobiles it is generally a good
     idea to specify a general group alias, such as CREATURE, NPC or GROUP1 as
@@ -493,10 +534,10 @@ ZONE RECORDS
     in multiple places. A barrier may also have aliases, a name and a
     description allowing it to be interacted with.
 
-    A barrier may also be defined on items allowing it to be portable. If the
-    item is picked up the barrier will stop blocking until dropped again. If a
-    barrier is defined as a narrative for an item it will apply to the content
-    of the item and not the location the item is in.
+    A barrier may also be defined as, or on, an item allowing the barrier to
+    be portable. If the item is picked up the barrier will stop blocking until
+    dropped again. If a barrier is defined as a narrative as part of item it
+    will apply to the content of the item and not the location the item is in.
 
     If a barrier is defined on a location, or as a narrative with no NAME
     attribute, a player prevented from moving would see:
@@ -504,11 +545,11 @@ ZONE RECORDS
       "You cannot go <dir> something is blocking your way."
 
     If a barrier is defined on an item or as a narrative with a NAME attribute
-    the item/narrative will be used:
+    the name of the item or narrative will be used:
 
       "You cannot go <dir> <name> is blocking your way."
 
-    See also the section on ALIASES.
+    See also: ALIASES
 
   BODY: <PAIR LIST>
     BODY is used to specify the body slots of players and mobiles. Body slots
@@ -530,9 +571,9 @@ ZONE RECORDS
     limited to single handed weapons - so no bows for example. It should also
     be noted that a mythical creature with four arms/hands would be able to
     use two bows or a bow and two single handed weapons - simply by having the
-    approbate body slots available.
+    appropriate body slots available.
 
-    A body can be defined using only a few general slots. For example a
+    A body can be defined using only a few general slots. For example, a
     minimal body would be:
 
       BODY: TORSO HAND→2
@@ -558,10 +599,10 @@ ZONE RECORDS
     wieldable items that currently use the MOUTH, UPPER_LIP or LOWER_LIP
     slots.
 
-    See also HOLDABLE, WEARABLE and WIELDABLE for more details.
+    See also: HOLDABLE, WEARABLE and WIELDABLE
 
   CLEANUP: <PAIR LIST>
-    CLEANUP is used to specify how long to wait after an item is dropped
+    CLEANUP is used to specify how long to wait, after an item is dropped,
     before it is automatically cleaned up and either reset or disposed of. If
     an item does not have a CLEANUP it will be left laying around. The pairs
     that are valid for CLEANUP are:
@@ -574,13 +615,14 @@ ZONE RECORDS
       CLEANUP: AFTER→2m JITTER→1m
 
     AFTER and JITTER specify the period to wait before cleaning up the item to
-    be between AFTER and AFTER+JITTER.
+    be between AFTER and AFTER+JITTER. If CLEANUP is specified but AFTER,
+    JITTER and DUE_IN are not defined the minimum clean up period will be 1
+    second.
 
-    If AFTER and JITTER are not specified the minimum clean up period will be
-    1 second.
+    Custom messages can be displayed when an item is cleaned up by defining
+    ONCLEANUP for the item.
 
-    Custom messages can be displayed when an item is cleaned up. See
-    ONCLEANUP for more details.
+    See also: ONCLEANUP
 
   DESCRIPTION: <STRING>
     A DESCRIPTION provides the descriptive text for a location, mobile or
@@ -616,7 +658,7 @@ ZONE RECORDS
       DOOR: EXIT→E RESET→2m JITTER→1m OPEN→false
 
     EXIT defines the direction that is blocked when the DOOR is closed. The
-    direction can be specified in long or short form (SEE EXITS). If an EXIT
+    direction can be specified in long or short form (See EXITS). If an EXIT
     is not specified the DOOR will not block travel but can still be open and
     closed - perhaps it's just leaning against a wall? :)
 
@@ -639,37 +681,43 @@ ZONE RECORDS
     If RESET and JITTER are both set to 0s the DOOR will not automatically
     reset to its initial state.
 
-    NOTE: A DOOR attribute should only be added to narrative items in a
-    location. Adding a DOOR directly to a location or a moveable item may
-    result in unexpected/odd behaviour.
+    NOTE: A DOOR attribute should only be added as a narrative item in a
+    location. Adding a DOOR attribute as part of a location's definition is
+    not supported and the DOOR will be ignored. Adding a DOOR directly to a
+    moveable item may result in unexpected/odd behaviour.
 
   EXIT: <PAIR LIST>
   EXITS: <PAIR LIST>
     An EXITS field defines something as a location, allowing for very loose
     definitions of what a location is. Each pair in the list should consist of
     a direction followed by a non-digit, non-letter separator followed by a
-    reference to another location. Exit directions can be given in long or
-    short form. The long and short form directions available are: North - N,
-    Northeast - NE, East - E, Southeast - SE, South - S, Southwest - SW, West -
-    W, Northwest - NW, Up - U, Down - D. Directions are case insensitive as
-    are the references. An example might be: E→L3. This implies that going
-    east from the location defining the exits will lead to the location with a
-    REF field of L3. If an invalid reference is given the exit will be
-    ignored. As references are only unique within separate zone files exits
-    between locations in different zones need to use a ZONELINKS field.
+    reference to another location.
+
+    Exit directions can be given in long or short form. The long and short
+    forms available are:
+
+      North - N, Northeast - NE, East - E, Southeast - SE,
+      South - S, Southwest - SW, West - W, Northwest - NW,
+      Up - U,    Down - D
+
+    Directions are case insensitive as are the references. An example might
+    be: E→L3. This implies that going east from the location defining the exit
+    will lead to the location with a REF field of L3. If an invalid reference
+    is given the exit will be ignored. As references are only unique within
+    separate zone files exits between locations in different zones need to use
+    a ZONELINKS field.
 
     When adding exits it should be noted that they are usually added as
     opposing pairs. For example: going east from A leads to B, going west from
     B leads back to A. As the exits are added to A and B independently this
     need not always be the case.
 
-    An EXITS pair may be left incomplete. For example, S or S→. This is
+    An EXIT pair may be left incomplete. For example, S or S→. This is
     convenient as a reminder when developing a zone. Such incomplete pairs
-    will be ignored. To raise a warning when the zone is loaded use an
-    invalid reference instead. For example, S→X
+    will be ignored. To raise a warning when the zone is loaded use an invalid
+    reference instead. For example, S→X
 
-    If an EXITS field is added to something an inventory will be automatically
-    added as well even if there is no specific INVENTORY field.
+    See also: ZONELINKS
 
   HEALTH: <PAIR LIST>
     The HEALTH field specifies the current, maximum and healing rate of a
@@ -686,21 +734,40 @@ ZONE RECORDS
       HEALTH: AFTER→10S CURRENT→50 JITTER→0S MAXIMUM→30 RESTORE→2
 
     AFTER and JITTER specify the period that health is restored when CURRENT
-    health is below MAXIMUM health to be between AFTER and AFTER+JITTER. In
-    the example 2 points of health will be restored every 10 seconds.
+    health is below MAXIMUM health to be between AFTER and AFTER+JITTER. The
+    amount of health restored is specified by RESTORE. In the example 2 points
+    of health will be restored every 10 seconds.
 
     Specifying JITTER is optional. If both AFTER and JITTER are not specified
     health is not automatically restored.
 
     The current health of a player or mobile is specified using CURRENT. The
     maximum health that can be restored is specified using MAXIMUM. CURRENT
-    health may go above MAXIMUM but healing will not take HEALTH above the
-    MAXIMUM value. If CURRENT goes below 1 the player or mobile has been
-    killed. Only mobiles with HEALTH can be attacked and killed.
+    health may temporarly go above MAXIMUM, but healing will not take HEALTH
+    above the MAXIMUM value. If CURRENT goes below 1 the player or mobile has
+    been killed. Only mobiles with HEALTH can be attacked and killed.
 
-    If CURRENT is not specified it will initially be set equal to MAXIMUM.
+    SELF HEALING
 
-    The amount of health restored is specified by RESTORE.
+      Something can self heal if it has a HEALTH field defined with MAXIMUM,
+      RESTORE, AFTER and/or JITTER set. If something can self heal and CURRENT
+      is not specified then CURRENT will be set equal to MAXIMUM when it is
+      loaded into the game world.
+
+    MOBILES & NPCs
+
+      A mobile, or non-player character (NPC), is considered to be anything
+      that can self heal.
+
+      Mobiles and NPCs cannot be picked up using the GET command - unless
+      allowed specifically by defining the mobile or NPC as being HOLDABLE.
+      Items cannot be taken from a mobile/NPC using the TAKE command. Items
+      cannot be given to a mobile/NPC using the PUT command.
+
+      A mobile or NPC need not have a BODY defined. For example, you do not
+      need to create a body for every critter and creepy-crawly.
+
+      See also: BODY
 
   HOLDABLE: <PAIR LIST>
     The HOLDABLE field specifies that an item can be held and the BODY slots
@@ -729,7 +796,7 @@ ZONE RECORDS
     the holder and must also be free - not holding, wearing or wielding other
     items in the required slots.
 
-    See also: BODY, WEARABLE and WIELDABLE for more details.
+    See also: BODY, WEARABLE and WIELDABLE
 
   HOLDING: <KEYWORD LIST>
     The HOLDING field specifies items that should be held by a mobile when the
@@ -745,7 +812,7 @@ ZONE RECORDS
     mobile's inventory and the mobile should have a BODY defined with the BODY
     parts required to hold the items.
 
-    See also: BODY, HOLDABLE, WEARING, WIELDING for more details.
+    See also: BODY, HOLDABLE, WEARING and WIELDING
 
   INVENTORY: <KEYWORD LIST>
     The INVENTORY field defines something as being a container or location. It
@@ -761,8 +828,7 @@ ZONE RECORDS
     If the item reference is prefixed with an exclamation mark '!' the item
     will initially be added to the Inventory in a disabled, out of play state.
     The item can be enabled and put into play by a suspended RESET event. A
-    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
-    period. See RESET for more details.
+    suspended RESET event is defined by a RESET field with a DUE_IN period.
 
     It is possible to put containers inside other containers. However you
     cannot put something or a location directly inside itself.
@@ -770,7 +836,7 @@ ZONE RECORDS
     It is also possible for players to enter containers even though it may not
     have EXITS defining it as an actual location.
 
-    See also LOCATION.
+    See also: LOCATION and RESET
 
   LOCATION: <KEYWORD LIST>
     LOCATION fields are used to put something into one or more inventories.
@@ -785,20 +851,39 @@ ZONE RECORDS
     This says to put copies of the item the LOCATION field is defined on into
     the inventories of the things with references (REF) of L1 and L2.
 
-    If the inventory reference is prefixed with an exclamation mark '!' the item
-    will initially be added to the Inventory in a disabled, out of play state.
-    The item can be enabled and put into play by a suspended RESET event. A
-    suspended RESET event is defined by a RESET field with a DUE_IN or DUE-IN
-    period. See RESET for more details.
+    If the location reference is prefixed with an exclamation mark '!' the
+    item will initially be added to the location's inventory in a disabled,
+    out of play state. The item can be enabled and put into play by a
+    suspended RESET event. A suspended RESET event is defined by a RESET field
+    with a DUE_IN period.
 
     When deciding whether to use LOCATION or INVENTORY to place things as a
     rule of thumb use LOCATION for things unique to a location, such as
     narratives, and use INVENTORY to place things in multiple places.
 
-    See also INVENTORY.
+    See also: INVENTORY and RESET
 
   NAME: <STRING>
-    A short descriptive name. For example: a curious brass lattice
+    A short descriptive name for an item.
+
+    For example: a curious brass lattice
+
+    The name should be should be all lower case, except for proper names. This
+    is, prefer "a curious brass lattice" to "A curious brass lattice". The
+    name will be uppercased depending on the situation. For example:
+
+      A rabbit enters.
+      >
+      Diddymus studies a rabbit.
+      >
+
+    It is preferable to begin the name with "a", "an" or "some" as this is
+    substituted for "the" depending on the situation. For example:
+
+      You see a curious brass lattice here.
+      >GET LATTICE
+      You get the curious brass lattice.
+      >
 
   NARRATIVE:
     A NARRATIVE field marks something as being immoveable. Narratives are also
@@ -821,7 +906,7 @@ ZONE RECORDS
     time ONACTION fires one action will be picked at random from the actions
     defined by ONACTION.
 
-    See also ACTION for how to schedule actions for an item.
+    See also: ACTION
 
   ONCLEANUP: <string>
     ONCLEANUP can be used to provide a custom message when an item is cleaned
@@ -833,7 +918,7 @@ ZONE RECORDS
 
     The message will be displayed if the item clean up occurs in a location
     where it will be seen. If the clean up occurs inside a container it will
-    not be seen, and no message displayed.
+    only be seen by anyone in the container.
 
     If an item does not have an ONCLEANUP and the clean up would be seen a
     default message will be displayed of the form:
@@ -844,7 +929,7 @@ ZONE RECORDS
     be seen, specify an ONCLEANUP with no message. In this case the item will
     simply disappear with no notification at all.
 
-    See also CLEANUP for how to schedule an item for automatic clean up.
+    See also: CLEANUP
 
   ONRESET: <string>
     ONRESET can be used to provide a custom message when an item is reset or
@@ -877,14 +962,48 @@ ZONE RECORDS
     otherwise be seen, specify an ONRESET with no message. In this case the
     item will simply appear with no notification at all.
 
-    See also RESET for how to schedule an item for automatic resets and
-    respawning.
+    See also: RESET
 
   REF: <KEYWORD>
     REF is a unique reference to something. It only needs to be unique within
     the zone file it is defined in. It is helpful if standard reference
-    prefixes are used such as 'L' for locations and 'O' for object. Although
-    this is not essential and not enforced. For example: L1
+    prefixes are used such as 'L' for locations, 'O' for object, 'M' for
+    mobile, 'N' for narrative. It can also be useful to combine references.
+    For example if there is a container with a reference 'O1' items that
+    belong within it might have references 'O1O2', 'O1O3', etc. Narratives
+    specific to a location 'L1' might have references 'L1N1', 'L1N2', etc. A
+    trader mobile with a reference 'M1' may have its inventory items as
+    'M1O1', M1O2', etc.
+
+    A variation to this is to tag the reference as a reminder. For example:
+    L1TAVERN, M1GUARD, O1SWORD. References usually contain any unicode letter,
+    digits 0-9, underscore '_' and hyphen '-'. Lower-cased characters are
+    automatically upper-cased. This means that 'L1Tavern' and 'L1TAVERN' are
+    treated the same. The prefix could also be a suffix. The only requirement
+    is that references are kept unique within a zone file.
+
+    Some examples of valid references:
+
+      L1
+      TAVERN
+      Tavern
+      L1TAVERN
+      L1Tavern
+      L1-TAVERN
+      L1_TAVERN
+      L1-Tavern
+      L1_Tavern
+      TAVERNL1
+      TavernL1
+      Tavern_L1
+      Tavern-L1
+      L1-καπηλειό  <- Google translate says this is Greek for tavern :)
+
+    This is only a guide, it is not essential and not enforced. However, it is
+    advised to use a consistent naming scheme.
+
+    NOTE: The current zone files use a simple L1, N1, O1, L1N1 scheme due to
+    being converted from the original Java version.
 
   RESET: <PAIR LIST>
     RESET is used to specify how and when an item resets or respawns. The
@@ -894,7 +1013,7 @@ ZONE RECORDS
       JITTER→<period>
       SPAWN→<boolean>
       WAIT→<boolean>
-      DUE_IN→<period> | DUE-IN→<period>
+      DUE_IN→<period>
 
     For example:
 
@@ -914,8 +1033,9 @@ ZONE RECORDS
     being disposed of first. Non-unique items may be kept and collected by
     players.
 
-    If AFTER and JITTER are not specified the minimum reset period will be 1
-    second. If SPAWN is not specified it will default to false.
+    If RESET is specified but AFTER, JITTER and DUE_IN are not defined the
+    minimum reset period will be 1 second. If SPAWN is not specified it will
+    default to false.
 
     Just specifying SPAWN with no value is a shorthand for SPAWN→True.
 
@@ -935,20 +1055,22 @@ ZONE RECORDS
     not be waited on - unless the unique container happens to have a reset
     pending already.
 
-    The DUE_IN or DUE-IN period records the time remaining for a suspended
-    Reset event. If the item is disabled when the zone is first loaded the
-    Reset event will be resumed. This can be used to delay putting items into
-    a zone when the server is started. The DUE_IN or DUE-IN period can be
-    longer or shorter than AFTER+JITTER. See also INVENTORY and LOCATION for
-    how to load disabled items into a zone. If the item is not disabled when
-    loaded the DUE_IN or DUE-IN value is ignored. Once the resumed RESET event
-    completes the normal AFTER and JITTER values will come into effect.
+    The DUE_IN period records the time remaining for a suspended Reset event.
+    If the item is disabled when the zone is first loaded the Reset event will
+    be resumed. This can be used to delay putting items into a zone when the
+    server is started. The DUE_IN period can be longer or shorter than
+    AFTER+JITTER. See the INVENTORY and LOCATION sections for how to load
+    disabled items into a zone. If the item is not disabled when loaded the
+    DUE_IN value is ignored. Once the resumed RESET event completes the normal
+    AFTER and JITTER values will come into effect.
 
     NOTE: When an item is disposed of and does not have a reset attribute it
     will be removed from play until the server is restarted.
 
-    Custom messages can be displayed when an item is reset or respawned. See
-    ONRESET for more details.
+    Custom messages can be displayed when an item is reset or respawned by
+    defining ONRESET for an item.
+
+    See also: INVENTORY, LOCATION and ONRESET
 
   START:
     The START field defines a location as a starting point where players may
@@ -992,7 +1114,7 @@ ZONE RECORDS
     the wearer and must also be free - not holding, wearing or wielding other
     items in the required slots.
 
-    See also: BODY, HOLDABLE and WIELDABLE for more details.
+    See also: BODY, HOLDABLE and WIELDABLE
 
   WEARING: <KEYWORD LIST>
     The WEARING field specifies items that should be worn by a mobile when the
@@ -1008,7 +1130,7 @@ ZONE RECORDS
     mobile's inventory and the mobile should have a BODY defined with the BODY
     parts required to wear the items.
 
-    See also: BODY, WEARABLE, HOLDING, WIELDING for more details.
+    See also: BODY, WEARABLE, HOLDING and WIELDING
 
   WIELDABLE: <PAIR LIST>
     The WIELDABLE field specifies that an item can be wielded as a weapon and
@@ -1025,7 +1147,7 @@ ZONE RECORDS
     to the wielder and must also be free - not holding, wearing or wielding
     other items in the required slots.
 
-    See also: BODY, HOLDABLE and WEARABLE for more details.
+    See also: BODY, HOLDABLE and WEARABLE
 
   WIELDING: <KEYWORD LIST>
     The WIELDING field specifies items that should be wielded by a mobile when
@@ -1041,7 +1163,7 @@ ZONE RECORDS
     the mobile's inventory and the mobile should have a BODY defined with the
     BODY parts required to wield the items.
 
-    See also: BODY, WIELDABLE, HOLDING, WEARING for more details.
+    See also: BODY, WIELDABLE, HOLDING and WEARING
 
   ZONELINKS: <PAIR LIST>
     WolfMUD allows worlds to be created as separate zones, possibly authored

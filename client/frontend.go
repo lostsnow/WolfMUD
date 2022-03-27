@@ -280,9 +280,9 @@ func (c *client) frontend() bool {
 				buf = append(buf, text.Reset...)
 				continue
 			}
-			if len(input) < 3 {
+			if len(input) < 3 || len(input) > 15 {
 				buf = append(buf, text.Bad...)
-				buf = append(buf, "A character's name must be a minimum of 3 letters in length.\n\n"...)
+				buf = append(buf, "A character's name must be a minimum of 3 letters in length and a maximum of 15 letters in length.\n\n"...)
 				buf = append(buf, text.Reset...)
 				continue
 			}

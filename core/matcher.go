@@ -222,3 +222,56 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 	}
 	return results[:x], words[:pos]
 }
+
+// StripMatch removes the leading stopwords, modifiers, qualifiers and alias
+// from the input string that would have been used to match the passed what.
+//
+// For example, assuming the player state for "tell any of the guard the vendor
+// is here!":
+//
+//  s.input: any of the guard the vendor is here
+//  s.word:  ANY GUARD VENDOR HERE!
+//
+// The matcher can match "ANY GUARD", however there is a problem. How do we
+// relate "VENDOR HERE" back to the original input of "any of the guard the
+// vendor is here" so that we are left with what was being said, "the vendor is
+// here"? This is where StripMatch can be used to remove the text that would
+// have been used to match "ANY GUARD". In this case "any of the guard" would
+// be removed, returning "the vendor is here".
+func StripMatch(what *Thing, input string) string {
+	i := strings.Fields(input)
+	w := strings.ToUpper(i[0])
+
+	// Strip stop words
+	for _, found := stopWords[w]; found; _, found = stopWords[w] {
+		i, w = i[1:], strings.ToUpper(i[1])
+	}
+	// Strip modifier
+	if w == "ALL" || w == "ANY" || w == "LAST" ||
+		'1' <= w[0] && w[0] <= '9' {
+		i, w = i[1:], strings.ToUpper(i[1])
+	}
+	// Strip stop words
+	for _, found := stopWords[w]; found; _, found = stopWords[w] {
+		i, w = i[1:], strings.ToUpper(i[1])
+	}
+	// Strip matching qualifiers
+	for _, q := range what.Any[Qualifier] {
+		q = strings.Split(q, ":")[0]
+		if w == q {
+			i, w = i[1:], strings.ToUpper(i[1])
+		}
+	}
+	// Strip stop words
+	for _, found := stopWords[w]; found; _, found = stopWords[w] {
+		i, w = i[1:], strings.ToUpper(i[1])
+	}
+	// Strip matching alias
+	for _, a := range what.Any[Alias] {
+		if w == a {
+			i, w = i[1:], strings.ToUpper(i[1])
+		}
+	}
+
+	return strings.Join(i, " ")
+}

@@ -51,7 +51,6 @@ func Load() {
 
 	log.Printf("Loading zones from: %s", cfg.zonePath)
 
-	core.World = make(map[string]*core.Thing)
 	refToUID := make(map[string]string)
 
 	filenames, err := filepath.Glob(cfg.zonePath)
@@ -92,7 +91,7 @@ func Load() {
 		log.Print("  Loading temporary store")
 		store := make(map[string]taggedThing)
 		for _, record := range jar {
-			ref := decode.String(record["REF"])
+			ref := decode.Keyword(record["REF"])
 			store[ref] = taggedThing{
 				Thing:     core.NewThing(),
 				inventory: decode.KeywordList(record["INVENTORY"]),
@@ -193,7 +192,7 @@ func Load() {
 	// between zones work properly.
 	//
 	// NOTE: If we didn't allow one side of a door to be in one zone and the
-	// other side of the door to be in a different zone we could call enable when
+	// other side of the door to be in a different zone we could initialise when
 	// copying to the world.
 	log.Print("Final item setup")
 	for _, loc := range core.World {

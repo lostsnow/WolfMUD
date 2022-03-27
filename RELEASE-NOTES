@@ -6,6 +6,81 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19-beta.5 Released Sunday 27th March, 2022
+==============================================================================
+
+Added
+
+  - The matcher package has a new trimMatch function to remove leading
+    stopwords, modifiers, qualifiers and alias from an original input that
+    would have been used in a match.
+  - New TELL/TALK player command.
+  - New WHISPER player command.
+  - New map of in-game players added to core.state, players added by $POOF and
+    removed by QUIT command.
+  - New /WHO command to list other players currently in-game.
+  - New /WHOAMI command to remind yourself who you are.
+  - New Thing.selfHeals helper method.
+  - Mobiles/NPCs that are holdable can no longer be PUT into containers.
+
+Changed
+
+  - The bots from the botrunner now TELL/TALK and WHISPER again.
+  - The data/zones/zinara.wrj zone file has been updated so that some NPCs will
+    directly address the player.
+  - Clean-up initial section, example zone file, field data types and @refs
+    section in docs/zone-files.txt
+  - Clean-up EXIT/EXITS entry in docs/zone-files.txt
+  - When unmarshaling a Thing current health is only set to maximum health if
+    current health is zero and Thing can self heal.
+  - An NPC is now anything that can self heal.
+  - Updated docs/zone-files.txt for self healing and mobiles/NPC.
+  - Updated data/zones/zinara.wrj to make sure all NPCs have Health so that
+    they behave properly.
+  - Documentation for KEYWORD and REF sections in docs/zone-files.txt has been
+    updated and improved. REF section now has examples of naming schemes.
+  - Documentation for NAME section in docs/zone-files.txt expanded and contains
+    details of 'a/as/some' to 'the' and upper/lower case conversions.
+  - Corrected who can see messages in CLEANUP section of docs/zone-files.txt
+
+Fixed
+
+  - Delete Thing.Event map entries for suspended events.
+  - Suspend events scheduled by InitOnce/Init if Thing loaded disabled with a
+    suspended reset event.
+  - The maximum length of player names is now 15 letters. Previously no limit.
+  - Initialise World in core.state where it is defined, not world.Load.
+  - The SOME qualifier usage has been dropped from data/zones/zinara.wrj as it
+    will never match due to being dropped as a stop word.
+  - Improve some alias qualifiers in data/zones/zinara.wrj
+  - Fix nil panic when DOOR attribute used in a location's definition. The
+    DOOR attribute is now ignored.
+  - Fix body checks failing when all body slots a used for held, worn or
+    wielded items.
+  - Fix nil panic in REMOVE command when item to remove not found.
+  - Drop redundant check for "where.Is&(NPC|Player) != 0" in state.Take method.
+  - Added health to the core.preferredOrdering list in core/types.go
+  - Implement the minimum one second event period when ACTION, CLEANUP or RESET
+    are specified but AFTER, JITTER and DUE_IN are not defined as documented in
+    docs/zone-files.txt
+  - The world loader now correctly uppercases REFs in zone files. Previously a
+    lowercased REF would fail to match when used in, for example INVENTORY or
+    LOCATION fields.
+  - The pre-processor now identifies @refs with with Unicode letters correctly.
+  - Fixed sentance not ending with a period for DROP command.
+  - Fixed sentance not ending with a period for GET command.
+  - Don't register redundant event when unmarshaling a DOOR field.
+  - Type fixed in message for MOVE command.
+
+Known Bugs / Issues
+
+  - If a mobile is loaded with current health < maximum health a health event
+    is not registered to regenerate health.
+  - If a mobile is holdable and junked when current health < maximum health a
+    health event is not registered to regenerate health when mobile resets.
+  - If a door is saved and reloaded its reset event is not suspended and
+    restored.
+
 v0.0.19-beta.4 Released Sunday 27th February, 2022
 ==============================================================================
 

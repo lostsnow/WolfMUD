@@ -90,6 +90,13 @@ func RegisterCommandHandlers() {
 		"VERSION":   (*state).Version,
 		"SAVE":      (*state).Save,
 		"HIT":       (*state).Hit,
+		"TELL":      (*state).Tell,
+		"TALK":      (*state).Tell,
+		"WHISPER":   (*state).Whisper,
+
+		// Out of character commands
+		"/WHO":    (*state).Who,
+		"/WHOAMI": (*state).WhoAmI,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -132,6 +139,7 @@ func RegisterCommandHandlers() {
 // FIXME: We reset usage here in case item is unique, should it go somewhere
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
+	delete(Players, s.actor.As[UID])
 	s.Prompt(s.actor, "")
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
@@ -298,7 +306,7 @@ func (s *state) Move() {
 
 	switch {
 	case blocker != nil:
-		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ". ",
+		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ", ",
 			blocker.As[TheName], " is blocking your way.")
 	case where.Ref[dir] == nil:
 		s.Msg(s.actor, text.Bad, "Oops! You can't actually go ", DirToName[dir], ".")
@@ -401,8 +409,8 @@ func (s *state) Examine() {
 			}
 		}
 
-		// If player or mobile/NPC describe items being worn, held or wielded.
-		if what.Is&(Player|NPC) != 0 {
+		// If we have a body describe items being worn, held or wielded.
+		if what.Is&HasBody == HasBody {
 			var wearing, holding, wielding []string
 			for _, item := range what.In {
 				switch {
@@ -490,7 +498,7 @@ func (s *state) Drop() {
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, text.Good, "You drop ", what.As[TheName], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " drops ", what.As[Name])
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " drops ", what.As[Name], ".")
 			}
 		}
 	}
@@ -539,7 +547,7 @@ func (s *state) Get() {
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, text.Good, "You get ", what.As[TheName], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " picks up ", what.As[TheName])
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " picks up ", what.As[TheName], ".")
 			}
 		}
 	}
@@ -588,7 +596,7 @@ func (s *state) Take() {
 			s.Msg(s.actor, text.Bad, where.As[UTheName], " does not seem to contain '", uid, "'.")
 		case what.As[VetoTake] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoTake])
-		case where.Is&(NPC|Player) != 0 || what.Is&Narrative == Narrative:
+		case what.Is&Narrative == Narrative:
 			s.Msg(s.actor, text.Bad, "You can't take ", what.As[TheName], " from ", where.As[TheName], ".")
 		default:
 			what.Cancel(Cleanup)
@@ -654,6 +662,8 @@ func (s *state) Put() {
 		switch {
 		case what == nil:
 			s.Msg(s.actor, text.Bad, "You have no '", uid, "' to put into ", where.As[TheName], ".")
+		case what.Is&NPC == NPC:
+			s.Msg(s.actor, text.Bad, what.As[UTheName], " does not want to be put into ", where.As[TheName], ".")
 		case what.As[VetoPut] != "":
 			s.Msg(s.actor, text.Bad, what.As[VetoPut])
 		case what.Is&Using != 0:
@@ -909,6 +919,7 @@ func (s *state) Teleport() {
 }
 
 func (s *state) Poof() {
+	Players[s.actor.As[UID]] = s.actor
 	s.buildPrompt(s.actor)
 	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
 		s.actor.Schedule(Health)
@@ -1205,6 +1216,8 @@ func (s *state) Remove() {
 			slots []string
 		)
 		switch {
+		case what == nil:
+			// Do nothing, avoids nil panic accessing a nil what's fields
 		case what.Is&Holding == Holding:
 			usage = " holding "
 			slots = what.Any[Holdable]
@@ -1626,6 +1639,105 @@ func createCorpse(t *Thing) *Thing {
 	}
 
 	return c
+}
+
+func (s *state) Tell() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "You go to tell someone something...")
+		return
+	}
+
+	uids := Match(s.word, s.actor.Ref[Where])
+	uid := uids[0]
+
+	what := s.actor.Ref[Where].Who[uid]
+	if what == nil {
+		what = s.actor.Ref[Where].In[uid]
+	}
+
+	where := s.actor.Ref[Where]
+	l := len(where.Who)
+
+	if l >= cfg.crowdSize {
+		s.Msg(s.actor, text.Info, "It's too crowded for you to be heard.")
+		return
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", s.word[0], "' to talk to.")
+	case len(s.word) == 1:
+		s.Msg(s.actor, text.Info, "What did you want to say to ", what.As[TheName], "?")
+	default:
+		txt := StripMatch(what, s.input)
+		s.Msg(s.actor, text.Good, "You say to ", what.As[TheName], ": ", txt)
+		s.Msg(what, text.Good, s.actor.As[UTheName], " says to you: ", txt)
+		s.Msg(where, text.Info, s.actor.As[UTheName], " says to ", what.As[TheName], ": ", txt)
+
+		for _, where := range radius(1, where)[1] {
+			if l = len(where.Who); 0 < l && l < cfg.crowdSize {
+				s.Msg(where, text.Info, "You hear talking nearby.")
+			}
+		}
+	}
+}
+
+func (s *state) Whisper() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "You go to whisper something to someone...")
+		return
+	}
+
+	uids := Match(s.word, s.actor.Ref[Where])
+	uid := uids[0]
+
+	what := s.actor.Ref[Where].Who[uid]
+	if what == nil {
+		what = s.actor.Ref[Where].In[uid]
+	}
+
+	where := s.actor.Ref[Where]
+	l := len(where.Who)
+
+	if l >= cfg.crowdSize {
+		s.Msg(s.actor, text.Info, "It's too crowded for you to be heard.")
+		return
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", s.word[0], "' to whisper to.")
+	case len(s.word) == 1:
+		s.Msg(s.actor, text.Info, "What did you want to whisper to ", what.As[TheName], "?")
+	default:
+		txt := StripMatch(what, s.input)
+		s.Msg(s.actor, text.Good, "You whisper to ", what.As[TheName], ": ", txt)
+		s.Msg(what, text.Good, s.actor.As[UTheName], " whispers to you: ", txt)
+		s.Msg(where, text.Info, s.actor.As[UTheName], " whispers something to ", what.As[TheName], ".")
+	}
+}
+
+func (s state) Who() {
+	if len(Players) == 1 {
+		s.Msg(s.actor, text.Good, "You are all alone in this world.")
+		return
+	}
+
+	auid := s.actor.As[UID]
+	pop := strconv.Itoa(len(Players))
+
+	s.Msg(s.actor, text.Good, "Other players:\n\n", text.Reset)
+	for uid, player := range Players {
+		if uid == auid {
+			continue
+		}
+		s.MsgAppend(s.actor, "␠␠", player.As[Name], "\n")
+	}
+	s.Msg(s.actor, text.Good, "Current player population: ", pop)
+}
+
+func (s state) WhoAmI() {
+	s.Msg(s.actor, text.Good, "You are ", s.actor.As[UName], ".")
 }
 
 // intersects returns true if any elements of want are also in have, else false.

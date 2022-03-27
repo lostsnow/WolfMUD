@@ -103,12 +103,17 @@ func NewThing() *Thing {
 // empty string. The parent is enabled before any inventory items. As its name
 // implies InitOnce is only called once for a Thing - when it is first put into
 // the world.
+//
+// TODO(diddymus): Handle DOOR/blockers as part of location definitions?
 func (t *Thing) InitOnce(parent *Thing) {
 
-	// If it's a blocker setup the 'other side'
+	// If it's a blocker setup the 'other side'. Note that if parent is nil the
+	// blocker is on a location itself which is not handled... yet?
 	if t.As[Blocker] != "" && t.Ref[Where] == parent {
-		other := parent.Ref[NameToDir[t.As[Blocker]]]
-		other.In[t.As[UID]] = t
+		if parent != nil {
+			other := parent.Ref[NameToDir[t.As[Blocker]]]
+			other.In[t.As[UID]] = t
+		}
 	}
 
 	// Hard-link exits - convert from Thing.As UIDs to Thing.Ref *Thing
@@ -142,6 +147,9 @@ func (t *Thing) InitOnce(parent *Thing) {
 	for _, item := range t.Out {
 		item.InitOnce(t)
 		if item.Int[ResetDueIn] != 0 {
+			for event := range item.Event {
+				item.Suspend(event)
+			}
 			item.Schedule(Reset)
 		}
 	}
@@ -205,6 +213,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[ActionDueIn] = decode.Duration(b).Nanoseconds()
 				}
 			}
+			if t.Int[ActionAfter]+t.Int[ActionJitter]+t.Int[ActionDueIn] == 0 {
+				t.Int[ActionAfter] = time.Second.Nanoseconds()
+			}
 		case "ALIAS", "ALIASES":
 			a := make(map[string]struct{})
 			q := make(map[string]struct{})
@@ -248,6 +259,7 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Any[Body] = append(t.Any[Body], slot)
 				}
 			}
+			t.Is |= HasBody
 		case "CLEANUP":
 			for k, v := range decode.PairList(r[field]) {
 				b := []byte(v)
@@ -259,6 +271,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				case "DUE_IN", "DUE-IN":
 					t.Int[CleanupDueIn] = decode.Duration(b).Nanoseconds()
 				}
+			}
+			if t.Int[CleanupAfter]+t.Int[CleanupJitter]+t.Int[CleanupDueIn] == 0 {
+				t.Int[CleanupAfter] = time.Second.Nanoseconds()
 			}
 		case "DESCRIPTION":
 			t.As[Description] = string(text.Unfold([]byte(decode.String(data))))
@@ -279,7 +294,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 				default:
 					//fmt.Printf("Unknown attribute: %s\n", field)
 				}
-				t.As[TriggerType] = "BLOCKER"
+				if t.Int[TriggerAfter]+t.Int[TriggerJitter] > 0 {
+					t.As[TriggerType] = "BLOCKER"
+				}
 			}
 		case "EXIT", "EXITS":
 			for name, loc := range decode.PairList(r["EXITS"]) {
@@ -306,7 +323,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					t.Int[HealthRestore] = int64(decode.Integer(b))
 				}
 			}
-			if t.Int[HealthMaximum] != 0 && t.Int[HealthCurrent] == 0 {
+
+			// If Thing can self heal set current health if not set
+			if t.selfHeals() && t.Int[HealthCurrent] == 0 {
 				t.Int[HealthCurrent] = t.Int[HealthMaximum]
 			}
 		case "HOLDABLE":
@@ -370,6 +389,9 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 					}
 				}
 			}
+			if t.Int[ResetAfter]+t.Int[ResetJitter]+t.Int[ResetDueIn] == 0 {
+				t.Int[ResetAfter] = time.Second.Nanoseconds()
+			}
 		case "START":
 			t.Is |= Start
 		case "VETO", "VETOES":
@@ -430,13 +452,13 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 		}
 	}
 
-	// If we have maximum health assume it's an NPC
-	if t.Int[HealthMaximum] != 0 || len(t.Any[Body]) != 0 {
+	// If Thing can self heal assume it's an NPC
+	if t.selfHeals() {
 		t.Is |= NPC
 	}
 
-	// If it's a location or NPC it's not a container
-	if t.Is&(Location|NPC) != 0 {
+	// If it's a location or has a body it's not a container
+	if t.Is&(Location|HasBody) != 0 {
 		t.Is &^= Container
 	}
 
@@ -817,6 +839,22 @@ func (t *Thing) spawn() *Thing {
 	return T
 }
 
+// selfHeals determins whether a Thing is capable of self healing and
+// regenerating health. Returns true if Thing can self heal and regenerate
+// health, otherwise returns false.
+func (t *Thing) selfHeals() bool {
+	switch {
+	case t.Int[HealthAfter]+t.Int[HealthJitter] == 0:
+		return false
+	case t.Int[HealthMaximum] == 0:
+		return false
+	case t.Int[HealthRestore] == 0:
+		return false
+	default:
+		return true
+	}
+}
+
 // Junk removes an item from the world and either schedules it to reset if it
 // is unique or spawnable, otherwise it is freed for the garbage collector. If
 // the item has inventory it is also junked.
@@ -1156,7 +1194,6 @@ func (t *Thing) Cancel(event eventKey) {
 
 func (t *Thing) cancel(event eventKey) bool {
 	suspend := t.suspend(event)
-	delete(t.Event, event)
 	t.Int[intKey(event)+DueInOffset] = 0
 	return suspend
 }
@@ -1185,7 +1222,7 @@ func (t *Thing) suspend(event eventKey) bool {
 		}
 	}
 
-	t.Event[event] = nil
+	delete(t.Event, event)
 	eventCount <- <-eventCount - 1
 
 	idx := intKey(event)

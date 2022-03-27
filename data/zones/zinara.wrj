@@ -660,7 +660,7 @@ on shelves and tables are various articles of clothing.
 %%
       Ref: N1
      Name: some rubbish
-    Alias: +SOME:RUBBISH
+    Alias: RUBBISH
  Location: L38 L39
 Inventory:
 Narrative:
@@ -770,7 +770,7 @@ cover of the weeds.
 %%
       Ref: O4N1
      Name: some weeds
-    Alias: +SOME WEEDS WEED
+    Alias: WEEDS WEED
 Narrative:
 
 This are small, green aquatic weeds.
@@ -907,6 +907,7 @@ This is a small, furry, grey mouse.
      Name: a barkeep
   Aliases: BARKEEP MAN NPC
      Body: @MOBILE
+   Health: @MOBILE
 Inventory: M6O1
   Holding: M6O1
    Action: @MOBILE
@@ -916,7 +917,8 @@ Inventory: M6O1
          : $ACT drums his fingers on the bar.
          : $ACT starts to whistle a little ditty.
          : $ACT examines an old rag. He finds a hole in it.
-         : SAY Can I get you something?
+         : SAY Can I get anyone something?
+         : TALK ANY PLAYER Can I get you something?
          : SNEEZE
          : EXAMINE BAR
          : EXAMINE BOTTLES
@@ -931,9 +933,10 @@ Always ready to listen to a drinking patron, dispensing advice when required.
 %%
       Ref: M7
      Name: a sweet flower girl
-  Aliases: FLOWERGIRL GIRL NPC
+  Aliases: +FLOWER:GIRL NPC
  Location: L7
      Body: @MOBILE
+   Health: @MOBILE
 Inventory: M7O1 M7O2
   Holding: M7O1
   Wearing: M7O2
@@ -942,6 +945,7 @@ Inventory: M7O1 M7O2
          : $ACT looks at you with pleading eyes.
          : $ACT holds out some flowers for you to see.
          : SAY Buy a flower? Very cheap.
+         : TALK ANY PLAYER Buy a flower? Very cheap.
          : @ACT_GENERAL
          : @ACT_MOVE
     Reset: @MOBILE
@@ -953,6 +957,8 @@ This is a sweet little girl selling flowers to make some money.
     Name: a giant spider
  Aliases: SPIDER CREATURE
 Location: L37
+       // Hard to kill, but slow to recover...
+  Health: MAXIMUM→100 AFTER→30s JITTER→5s RESTORE→10
   Action: @MOBILE
 OnAction: $ACT starts to slowly spin another web.
         : $ACT silently sits amongst the webs, watching.
@@ -968,9 +974,10 @@ This is a giant spider. It's black, hairy and looks very dangerous.
 %%
      Ref: M9
     Name: a street vendor
- Aliases: VENDOR MAN NPC
+ Aliases: +STREET:VENDOR MAN NPC
 Location: L14
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
@@ -979,6 +986,7 @@ OnAction: $ACT looks around for passing punters.
         : SHOUT Sausages ina bun, get 'em while they're hot.
         : SHOUT Meat ona stick, get 'em while they're hot.
         : SHOUT Hot food! Hot food!
+        : TALK ANY PLAYER Something to eat?
         : @ACT_GENERAL
    Reset: @MOBILE
  OnReset: A street vendor walks in.
@@ -987,15 +995,16 @@ This is a typical, shifty looking street vendor.
 %%
      Ref: M10
     Name: a gate warden
- Aliases: GATEWARDEN WARDEN MAN NPC
+ Aliases: GATEWARDEN +GATE:WARDEN MAN NPC
 Location: L57 L64 L69
     Body: @MOBILE
+  Health: @MOBILE
   Action: AFTER→15s JITTER→15s
 OnAction: $ACT watches you suspiciously.
         : $ACT slowly paces backwards and forwards before the gates.
         : $ACT tries to stifle a yawn.
-        : SAY Mind how you go and keep out of trouble.
-        : SAY I'm watching you.
+        : TELL ANY PLAYER Mind how you go and keep out of trouble.
+        : TELL ANY PLAYER I'm watching you.
         : @ACT_GENERAL
         : @ACT_MOVE
    Reset: @MOBILE
@@ -1006,9 +1015,11 @@ undesirables from the city.
 %%
       Ref: M11
      Name: a city guard
-  Aliases: CITYGUARD GUARD WOMAN NPC
+  Aliases: +CITY:GUARD CITYGUARD WOMAN NPC
  Location: L14
      Body: @MOBILE
+        // The city guard are supposed to be 'unkillable' peacekeepers ;)
+   Health: MAXIMUM→2000000000 AFTER→15s RESTORE→2000000000
 Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
   Wearing: L11O1 L11O2 L73O1 L73O7
  Wielding: L13O1
@@ -1017,8 +1028,8 @@ Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
  OnAction: $ACT watches you suspiciously.
          : $ACT paces up and down a bit.
          : $ACT cocks one ear, listening for trouble.
-         : SAY Mind how you go and keep out of trouble.
-         : SAY I'm watching you.
+         : TELL ANY PLAYER Mind how you go and keep out of trouble.
+         : TELL ANY PLAYER I'm watching you.
          : @ACT_GENERAL
          : @ACT_MOVE
     Reset: @MOBILE
@@ -1029,9 +1040,10 @@ doers.
 %%
         Ref: M12
        Name: @M11
-    Aliases: CITYGUARD GUARD MAN NPC
+    Aliases: +CITY:GUARD CITYGUARD MAN NPC
    Location: L21 L26 L61
        Body: @MOBILE
+     Health: @M11
   Inventory: @M11
     Wearing: @M11
    Wielding: @M11
@@ -1047,12 +1059,13 @@ Description: @M11
  Aliases: BAKER WOMAN LADY NPC
 Location: L6
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT starts to make some more pastries.
         : $ACT puts a fresh batch of cooking out for sale.
-        : SAY Careful dear, some of those are still hot.
-        : SAY What can I tempt you with today?
-        : SAY It all smells so lovely!
+        : TELL ANY PLAYER Careful dear, some of those are still hot.
+        : TELL ANY PLAYER What can I tempt you with today?
+        : SAY Doesn't it all smells so lovely!
         : @ACT_GENERAL
         : @ACT_TRADER
    Reset: @MOBILE
@@ -1066,6 +1079,7 @@ so good it's irresistible.
  Aliases: BAKER MAN NPC
 Location: L13
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT works at honing the blade of a dagger.
         : $ACT watches you idly while tossing a small blade up and down.
@@ -1082,6 +1096,7 @@ he wears an apron.
  Aliases: ARMOURER MAN NPC
 Location: L11
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT starts to polish some plate mail while keeping an eye on you.
         : $ACT starts to whistle and hum softly to himself.
@@ -1098,11 +1113,12 @@ The Armourer is of a rough looking sort.
  Aliases: LADY NPC
 Location: L8
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT idly dusts a few random items.
         : $ACT tidies up some of the junk laying around.
-        : SAY Please don't touch dear.
-        : SAY If you break anything you still pay for it.
+        : TELL ANY PLAYER Please don't touch dear.
+        : TELL ANY PLAYER If you break anything you still pay for it.
         : @ACT_GENERAL
         : @ACT_TRADER
    Reset: @MOBILE
@@ -1115,6 +1131,7 @@ This is a little old lady. The sort everyone wants as their grandmother.
  Aliases: HEWMAN TRADER NPC
 Location: L16
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: @ACT_GENERAL
         : @ACT_TRADER
@@ -1128,9 +1145,10 @@ This is a very large, serious looking man.
  Aliases: MERKLE CLOTHIER NPC
 Location: L73
     Body: @MOBILE
+  Health: @MOBILE
   Action: @MOBILE
 OnAction: $ACT folds some clothing and puts it back on a table.
-        : SAY Please look around, there must be something here you like?
+        : TELL ANY PLAYER Please look around, there must be something here you like?
         : EXAMINE CLOTHING
         : @ACT_GENERAL
         : @ACT_TRADER
@@ -1166,7 +1184,7 @@ This is a small iron key.
 %%
      Ref: O3
     Name: a lucky charm
-   Alias: LUCKY CHARM
+   Alias: +LUCKY:CHARM
 Location: N2
  Cleanup: @ITEM
    Reset: @NOW
@@ -1239,7 +1257,7 @@ This is a tiny doll's hat.
 %%
       Ref: L16O1
      Name: an iron bound chest
-  Aliases: CHEST
+  Aliases: +IRON:CHEST
  Location: @M17
 Inventory:
   Cleanup: @ITEM
@@ -1270,7 +1288,7 @@ This is a small, red, rubber ball.
 %%
       Ref: L16O4
      Name: a small sack
-  Aliases: SACK
+  Aliases: +SMALL:SACK
  Location: @M17
 Inventory:
   Cleanup: @ITEM
@@ -1280,7 +1298,7 @@ This is a small sack, handy for carrying things in.
 %%
       Ref: L16O5
      Name: a small bag
-  Aliases: BAG
+  Aliases: +SMALL:BAG
  Location: @M17
 Inventory:
   Cleanup: @ITEM
@@ -1609,6 +1627,7 @@ Cleanup: AFTER→1s
      // Default for mobiles/NPCs
    Ref: MOBILE
   Body: @HUMANOID
+Health: MAXIMUM→20 AFTER→15s JITTER→5s RESTORE→2
 Action: AFTER→15s JITTER→15s
  Reset: AFTER→1m WAIT
 %%
@@ -1697,8 +1716,8 @@ OnAction: $ACT looks at you, then quickly looks away again.
         : $ACT gives a sigh.
         : $ACT coughs.
         : $ACT starts muttering to themselves.
-        : SAY Hello!
-        : SAY Hi there!
+        : TELL ANY PLAYER Hello!
+        : TELL ANY PLAYER Hi there!
         : SAY Nice weather for it...
         : SAY Now let me see...
         : SAY Where did I put...
@@ -1715,5 +1734,5 @@ OnAction: $ACT cautiously watches you as you browse around the store.
         : $ACT walks around the store a bit, keeping an eye on things.
         : $ACT starts to tidy away some newer items.
         : $ACT watches you as you browse around the store.
-        : SAY See anything you like?
+        : TELL ANY PLAYER See anything you like?
 %%

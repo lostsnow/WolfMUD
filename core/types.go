@@ -24,6 +24,7 @@ const (
 	Container isKey = 1 << iota // A container, allows PUT/TAKE
 	Dark                        // A dark location
 	Freed                       // Thing has been freed for GC
+	HasBody                     // Item has a body (Any[Body] can be empty)
 	Holding                     // Item is being held
 	Location                    // Item is a location
 	NPC                         // An NPC
@@ -48,6 +49,7 @@ var isNames = []string{
 	"Container",
 	"Dark",
 	"Freed",
+	"HasBody",
 	"Holding",
 	"Location",
 	"NPC",
@@ -393,6 +395,7 @@ var preferredOrdering = []string{
 	asNames[Description],
 	anyNames[Body],
 	asNames[Gender],
+	eventNames[Health],
 	"Inv", "Inventory",
 	Holding.setNames(),
 	Wearing.setNames(),
