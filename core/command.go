@@ -306,7 +306,7 @@ func (s *state) Move() {
 
 	switch {
 	case blocker != nil:
-		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ". ",
+		s.Msg(s.actor, text.Bad, "You can't go ", DirToName[dir], ", ",
 			blocker.As[TheName], " is blocking your way.")
 	case where.Ref[dir] == nil:
 		s.Msg(s.actor, text.Bad, "Oops! You can't actually go ", DirToName[dir], ".")
