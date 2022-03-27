@@ -918,7 +918,7 @@ ZONE RECORDS
 
     The message will be displayed if the item clean up occurs in a location
     where it will be seen. If the clean up occurs inside a container it will
-    not be seen, and no message displayed.
+    only be seen by anyone in the container.
 
     If an item does not have an ONCLEANUP and the clean up would be seen a
     default message will be displayed of the form:
