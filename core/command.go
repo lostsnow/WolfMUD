@@ -547,7 +547,7 @@ func (s *state) Get() {
 			what.As[DynamicQualifier] = "MY"
 			s.Msg(s.actor, text.Good, "You get ", what.As[TheName], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " picks up ", what.As[TheName])
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " picks up ", what.As[TheName], ".")
 			}
 		}
 	}
