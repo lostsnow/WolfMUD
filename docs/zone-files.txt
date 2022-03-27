@@ -90,8 +90,9 @@ FIELD DATA TYPES
       Name: a curious brass lattice
 
   KEYWORD
-    The data is a single case insensitive word, usually written upper-cased.
-    For example:
+    The data is a single case insensitive word, usually written upper-cased. A
+    keyword may contain any Unicode letter, the digits 0-9, underscore '_' or
+    hyphen '-'. A keyword will be automatically upper-cased. For example:
 
       Ref: L1
 
@@ -947,8 +948,43 @@ ZONE RECORDS
   REF: <KEYWORD>
     REF is a unique reference to something. It only needs to be unique within
     the zone file it is defined in. It is helpful if standard reference
-    prefixes are used such as 'L' for locations and 'O' for object. Although
-    this is not essential and not enforced. For example: L1
+    prefixes are used such as 'L' for locations, 'O' for object, 'M' for
+    mobile, 'N' for narrative. It can also be useful to combine references.
+    For example if there is a container with a reference 'O1' items that
+    belong within it might have references 'O1O2', 'O1O3', etc. Narratives
+    specific to a location 'L1' might have references 'L1N1', 'L1N2', etc. A
+    trader mobile with a reference 'M1' may have its inventory items as
+    'M1O1', M1O2', etc.
+
+    A variation to this is to tag the reference as a reminder. For example:
+    L1TAVERN, M1GUARD, O1SWORD. References usually contain any unicode letter,
+    digits 0-9, underscore '_' and hyphen '-'. Lower-cased characters are
+    automatically upper-cased. This means that 'L1Tavern' and 'L1TAVERN' are
+    treated the same. The prefix could also be a suffix. The only requirement
+    is that references are kept unique within a zone file.
+
+    Some examples of valid references:
+
+      L1
+      TAVERN
+      Tavern
+      L1TAVERN
+      L1Tavern
+      L1-TAVERN
+      L1_TAVERN
+      L1-Tavern
+      L1_Tavern
+      TAVERNL1
+      TavernL1
+      Tavern_L1
+      Tavern-L1
+      L1-καπηλειό  <- Google translate says this is Greek for tavern :)
+
+    This is only a guide, it is not essential and not enforced. However, it is
+    advised to use a consistent naming scheme.
+
+    NOTE: The current zone files use a simple L1, N1, O1, L1N1 scheme due to
+    being converted from the original Java version.
 
   RESET: <PAIR LIST>
     RESET is used to specify how and when an item resets or respawns. The
