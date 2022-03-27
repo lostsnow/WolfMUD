@@ -366,8 +366,9 @@ ZONE RECORDS
     If ACTION is specified but AFTER, JITTER and DUE_IN are not defined the
     minimum period will be 1 second.
 
-    The actions to be executed are specified via ONACTION. See ONACTION for
-    more details.
+    The actions to be executed are specified via ONACTION.
+
+    See also: ONACTION
 
   ALIAS: <KEYWORD LIST>
   ALIASES: <KEYWORD LIST>
