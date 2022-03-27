@@ -498,7 +498,7 @@ func (s *state) Drop() {
 			delete(what.As, DynamicQualifier)
 			s.Msg(s.actor, text.Good, "You drop ", what.As[TheName], ".")
 			if notify {
-				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " drops ", what.As[Name])
+				s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName], " drops ", what.As[Name], ".")
 			}
 		}
 	}
