@@ -179,8 +179,11 @@ func (t *Thing) Init() {
 	}
 
 	// Check if we need to enable events
-	if t.Int[ActionAfter] != 0 || t.Int[ActionJitter] != 0 {
+	if t.Int[ActionAfter]+t.Int[ActionJitter] > 0 {
 		t.Schedule(Action)
+	}
+	if t.Is&NPC == NPC && t.Int[HealthCurrent] < t.Int[HealthMaximum] {
+		t.Schedule(Health)
 	}
 }
 
