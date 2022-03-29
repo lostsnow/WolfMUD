@@ -880,7 +880,7 @@ func (t *Thing) Junk() {
 	}
 
 	for event := range t.Event {
-		t.Cancel(event)
+		t.Suspend(event)
 	}
 
 	delete(t.As, DynamicQualifier)
