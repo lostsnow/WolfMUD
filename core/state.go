@@ -6,7 +6,6 @@
 package core
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -225,9 +224,4 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 	for _, t := range text {
 		s.buf[recipient].WriteString(t)
 	}
-}
-
-// SetPrompt sets the given player's current prompt to the given text.
-func (s *state) SetPrompt(who *Thing, f string, args ...interface{}) {
-	mailbox.Suffix(who.As[UID], fmt.Sprintf(f, args...))
 }

@@ -140,7 +140,7 @@ func RegisterCommandHandlers() {
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
 	delete(Players, s.actor.As[UID])
-	s.SetPrompt(s.actor, "")
+	Prompt[PromptStyleNone](s.actor)
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
 	if s.cmd == "$QUIT" {
@@ -920,7 +920,7 @@ func (s *state) Teleport() {
 
 func (s *state) Poof() {
 	Players[s.actor.As[UID]] = s.actor
-	s.buildPrompt(s.actor)
+	Prompt[s.actor.As[PromptStyle]](s.actor)
 	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
 		s.actor.Schedule(Health)
 	}
@@ -930,12 +930,6 @@ func (s *state) Poof() {
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
-}
-
-func (s *state) buildPrompt(actor *Thing) {
-	s.SetPrompt(actor, "\n%sH:%d/%d%s>",
-		text.Blue, actor.Int[HealthCurrent], actor.Int[HealthMaximum], text.Magenta,
-	)
 }
 
 func (s *state) Act() {
@@ -1512,7 +1506,7 @@ func (s *state) Health() {
 		s.actor.Schedule(Health)
 	}
 
-	s.buildPrompt(s.actor)
+	Prompt[s.actor.As[PromptStyle]](s.actor)
 }
 
 func (s *state) Hit() {
@@ -1588,14 +1582,14 @@ func (s *state) Hit() {
 			start.Who[what.As[UID]] = what
 			s.subparseFor(what, "$POOF")
 		}
-		s.buildPrompt(what)
+		Prompt[what.As[PromptStyle]](what)
 
 	default:
 		what.Int[HealthCurrent] -= damage
 		if what.Event[Health] == nil && what.Int[HealthCurrent] < what.Int[HealthMaximum] {
 			what.Schedule(Health)
 		}
-		s.buildPrompt(what)
+		Prompt[what.As[PromptStyle]](what)
 
 		s.Msg(s.actor, text.Good, "You hit ", what.As[TheName], " (", damageTxt, ").")
 		s.Msg(what, text.Bad, s.actor.As[UTheName], " hits you (", damageTxt, ").")
