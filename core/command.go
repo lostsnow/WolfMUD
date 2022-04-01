@@ -140,7 +140,7 @@ func RegisterCommandHandlers() {
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
 	delete(Players, s.actor.As[UID])
-	s.Prompt(s.actor, "")
+	s.SetPrompt(s.actor, "")
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
 	if s.cmd == "$QUIT" {
@@ -933,7 +933,7 @@ func (s *state) Poof() {
 }
 
 func (s *state) buildPrompt(actor *Thing) {
-	s.Prompt(actor, "\n%sH:%d/%d%s>",
+	s.SetPrompt(actor, "\n%sH:%d/%d%s>",
 		text.Blue, actor.Int[HealthCurrent], actor.Int[HealthMaximum], text.Magenta,
 	)
 }

@@ -227,7 +227,7 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 	}
 }
 
-// Prompt sets the given player's current prompt to the given text.
-func (s *state) Prompt(who *Thing, f string, args ...interface{}) {
+// SetPrompt sets the given player's current prompt to the given text.
+func (s *state) SetPrompt(who *Thing, f string, args ...interface{}) {
 	mailbox.Suffix(who.As[UID], fmt.Sprintf(f, args...))
 }
