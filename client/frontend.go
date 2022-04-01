@@ -333,6 +333,10 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
+	// Upgrade if no prompt set
+	if _, found := jar[0]["PROMPTSTYLE"]; !found {
+		jar[0]["PROMPTSTYLE"] = []byte(core.PromptStyleShort)
+	}
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -437,4 +441,5 @@ func (c *client) createPlayer() {
 	c.Int[core.HealthRestore] = 2
 	c.Int[core.HealthCurrent] = 30
 	c.Int[core.HealthMaximum] = 30
+	c.As[core.PromptStyle] = core.PromptStyleShort
 }
