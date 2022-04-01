@@ -1550,7 +1550,7 @@ func (s *state) Hit() {
 		}
 
 		s.Msg(s.actor, text.Good, "You kill ", what.As[TheName], " (", damageTxt, ").")
-		s.Msg(what, text.Bad, s.actor.As[TheName],
+		s.Msg(what, text.Bad, s.actor.As[UTheName],
 			" kills you (", damageTxt, ").",
 			text.Cyan,
 			"\n",
