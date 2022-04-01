@@ -97,6 +97,7 @@ func RegisterCommandHandlers() {
 		// Out of character commands
 		"/WHO":    (*state).Who,
 		"/WHOAMI": (*state).WhoAmI,
+		"/PROMPT": (*state).Prompt,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1732,6 +1733,22 @@ func (s state) Who() {
 
 func (s state) WhoAmI() {
 	s.Msg(s.actor, text.Good, "You are ", s.actor.As[UName], ".")
+}
+
+func (s state) Prompt() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "Prompt is currently ", s.actor.As[PromptStyle], ".")
+		return
+	}
+
+	if _, ok := Prompt[s.word[0]]; !ok {
+		s.Msg(s.actor, text.Bad, "Prompt type must be one of: ", PromptList)
+		return
+	}
+
+	s.actor.As[PromptStyle] = s.word[0]
+	Prompt[s.word[0]](s.actor)
+	s.Msg(s.actor, text.Info, "Prompt is now ", s.word[0], ".")
 }
 
 // intersects returns true if any elements of want are also in have, else false.
