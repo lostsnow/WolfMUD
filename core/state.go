@@ -75,15 +75,35 @@ func NewState(t *Thing) *state {
 	return &state{actor: t, buf: make(map[*Thing]*strings.Builder)}
 }
 
-func (s *state) Parse(input string) (cmd string) {
-	if input = strings.TrimSpace(input); len(input) != 0 {
-		// Stop the world for everyone else...
-		BWL.Lock()
-		defer BWL.Unlock()
+const (
+	noScripting   = false
+	withScripting = true
+)
 
-		s.parse(input)
-		s.mailman()
+// Parse allows commands to be executed, from outside the package, with
+// scripting disabled.
+func (s *state) Parse(input string) (cmd string) {
+	return s.preParse(input, noScripting)
+}
+
+// Script allows commands to be executed, from outside the package, with
+// scripting enabled.
+func (s *state) Script(input string) (cmd string) {
+	return s.preParse(input, withScripting)
+}
+
+func (s *state) preParse(input string, scripting bool) (cmd string) {
+	if input = strings.TrimSpace(input); len(input) == 0 {
+		return ""
 	}
+
+	// Stop the world for everyone else...
+	BWL.Lock()
+	defer BWL.Unlock()
+
+	s.parse(input)
+	s.mailman()
+
 	return s.cmd
 }
 
