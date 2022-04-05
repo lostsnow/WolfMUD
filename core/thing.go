@@ -1182,7 +1182,7 @@ func (t *Thing) schedule(event eventKey) bool {
 			// Manually process event command, we already have the BRL and calling
 			// state.Parse would deadlock.
 			s := NewState(t)
-			s.parse(eventCommands[event])
+			s.parse(eventCommands[event], withScripting)
 			s.mailman()
 		},
 	)

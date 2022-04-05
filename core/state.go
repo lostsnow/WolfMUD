@@ -92,7 +92,7 @@ func (s *state) Script(input string) (cmd string) {
 	return s.preParse(input, withScripting)
 }
 
-func (s *state) preParse(input string, scripting bool) (cmd string) {
+func (s *state) preParse(input string, allowScripting bool) (cmd string) {
 	if input = strings.TrimSpace(input); len(input) == 0 {
 		return ""
 	}
@@ -101,13 +101,13 @@ func (s *state) preParse(input string, scripting bool) (cmd string) {
 	BWL.Lock()
 	defer BWL.Unlock()
 
-	s.parse(input)
+	s.parse(input, allowScripting)
 	s.mailman()
 
 	return s.cmd
 }
 
-func (s *state) parse(input string) {
+func (s *state) parse(input string, allowScripting bool) {
 	s.word = strings.Fields(strings.ToUpper(input))
 
 	// Simple stop word removal
@@ -126,6 +126,12 @@ func (s *state) parse(input string) {
 	}
 
 	s.cmd, s.word = s.word[0], s.word[1:]
+
+	if !allowScripting && s.cmd[0] == '$' {
+		s.Msg(s.actor, "Eh?")
+		return
+	}
+
 	s.input = strings.TrimSpace(input[len(s.cmd):])
 
 	if handler, ok := commandHandlers[s.cmd]; ok {
@@ -145,7 +151,7 @@ func (s *state) parse(input string) {
 // advantage of the functionality other commands.
 func (s *state) subparse(input string) {
 	s2 := &state{actor: s.actor, buf: s.buf}
-	s2.parse(input)
+	s2.parse(input, withScripting)
 }
 
 // subparseFor parses new input for an alternative actor reusing the current
@@ -164,7 +170,7 @@ func (s *state) subparseFor(actor *Thing, input string) {
 	markL := s.buf[s.actor.Ref[Where]].Len()
 
 	s2 := &state{actor: actor, buf: s.buf}
-	s2.parse(input)
+	s2.parse(input, withScripting)
 
 	// If the original actor already had messages and we have new location
 	// messages, copy the additional location messages to the actor as they will
