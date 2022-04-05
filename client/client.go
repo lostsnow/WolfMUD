@@ -170,12 +170,12 @@ func (c *client) receive() {
 			if err := recover(); err != nil {
 				c.setError(errors.New("client panicked"))
 				c.Log("client panicked: %s\n%s", err, debug.Stack())
-				s.Parse("$QUIT")
+				s.Script("$QUIT")
 			}
 		}()
 	}
 
-	cmd := s.Parse("$POOF")
+	cmd := s.Script("$POOF")
 
 	var input string
 	var err error
@@ -194,7 +194,7 @@ func (c *client) receive() {
 	}
 
 	if cmd != "QUIT" {
-		cmd = s.Parse("$QUIT")
+		cmd = s.Script("$QUIT")
 	}
 }
 
