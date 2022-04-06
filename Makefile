@@ -7,16 +7,17 @@
 #
 # Makefile to build WolfMUD. Targets of note:
 #
-#   build       - native build (default)
-#   build-all   - build for all supported platforms
-#   build-race  - build with race detector
-#   run         - start server with logging to terminal and bin/log
-#   batch       - start server with logging to bin/log only
-#   race        - start server with race detector enabled, logging to terminal and bin/log
-#   test        - run tests
-#   cover       - run tests with coverage collection and display in browser
-#   doc         - start godoc server with notes turned on
-#   clean       - clean bin directory
+#   build        - native build (default)
+#   build-all    - build for all supported platforms
+#   build-race   - build with race detector
+#   build-chroot - build minimal chroot environment
+#   run          - start server with logging to terminal and bin/log
+#   batch        - start server with logging to bin/log only
+#   race         - start server with race detector enabled, logging to terminal and bin/log
+#   test         - run tests
+#   cover        - run tests with coverage collection and display in browser
+#   doc          - start godoc server with notes turned on
+#   clean        - clean bin directory
 #
 SHELL := /bin/bash
 
@@ -72,6 +73,14 @@ batch: build bin/log
 # Build with race detector
 build-race: version
 	CGO_ENABLED=1 go build -o ./bin/ -race -trimpath -v $(LDFLAGS) -gcflags -e ./...
+
+# Build minimal chroot environment
+build-chroot: build
+	mkdir -p chroot/bin ;\
+	mkdir -p chroot/data/players ;\
+	cp -a bin/server chroot/bin/ ;\
+	cp -a data/config.wrj chroot/data/ ;\
+	cp -a data/zones chroot/data/
 
 # Run with race detector and logging to terminal and bin/log
 race: build-race bin/log
