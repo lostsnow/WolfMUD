@@ -492,7 +492,7 @@ Description: @M1
 Description: @M1
      Health: @M1
      Action: @MOBILE
-           : $ACT chitters.
+   OnAction: $ACT chitters.
            : $ACT bares its teeth.
            : $ACT slowly swishes its tail.
            : $ACT makes a lurid face at you.
