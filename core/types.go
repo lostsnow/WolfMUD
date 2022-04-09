@@ -220,6 +220,7 @@ const (
 	Body         // Body slots available to an item
 	Holdable     // Body slots required to hold item
 	OnAction     // Actions that can be performed
+	Permissions  // Permissions a player has
 	Qualifier    // Alias qualifiers
 	Wearable     // Body slots required to wear item
 	Wieldable    // Body slots required to wield item
@@ -239,6 +240,7 @@ var anyNames = []string{
 	"Body",
 	"Holdable",
 	"OnAction",
+	"Permissions",
 	"Qualifier",
 	"Wearable",
 	"Wieldable",
