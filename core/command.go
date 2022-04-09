@@ -1393,11 +1393,12 @@ func (s *state) Save() {
 
 	j := &recordjar.Jar{}
 	hdr := recordjar.Record{
-		"Account":  encode.String(s.actor.As[Account]),
-		"Created":  encode.DateTime(time.Unix(s.actor.Int[Created], 0)),
-		"Password": encode.String(s.actor.As[Password]),
-		"Salt":     encode.String(s.actor.As[Salt]),
-		"Player":   encode.String(s.actor.As[UID]),
+		"Account":     encode.String(s.actor.As[Account]),
+		"Created":     encode.DateTime(time.Unix(s.actor.Int[Created], 0)),
+		"Password":    encode.String(s.actor.As[Password]),
+		"Salt":        encode.String(s.actor.As[Salt]),
+		"Player":      encode.Keyword(s.actor.As[UID]),
+		"Permissions": encode.KeywordList(s.actor.Any[Permissions]),
 	}
 	*j = append(*j, hdr)
 	save(s.actor, j)

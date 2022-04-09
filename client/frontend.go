@@ -179,6 +179,9 @@ func (c *client) frontend() bool {
 			hash := sha512.Sum512([]byte(c.As[core.Salt] + input))
 			c.As[core.Password] = base64.URLEncoding.EncodeToString(hash[:])
 			c.Int[core.Created] = decode.DateTime(rec["CREATED"]).Unix()
+			if len(rec["PERMISSIONS"]) > 0 {
+				c.Any[core.Permissions] = decode.KeywordList(rec["PERMISSIONS"])
+			}
 			if c.As[core.Password] != decode.String(rec["PASSWORD"]) {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
@@ -379,6 +382,9 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.As[core.Account] = c.As[core.Account]
 	p.As[core.Password] = c.As[core.Password]
 	p.As[core.Salt] = c.As[core.Salt]
+	if _, ok := c.Any[core.Permissions]; ok {
+		p.Any[core.Permissions] = c.Any[core.Permissions]
+	}
 	p.Int[core.Created] = c.Int[core.Created]
 	p.Is |= core.Player
 	p.Is &^= core.NPC
