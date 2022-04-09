@@ -698,8 +698,8 @@ func (s *state) Put() {
 }
 
 func (s *state) Dump() {
-	if !cfg.allowDump {
-		s.Msg(s.actor, text.Bad, "The #DUMP and #LDUMP commands are unavailable.")
+	if !intersects(s.actor.Any[Permissions], []string{"ADMIN", s.cmd}) {
+		s.Msg(s.actor, text.Bad, "You don't have permission to use ", s.cmd, ".")
 		return
 	}
 	if len(s.word) == 0 {
@@ -896,6 +896,10 @@ func (s *state) Commands() {
 }
 
 func (s *state) Teleport() {
+	if !intersects(s.actor.Any[Permissions], []string{"ADMIN", s.cmd}) {
+		s.Msg(s.actor, text.Bad, "You don't have permission to use ", s.cmd, ".")
+		return
+	}
 	if len(s.word) == 0 {
 		s.Msg(s.actor, text.Info, "Where do you want to go?")
 		return
@@ -1425,8 +1429,8 @@ func save(t *Thing, j *recordjar.Jar) {
 var cpuProfile *os.File
 
 func (s *state) Debug() {
-	if !cfg.allowDebug {
-		s.Msg(s.actor, text.Bad, "The #DEBUG command is unavailable.")
+	if !intersects(s.actor.Any[Permissions], []string{"ADMIN", s.cmd}) {
+		s.Msg(s.actor, text.Bad, "You don't have permission to use ", s.cmd, ".")
 		return
 	}
 
