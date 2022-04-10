@@ -98,6 +98,50 @@ ALLOWING OTHER MACHINES TO CONNECT
 
     telnet 172.16.1.1 4001
 
+ADMINISTRATORS
+
+  By default all players are normal players when logging into the WolfMUD
+  server. A few trusted players may be made administrators. Administrators
+  have access to the administrator commands prefixed with a hash '#'.
+
+  To make a player an administrator, they first have to log into the server
+  and create a normal player account. Then QUIT so that the player file is not
+  in use. Next, the player file need to be edited. The file will be in the
+  data/players directory named with the MD5 hash of the account ID. For
+  example:
+
+    >echo -n "diddymus@wolfmud.org" | md5sum
+    90d9988c2b7014d622a62681e5643674  -
+    >vim data/players/90d9988c2b7014d622a62681e5643674.wrj
+
+  Alternatively, have the player log into the server - making sure they log
+  out again - and look for a line like the follow in the server log:
+
+    [#UID-201] Login for: 90d9988c2b7014d622a62681e5643674
+
+  Now to edit the player file. In the first header record of the player file
+  there will be a Permissions field:
+
+        Account: 90d9988c2b7014d622a62681e5643674
+        Created: Wed, 13 Jul 2016 19:03:18 +0000
+       Password: m9YpVraRWIbZKlIY...
+    Permissions:
+         Player: #UID-201
+           Salt: z0........
+    %%
+
+  To make a player an administrator, with access to all of the administrator
+  commands, specify 'ADMIN':
+
+    Permissions: ADMIN
+
+  To give the player access to only specific administrator commands list them:
+
+    Permissions: #DUMP #GOTO
+
+  Save the changes to the player file. The next time the player logs in they
+  will have the permissions you have specified.
+
 ENVIRONMENT VARIABLES
 
   WOLFMUD_DIR
