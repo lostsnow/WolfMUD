@@ -1062,7 +1062,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lEvent--
 		dueAt, dueIn := "-", "-"
 		if at := t.Int[intKey(k)+DueAtOffset]; at > 0 {
-			unix := time.Unix(0, int64(at))
+			unix := time.Unix(0, int64(at)).UTC()
 			dueAt = unix.Format(time.Stamp)
 			dueIn = unix.Sub(time.Now()).Truncate(time.Millisecond).String()
 		}
