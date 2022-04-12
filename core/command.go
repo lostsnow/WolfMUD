@@ -1394,7 +1394,7 @@ func (s *state) Save() {
 	j := &recordjar.Jar{}
 	hdr := recordjar.Record{
 		"Account":     encode.String(s.actor.As[Account]),
-		"Created":     encode.DateTime(time.Unix(s.actor.Int[Created], 0)),
+		"Created":     encode.DateTime(time.Unix(0, s.actor.Int[Created])),
 		"Password":    encode.String(s.actor.As[Password]),
 		"Salt":        encode.String(s.actor.As[Salt]),
 		"Player":      encode.Keyword(s.actor.As[UID]),

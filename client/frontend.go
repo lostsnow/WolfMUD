@@ -178,7 +178,7 @@ func (c *client) frontend() bool {
 			c.As[core.Salt] = decode.String(rec["SALT"])
 			hash := sha512.Sum512([]byte(c.As[core.Salt] + input))
 			c.As[core.Password] = base64.URLEncoding.EncodeToString(hash[:])
-			c.Int[core.Created] = decode.DateTime(rec["CREATED"]).Unix()
+			c.Int[core.Created] = decode.DateTime(rec["CREATED"]).UnixNano()
 			if len(rec["PERMISSIONS"]) > 0 {
 				c.Any[core.Permissions] = decode.KeywordList(rec["PERMISSIONS"])
 			}
@@ -442,7 +442,7 @@ func (c *client) createPlayer() {
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 	}
-	c.Int[core.Created] = time.Now().Unix()
+	c.Int[core.Created] = time.Now().UnixNano()
 	c.Int[core.HealthAfter] = (10 * time.Second).Nanoseconds()
 	c.Int[core.HealthRestore] = 2
 	c.Int[core.HealthCurrent] = 30
