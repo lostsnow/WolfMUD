@@ -1075,7 +1075,24 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%sInt - len: %d", tree[false].i, lInt)
 	for k, v := range t.Int {
 		lInt--
-		p("%s%s%s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
+		var vv string
+		name := intNames[k]
+		switch {
+		case v == 0:
+		case strings.HasSuffix(name, "After"), strings.HasSuffix(name, "Jitter"), strings.HasSuffix(name, "DueIn"):
+			vv = time.Duration(v).Truncate(time.Millisecond).String()
+		case strings.HasSuffix(name, "DueAt"):
+			vv = time.Unix(0, v).UTC().Format(time.Stamp)
+		case strings.HasSuffix(name, "Created"):
+			vv = time.Unix(0, v).UTC().Format(time.RFC1123Z)
+		default:
+			vv = ""
+		}
+		if vv == "" {
+			p("%s%s%s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
+		} else {
+			p("%s%s%s: %s (%d)", tree[false].b, tree[lInt == 0].i, intNames[k], vv, v)
+		}
 	}
 	p("%sRef - len: %d", tree[false].i, lRef)
 	for k, v := range t.Ref {
