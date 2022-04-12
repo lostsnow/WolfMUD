@@ -25,6 +25,8 @@ import (
 //
 // NOTE: If new fields are added to Thing they should be catered for in the
 // NewThing and Free methods.
+//
+// NOTE: Times and durations stored in Int should be in nanoseconds.
 type Thing struct {
 	As    map[asKey]string    // Single value for a key
 	Any   map[anyKey][]string // One or more values for a key
