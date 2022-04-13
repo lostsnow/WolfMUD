@@ -95,9 +95,11 @@ func RegisterCommandHandlers() {
 		"WHISPER":   (*state).Whisper,
 
 		// Out of character commands
-		"/WHO":    (*state).Who,
-		"/WHOAMI": (*state).WhoAmI,
-		"/PROMPT": (*state).Prompt,
+		"/WHO":     (*state).Who,
+		"/WHOAMI":  (*state).WhoAmI,
+		"/PROMPT":  (*state).Prompt,
+		"/HISTORY": (*state).History,
+		"/!":       (*state).History,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1754,6 +1756,15 @@ func (s state) Prompt() {
 	s.actor.As[PromptStyle] = s.word[0]
 	Prompt[s.word[0]](s.actor)
 	s.Msg(s.actor, text.Info, "Prompt is now ", s.word[0], ".")
+}
+
+var historyMarks = []string{"    !: ", "   !!: ", "  !!!: "}
+
+func (s state) History() {
+	s.Msg(s.actor, text.Good, "Your three most recent commands:", text.Reset)
+	for x, h := range s.history {
+		s.MsgAppend(s.actor, "\n", historyMarks[x], h)
+	}
 }
 
 // intersects returns true if any elements of want are also in have, else false.

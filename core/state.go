@@ -47,11 +47,12 @@ func Config(c config.Config) {
 }
 
 type state struct {
-	actor *Thing
-	buf   map[*Thing]*strings.Builder
-	cmd   string
-	input string
-	word  []string
+	actor   *Thing
+	buf     map[*Thing]*strings.Builder
+	cmd     string
+	input   string
+	history [3]string
+	word    []string
 }
 
 // stopWords is a lookup table of words that can be removed from parsed input.
@@ -79,7 +80,20 @@ const (
 // Parse allows commands to be executed, from outside the package, with
 // scripting disabled.
 func (s *state) Parse(input string) (cmd string) {
-	return s.preParse(input, noScripting)
+	recall := false
+	if input == "!" || input == "!!" || input == "!!!" {
+		input = s.history[len(input)-1]
+		recall = true
+	}
+
+	cmd = s.preParse(input, noScripting)
+
+	if !recall && cmd != "/!" && cmd != "/HISTORY" && input != s.history[0] {
+		copy(s.history[1:], s.history[0:])
+		s.history[0] = input
+	}
+
+	return
 }
 
 // Script allows commands to be executed, from outside the package, with
