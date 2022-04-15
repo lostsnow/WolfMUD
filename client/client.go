@@ -85,7 +85,9 @@ func New(conn *net.TCPConn) *client {
 	c.queue = mailbox.Add(c.As[core.UID])
 	c.uid = c.As[core.UID]
 
-	c.Log("connection from: %s", c.RemoteAddr())
+	if cfg.logClient {
+		c.Log("connection from: %s", c.RemoteAddr())
+	}
 
 	return c
 }
@@ -140,7 +142,9 @@ func (c *client) cleanup() {
 		c.Log("client error: %s", err)
 	}
 
-	c.Log("disconnect from: %s", c.RemoteAddr())
+	if cfg.logClient {
+		c.Log("disconnect from: %s", c.RemoteAddr())
+	}
 	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
 
 	mailbox.Delete(c.uid)
