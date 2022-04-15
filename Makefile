@@ -34,7 +34,7 @@ LDFLAGS := -ldflags "-X code.wolfmud.org/WolfMUD.git/core.commit=$(VERSION)"
 build: version
 	go build -o bin/ -v $(LDFLAGS) -gcflags="-e" ./...
 
-build-all: build linux-amd64 linux-386 linux-arm5 linux-arm6 linux-arm7 windows-amd64 windows-386
+build-all: build linux-amd64 linux-386 linux-arm5 linux-arm6 linux-arm7 linux-arm64 windows-amd64 windows-386
 
 # Build targets also used by release/Makefile
 linux-amd64: version
@@ -47,6 +47,8 @@ linux-arm6: version
 	GOOS=linux GOARCH=arm GOARM=6 go build -o bin/linux-arm6/ --trimpath -v $(LDFLAGS) ./...
 linux-arm7: version
 	GOOS=linux GOARCH=arm GOARM=7 go build -o bin/linux-arm7/ --trimpath -v $(LDFLAGS) ./...
+linux-arm64: version
+	GOOS=linux GOARCH=arm64 go build -o bin/linux-arm64/ --trimpath -v $(LDFLAGS) ./...
 windows-amd64: version
 	GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/ --trimpath -v $(LDFLAGS) ./...
 windows-386: version

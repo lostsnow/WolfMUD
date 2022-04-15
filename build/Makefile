@@ -12,7 +12,7 @@
 #
 SHELL := /bin/bash
 info := $(shell ls ../[A-Z][A-Z]*)
-tars := linux-386 linux-amd64 linux-arm5 linux-arm6 linux-arm7
+tars := linux-386 linux-amd64 linux-arm5 linux-arm6 linux-arm7 linux-arm64
 zips := windows-386 windows-amd64
 version := $(shell git describe --dirty --always)
 goVersion := $(shell go version)
