@@ -25,6 +25,8 @@ import (
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
+const inputBufferSize = 80
+
 type pkgConfig struct {
 	logClient       bool
 	accountMin      int
@@ -60,6 +62,7 @@ func Config(c config.Config) {
 type client struct {
 	*core.Thing
 	*net.TCPConn
+	input []byte
 	err   chan error
 	queue <-chan string
 	quit  chan struct{}
@@ -70,6 +73,7 @@ func New(conn *net.TCPConn) *client {
 	c := &client{
 		Thing:   core.NewThing(),
 		TCPConn: conn,
+		input:   make([]byte, inputBufferSize),
 		err:     make(chan error, 1),
 		quit:    make(chan struct{}, 1),
 	}
@@ -80,7 +84,7 @@ func New(conn *net.TCPConn) *client {
 	c.SetLinger(10)
 	c.SetNoDelay(false)
 	c.SetWriteBuffer(80 * 24)
-	c.SetReadBuffer(80)
+	c.SetReadBuffer(inputBufferSize)
 
 	c.queue = mailbox.Add(c.As[core.UID])
 	c.uid = c.As[core.UID]
@@ -181,19 +185,25 @@ func (c *client) receive() {
 
 	cmd := s.Script("$POOF")
 
-	var input string
 	var err error
-	r := bufio.NewReaderSize(c, 80)
+	r := bufio.NewReaderSize(c, inputBufferSize)
 	for cmd != "QUIT" && c.error() == nil {
+		c.input = c.input[:0]
 		c.SetReadDeadline(time.Now().Add(cfg.ingameTimeout))
-		if input, err = r.ReadString('\n'); err != nil {
+		if c.input, err = r.ReadSlice('\n'); err != nil {
+			if errors.Is(err, bufio.ErrBufferFull) {
+				for ; errors.Is(err, bufio.ErrBufferFull); _, err = r.ReadSlice('\n') {
+				}
+				mailbox.Send(c.uid, true, text.Bad+"You type too much!")
+				continue
+			}
 			c.setError(err)
 			break
 		}
 		if len(c.queue) > 10 {
 			continue
 		}
-		cmd = s.Parse(clean(input))
+		cmd = s.Parse(clean(string(c.input)))
 		runtime.Gosched()
 	}
 

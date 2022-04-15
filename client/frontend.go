@@ -11,6 +11,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -34,15 +35,21 @@ var (
 	accounts    = make(map[string]struct{})
 )
 
-func (c *client) input() string {
-	var input string
+func (c *client) read() string {
 	var err error
-	r := bufio.NewReaderSize(c, 80)
+	r := bufio.NewReaderSize(c, inputBufferSize)
+retry:
 	c.SetReadDeadline(time.Now().Add(cfg.frontendTimeout))
-	if input, err = r.ReadString('\n'); err != nil {
+	if c.input, err = r.ReadSlice('\n'); err != nil {
+		if errors.Is(err, bufio.ErrBufferFull) {
+			for ; errors.Is(err, bufio.ErrBufferFull); _, err = r.ReadSlice('\n') {
+			}
+			mailbox.Send(c.uid, true, text.Bad+"You type too much! Try again.")
+			goto retry
+		}
 		c.setError(err)
 	}
-	return clean(input)
+	return clean(string(c.input))
 }
 
 // frontend implements a question/answer flow with the player. Currently
@@ -134,7 +141,7 @@ func (c *client) frontend() bool {
 			mailbox.Send(c.uid, true, string(buf))
 			buf = buf[:0]
 		}
-		input := c.input()
+		input := c.read()
 		if c.error() != nil {
 			return false
 		}
