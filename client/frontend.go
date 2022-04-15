@@ -206,7 +206,7 @@ func (c *client) frontend() bool {
 			accountsMux.Lock()
 			accounts[c.As[core.Account]] = struct{}{}
 			accountsMux.Unlock()
-			c.Log("Login for: %s", c.As[core.Account])
+			c.Log("Login by: %s", c.As[core.Account])
 			c.assemblePlayer(jar[1:])
 			mailbox.Suffix(c.uid, "")
 			mailbox.Send(c.uid, true, text.Good+"Welcome back "+c.As[core.Name]+"!\n\n")
