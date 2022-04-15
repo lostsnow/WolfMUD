@@ -49,7 +49,7 @@ retry:
 		}
 		c.setError(err)
 	}
-	return clean(string(c.input))
+	return clean(c.input)
 }
 
 // frontend implements a question/answer flow with the player. Currently

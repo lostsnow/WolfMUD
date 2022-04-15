@@ -8,6 +8,7 @@ package client
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -203,7 +204,7 @@ func (c *client) receive() {
 		if len(c.queue) > 10 {
 			continue
 		}
-		cmd = s.Parse(clean(string(c.input)))
+		cmd = s.Parse(clean(c.input))
 		runtime.Gosched()
 	}
 
@@ -256,11 +257,11 @@ func (c *client) setError(err error) {
 // An exception in the C0 control code is backspace ('\b', ASCII 0x08) which
 // will erase the previous rune. This can occur when the player's Telnet client
 // does not support line editing.
-func clean(in string) string {
+func clean(in []byte) string {
 
 	o := make([]rune, len(in)) // oversize due to len = bytes
 	i := 0
-	for _, v := range in {
+	for _, v := range bytes.Runes(in) {
 		switch {
 		case v == '\uFFFD':
 			// drop invalid runes
