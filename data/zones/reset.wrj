@@ -168,6 +168,7 @@ A unique item.
     Name: a spawnable item
  Aliases: SI
    Reset: AFTER→1s JITTER→1s SPAWN
+ Cleanup: AFTER→1s JITTER→1s
 
 A spawnable item.
 %%
@@ -183,6 +184,7 @@ A unique container.
      Name: a spawnable container
   Aliases: SC
     Reset: AFTER→1s JITTER→1s SPAWN
+  Cleanup: AFTER→1s JITTER→1s
 Inventory: O2 O3 O6 O7
 
 A spawnable container.
@@ -191,6 +193,7 @@ A spawnable container.
      Name: a unique container
   Aliases: UC
     Reset: AFTER→1s JITTER→1s
+  Cleanup: AFTER→1s JITTER→1s
 Inventory: O2 O3
 
 A unique container.
@@ -199,6 +202,7 @@ A unique container.
      Name: a spawnable container
   Aliases: SC
     Reset: AFTER→1s JITTER→1s SPAWN
+  Cleanup: AFTER→1s JITTER→1s
 Inventory: O2 O3
 
 A spawnable container.
