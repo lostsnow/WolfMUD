@@ -1,0 +1,26 @@
+// Copyright 2022 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
+%%
+      Ref: QUIET
+     Zone: Quiet testing zone
+   Author: Andrew 'Diddymus' Rolfe
+ Disabled: TRUE
+
+This is a quiet testing zone with nothing going on. Useful as a minimal world
+for checking allocations and idleness. A player can bring in items via their
+inventory for further testing. To keep things quiet this should be the only
+zone loaded.
+%%
+      Ref: L1
+     Name: Fireplace
+  Aliases: TAVERN FIREPLACE
+    Start:
+    Exits:
+
+You are in the corner of the common room in the dragon's breath tavern. A fire
+burns merrily in an ornate fireplace, giving comfort to weary travellers. The
+fire causes shadows to flicker and dance around the room, changing darkness to
+light and back again.
+%%
