@@ -18,7 +18,7 @@ Note that it is recommended to disable all other zones if this zone is enabled.
      Name: Room A
   Aliases: +ROOM:A A
     Exits: E→L2
-Inventory: O1 O2 O3 O4 O5 O9 M1
+Inventory: O1 O2 O3 O4 O5 M1
 
 Test room 'A'.
 %%
@@ -26,7 +26,7 @@ Test room 'A'.
      Name: Room B
   Aliases: +ROOM:B B
     Exits: W→L1
-Inventory: O1 O2 O3 O4 O5 O9 M1
+Inventory: O1 O2 O3 O4 O5 M1
 
 Test room 'B'
 %%
