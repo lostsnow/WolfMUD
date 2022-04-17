@@ -6,6 +6,68 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19-beta.6 Released Sunday 17th April, 2022
+==============================================================================
+
+Security
+
+  - Limit input data from client (potential DOS attack mitigation).
+
+    Currently no limits are put on the length of a command a player can send to
+    the server. As the input is stored in a []byte buffer, a malicious client
+    could cause the buffer to consume a lot of the memory. This could be used
+    as a DOS attack - this has not been seen in the wild and has not actually
+    been exploitable during testing.
+
+    The server now limits the size of the input accepted by the server. If a
+    client sends a command longer than the limit to the server then all of the
+    input is discarded and the message "You type too much!" is sent to the
+    client. The current input limit is 80 bytes.
+
+Added
+
+  - New /PROMPT player command to check, list and change prompts.
+  - New core/state.Script method for executing scripting commands outside of
+    the core package.
+  - Per-player permissions can be set via a new Permissions field in the player
+    header record. Currently permissions can be 'ADMIN' or a specific admin
+    command. Admin commands are those prefixed with a hash '#'. Details for
+    setting up administrators added to docs/running-the-server.txt
+  - Player command history and recall for up to three commands added. The last
+    three commands can be listed using '/HISTORY' or the abbreviation '/!'. The
+    last three commands can be repeated using '!', '!!' and '!!!' respectively.
+  - ARM64 built target added to makefiles and release builds.
+  - New data/zones/quiet.wrj zone for testing in isolation, defaults disabled.
+
+Changed
+
+  - The player's prompt is now selectable and perists in the player file. The
+    available prompts are: NONE, CURSOR, BRIEF, SHORT, LONG.
+  - The Debug.AllowDump and Debug.AllowDebug options have been dropped from the
+    server configuration and have been replaced by per-player permissions.
+  - The #DUMP/#LDUMP commands now show Int values as data/time or durations
+    where appropriate.
+  - In data/zones/zinara.wrj make curious brass lattice a little more curious.
+
+Fixed
+
+  - Health events are now registered for mobiles / NPCs when they are loaded,
+    if they need healing.
+  - Health events are now registered for mobiles / NPCs when they are junked,
+    if they need healing.
+  - Events for anything junked are now suspended and resumed if a reset occurs,
+    as opposed to the thing being disposed of.
+  - The "... kills you ..." message from the HIT command correctly upper-cases
+    then name of what kills you.
+  - Players can no longer directly execute scripting commands with a dollar '$'
+    prefix.
+  - OnAction fixed for ugly imp in data/zones/zinara_caves.wrj
+  - Store player created date in Thing.Int[CREATED] as nanoseconds.
+  - Event dueAt timestamp now shown in UTC to match server logging.
+  - Don't log player connects and disconnects if not logging client IP address.
+  - Log when a player quits - either willingly or unwillingly (due to errors).
+  - In data/zones/reset.wrj drop invalid O9 reference and add item clean-up.
+
 v0.0.19-beta.5 Released Sunday 27th March, 2022
 ==============================================================================
 
