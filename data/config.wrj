@@ -43,8 +43,6 @@
 //
   Debug.LongLog:      false
   Debug.Panic:        false
-  Debug.AllowDump:    false
-  Debug.AllowDebug:   false
   Debug.Events:       false
   Debug.Things:       false
   Debug.Quota:        false

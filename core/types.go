@@ -104,6 +104,7 @@ const (
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
 	Password         // Salted SHA512 hash of the account password
+	PromptStyle      // Current prompt style
 	Ref              // Item's original reference (zone:ref or ref)
 	Salt             // Salt used for the account password
 	TheName          // Item's name with a/an/some prefix changed to 'the'
@@ -149,6 +150,7 @@ var asNames = []string{
 	"OnCleanup",
 	"OnReset",
 	"Password",
+	"PromptStyle",
 	"Ref",
 	"Salt",
 	"TheName",
@@ -218,6 +220,7 @@ const (
 	Body         // Body slots available to an item
 	Holdable     // Body slots required to hold item
 	OnAction     // Actions that can be performed
+	Permissions  // Permissions a player has
 	Qualifier    // Alias qualifiers
 	Wearable     // Body slots required to wear item
 	Wieldable    // Body slots required to wield item
@@ -237,6 +240,7 @@ var anyNames = []string{
 	"Body",
 	"Holdable",
 	"OnAction",
+	"Permissions",
 	"Qualifier",
 	"Wearable",
 	"Wieldable",

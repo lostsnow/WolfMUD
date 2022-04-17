@@ -1209,12 +1209,20 @@ gold.
 // STOCK FOR PAWN SHOP
 //
 %%
-     Ref: L8O1
-    Name: a curious brass lattice
- Aliases: LATTICE
-Location: @M16
-    Veto: JUNK→The lattice cannot be junked.
-   Reset: AFTER→10m JITTER→10m
+      Ref: L8O1
+     Name: a curious brass lattice
+  Aliases: +CURIOUS:LATTICE +BRASS:LATTICE
+ Location: @M16
+     Veto: JUNK→The lattice cannot be junked.
+   Action: AFTER→5m
+ OnAction: $ACT quietly chimes.
+         : $ACT quietly hums.
+  Cleanup: AFTER→1h
+OnCleanup: The curious brass lattice starts to slowly spin. It rapidly gains
+           speed and then suddenly collapses in on itself and disappears.
+    Reset: JITTER→1h
+  OnReset: There is a gentle, musical ping and a curious brass lattice
+           suddenly appears from nowhere.
 
 This is a finely crafted, intricate lattice of fine brass wires forming a
 roughly ball shaped curiosity.

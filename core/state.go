@@ -6,7 +6,6 @@
 package core
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -29,8 +28,6 @@ type pkgConfig struct {
 	crowdSize   int // Represents minimum number of players considered a crowd
 	debugThings bool
 	debugEvents bool
-	allowDump   bool
-	allowDebug  bool
 	playerPath  string
 }
 
@@ -45,18 +42,17 @@ func Config(c config.Config) {
 		crowdSize:   c.Inventory.CrowdSize,
 		debugThings: c.Debug.Things,
 		debugEvents: c.Debug.Events,
-		allowDump:   c.Debug.AllowDump,
-		allowDebug:  c.Debug.AllowDebug,
 		playerPath:  filepath.Join(c.Server.DataPath, "players"),
 	}
 }
 
 type state struct {
-	actor *Thing
-	buf   map[*Thing]*strings.Builder
-	cmd   string
-	input string
-	word  []string
+	actor   *Thing
+	buf     map[*Thing]*strings.Builder
+	cmd     string
+	input   string
+	history [3]string
+	word    []string
 }
 
 // stopWords is a lookup table of words that can be removed from parsed input.
@@ -76,19 +72,52 @@ func NewState(t *Thing) *state {
 	return &state{actor: t, buf: make(map[*Thing]*strings.Builder)}
 }
 
-func (s *state) Parse(input string) (cmd string) {
-	if input = strings.TrimSpace(input); len(input) != 0 {
-		// Stop the world for everyone else...
-		BWL.Lock()
-		defer BWL.Unlock()
+const (
+	noScripting   = false
+	withScripting = true
+)
 
-		s.parse(input)
-		s.mailman()
+// Parse allows commands to be executed, from outside the package, with
+// scripting disabled.
+func (s *state) Parse(input string) (cmd string) {
+	recall := false
+	if input == "!" || input == "!!" || input == "!!!" {
+		input = s.history[len(input)-1]
+		recall = true
 	}
+
+	cmd = s.preParse(input, noScripting)
+
+	if !recall && cmd != "/!" && cmd != "/HISTORY" && input != s.history[0] {
+		copy(s.history[1:], s.history[0:])
+		s.history[0] = input
+	}
+
+	return
+}
+
+// Script allows commands to be executed, from outside the package, with
+// scripting enabled.
+func (s *state) Script(input string) (cmd string) {
+	return s.preParse(input, withScripting)
+}
+
+func (s *state) preParse(input string, allowScripting bool) (cmd string) {
+	if input = strings.TrimSpace(input); len(input) == 0 {
+		return ""
+	}
+
+	// Stop the world for everyone else...
+	BWL.Lock()
+	defer BWL.Unlock()
+
+	s.parse(input, allowScripting)
+	s.mailman()
+
 	return s.cmd
 }
 
-func (s *state) parse(input string) {
+func (s *state) parse(input string, allowScripting bool) {
 	s.word = strings.Fields(strings.ToUpper(input))
 
 	// Simple stop word removal
@@ -107,6 +136,12 @@ func (s *state) parse(input string) {
 	}
 
 	s.cmd, s.word = s.word[0], s.word[1:]
+
+	if !allowScripting && s.cmd[0] == '$' {
+		s.Msg(s.actor, "Eh?")
+		return
+	}
+
 	s.input = strings.TrimSpace(input[len(s.cmd):])
 
 	if handler, ok := commandHandlers[s.cmd]; ok {
@@ -126,7 +161,7 @@ func (s *state) parse(input string) {
 // advantage of the functionality other commands.
 func (s *state) subparse(input string) {
 	s2 := &state{actor: s.actor, buf: s.buf}
-	s2.parse(input)
+	s2.parse(input, withScripting)
 }
 
 // subparseFor parses new input for an alternative actor reusing the current
@@ -145,7 +180,7 @@ func (s *state) subparseFor(actor *Thing, input string) {
 	markL := s.buf[s.actor.Ref[Where]].Len()
 
 	s2 := &state{actor: actor, buf: s.buf}
-	s2.parse(input)
+	s2.parse(input, withScripting)
 
 	// If the original actor already had messages and we have new location
 	// messages, copy the additional location messages to the actor as they will
@@ -225,9 +260,4 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 	for _, t := range text {
 		s.buf[recipient].WriteString(t)
 	}
-}
-
-// Prompt sets the given player's current prompt to the given text.
-func (s *state) Prompt(who *Thing, f string, args ...interface{}) {
-	mailbox.Suffix(who.As[UID], fmt.Sprintf(f, args...))
 }

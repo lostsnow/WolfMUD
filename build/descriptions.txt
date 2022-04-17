@@ -22,3 +22,6 @@ windows-amd64.zip: WolfMUD for Windows/64bit
 
    linux-arm7.tgz: WolfMUD for Linux/ARMv7 (Hard float)
    linux-arm7.tgz: Notes.: Suitable for Raspberry Pi 2, 3 and 4.
+
+   linux-arm64.tgz: WolfMUD for Linux/ARM 64bit
+   linux-arm64.tgz: Notes.: Suitable for Raspberry Pi 3 and 4.

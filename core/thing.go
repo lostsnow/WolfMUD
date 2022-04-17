@@ -25,6 +25,8 @@ import (
 //
 // NOTE: If new fields are added to Thing they should be catered for in the
 // NewThing and Free methods.
+//
+// NOTE: Times and durations stored in Int should be in nanoseconds.
 type Thing struct {
 	As    map[asKey]string    // Single value for a key
 	Any   map[anyKey][]string // One or more values for a key
@@ -179,8 +181,11 @@ func (t *Thing) Init() {
 	}
 
 	// Check if we need to enable events
-	if t.Int[ActionAfter] != 0 || t.Int[ActionJitter] != 0 {
+	if t.Int[ActionAfter]+t.Int[ActionJitter] > 0 {
 		t.Schedule(Action)
+	}
+	if t.Is&NPC == NPC && t.Int[HealthCurrent] < t.Int[HealthMaximum] {
+		t.Schedule(Health)
 	}
 }
 
@@ -367,6 +372,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.As[OnCleanup] = decode.String(r["ONCLEANUP"])
 		case "ONRESET":
 			t.As[OnReset] = decode.String(r["ONRESET"])
+		case "PROMPTSTYLE":
+			t.As[PromptStyle] = decode.Keyword(r["PROMPTSTYLE"])
 		case "REF":
 			t.As[Ref] = t.As[Zone] + decode.Keyword(r[field])
 		case "RESET":
@@ -684,6 +691,9 @@ func (t *Thing) Marshal() recordjar.Record {
 	if _, ok := t.As[OnReset]; ok {
 		r["OnReset"] = encode.String(t.As[OnReset])
 	}
+	if _, ok := t.As[PromptStyle]; ok {
+		r["PromptStyle"] = encode.Keyword(t.As[PromptStyle])
+	}
 	if _, ok := t.As[UID]; ok {
 		r["Ref"] = encode.String(t.As[UID])
 	}
@@ -877,7 +887,7 @@ func (t *Thing) Junk() {
 	}
 
 	for event := range t.Event {
-		t.Cancel(event)
+		t.Suspend(event)
 	}
 
 	delete(t.As, DynamicQualifier)
@@ -1052,7 +1062,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lEvent--
 		dueAt, dueIn := "-", "-"
 		if at := t.Int[intKey(k)+DueAtOffset]; at > 0 {
-			unix := time.Unix(0, int64(at))
+			unix := time.Unix(0, int64(at)).UTC()
 			dueAt = unix.Format(time.Stamp)
 			dueIn = unix.Sub(time.Now()).Truncate(time.Millisecond).String()
 		}
@@ -1065,7 +1075,24 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 	p("%sInt - len: %d", tree[false].i, lInt)
 	for k, v := range t.Int {
 		lInt--
-		p("%s%s%s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
+		var vv string
+		name := intNames[k]
+		switch {
+		case v == 0:
+		case strings.HasSuffix(name, "After"), strings.HasSuffix(name, "Jitter"), strings.HasSuffix(name, "DueIn"):
+			vv = time.Duration(v).Truncate(time.Millisecond).String()
+		case strings.HasSuffix(name, "DueAt"):
+			vv = time.Unix(0, v).UTC().Format(time.Stamp)
+		case strings.HasSuffix(name, "Created"):
+			vv = time.Unix(0, v).UTC().Format(time.RFC1123Z)
+		default:
+			vv = ""
+		}
+		if vv == "" {
+			p("%s%s%s: %d", tree[false].b, tree[lInt == 0].i, intNames[k], v)
+		} else {
+			p("%s%s%s: %s (%d)", tree[false].b, tree[lInt == 0].i, intNames[k], vv, v)
+		}
 	}
 	p("%sRef - len: %d", tree[false].i, lRef)
 	for k, v := range t.Ref {
@@ -1174,7 +1201,7 @@ func (t *Thing) schedule(event eventKey) bool {
 			// Manually process event command, we already have the BRL and calling
 			// state.Parse would deadlock.
 			s := NewState(t)
-			s.parse(eventCommands[event])
+			s.parse(eventCommands[event], withScripting)
 			s.mailman()
 		},
 	)

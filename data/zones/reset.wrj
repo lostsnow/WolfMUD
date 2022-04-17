@@ -18,7 +18,7 @@ Note that it is recommended to disable all other zones if this zone is enabled.
      Name: Room A
   Aliases: +ROOM:A A
     Exits: E→L2
-Inventory: O1 O2 O3 O4 O5 O9 M1
+Inventory: O1 O2 O3 O4 O5 M1
 
 Test room 'A'.
 %%
@@ -26,7 +26,7 @@ Test room 'A'.
      Name: Room B
   Aliases: +ROOM:B B
     Exits: W→L1
-Inventory: O1 O2 O3 O4 O5 O9 M1
+Inventory: O1 O2 O3 O4 O5 M1
 
 Test room 'B'
 %%
@@ -168,6 +168,7 @@ A unique item.
     Name: a spawnable item
  Aliases: SI
    Reset: AFTER→1s JITTER→1s SPAWN
+ Cleanup: AFTER→1s JITTER→1s
 
 A spawnable item.
 %%
@@ -183,6 +184,7 @@ A unique container.
      Name: a spawnable container
   Aliases: SC
     Reset: AFTER→1s JITTER→1s SPAWN
+  Cleanup: AFTER→1s JITTER→1s
 Inventory: O2 O3 O6 O7
 
 A spawnable container.
@@ -191,6 +193,7 @@ A spawnable container.
      Name: a unique container
   Aliases: UC
     Reset: AFTER→1s JITTER→1s
+  Cleanup: AFTER→1s JITTER→1s
 Inventory: O2 O3
 
 A unique container.
@@ -199,6 +202,7 @@ A unique container.
      Name: a spawnable container
   Aliases: SC
     Reset: AFTER→1s JITTER→1s SPAWN
+  Cleanup: AFTER→1s JITTER→1s
 Inventory: O2 O3
 
 A spawnable container.

@@ -97,13 +97,11 @@ type Login struct {
 }
 
 type Debug struct {
-	LongLog    bool
-	Panic      bool
-	AllowDump  bool
-	AllowDebug bool
-	Events     bool
-	Things     bool
-	Quota      bool
+	LongLog bool
+	Panic   bool
+	Events  bool
+	Things  bool
+	Quota   bool
 }
 
 // Default returns the default, built-in server configuration. Failure to
@@ -201,10 +199,6 @@ func (c Config) Read(r io.Reader) (Config, error) {
 				c.Debug.LongLog = decode.Boolean(data)
 			case "DEBUG.PANIC":
 				c.Debug.Panic = decode.Boolean(data)
-			case "DEBUG.ALLOWDUMP":
-				c.Debug.AllowDump = decode.Boolean(data)
-			case "DEBUG.ALLOWDEBUG":
-				c.Debug.AllowDebug = decode.Boolean(data)
 			case "DEBUG.EVENTS":
 				c.Debug.Events = decode.Boolean(data)
 			case "DEBUG.THINGS":

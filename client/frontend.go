@@ -11,6 +11,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -34,15 +35,21 @@ var (
 	accounts    = make(map[string]struct{})
 )
 
-func (c *client) input() string {
-	var input string
+func (c *client) read() string {
 	var err error
-	r := bufio.NewReaderSize(c, 80)
+	r := bufio.NewReaderSize(c, inputBufferSize)
+retry:
 	c.SetReadDeadline(time.Now().Add(cfg.frontendTimeout))
-	if input, err = r.ReadString('\n'); err != nil {
+	if c.input, err = r.ReadSlice('\n'); err != nil {
+		if errors.Is(err, bufio.ErrBufferFull) {
+			for ; errors.Is(err, bufio.ErrBufferFull); _, err = r.ReadSlice('\n') {
+			}
+			mailbox.Send(c.uid, true, text.Bad+"You type too much! Try again.")
+			goto retry
+		}
 		c.setError(err)
 	}
-	return clean(input)
+	return clean(c.input)
 }
 
 // frontend implements a question/answer flow with the player. Currently
@@ -134,7 +141,7 @@ func (c *client) frontend() bool {
 			mailbox.Send(c.uid, true, string(buf))
 			buf = buf[:0]
 		}
-		input := c.input()
+		input := c.read()
 		if c.error() != nil {
 			return false
 		}
@@ -178,7 +185,10 @@ func (c *client) frontend() bool {
 			c.As[core.Salt] = decode.String(rec["SALT"])
 			hash := sha512.Sum512([]byte(c.As[core.Salt] + input))
 			c.As[core.Password] = base64.URLEncoding.EncodeToString(hash[:])
-			c.Int[core.Created] = decode.DateTime(rec["CREATED"]).Unix()
+			c.Int[core.Created] = decode.DateTime(rec["CREATED"]).UnixNano()
+			if len(rec["PERMISSIONS"]) > 0 {
+				c.Any[core.Permissions] = decode.KeywordList(rec["PERMISSIONS"])
+			}
 			if c.As[core.Password] != decode.String(rec["PASSWORD"]) {
 				buf = append(buf, text.Bad...)
 				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
@@ -203,7 +213,7 @@ func (c *client) frontend() bool {
 			accountsMux.Lock()
 			accounts[c.As[core.Account]] = struct{}{}
 			accountsMux.Unlock()
-			c.Log("Login for: %s", c.As[core.Account])
+			c.Log("Login by: %s", c.As[core.Account])
 			c.assemblePlayer(jar[1:])
 			mailbox.Suffix(c.uid, "")
 			mailbox.Send(c.uid, true, text.Good+"Welcome back "+c.As[core.Name]+"!\n\n")
@@ -333,6 +343,10 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
+	// Upgrade if no prompt set
+	if _, found := jar[0]["PROMPTSTYLE"]; !found {
+		jar[0]["PROMPTSTYLE"] = []byte(core.PromptStyleShort)
+	}
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -375,6 +389,9 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.As[core.Account] = c.As[core.Account]
 	p.As[core.Password] = c.As[core.Password]
 	p.As[core.Salt] = c.As[core.Salt]
+	if _, ok := c.Any[core.Permissions]; ok {
+		p.Any[core.Permissions] = c.Any[core.Permissions]
+	}
 	p.Int[core.Created] = c.Int[core.Created]
 	p.Is |= core.Player
 	p.Is &^= core.NPC
@@ -432,9 +449,10 @@ func (c *client) createPlayer() {
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 	}
-	c.Int[core.Created] = time.Now().Unix()
+	c.Int[core.Created] = time.Now().UnixNano()
 	c.Int[core.HealthAfter] = (10 * time.Second).Nanoseconds()
 	c.Int[core.HealthRestore] = 2
 	c.Int[core.HealthCurrent] = 30
 	c.Int[core.HealthMaximum] = 30
+	c.As[core.PromptStyle] = core.PromptStyleShort
 }

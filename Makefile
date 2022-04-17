@@ -7,16 +7,17 @@
 #
 # Makefile to build WolfMUD. Targets of note:
 #
-#   build       - native build (default)
-#   build-all   - build for all supported platforms
-#   build-race  - build with race detector
-#   run         - start server with logging to terminal and bin/log
-#   batch       - start server with logging to bin/log only
-#   race        - start server with race detector enabled, logging to terminal and bin/log
-#   test        - run tests
-#   cover       - run tests with coverage collection and display in browser
-#   doc         - start godoc server with notes turned on
-#   clean       - clean bin directory
+#   build        - native build (default)
+#   build-all    - build for all supported platforms
+#   build-race   - build with race detector
+#   build-chroot - build minimal chroot environment
+#   run          - start server with logging to terminal and bin/log
+#   batch        - start server with logging to bin/log only
+#   race         - start server with race detector enabled, logging to terminal and bin/log
+#   test         - run tests
+#   cover        - run tests with coverage collection and display in browser
+#   doc          - start godoc server with notes turned on
+#   clean        - clean bin directory
 #
 SHELL := /bin/bash
 
@@ -33,7 +34,7 @@ LDFLAGS := -ldflags "-X code.wolfmud.org/WolfMUD.git/core.commit=$(VERSION)"
 build: version
 	go build -o bin/ -v $(LDFLAGS) -gcflags="-e" ./...
 
-build-all: build linux-amd64 linux-386 linux-arm5 linux-arm6 linux-arm7 windows-amd64 windows-386
+build-all: build linux-amd64 linux-386 linux-arm5 linux-arm6 linux-arm7 linux-arm64 windows-amd64 windows-386
 
 # Build targets also used by release/Makefile
 linux-amd64: version
@@ -46,6 +47,8 @@ linux-arm6: version
 	GOOS=linux GOARCH=arm GOARM=6 go build -o bin/linux-arm6/ --trimpath -v $(LDFLAGS) ./...
 linux-arm7: version
 	GOOS=linux GOARCH=arm GOARM=7 go build -o bin/linux-arm7/ --trimpath -v $(LDFLAGS) ./...
+linux-arm64: version
+	GOOS=linux GOARCH=arm64 go build -o bin/linux-arm64/ --trimpath -v $(LDFLAGS) ./...
 windows-amd64: version
 	GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/ --trimpath -v $(LDFLAGS) ./...
 windows-386: version
@@ -72,6 +75,14 @@ batch: build bin/log
 # Build with race detector
 build-race: version
 	CGO_ENABLED=1 go build -o ./bin/ -race -trimpath -v $(LDFLAGS) -gcflags -e ./...
+
+# Build minimal chroot environment
+build-chroot: build
+	mkdir -p chroot/bin ;\
+	mkdir -p chroot/data/players ;\
+	cp -a bin/server chroot/bin/ ;\
+	cp -a data/config.wrj chroot/data/ ;\
+	cp -a data/zones chroot/data/
 
 # Run with race detector and logging to terminal and bin/log
 race: build-race bin/log

@@ -95,8 +95,11 @@ func RegisterCommandHandlers() {
 		"WHISPER":   (*state).Whisper,
 
 		// Out of character commands
-		"/WHO":    (*state).Who,
-		"/WHOAMI": (*state).WhoAmI,
+		"/WHO":     (*state).Who,
+		"/WHOAMI":  (*state).WhoAmI,
+		"/PROMPT":  (*state).Prompt,
+		"/HISTORY": (*state).History,
+		"/!":       (*state).History,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -140,7 +143,7 @@ func RegisterCommandHandlers() {
 // else? Thing.Junk maybe?
 func (s *state) Quit() {
 	delete(Players, s.actor.As[UID])
-	s.Prompt(s.actor, "")
+	Prompt[PromptStyleNone](s.actor)
 
 	// If scripting QUIT user has not hit enter so nudge them off the prompt
 	if s.cmd == "$QUIT" {
@@ -161,6 +164,7 @@ func (s *state) Quit() {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
+	log.Printf("[%s] Quitting: %s", s.actor.As[UID], s.actor.As[Account])
 }
 
 // quitUniqueCheck will force junk any unique items the player is carrying.
@@ -697,8 +701,8 @@ func (s *state) Put() {
 }
 
 func (s *state) Dump() {
-	if !cfg.allowDump {
-		s.Msg(s.actor, text.Bad, "The #DUMP and #LDUMP commands are unavailable.")
+	if !intersects(s.actor.Any[Permissions], []string{"ADMIN", s.cmd}) {
+		s.Msg(s.actor, text.Bad, "You don't have permission to use ", s.cmd, ".")
 		return
 	}
 	if len(s.word) == 0 {
@@ -895,6 +899,10 @@ func (s *state) Commands() {
 }
 
 func (s *state) Teleport() {
+	if !intersects(s.actor.Any[Permissions], []string{"ADMIN", s.cmd}) {
+		s.Msg(s.actor, text.Bad, "You don't have permission to use ", s.cmd, ".")
+		return
+	}
 	if len(s.word) == 0 {
 		s.Msg(s.actor, text.Info, "Where do you want to go?")
 		return
@@ -920,7 +928,7 @@ func (s *state) Teleport() {
 
 func (s *state) Poof() {
 	Players[s.actor.As[UID]] = s.actor
-	s.buildPrompt(s.actor)
+	Prompt[s.actor.As[PromptStyle]](s.actor)
 	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
 		s.actor.Schedule(Health)
 	}
@@ -930,12 +938,6 @@ func (s *state) Poof() {
 			s.actor.As[Name], " emerges coughing and spluttering.")
 	}
 	s.Look()
-}
-
-func (s *state) buildPrompt(actor *Thing) {
-	s.Prompt(actor, "\n%sH:%d/%d%s>",
-		text.Blue, actor.Int[HealthCurrent], actor.Int[HealthMaximum], text.Magenta,
-	)
 }
 
 func (s *state) Act() {
@@ -1394,11 +1396,12 @@ func (s *state) Save() {
 
 	j := &recordjar.Jar{}
 	hdr := recordjar.Record{
-		"Account":  encode.String(s.actor.As[Account]),
-		"Created":  encode.DateTime(time.Unix(s.actor.Int[Created], 0)),
-		"Password": encode.String(s.actor.As[Password]),
-		"Salt":     encode.String(s.actor.As[Salt]),
-		"Player":   encode.String(s.actor.As[UID]),
+		"Account":     encode.String(s.actor.As[Account]),
+		"Created":     encode.DateTime(time.Unix(0, s.actor.Int[Created])),
+		"Password":    encode.String(s.actor.As[Password]),
+		"Salt":        encode.String(s.actor.As[Salt]),
+		"Player":      encode.Keyword(s.actor.As[UID]),
+		"Permissions": encode.KeywordList(s.actor.Any[Permissions]),
 	}
 	*j = append(*j, hdr)
 	save(s.actor, j)
@@ -1430,8 +1433,8 @@ func save(t *Thing, j *recordjar.Jar) {
 var cpuProfile *os.File
 
 func (s *state) Debug() {
-	if !cfg.allowDebug {
-		s.Msg(s.actor, text.Bad, "The #DEBUG command is unavailable.")
+	if !intersects(s.actor.Any[Permissions], []string{"ADMIN", s.cmd}) {
+		s.Msg(s.actor, text.Bad, "You don't have permission to use ", s.cmd, ".")
 		return
 	}
 
@@ -1512,7 +1515,7 @@ func (s *state) Health() {
 		s.actor.Schedule(Health)
 	}
 
-	s.buildPrompt(s.actor)
+	Prompt[s.actor.As[PromptStyle]](s.actor)
 }
 
 func (s *state) Hit() {
@@ -1555,7 +1558,7 @@ func (s *state) Hit() {
 		}
 
 		s.Msg(s.actor, text.Good, "You kill ", what.As[TheName], " (", damageTxt, ").")
-		s.Msg(what, text.Bad, s.actor.As[TheName],
+		s.Msg(what, text.Bad, s.actor.As[UTheName],
 			" kills you (", damageTxt, ").",
 			text.Cyan,
 			"\n",
@@ -1588,14 +1591,14 @@ func (s *state) Hit() {
 			start.Who[what.As[UID]] = what
 			s.subparseFor(what, "$POOF")
 		}
-		s.buildPrompt(what)
+		Prompt[what.As[PromptStyle]](what)
 
 	default:
 		what.Int[HealthCurrent] -= damage
 		if what.Event[Health] == nil && what.Int[HealthCurrent] < what.Int[HealthMaximum] {
 			what.Schedule(Health)
 		}
-		s.buildPrompt(what)
+		Prompt[what.As[PromptStyle]](what)
 
 		s.Msg(s.actor, text.Good, "You hit ", what.As[TheName], " (", damageTxt, ").")
 		s.Msg(what, text.Bad, s.actor.As[UTheName], " hits you (", damageTxt, ").")
@@ -1738,6 +1741,31 @@ func (s state) Who() {
 
 func (s state) WhoAmI() {
 	s.Msg(s.actor, text.Good, "You are ", s.actor.As[UName], ".")
+}
+
+func (s state) Prompt() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "Prompt is currently ", s.actor.As[PromptStyle], ".")
+		return
+	}
+
+	if _, ok := Prompt[s.word[0]]; !ok {
+		s.Msg(s.actor, text.Bad, "Prompt type must be one of: ", PromptList)
+		return
+	}
+
+	s.actor.As[PromptStyle] = s.word[0]
+	Prompt[s.word[0]](s.actor)
+	s.Msg(s.actor, text.Info, "Prompt is now ", s.word[0], ".")
+}
+
+var historyMarks = []string{"    !: ", "   !!: ", "  !!!: "}
+
+func (s state) History() {
+	s.Msg(s.actor, text.Good, "Your three most recent commands:", text.Reset)
+	for x, h := range s.history {
+		s.MsgAppend(s.actor, "\n", historyMarks[x], h)
+	}
 }
 
 // intersects returns true if any elements of want are also in have, else false.

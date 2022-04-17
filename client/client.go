@@ -8,6 +8,7 @@ package client
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -24,6 +25,8 @@ import (
 	"code.wolfmud.org/WolfMUD.git/mailbox"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
+
+const inputBufferSize = 80
 
 type pkgConfig struct {
 	logClient       bool
@@ -60,6 +63,7 @@ func Config(c config.Config) {
 type client struct {
 	*core.Thing
 	*net.TCPConn
+	input []byte
 	err   chan error
 	queue <-chan string
 	quit  chan struct{}
@@ -70,6 +74,7 @@ func New(conn *net.TCPConn) *client {
 	c := &client{
 		Thing:   core.NewThing(),
 		TCPConn: conn,
+		input:   make([]byte, inputBufferSize),
 		err:     make(chan error, 1),
 		quit:    make(chan struct{}, 1),
 	}
@@ -80,12 +85,14 @@ func New(conn *net.TCPConn) *client {
 	c.SetLinger(10)
 	c.SetNoDelay(false)
 	c.SetWriteBuffer(80 * 24)
-	c.SetReadBuffer(80)
+	c.SetReadBuffer(inputBufferSize)
 
 	c.queue = mailbox.Add(c.As[core.UID])
 	c.uid = c.As[core.UID]
 
-	c.Log("connection from: %s", c.RemoteAddr())
+	if cfg.logClient {
+		c.Log("connection from: %s", c.RemoteAddr())
+	}
 
 	return c
 }
@@ -140,7 +147,9 @@ func (c *client) cleanup() {
 		c.Log("client error: %s", err)
 	}
 
-	c.Log("disconnect from: %s", c.RemoteAddr())
+	if cfg.logClient {
+		c.Log("disconnect from: %s", c.RemoteAddr())
+	}
 	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
 
 	mailbox.Delete(c.uid)
@@ -170,31 +179,37 @@ func (c *client) receive() {
 			if err := recover(); err != nil {
 				c.setError(errors.New("client panicked"))
 				c.Log("client panicked: %s\n%s", err, debug.Stack())
-				s.Parse("$QUIT")
+				s.Script("$QUIT")
 			}
 		}()
 	}
 
-	cmd := s.Parse("$POOF")
+	cmd := s.Script("$POOF")
 
-	var input string
 	var err error
-	r := bufio.NewReaderSize(c, 80)
+	r := bufio.NewReaderSize(c, inputBufferSize)
 	for cmd != "QUIT" && c.error() == nil {
+		c.input = c.input[:0]
 		c.SetReadDeadline(time.Now().Add(cfg.ingameTimeout))
-		if input, err = r.ReadString('\n'); err != nil {
+		if c.input, err = r.ReadSlice('\n'); err != nil {
+			if errors.Is(err, bufio.ErrBufferFull) {
+				for ; errors.Is(err, bufio.ErrBufferFull); _, err = r.ReadSlice('\n') {
+				}
+				mailbox.Send(c.uid, true, text.Bad+"You type too much!")
+				continue
+			}
 			c.setError(err)
 			break
 		}
 		if len(c.queue) > 10 {
 			continue
 		}
-		cmd = s.Parse(clean(input))
+		cmd = s.Parse(clean(c.input))
 		runtime.Gosched()
 	}
 
 	if cmd != "QUIT" {
-		cmd = s.Parse("$QUIT")
+		cmd = s.Script("$QUIT")
 	}
 }
 
@@ -242,11 +257,11 @@ func (c *client) setError(err error) {
 // An exception in the C0 control code is backspace ('\b', ASCII 0x08) which
 // will erase the previous rune. This can occur when the player's Telnet client
 // does not support line editing.
-func clean(in string) string {
+func clean(in []byte) string {
 
 	o := make([]rune, len(in)) // oversize due to len = bytes
 	i := 0
-	for _, v := range in {
+	for _, v := range bytes.Runes(in) {
 		switch {
 		case v == '\uFFFD':
 			// drop invalid runes
