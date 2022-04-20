@@ -164,7 +164,7 @@ func (s *state) Quit() {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
-	log.Printf("[%s] Quitting: %s", s.actor.As[UID], s.actor.As[Account])
+	s.Log("Quitting: %s", s.actor.As[Account])
 }
 
 // quitUniqueCheck will force junk any unique items the player is carrying.
