@@ -6,6 +6,8 @@
 package core
 
 import (
+	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -260,4 +262,15 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 	for _, t := range text {
 		s.buf[recipient].WriteString(t)
 	}
+}
+
+// Log takes the same parameters as fmt.Printf and writes the resulting message
+// to the log. The message will automatically be appended with the UID of the
+// actor. For example:
+//
+//  [#UID-202] Quitting: 72de37d1b2be008b83e760ef74cc460a
+//
+func (s *state) Log(f string, a ...interface{}) {
+	f = fmt.Sprintf("[%s] %s", s.actor.As[UID], f)
+	log.Printf(f, a...)
 }
