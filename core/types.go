@@ -220,6 +220,7 @@ const (
 	Body         // Body slots available to an item
 	Holdable     // Body slots required to hold item
 	OnAction     // Actions that can be performed
+	Opponents    // UID of opponents being defended against
 	Permissions  // Permissions a player has
 	Qualifier    // Alias qualifiers
 	Wearable     // Body slots required to wear item
@@ -240,6 +241,7 @@ var anyNames = []string{
 	"Body",
 	"Holdable",
 	"OnAction",
+	"Opponents",
 	"Permissions",
 	"Qualifier",
 	"Wearable",
@@ -375,8 +377,9 @@ const (
 	Up
 	Down
 
-	Where  // Where an item is
-	Origin // Where a unique item resets to
+	Opponent // Opponent being directly attacked
+	Origin   // Where a unique item resets to
+	Where    // Where an item is
 )
 
 // refNames maps refKey values to their string name.
@@ -387,8 +390,9 @@ var refNames = []string{
 	"South", "Southwest", "West", "Northwest",
 	"Up", "Down",
 
-	"Where",
+	"Opponent",
 	"Origin",
+	"Where",
 }
 
 // preferredOrdering defines the preferred sorting or for attributes when
