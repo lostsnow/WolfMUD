@@ -264,6 +264,10 @@ const (
 	CleanupJitter // Maximum random delay to add to CleanupAfter
 	CleanupDueAt  // Time a scheduled clean-up is due
 	CleanupDueIn  // Time remaining for clean-up
+	CombatAfter   // How soon a clean-up event should occur
+	CombatJitter  // Maximum random delay to add to CleanupAfter
+	CombatDueAt   // Time a scheduled clean-up is due
+	CombatDueIn   // Time remaining for clean-up
 	HealthAfter   // How soon a healing event should occur
 	HealthJitter  // Maximum random delay to add to HealthAfter
 	HealthDueAt   // Time a scheduled healing event is due
@@ -297,6 +301,10 @@ var intNames = []string{
 	"CleanupJitter",
 	"CleanupDueAt",
 	"CleanupDueIn",
+	"CombatAfter",
+	"CombatJitter",
+	"CombatDueAt",
+	"CombatDueIn",
 	"HealthAfter",
 	"HealthJitter",
 	"HealthDueAt",
@@ -335,6 +343,7 @@ const (
 const (
 	Action  eventKey = eventKey(ActionAfter)
 	Cleanup          = eventKey(CleanupAfter)
+	Combat           = eventKey(CombatAfter)
 	Health           = eventKey(HealthAfter)
 	Reset            = eventKey(ResetAfter)
 	Trigger          = eventKey(TriggerAfter)
@@ -344,6 +353,7 @@ const (
 var eventNames = map[eventKey]string{
 	Action:  "Action",
 	Cleanup: "Cleanup",
+	Combat:  "Combat",
 	Health:  "Health",
 	Reset:   "Reset",
 	Trigger: "Trigger",
