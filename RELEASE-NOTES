@@ -6,6 +6,117 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.19 Released Sunday 24th April, 2022
+==============================================================================
+
+    WolfMUD v0.0.19 is a 90%+ rewrite of WolfMUD v0.0.18. Compatibility with
+    existing zone files and player files has been maintained. While these
+    release notes try to highlight differences between the two versions, see
+    the release notes for the v0.0.19 betas below for more details.
+
+    Every effort has been made to implement the features and functionality that
+    was previously available in v0.0.18. These release notes serve to document
+    any differences and additions in the v0.0.19 release.
+
+    The only change between v0.0.19 and v0.0.19-beta.6 are the release notes
+    and a tidy-up/clarafication of the build descriptions.
+
+Upgrading Notes
+
+  - In data/config.wrj, Inventory.CrowdSize is now the minimum number of
+    players to be considered a crowd. Before it was the number of players
+    before they where considered a crowd. The default value has changed from 10
+    to 11 - 11 or more players is a crowd. See docs/configuration-file.txt for
+    more details.
+  - In data/config.wrj, a separate login timeout has been added: Login.Timeout
+    with a default value of 1m - 1 minute. See docs/configuration-file.txt for
+    more details.
+  - Per IP address connection quotas have been simplified. In data/config.wrj
+    Quota.Timeout and Quota.Stats are no longer used. A new Quota.Slots
+    configuration value has been added, which defaults to 0. Quotas now allow
+    up to Quota.Slots connections per Quota.Window per IP address. There are no
+    quote statistics, however there is a new Debug.Quota flag which provides
+    some additional information. See docs/configuration-file.txt for more
+    details.
+  - In zone and player files the Health field attributes have changed from:
+
+      [Old format]  Health: FREQUENCY→     CURRENT→ MAXIMUM→ REGENERATES→
+      [New format]  Health: AFTER→ JITTER→ CURRENT→ MAXIMUM→ RESTORE→
+
+    FREQUENCY has been replaced with AFTER+JITTER to bring Health in line with
+    other events. REGENERATES has been replaced with RESTORE as it is more
+    generic and can be reused on other similar fields. Existing player files
+    will be upgraded.  See docs/zone-files.txt for more details. Zone files
+    should be reviewed and mobiles/NPCs updated as necessary.
+  - Players now have a new Permissions field. This can contain the value
+    'ADMIN' which grants access to all admin commands. Alternatively, access
+    can be granted to specific admin commands only by listing the specific
+    commands. For example:
+
+      Permissions: ADMIN
+      Permissions: #DUMP #GOTO
+
+    Per player permissions replace the Debug.AllowDump and Debug.AllowDebug
+    settings in data/config.wrj, which are removed. See the ADMINISTRATORS
+    section in docs/running-the-server.txt for more details.
+
+Added
+
+  - Linux ARM64 is now officially supported with pre-built downloads available.
+  - The matcher now understands 'SELF'. For example: EXAMINE SELF, HIT SELF.
+  - The matcher now understands 'MY' to refer to items in your own inventory.
+    For example: EXAMINE MY SWORD, PUT APPLE MY BAG.
+  - The matcher now understands 'ANY' to refer to a random item when there are
+    multiple matches. For example: GET ANY APPLE, WIELD ANY SWORD.
+  - Duplicate messages sent to players are de-spammed so that fewer duplicates
+    will be seen.
+  - Imps and fungus slugs have been added to zinara_caves.wrj, the "Caves near
+    Zinara" zone.
+  - There are now corpses when the HIT command is used to kill something.
+  - A new /WHOAMI command has been added in case you forget which character is
+    logged in on which terminal.
+  - Zone and player files are now more Unicode friendly, including REF/@refs.
+  - Players now have a command history for up to thee previous three commands.
+    The history can be shown using /HISTORY or the abbreviation '/!'. Commands
+    can be replayed from the history using '!', '!!' and '!!!' respectively.
+
+Changed
+
+  - The output for the #DUMP/#LDUMP commands have been updated to reflect how
+    items are stored internally. There is no Unicode #UDUMP variant yet.
+  - The #DUMP/#LDUMP commands can accept '@' to dump everything in the current
+    location - mnemonic is where you are 'at'. For example: #DUMP @
+  - New server statistics: A[n] O[n ±n] T[n ±n] E[n ±n] P[n max]
+
+      A[    n] - runtime allocations since last collection
+      O[n  ±n] - runtime objects / change since last collection
+      T[n  ±n] - Thing in the world / change since last collection
+      E[n  ±n] - in-flight active events / change since last collection
+      P[n max] - current number of players / maximum number of players
+
+  - In zone and player files the leading '+' for bound qualifiers only may be
+    omitted. For example, SHORT:SWORD and +SHORT:SWORD are equivalent - but the
+    latter is preferred for consistency with non-bound qualifiers.
+  - Player names are now restricted to 15 characters during account creation.
+  - A mobile/NPC is now defined as anything that can self heal. Existing zone
+    files should be checked to make sure mobiles/NPCs, that are intended to be
+    mobiles/NPCs, have a Health record with at least MAXIMUM, RESTORE and
+    AFTER/JITTER attributes set.
+  - The /PROMPT command now has five styles:
+      NONE
+      CURSOR  >
+      BRIEF   H:30>
+      SHORT   H:25/30>
+      LONG    Health: 25/30>
+    The prompt does not currently colour current health based on percentage of
+    maximum health yet.
+  - The server no longer logs client connections and disconnections, unless
+    client IP addresses are being logged - Server.LogClient is set true. The
+    server will log player logins and players quitting:
+      [#UID-F] Login by: 16809599915800bb7a67d231daef3b9f
+      [#UID-F] Quitting: 16809599915800bb7a67d231daef3b9f
+  - The stock zones in data/zones have had many improvements and bug fixes.
+
 v0.0.19-beta.6 Released Sunday 17th April, 2022
 ==============================================================================
 
