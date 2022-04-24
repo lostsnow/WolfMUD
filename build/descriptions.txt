@@ -1,4 +1,4 @@
-# Copyright 2021 Andrew 'Diddymus' Rolfe. All rights reserved.
+# Copyright 2022 Andrew 'Diddymus' Rolfe. All rights reserved.
 #
 # Use of this source code is governed by the license in the LICENSE file
 # included with the source code.
@@ -14,14 +14,14 @@
 windows-amd64.zip: WolfMUD for Windows/64bit
        source.zip: WolfMUD source code zipped
 
-   linux-arm5.tgz: WolfMUD for Linux/ARMv5 (Soft float)
+   linux-arm5.tgz: WolfMUD for Linux/ARMv5 (Soft float/32bit)
    linux-arm5.tgz: Notes.: Generic ARM build. Raspberry Pi can use the faster ARMv6/v7 builds.
 
-   linux-arm6.tgz: WolfMUD for Linux/ARMv6 (Hard float)
-   linux-arm6.tgz: Notes.: Suitable for Raspberry Pi A, A+, B, B+, Zero, Zero W
+   linux-arm6.tgz: WolfMUD for Linux/ARMv6 (Hard float/32bit)
+   linux-arm6.tgz: Notes.: Suitable for Raspberry Pi A/A+/B/B+/Zero/Zero W.
 
-   linux-arm7.tgz: WolfMUD for Linux/ARMv7 (Hard float)
-   linux-arm7.tgz: Notes.: Suitable for Raspberry Pi 2, 3 and 4.
+   linux-arm7.tgz: WolfMUD for Linux/ARMv7 (Hard float/32bit)
+   linux-arm7.tgz: Notes.: Suitable for Raspberry Pi 2/3/4/400/Zero 2 W.
 
-   linux-arm64.tgz: WolfMUD for Linux/ARM 64bit
-   linux-arm64.tgz: Notes.: Suitable for Raspberry Pi 3 and 4.
+   linux-arm64.tgz: WolfMUD for Linux/ARM64 (AArch64/64bit)
+   linux-arm64.tgz: Notes.: Generic ARM64 build. Suitable for Raspberry Pi 3/4/400/Zero 2 W.
