@@ -117,6 +117,7 @@ func RegisterCommandHandlers() {
 		"$TRIGGER": (*state).Trigger,
 		"$QUIT":    (*state).Quit,
 		"$HEALTH":  (*state).Health,
+		"$COMBAT":  (*state).Combat,
 	}
 
 	eventCommands = map[eventKey]string{
@@ -125,6 +126,7 @@ func RegisterCommandHandlers() {
 		Cleanup: "$CLEANUP",
 		Trigger: "$TRIGGER",
 		Health:  "$HEALTH",
+		Combat:  "$COMBAT",
 	}
 
 	// precompute a sorted list of available player and admin commands. Scripting

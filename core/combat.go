@@ -6,6 +6,7 @@
 package core
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -13,6 +14,8 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/text"
 )
+
+var roundDuration = (3 * time.Second).Nanoseconds()
 
 func (s *state) Hit() {
 
@@ -138,4 +141,102 @@ func createCorpse(t *Thing) *Thing {
 	}
 
 	return c
+}
+
+func (s *state) Combat() {
+
+	what := s.actor.Ref[Opponent]
+	where := s.actor.Ref[Where]
+
+	if what == nil || where != what.Ref[Where] {
+		s.stopCombat(s.actor, nil)
+		s.Msg(s.actor, text.Info, "\nYou stop fighting, your opponent disappeared...")
+		return
+	}
+
+	attacker, defender := s.actor, what
+	if rand.Int63n(100+1) < 50 {
+		attacker, defender = defender, attacker
+	}
+
+	damage := 2 + rand.Int63n(2+1)
+	damageText := fmt.Sprintf(" doing %d damage.", damage)
+	defender.Int[HealthCurrent] -= damage
+
+	s.Msg(s.actor, "\n") // Actor needs manually moving off of prompt
+	s.MsgAppend(attacker, text.Good, "You hit ", defender.As[TheName], damageText)
+	s.MsgAppend(defender, text.Bad, attacker.As[UTheName], " hits you", damageText)
+	s.Msg(where, text.Info, attacker.As[UTheName], " hits ", defender.As[Name], ".")
+
+	// defender not killed, do health bookkeeping and go another round
+	if defender.Int[HealthCurrent] > 0 {
+		Prompt[defender.As[PromptStyle]](defender)
+		if defender.Event[Health] == nil {
+			defender.Schedule(Health)
+		}
+		s.actor.Int[CombatAfter] = roundDuration
+		s.actor.Schedule(Combat)
+		return
+	}
+	s.Msg(attacker, "You kill ", defender.As[Name], "!")
+	s.Msg(defender, attacker.As[UTheName], " kills you!")
+	s.Msg(where, attacker.As[UTheName], " kills ", defender.As[Name], "!")
+
+	// Stop everyone attacking defender and notify them, as they receive a
+	// specific message they won't get the message to the location.
+	for _, uid := range defender.Any[Opponents] {
+		who := where.Who[uid]
+		if who != nil && who != attacker {
+			s.Msg(who, text.Info, attacker.As[UTheName], " kills ", defender.As[Name], "!")
+			s.Msg(who, text.Info, "You stop fighting ", defender.As[Name], ".")
+		}
+		if who == nil {
+			who = where.In[uid]
+		}
+		s.stopCombat(who, defender)
+	}
+	s.stopCombat(defender, nil)
+
+	// Create and place corpse
+	c := createCorpse(defender)
+	where.In[c.As[UID]] = c
+	c.Schedule(Cleanup)
+
+	// Remove defender from location
+	delete(where.Who, defender.As[UID])
+
+	// If not a player junk for a reset
+	if defender.Is&Player == 0 {
+		defender.Junk()
+		return
+	}
+
+	// Place player back into the world
+	start := WorldStart[rand.Intn(len(WorldStart))]
+	defender.Int[HealthCurrent] = 1
+	defender.Ref[Where] = start
+	start.Who[defender.As[UID]] = defender
+
+	if s.actor == defender {
+		s.subparse("$POOF")
+	} else {
+		s.subparseFor(defender, "$POOF")
+	}
+}
+
+func (s *state) stopCombat(who, what *Thing) {
+	if what == nil {
+		who.Cancel(Combat)
+		who.Schedule(Action)
+		delete(who.Ref, Opponent)
+		delete(who.Any, Opponents)
+	} else {
+		who.Any[Opponents], _ = remainder(who.Any[Opponents], []string{what.As[UID]})
+		if len(who.Any[Opponents]) == 0 {
+			who.Schedule(Action)
+			who.Cancel(Combat)
+			delete(who.Ref, Opponent)
+			delete(who.Any, Opponents)
+		}
+	}
 }
