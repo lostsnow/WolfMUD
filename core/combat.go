@@ -121,8 +121,8 @@ func (s *state) Hit() {
 
 func createCorpse(t *Thing) *Thing {
 	c := NewThing()
-	c.As[Name] = "a corpse of " + t.As[Name]
-	c.As[UName] = "A corpse of " + t.As[Name]
+	c.As[Name] = "the corpse of " + t.As[Name]
+	c.As[UName] = "The corpse of " + t.As[Name]
 	c.As[TheName] = "the corpse of " + t.As[Name]
 	c.As[UTheName] = "The corpse of " + t.As[Name]
 	c.As[Description] = t.As[Description]
@@ -137,6 +137,7 @@ func createCorpse(t *Thing) *Thing {
 	for x, alias := range c.Any[Alias] {
 		if alias == t.As[UID] {
 			c.Any[Alias][x] = "CORPSE"
+			break
 		}
 	}
 
