@@ -143,6 +143,53 @@ func createCorpse(t *Thing) *Thing {
 	return c
 }
 
+func (s *state) Attack() {
+
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "You go to attack... someone?")
+		return
+	}
+
+	if len(s.actor.Any[Opponents]) > 0 {
+		s.Msg(s.actor, text.Bad, "You are already fighting!")
+		return
+	}
+
+	where := s.actor.Ref[Where]
+
+	uids := Match(s.word, where)
+	uid := uids[0]
+	what := where.Who[uid]
+	if what == nil {
+		what = where.In[uid]
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' here to attack.")
+	case s.actor == what:
+		s.Msg(s.actor, text.Good, "You give yourself a slap. Awake now?")
+		s.Msg(where, text.Info, s.actor.As[UName], " slaps themself.")
+	case what.Is&(Player|NPC) == 0:
+		s.Msg(s.actor, text.Bad, "You cannot fight ", what.As[TheName], ".")
+		s.Msg(where, text.Info, s.actor.As[UName], " tries to attack ", what.As[Name], ".")
+	case where.As[VetoCombat] != "":
+		s.Msg(s.actor, text.Bad, where.As[VetoCombat])
+	default:
+		what.Any[Opponents] = append(what.Any[Opponents], s.actor.As[UID])
+		what.Suspend(Action)
+
+		s.actor.Any[Opponents] = append(s.actor.Any[Opponents], what.As[UID])
+		s.actor.Ref[Opponent] = what
+		s.actor.Int[CombatAfter] = roundDuration
+		s.actor.Schedule(Combat)
+
+		s.Msg(s.actor, text.Good, "You attack ", what.As[TheName], "!")
+		s.Msg(what, text.Bad, s.actor.As[TheName], " attacks you!")
+		s.Msg(where, text.Info, s.actor.As[UTheName], " attacks ", what.As[TheName], "!")
+	}
+}
+
 func (s *state) Combat() {
 
 	what := s.actor.Ref[Opponent]

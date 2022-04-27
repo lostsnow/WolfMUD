@@ -93,6 +93,8 @@ func RegisterCommandHandlers() {
 		"TELL":      (*state).Tell,
 		"TALK":      (*state).Tell,
 		"WHISPER":   (*state).Whisper,
+		"ATTACK":    (*state).Attack,
+		"KILL":      (*state).Attack,
 
 		// Out of character commands
 		"/WHO":     (*state).Who,
