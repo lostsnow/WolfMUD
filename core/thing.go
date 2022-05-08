@@ -1194,6 +1194,12 @@ func (t *Thing) schedule(event eventKey) bool {
 			if t.Is&Freed == Freed {
 				return
 			}
+
+			// Has event been cancelled while we were blocking?
+			if t.Event[event] == nil {
+				return
+			}
+
 			if cfg.debugEvents {
 				t.logEvent("delivered", event)
 			}
