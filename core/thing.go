@@ -1174,7 +1174,7 @@ func (t *Thing) schedule(event eventKey) bool {
 	switch {
 	case delay+jitter+dueIn == 0:
 		return false
-	case dueIn != 0:
+	case dueIn > 0:
 		delay, jitter = dueIn, 0
 		t.Int[idx+DueInOffset] = 0
 	case jitter != 0:
