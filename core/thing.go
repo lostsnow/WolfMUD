@@ -1260,7 +1260,7 @@ func (t *Thing) suspend(event eventKey) bool {
 		t.Int[dueIn] = 0
 	}
 	t.Int[dueAt] = 0
-	return true
+	return suspended
 }
 
 func (t *Thing) logEvent(action string, event eventKey) {
