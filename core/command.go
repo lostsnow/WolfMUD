@@ -268,6 +268,11 @@ func (s *state) Move() {
 		return
 	}
 
+	if len(s.actor.Any[Opponents]) > 0 {
+		s.Msg(s.actor, text.Bad, "You can't just walk off while fighting.")
+		return
+	}
+
 	// Alias is a helper closure that calculates the aliases for the actor when
 	// first called. Subsequent calls return the calculated value. For players
 	// we don't test barriers against the player's name alias. Otherwise some
