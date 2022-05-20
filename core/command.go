@@ -1132,6 +1132,11 @@ func (s *state) Reset() {
 	delete(where.Out, s.actor.As[UID])
 	where.In[s.actor.As[UID]] = s.actor
 
+	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
+		s.actor.Cancel(Health)
+		s.actor.Int[HealthCurrent] = s.actor.Int[HealthMaximum]
+	}
+
 	// Check parent of where reset will happen to see if where is out of play.
 	// If where is out of play reset will not be seen. However, if where reset
 	// will happen now has no out of play items we can schedule a reset for it.
