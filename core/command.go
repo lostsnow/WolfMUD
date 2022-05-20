@@ -1017,7 +1017,10 @@ func (s *state) Action() {
 	}
 
 	s.subparse(s.actor.Any[OnAction][rand.Intn(l)])
-	s.actor.Schedule(Action)
+
+	if len(s.actor.Any[Opponents]) == 0 {
+		s.actor.Schedule(Action)
+	}
 }
 
 // FIXME(diddymus): Currently SNEEZE has very aggressive crowd control to limit
