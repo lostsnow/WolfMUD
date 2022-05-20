@@ -218,13 +218,21 @@ func (s *state) Look() {
 				if who == s.actor {
 					continue
 				}
-				s.Msg(s.actor, text.Green, "You see ", who.As[Name], " here.")
+				s.Msg(s.actor, text.Green, "You see ", who.As[Name], " here")
+				if who.Ref[Opponent] != nil {
+					s.MsgAppend(s.actor, " attacking ", who.Ref[Opponent].As[TheName])
+				}
+				s.MsgAppend(s.actor, ".")
 			}
 			for _, item := range where.In.Sort() {
 				if item.Is&Narrative == Narrative || item == s.actor {
 					continue
 				}
-				s.Msg(s.actor, text.Yellow, "You see ", item.As[Name], " here.")
+				s.Msg(s.actor, text.Yellow, "You see ", item.As[Name], " here")
+				if item.Ref[Opponent] != nil {
+					s.MsgAppend(s.actor, " attacking ", item.Ref[Opponent].As[TheName])
+				}
+				s.MsgAppend(s.actor, ".")
 			}
 			if mark != s.buf[s.actor].Len() {
 				s.Msg(s.actor)
