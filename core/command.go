@@ -89,7 +89,7 @@ func RegisterCommandHandlers() {
 		"WIELD":     (*state).Wield,
 		"VERSION":   (*state).Version,
 		"SAVE":      (*state).Save,
-		"HIT":       (*state).Hit,
+		"HIT":       (*state).Attack,
 		"TELL":      (*state).Tell,
 		"TALK":      (*state).Tell,
 		"WHISPER":   (*state).Whisper,
