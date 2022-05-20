@@ -11,12 +11,13 @@ import (
 
 // Constants for the predefined prompt styles.
 const (
-	PromptStyleUnset  = ""
-	PromptStyleNone   = "NONE"   // \n
-	PromptStyleCursor = "CURSOR" // \n>
-	PromptStyleBrief  = "BRIEF"  // \nH:c>
-	PromptStyleShort  = "SHORT"  // \nH:c/m>
-	PromptStyleLong   = "LONG"   // \nHealth: c/m>
+	PromptStyleUnset   = ""
+	PromptStyleNone    = "NONE"    // \n
+	PromptStyleCursor  = "CURSOR"  // \n>
+	PromptStyleMinimal = "MINIMAL" // \nHc␠
+	PromptStyleBrief   = "BRIEF"   // \nH:c>
+	PromptStyleShort   = "SHORT"   // \nH:c/m>
+	PromptStyleLong    = "LONG"    // \nHealth: c/m>
 )
 
 // Prompt is a map of functions for building each of the prompt styles. Once
@@ -36,6 +37,12 @@ var Prompt = map[string]func(who *Thing){
 
 	PromptStyleCursor: func(who *Thing) {
 		mailbox.Suffix(who.As[UID], "\n"+text.Magenta+">")
+	},
+
+	PromptStyleMinimal: func(who *Thing) {
+		mailbox.Suffix(who.As[UID], fmt.Sprintf(
+			"\n"+text.Blue+"H%d"+text.Magenta+"␠", who.Int[HealthCurrent],
+		))
 	},
 
 	PromptStyleBrief: func(who *Thing) {
