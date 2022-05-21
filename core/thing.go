@@ -1174,7 +1174,7 @@ func (t *Thing) schedule(event eventKey) bool {
 	switch {
 	case delay+jitter+dueIn == 0:
 		return false
-	case dueIn != 0:
+	case dueIn > 0:
 		delay, jitter = dueIn, 0
 		t.Int[idx+DueInOffset] = 0
 	case jitter != 0:
@@ -1194,6 +1194,12 @@ func (t *Thing) schedule(event eventKey) bool {
 			if t.Is&Freed == Freed {
 				return
 			}
+
+			// Has event been cancelled while we were blocking?
+			if t.Event[event] == nil {
+				return
+			}
+
 			if cfg.debugEvents {
 				t.logEvent("delivered", event)
 			}
@@ -1260,7 +1266,7 @@ func (t *Thing) suspend(event eventKey) bool {
 		t.Int[dueIn] = 0
 	}
 	t.Int[dueAt] = 0
-	return true
+	return suspended
 }
 
 func (t *Thing) logEvent(action string, event eventKey) {
