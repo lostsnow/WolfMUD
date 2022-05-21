@@ -168,6 +168,18 @@ func (s *state) Quit() {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
 	}
+
+	if len(s.actor.Any[Opponents]) > 0 {
+		for _, uid := range s.actor.Any[Opponents] {
+			who := where.Who[uid]
+			s.Msg(who, text.Info, s.actor.As[Name],
+				" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+			s.Msg(who, text.Info, "You stop fighting ", s.actor.As[Name], ".")
+			s.stopCombat(who, s.actor)
+		}
+		s.stopCombat(s.actor, nil)
+	}
+
 	s.Log("Quitting: %s", s.actor.As[Account])
 }
 
