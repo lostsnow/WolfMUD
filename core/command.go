@@ -154,9 +154,25 @@ func (s *state) Quit() {
 		s.Msg(s.actor, "")
 	}
 
+	where := s.actor.Ref[Where]
+	if len(s.actor.Any[Opponents]) > 0 {
+		for _, uid := range s.actor.Any[Opponents] {
+			who := where.Who[uid]
+			if who != nil {
+				s.Msg(who, text.Info, s.actor.As[Name],
+					" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
+				s.Msg(who, text.Info, "You stop fighting ", s.actor.As[Name], ".")
+			}
+			if who == nil {
+				who = where.In[uid]
+			}
+			s.stopCombat(who, s.actor)
+		}
+		s.stopCombat(s.actor, nil)
+	}
+
 	s.quitUniqueCheck(s.actor)
 	s.Save()
-	where := s.actor.Ref[Where]
 	for _, what := range s.actor.In {
 		what.Is &^= Using
 		what.Junk()
@@ -167,17 +183,6 @@ func (s *state) Quit() {
 	if len(where.Who) < cfg.crowdSize {
 		s.Msg(where, text.Info, s.actor.As[Name],
 			" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
-	}
-
-	if len(s.actor.Any[Opponents]) > 0 {
-		for _, uid := range s.actor.Any[Opponents] {
-			who := where.Who[uid]
-			s.Msg(who, text.Info, s.actor.As[Name],
-				" gives a strangled cry of 'Bye Bye', slowly fades away and is gone.")
-			s.Msg(who, text.Info, "You stop fighting ", s.actor.As[Name], ".")
-			s.stopCombat(who, s.actor)
-		}
-		s.stopCombat(s.actor, nil)
 	}
 
 	s.Log("Quitting: %s", s.actor.As[Account])
