@@ -1630,6 +1630,9 @@ func (s *state) Whisper() {
 		s.Msg(s.actor, text.Bad, "You see no '", s.word[0], "' to whisper to.")
 	case len(s.word) == 1:
 		s.Msg(s.actor, text.Info, "What did you want to whisper to ", what.As[TheName], "?")
+	case what == s.actor:
+		s.Msg(s.actor, text.Info, "You quietly mutter to yourself.")
+		s.Msg(where, text.Info, s.actor.As[UTheName], " quietly mutters to themself.")
 	default:
 		txt := StripMatch(what, s.input)
 		s.Msg(s.actor, text.Good, "You whisper to ", what.As[TheName], ": ", txt)
