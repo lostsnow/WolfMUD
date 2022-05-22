@@ -1551,8 +1551,10 @@ func (s *state) Health() {
 	if s.actor.Int[HealthCurrent] >= s.actor.Int[HealthMaximum] {
 		s.actor.Int[HealthCurrent] = s.actor.Int[HealthMaximum]
 		s.Msg(s.actor, text.Good, "\nYou feel healthy.")
-		s.Msg(s.actor.Ref[Where], text.Info,
-			s.actor.As[UName], " looks healthy.")
+		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
+			s.Msg(s.actor.Ref[Where], text.Info,
+				s.actor.As[UName], " looks healthy.")
+		}
 	} else {
 		s.actor.Schedule(Health)
 	}
