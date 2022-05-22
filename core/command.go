@@ -1587,6 +1587,8 @@ func (s *state) Tell() {
 		s.Msg(s.actor, text.Bad, "You see no '", s.word[0], "' to talk to.")
 	case len(s.word) == 1:
 		s.Msg(s.actor, text.Info, "What did you want to say to ", what.As[TheName], "?")
+	case what == s.actor:
+		s.Msg(s.actor, text.Info, "Talking to yourself again?")
 	default:
 		txt := StripMatch(what, s.input)
 		s.Msg(s.actor, text.Good, "You say to ", what.As[TheName], ": ", txt)
