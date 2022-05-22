@@ -53,6 +53,10 @@ func (s *state) Attack() {
 	}
 
 	where := s.actor.Ref[Where]
+	if len(where.Who) >= cfg.crowdSize {
+		s.Msg(s.actor, text.Bad, "It's too crowded to start a fight here!")
+		return
+	}
 
 	uids := Match(s.word, where)
 	uid := uids[0]
