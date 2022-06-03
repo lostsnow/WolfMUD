@@ -146,6 +146,11 @@ func (c *client) frontend() bool {
 		if c.error() != nil {
 			return false
 		}
+		buf = append(buf, text.Prompt...)
+		buf = append(buf, '>')
+		buf = append(buf, input...)
+		buf = append(buf, '\n')
+		buf = append(buf, text.Reset...)
 
 		// Process answer to question for current stage
 		switch stage {
