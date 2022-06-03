@@ -14,6 +14,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // World contains all of the top level locations for the current game world.
@@ -86,6 +87,11 @@ func (s *state) Parse(input string) (cmd string) {
 	if input == "!" || input == "!!" || input == "!!!" {
 		input = s.history[len(input)-1]
 		recall = true
+	}
+
+	// If input isn't empty transfer it to the output area
+	if input = strings.TrimSpace(input); len(input) > 0 {
+		s.Msg(s.actor, text.Prompt, ">", input, text.Reset)
 	}
 
 	cmd = s.preParse(input, noScripting)
