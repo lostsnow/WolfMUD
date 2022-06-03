@@ -962,7 +962,7 @@ func (s *state) Teleport() {
 
 func (s *state) Poof() {
 	Players[s.actor.As[UID]] = s.actor
-	Prompt[s.actor.As[PromptStyle]](s.actor)
+	s.StatusUpdate(s.actor)
 	if s.actor.Int[HealthCurrent] < s.actor.Int[HealthMaximum] {
 		s.actor.Schedule(Health)
 	}
@@ -1559,7 +1559,7 @@ func (s *state) Health() {
 		s.actor.Schedule(Health)
 	}
 
-	Prompt[s.actor.As[PromptStyle]](s.actor)
+	s.StatusUpdate(s.actor)
 }
 
 func (s *state) Tell() {

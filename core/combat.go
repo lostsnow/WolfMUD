@@ -118,7 +118,7 @@ func (s *state) Combat() {
 
 	// defender not killed, do health bookkeeping and go another round
 	if defender.Int[HealthCurrent] > 0 {
-		Prompt[defender.As[PromptStyle]](defender)
+		s.StatusUpdate(defender)
 		if defender.Event[Health] == nil {
 			defender.Schedule(Health)
 		}
