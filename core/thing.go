@@ -1037,7 +1037,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lAs--
 		line := simpleFold(v, width-len(indent)-len(asNames[k])-len("|  |- [00] : "))
 		pad := strings.Repeat(" ", len(asNames[k])+len("[00] : "))
-		p("%s%s[%2d] %s: %s", tree[false].b, tree[lAs == 0].i, k, asNames[k], line[0])
+		p("%s%s[%2d] %s: %q", tree[false].b, tree[lAs == 0].i, k, asNames[k], line[0])
 		for _, line := range line[1:] {
 			p("%s%s%s%s", tree[false].b, tree[lAs == 0].b, pad, line)
 		}
