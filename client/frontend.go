@@ -25,6 +25,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/mailbox"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/term"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -395,6 +396,7 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	p.Int[core.Created] = c.Int[core.Created]
 	p.Is |= core.Player
 	p.Is &^= core.NPC
+	p.As[core.StatusSeq] = string(term.Status(c.height, c.width))
 	c.Thing.Free()
 	c.Thing = p
 	c.InitOnce(nil)
@@ -455,4 +457,5 @@ func (c *client) createPlayer() {
 	c.Int[core.HealthCurrent] = 30
 	c.Int[core.HealthMaximum] = 30
 	c.As[core.PromptStyle] = core.PromptStyleShort
+	c.As[core.StatusSeq] = string(term.Status(c.height, c.width))
 }
