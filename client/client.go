@@ -244,7 +244,7 @@ func (c *client) messenger() {
 			}
 
 			c.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			c.Write(text.Fold(buf, 80))
+			c.Write(text.Fold(buf, c.width-2))
 		}
 	}
 }
