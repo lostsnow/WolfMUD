@@ -274,3 +274,11 @@ func (s *state) Log(f string, a ...interface{}) {
 	f = fmt.Sprintf("[%s] %s", s.actor.As[UID], f)
 	log.Printf(f, a...)
 }
+
+// StatusUpdate updates the player's statistics on the status bar.
+func (s state) StatusUpdate(who *Thing) {
+	mailbox.Send(who.As[UID], false, fmt.Sprintf(
+		"%s Health: %[2]d/%[3]d\x1b8",
+		who.As[StatusSeq], who.Int[HealthCurrent], who.Int[HealthMaximum],
+	))
+}
