@@ -74,7 +74,7 @@ func (c *client) frontend() bool {
 	)
 
 	var buf []byte
-	mailbox.Suffix(c.uid, "\n"+text.Magenta+">")
+	mailbox.Suffix(c.uid, "\n")
 
 	for stage := welcome; ; {
 

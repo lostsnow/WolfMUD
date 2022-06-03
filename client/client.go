@@ -23,6 +23,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
+	"code.wolfmud.org/WolfMUD.git/term"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -84,6 +85,12 @@ func New(conn *net.TCPConn) *client {
 	}
 
 	c.err <- nil
+
+	c.width, c.height = term.GetSize(conn)
+	c.Write(term.Setup(c.width, c.height))
+	c.oseq = term.Output(c.height)
+	c.iseq = term.Input(c.height)
+	c.eat()
 
 	c.SetKeepAlive(true)
 	c.SetLinger(10)
@@ -230,8 +237,10 @@ func (c *client) messenger() {
 
 			buf = buf[:0]
 			if len(msg) > 0 {
+				buf = append(buf, c.oseq...)
 				buf = append(buf, text.Reset...)
 				buf = append(buf, msg...)
+				buf = append(buf, c.iseq...)
 			}
 
 			c.SetWriteDeadline(time.Now().Add(10 * time.Second))

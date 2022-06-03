@@ -239,12 +239,8 @@ func (s *state) mailman() {
 func (s *state) Msg(recipient *Thing, text ...string) {
 	if s.buf[recipient] == nil {
 		s.buf[recipient] = &strings.Builder{}
-		if recipient != s.actor {
-			s.buf[recipient].Write(newline)
-		}
-	} else {
-		s.buf[recipient].Write(newline)
 	}
+	s.buf[recipient].Write(newline)
 	for _, t := range text {
 		s.buf[recipient].WriteString(t)
 	}
