@@ -279,3 +279,12 @@ func clean(in []byte) string {
 
 	return string(o[:i])
 }
+
+// eat consumes any pending incoming client data.
+func (c *client) eat() {
+	b := []byte{10: 0}
+	c.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+	for n, err := c.Read(b); err == nil && n > 0; n, err = c.Read(b) {
+		c.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+	}
+}
