@@ -372,8 +372,6 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.As[OnCleanup] = decode.String(r["ONCLEANUP"])
 		case "ONRESET":
 			t.As[OnReset] = decode.String(r["ONRESET"])
-		case "PROMPTSTYLE":
-			t.As[PromptStyle] = decode.Keyword(r["PROMPTSTYLE"])
 		case "REF":
 			t.As[Ref] = t.As[Zone] + decode.Keyword(r[field])
 		case "RESET":
@@ -690,9 +688,6 @@ func (t *Thing) Marshal() recordjar.Record {
 	}
 	if _, ok := t.As[OnReset]; ok {
 		r["OnReset"] = encode.String(t.As[OnReset])
-	}
-	if _, ok := t.As[PromptStyle]; ok {
-		r["PromptStyle"] = encode.Keyword(t.As[PromptStyle])
 	}
 	if _, ok := t.As[UID]; ok {
 		r["Ref"] = encode.String(t.As[UID])
