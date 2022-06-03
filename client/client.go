@@ -63,11 +63,15 @@ func Config(c config.Config) {
 type client struct {
 	*core.Thing
 	*net.TCPConn
-	input []byte
-	err   chan error
-	queue <-chan string
-	quit  chan struct{}
-	uid   string // Can't touch c.As[core.UID] when not under BWL
+	input  []byte
+	err    chan error
+	queue  <-chan string
+	quit   chan struct{}
+	uid    string // Can't touch c.As[core.UID] when not under BWL
+	width  int    // Width of player's terminal
+	height int    // Height of player's terminal
+	oseq   []byte // Escape sequence for updating the output terminal area
+	iseq   []byte // Escape sequence for updating the input terminal area
 }
 
 func New(conn *net.TCPConn) *client {
