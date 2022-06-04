@@ -147,8 +147,6 @@ func (c *client) Log(f string, a ...interface{}) {
 }
 
 func (c *client) cleanup() {
-	mailbox.Suffix(c.uid, "")
-
 	if err := c.error(); err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			mailbox.Send(c.uid, true,

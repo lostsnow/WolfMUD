@@ -74,7 +74,6 @@ func (c *client) frontend() bool {
 	)
 
 	var buf []byte
-	mailbox.Suffix(c.uid, "\n")
 
 	for stage := welcome; ; {
 
@@ -121,7 +120,6 @@ func (c *client) frontend() bool {
 
 		case create:
 			c.createPlayer()
-			mailbox.Suffix(c.uid, "")
 			mailbox.Send(c.uid, true, text.Good+"You step into another world...\n\n")
 			stage = finished
 			continue
@@ -221,7 +219,6 @@ func (c *client) frontend() bool {
 			accountsMux.Unlock()
 			c.Log("Login by: %s", c.As[core.Account])
 			c.assemblePlayer(jar[1:])
-			mailbox.Suffix(c.uid, "")
 			mailbox.Send(c.uid, true, text.Good+"Welcome back "+c.As[core.Name]+"!\n\n")
 			stage = finished
 
