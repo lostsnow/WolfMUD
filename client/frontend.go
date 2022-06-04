@@ -45,12 +45,24 @@ retry:
 		if errors.Is(err, bufio.ErrBufferFull) {
 			for ; errors.Is(err, bufio.ErrBufferFull); _, err = r.ReadSlice('\n') {
 			}
-			mailbox.Send(c.uid, true, text.Bad+"You type too much! Try again.")
+			mailbox.Send(c.uid, true, text.Bad+"\nYou type too much! Try again.")
 			goto retry
 		}
 		c.setError(err)
 	}
 	return clean(c.input)
+}
+
+type buffer struct {
+	strings.Builder
+}
+
+func (b *buffer) Msg(s ...string) {
+	b.WriteByte('\n')
+	b.WriteString(text.Reset)
+	for _, t := range s {
+		b.WriteString(t)
+	}
 }
 
 // frontend implements a question/answer flow with the player. Currently
@@ -73,82 +85,75 @@ func (c *client) frontend() bool {
 		finished
 	)
 
-	var buf []byte
+	buf := &buffer{}
 
 	for stage := welcome; ; {
 
 		// Write question for current stage to player
 		switch stage {
 		case welcome:
-			buf = append(buf, cfg.greeting...)
+			buf.Msg(cfg.greeting)
 			stage = account
 			continue
 
 		case account:
-			buf = append(buf, "Enter your account ID or just press enter to create a new account, enter QUIT to leave the server:"...)
+			buf.Msg("Enter your account ID or just press enter to create a new account, enter QUIT to leave the server.")
 			delete(c.As, core.Account)
 			delete(c.As, core.Password)
 			delete(c.As, core.Salt)
 			delete(c.Int, core.Created)
 
 		case password:
-			buf = append(buf, "Enter the password for your account ID or just press enter to cancel:"...)
+			buf.Msg("Enter the password for your account ID or just press enter to cancel.")
 
 		case explainAccount:
-			buf = append(buf, "Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least "...)
-			buf = append(buf, strconv.Itoa(cfg.accountMin)...)
-			buf = append(buf, " characters long.\n\nThis is NOT your character's name, it is for your account ID for logging in only.\n\n"...)
+			buf.Msg("Your account ID can be anything you can remember: an email address, a book title, a film title, a quote. You can use upper and lower case characters, numbers and symbols. The only restriction is it has to be at least ", strconv.Itoa(cfg.accountMin), " characters long. This is NOT your character's name, it is for your account ID for logging in only.\n")
 			stage = newAccount
 			continue
 
 		case newAccount:
-			buf = append(buf, "Enter text to use for your new account ID or just press enter to cancel:"...)
+			buf.Msg("Enter text to use for your new account ID or just press enter to cancel.")
 
 		case newPassword:
-			buf = append(buf, "Enter a password to use for your account ID or just press enter to cancel:"...)
+			buf.Msg("Enter a password to use for your account ID or just press enter to cancel.")
 
 		case verifyPassword:
-			buf = append(buf, "Enter your password again to confirm or just press enter to cancel:"...)
+			buf.Msg("Enter your password again to confirm or just press enter to cancel.")
 
 		case name:
-			buf = append(buf, "Enter a name for your character or just press enter to cancel:"...)
+			buf.Msg("Enter a name for your character or just press enter to cancel.")
 
 		case gender:
-			buf = append(buf, "Would you like "...)
-			buf = append(buf, c.As[core.Name]...)
-			buf = append(buf, " to be male or female? Or just press enter to cancel."...)
+			buf.Msg("Would you like ", c.As[core.Name], " to be male or female? Or just press enter to cancel.")
 
 		case create:
 			c.createPlayer()
-			mailbox.Send(c.uid, true, text.Good+"You step into another world...\n\n")
+			buf.Msg(text.Good, "\nYou step into another world...\n")
 			stage = finished
 			continue
 
 		case cancelCreate:
-			buf = append(buf, text.Bad...)
-			buf = append(buf, "Account creation cancelled.\n\n"...)
-			buf = append(buf, text.Reset...)
+			buf.Msg(text.Bad, "Account creation cancelled.")
 			stage = account
 			continue
-
-		case finished:
-			return true
 		}
 
 		// Output message to player and get an answer to question
-		if len(buf) > 0 {
-			mailbox.Send(c.uid, true, string(buf))
-			buf = buf[:0]
+		if buf.Len() > 0 {
+			mailbox.Send(c.uid, true, buf.String())
+			buf.Reset()
 		}
+
+		// Finshed?
+		if stage == finished {
+			return true
+		}
+
 		input := c.read()
 		if c.error() != nil {
 			return false
 		}
-		buf = append(buf, text.Prompt...)
-		buf = append(buf, '>')
-		buf = append(buf, input...)
-		buf = append(buf, '\n')
-		buf = append(buf, text.Reset...)
+		buf.Msg(text.Prompt, ">", input)
 
 		// Process answer to question for current stage
 		switch stage {
@@ -166,18 +171,14 @@ func (c *client) frontend() bool {
 
 		case password:
 			if input == "" {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Account ID or password is incorrect.")
 				stage = account
 				continue
 			}
 			f := filepath.Join(cfg.playerPath, c.As[core.Account]+".wrj")
 			wrj, err := os.Open(f)
 			if err != nil {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Account ID or password is incorrect.")
 				c.Log("Invalid account")
 				stage = account
 				continue
@@ -194,9 +195,7 @@ func (c *client) frontend() bool {
 				c.Any[core.Permissions] = decode.KeywordList(rec["PERMISSIONS"])
 			}
 			if c.As[core.Password] != decode.String(rec["PASSWORD"]) {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Account ID or password is incorrect.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Account ID or password is incorrect.")
 				c.Log("Invalid password for: %s", c.As[core.Account])
 				stage = account
 				continue
@@ -207,9 +206,7 @@ func (c *client) frontend() bool {
 			accountsMux.RUnlock()
 
 			if active {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "The account ID is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "The account ID is already logged in. If your connection to the server was unceramoniously terminated you may need to wait a while for the account to automatically logout.")
 				stage = account
 				continue
 			}
@@ -219,7 +216,7 @@ func (c *client) frontend() bool {
 			accountsMux.Unlock()
 			c.Log("Login by: %s", c.As[core.Account])
 			c.assemblePlayer(jar[1:])
-			mailbox.Send(c.uid, true, text.Good+"Welcome back "+c.As[core.Name]+"!\n\n")
+			buf.Msg(text.Good, "\nWelcome back ", c.As[core.Name], "!\n")
 			stage = finished
 
 		case newAccount:
@@ -228,20 +225,14 @@ func (c *client) frontend() bool {
 				continue
 			}
 			if len(input) < cfg.accountMin {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Account ID must be at least "...)
-				buf = append(buf, strconv.Itoa(cfg.accountMin)...)
-				buf = append(buf, " characters long.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Account ID must be at least ", strconv.Itoa(cfg.accountMin), " characters long.")
 				stage = newAccount
 				continue
 			}
 			hash := md5.Sum([]byte(input))
 			c.As[core.Account] = hex.EncodeToString(hash[:])
 			if _, err := os.Stat(filepath.Join(cfg.playerPath, c.As[core.Account]+".wrj")); err == nil {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "The specified Account ID is currently unavailable.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "The specified Account ID is currently unavailable.")
 				continue
 			}
 			stage = newPassword
@@ -252,11 +243,7 @@ func (c *client) frontend() bool {
 				continue
 			}
 			if len(input) < cfg.passwordMin {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Password must be at least "...)
-				buf = append(buf, strconv.Itoa(cfg.passwordMin)...)
-				buf = append(buf, " characters long.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Password must be at least ", strconv.Itoa(cfg.passwordMin), " characters long.")
 				stage = newPassword
 				continue
 			}
@@ -274,9 +261,7 @@ func (c *client) frontend() bool {
 			}
 			hash := sha512.Sum512([]byte(c.As[core.Salt] + input))
 			if c.As[core.Password] != base64.URLEncoding.EncodeToString(hash[:]) {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Passwords do not match.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Passwords do not match.")
 				stage = newPassword
 				continue
 			}
@@ -288,15 +273,11 @@ func (c *client) frontend() bool {
 				continue
 			}
 			if verifyName.FindString(input) == "" {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "A character's name must only contain the upper or lower cased letters 'a' through 'z'. Using other letters, such as those with accents, will make it harder for other players to interact with you if they cannot type your character's name.")
 				continue
 			}
 			if len(input) < 3 || len(input) > 15 {
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "A character's name must be a minimum of 3 letters in length and a maximum of 15 letters in length.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "A character's name must be a minimum of 3 letters in length and a maximum of 15 letters in length.")
 				continue
 			}
 			c.As[core.Name] = input
@@ -313,9 +294,7 @@ func (c *client) frontend() bool {
 				c.As[core.Gender] = "FEMALE"
 				stage = create
 			default:
-				buf = append(buf, text.Bad...)
-				buf = append(buf, "Please specify male or female.\n\n"...)
-				buf = append(buf, text.Reset...)
+				buf.Msg(text.Bad, "Please specify male or female.")
 			}
 		}
 	}
