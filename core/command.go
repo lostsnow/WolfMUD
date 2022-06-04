@@ -147,11 +147,6 @@ func RegisterCommandHandlers() {
 func (s *state) Quit() {
 	delete(Players, s.actor.As[UID])
 
-	// If scripting QUIT user has not hit enter so nudge them off the prompt
-	if s.cmd == "$QUIT" {
-		s.Msg(s.actor, "")
-	}
-
 	where := s.actor.Ref[Where]
 	if len(s.actor.Any[Opponents]) > 0 {
 		for _, uid := range s.actor.Any[Opponents] {
@@ -1548,7 +1543,7 @@ func (s *state) Health() {
 
 	if s.actor.Int[HealthCurrent] >= s.actor.Int[HealthMaximum] {
 		s.actor.Int[HealthCurrent] = s.actor.Int[HealthMaximum]
-		s.Msg(s.actor, text.Good, "\nYou feel healthy.")
+		s.Msg(s.actor, text.Good, "You feel healthy.")
 		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
 			s.Msg(s.actor.Ref[Where], text.Info,
 				s.actor.As[UName], " looks healthy.")
