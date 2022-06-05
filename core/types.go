@@ -104,9 +104,9 @@ const (
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
 	Password         // Salted SHA512 hash of the account password
-	PromptStyle      // Current prompt style
 	Ref              // Item's original reference (zone:ref or ref)
 	Salt             // Salt used for the account password
+	StatusSeq        // Escape sequence for writing status updates
 	TheName          // Item's name with a/an/some prefix changed to 'the'
 	TriggerType      // Type of trigger event to send
 	UID              // Item's unique identifier
@@ -150,9 +150,9 @@ var asNames = []string{
 	"OnCleanup",
 	"OnReset",
 	"Password",
-	"PromptStyle",
 	"Ref",
 	"Salt",
+	"StatusSeq",
 	"TheName",
 	"TriggerType",
 	"UID",

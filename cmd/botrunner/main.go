@@ -38,7 +38,7 @@ func main() {
 		time.Sleep(5 * time.Millisecond) // Don't hammer server too much ;)
 		if x%2048 == 2047 {
 			log.Printf("Launched: %d bots...", x+1)
-			time.Sleep(10 * time.Second) // Don't hammer server too much ;)
+			time.Sleep(20 * time.Second) // Don't hammer server too much ;)
 		}
 	}
 

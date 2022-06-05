@@ -111,14 +111,13 @@ func (s *state) Combat() {
 	damageText := fmt.Sprintf(" doing %d damage.", damage)
 	defender.Int[HealthCurrent] -= damage
 
-	s.Msg(s.actor, "\n") // Actor needs manually moving off of prompt
 	s.MsgAppend(attacker, text.Good, "You hit ", defender.As[TheName], damageText)
 	s.MsgAppend(defender, text.Bad, attacker.As[UTheName], " hits you", damageText)
 	s.Msg(where, text.Info, attacker.As[UTheName], " hits ", defender.As[Name], ".")
 
 	// defender not killed, do health bookkeeping and go another round
 	if defender.Int[HealthCurrent] > 0 {
-		Prompt[defender.As[PromptStyle]](defender)
+		s.StatusUpdate(defender)
 		if defender.Event[Health] == nil {
 			defender.Schedule(Health)
 		}

@@ -14,6 +14,7 @@ import (
 
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
+	"code.wolfmud.org/WolfMUD.git/text"
 )
 
 // World contains all of the top level locations for the current game world.
@@ -86,6 +87,11 @@ func (s *state) Parse(input string) (cmd string) {
 	if input == "!" || input == "!!" || input == "!!!" {
 		input = s.history[len(input)-1]
 		recall = true
+	}
+
+	// If input isn't empty transfer it to the output area
+	if input = strings.TrimSpace(input); len(input) > 0 {
+		s.Msg(s.actor, text.Prompt, ">", input, text.Reset)
 	}
 
 	cmd = s.preParse(input, noScripting)
@@ -239,12 +245,8 @@ func (s *state) mailman() {
 func (s *state) Msg(recipient *Thing, text ...string) {
 	if s.buf[recipient] == nil {
 		s.buf[recipient] = &strings.Builder{}
-		if recipient != s.actor {
-			s.buf[recipient].Write(newline)
-		}
-	} else {
-		s.buf[recipient].Write(newline)
 	}
+	s.buf[recipient].Write(newline)
 	for _, t := range text {
 		s.buf[recipient].WriteString(t)
 	}
@@ -273,4 +275,12 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 func (s *state) Log(f string, a ...interface{}) {
 	f = fmt.Sprintf("[%s] %s", s.actor.As[UID], f)
 	log.Printf(f, a...)
+}
+
+// StatusUpdate updates the player's statistics on the status bar.
+func (s state) StatusUpdate(who *Thing) {
+	mailbox.Send(who.As[UID], false, fmt.Sprintf(
+		"%s Health: %[2]d/%[3]d\x1b8",
+		who.As[StatusSeq], who.Int[HealthCurrent], who.Int[HealthMaximum],
+	))
 }

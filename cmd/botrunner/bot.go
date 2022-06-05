@@ -54,9 +54,9 @@ func NewBot(id string) *Bot {
 	b := &Bot{
 		Id:        id,
 		Quit:      make(chan struct{}, 1),
-		buffer:    make([]byte, 512),
+		buffer:    make([]byte, 0, 1024),
 		baseSpeed: 1500*time.Millisecond + jitter, // ranges from 1.5 to 2 seconds
-		steps:     rand.Intn(2500) + 500,          // command count before quitting
+		steps:     rand.Intn(2500) + 1000,         // command count before quitting
 	}
 	return b
 }
@@ -93,11 +93,15 @@ func (b *Bot) connect(host, port string) (err error) {
 		op   func(string) error
 		data string
 	}{
-		{b.recv, "...server:\r\n\x1b[35m>"},
+		{b.recv, "\x1b[6n"},
+		{b.send, "\x1b[25;80R"},
+		{b.recv, "\x1b7"},
+		{b.recv, "Terminal: 80x25"},
+		{b.recv, "leave the server.\x1b[24;25r\x1b8\x1b[0m\x1b[35m"},
 		{b.send, b.Id},
-		{b.recv, "\x1b[0mEnter the password...to cancel:\r\n\x1b[35m>"},
+		{b.recv, "to cancel.\x1b[24;25r\x1b8\x1b[0m\x1b[35m"},
 		{b.send, b.Id},
-		{b.recv, "\x1b[0m\x1b[32mWelcome back..."},
+		{b.recv, "Welcome back"},
 	} {
 		if err = f.op(f.data); err != nil {
 			b.Close()
@@ -150,10 +154,9 @@ func (b *Bot) do() bool {
 }
 
 func (b *Bot) discard() {
-	buf := [512]byte{}
 	for {
 		b.SetReadDeadline(time.Now().Add(60 * time.Second))
-		if _, err := b.Read(buf[0:511]); err != nil {
+		if _, err := b.Read(b.buffer[0:1023]); err != nil {
 			if err, ok := err.(*net.OpError); !ok || !err.Timeout() {
 				return
 			}
@@ -168,31 +171,25 @@ func (b *Bot) send(data string) error {
 }
 
 func (b *Bot) recv(data string) error {
-	b.SetReadDeadline(time.Now().Add(60 * time.Second))
-	x, err := b.Read(b.buffer[0:512])
-	b.buffer = b.buffer[0:x]
 
-	if err != nil {
-		b.buffer = b.buffer[:0]
-		return err
+	p := bytes.Index(b.buffer, []byte(data))
+
+	if p == -1 {
+		b.SetReadDeadline(time.Now().Add(60 * time.Second))
+		x, err := b.Read(b.buffer[len(b.buffer):1024])
+		b.buffer = b.buffer[0 : len(b.buffer)+x]
+
+		if err != nil {
+			b.buffer = b.buffer[:0]
+			return err
+		}
 	}
 
-	if !b.ifeq(data) {
-		return fmt.Errorf("[%s] Unexpected response: %q", b.Id, b.buffer)
+	p = bytes.Index(b.buffer, []byte(data))
+	if p == -1 {
+		return fmt.Errorf("[%s] Unexpected response: %q, want: %q", b.Id, b.buffer, data)
 	}
+	copy(b.buffer, b.buffer[p+len(data):])
+	b.buffer = b.buffer[:len(b.buffer)-p-len(data)]
 	return nil
-}
-
-func (b *Bot) ifeq(data string) bool {
-	part := bytes.Split([]byte(data), []byte("..."))
-	start, end := part[0], part[1]
-
-	if len(start) > 0 && !bytes.HasPrefix(b.buffer, start) {
-		return false
-	}
-	if len(end) > 0 && !bytes.HasSuffix(b.buffer, end) {
-		return false
-	}
-
-	return true
 }
