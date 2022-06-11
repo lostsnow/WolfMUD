@@ -284,7 +284,10 @@ const (
 	TriggerDueIn  // Time remaining for trigger event
 
 	// Non-events
+	Armour        // Armour rating
 	Created       // Timestamp of when item (player) created
+	DamageFixed   // Fixed amount of damage for an actor/item
+	DamageRandom  // [0-DamageRandom] of random damage for an actor/item
 	HealthCurrent // Current health of a player/mobile
 	HealthMaximum // Maximum health a player/mobile heals up to.
 	HealthRestore // Health restored per healing event
@@ -321,7 +324,10 @@ var intNames = []string{
 	"TriggerDueIn",
 
 	// Non-events
+	"Armour",
 	"Created",
+	"DamageFixed",
+	"DamageRandom",
 	"HealthCurrent",
 	"HealthMaximum",
 	"HealthRestore",
