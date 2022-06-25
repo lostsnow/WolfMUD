@@ -82,6 +82,12 @@ func Setup(width, height int) []byte {
 	return d
 }
 
+// Reset returns a []byte that resets the scroll area and text colours to try
+// and leave the terminal in a reasonable state when the client quits.
+func Reset(height int) []byte {
+	return []byte(DECSC + DECSTBM(1, height) + CUP(height, 1) + text.Reset)
+}
+
 // Output returns a []byte that should prefix any data writen to the output
 // area.
 func Output(height int) []byte {
