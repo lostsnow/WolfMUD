@@ -881,6 +881,8 @@ func (t *Thing) Junk() {
 		return
 	}
 
+	t.Is &^= Using
+
 	for event := range t.Event {
 		t.Suspend(event)
 	}

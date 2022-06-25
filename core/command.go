@@ -142,8 +142,6 @@ func RegisterCommandHandlers() {
 	log.Printf("Registered %d command handlers", len(commandHandlers))
 }
 
-// FIXME: We reset usage here in case item is unique, should it go somewhere
-// else? Thing.Junk maybe?
 func (s *state) Quit() {
 	delete(Players, s.actor.As[UID])
 
@@ -167,7 +165,6 @@ func (s *state) Quit() {
 	s.quitUniqueCheck(s.actor)
 	s.Save()
 	for _, what := range s.actor.In {
-		what.Is &^= Using
 		what.Junk()
 	}
 	delete(where.Who, s.actor.As[UID])
@@ -189,7 +186,6 @@ func (s *state) quitUniqueCheck(what *Thing) {
 	for _, item := range what.In {
 		if item.Ref[Origin] != nil {
 			s.Msg(s.actor, text.Red, "You cannot take ", item.As[TheName], " with you.")
-			item.Is &^= Using
 			item.Junk()
 		} else {
 			s.quitUniqueCheck(item)
