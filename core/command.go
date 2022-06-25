@@ -186,6 +186,21 @@ func (s *state) quitUniqueCheck(what *Thing) {
 	for _, item := range what.In {
 		if item.Ref[Origin] != nil {
 			s.Msg(s.actor, text.Red, "You cannot take ", item.As[TheName], " with you.")
+
+			// Forcibly remove used items - can't sub-parse REMOVE as may be vetoed
+			var slots []string
+			switch {
+			case item.Is&Holding == Holding:
+				slots = item.Any[Holdable]
+			case item.Is&Wearing == Wearing:
+				slots = item.Any[Wearable]
+			case item.Is&Wielding == Wielding:
+				slots = item.Any[Wieldable]
+			}
+			if len(slots) > 0 {
+				s.actor.Any[Body] = append(s.actor.Any[Body], slots...)
+			}
+
 			item.Junk()
 		} else {
 			s.quitUniqueCheck(item)
