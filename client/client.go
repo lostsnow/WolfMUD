@@ -71,6 +71,7 @@ type client struct {
 	uid    string // Can't touch c.As[core.UID] when not under BWL
 	width  int    // Width of player's terminal
 	height int    // Height of player's terminal
+	rseq   []byte // Escape sequence for resetting terminal
 	oseq   []byte // Escape sequence for updating the output terminal area
 	iseq   []byte // Escape sequence for updating the input terminal area
 }
@@ -88,6 +89,7 @@ func New(conn *net.TCPConn) *client {
 
 	c.width, c.height = term.GetSize(conn)
 	c.Write(term.Setup(c.width, c.height))
+	c.rseq = term.Reset(c.height)
 	c.oseq = term.Output(c.height)
 	c.iseq = term.Input(c.height)
 	c.eat()
@@ -159,10 +161,12 @@ func (c *client) cleanup() {
 	if cfg.logClient {
 		c.Log("disconnect from: %s", c.RemoteAddr())
 	}
-	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
+	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n")
 
 	mailbox.Delete(c.uid)
 	<-c.quit
+
+	c.Write(c.rseq)
 
 	// Grab the BRL before player clean-up as player has been in the world
 	core.BWL.Lock()
