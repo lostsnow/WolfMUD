@@ -612,6 +612,7 @@ func (s *state) Take() {
 		where = s.actor.Ref[Where].Who[uid]
 	}
 
+	mark := s.buf[s.actor].Len()
 	switch {
 	case where == nil:
 		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to take anything from.")
@@ -626,7 +627,7 @@ func (s *state) Take() {
 	case where.As[VetoTakeOut] != "":
 		s.Msg(s.actor, text.Bad, where.As[VetoTakeOut])
 	}
-	if s.buf[s.actor] != nil {
+	if mark != s.buf[s.actor].Len() {
 		return
 	}
 
@@ -678,6 +679,7 @@ func (s *state) Put() {
 		where = s.actor.Ref[Where].Who[uid]
 	}
 
+	mark := s.buf[s.actor].Len()
 	switch {
 	case where == nil:
 		s.Msg(s.actor, text.Bad, "You see no '", uid, "' to put anything into.")
@@ -692,7 +694,7 @@ func (s *state) Put() {
 	case where.As[VetoPutIn] != "":
 		s.Msg(s.actor, text.Bad, where.As[VetoPutIn])
 	}
-	if s.buf[s.actor] != nil {
+	if mark != s.buf[s.actor].Len() {
 		return
 	}
 
