@@ -23,6 +23,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/config"
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/mailbox"
+	"code.wolfmud.org/WolfMUD.git/term"
 	"code.wolfmud.org/WolfMUD.git/text"
 )
 
@@ -63,11 +64,16 @@ func Config(c config.Config) {
 type client struct {
 	*core.Thing
 	*net.TCPConn
-	input []byte
-	err   chan error
-	queue <-chan string
-	quit  chan struct{}
-	uid   string // Can't touch c.As[core.UID] when not under BWL
+	input  []byte
+	err    chan error
+	queue  <-chan string
+	quit   chan struct{}
+	uid    string // Can't touch c.As[core.UID] when not under BWL
+	width  int    // Width of player's terminal
+	height int    // Height of player's terminal
+	rseq   []byte // Escape sequence for resetting terminal
+	oseq   []byte // Escape sequence for updating the output terminal area
+	iseq   []byte // Escape sequence for updating the input terminal area
 }
 
 func New(conn *net.TCPConn) *client {
@@ -80,6 +86,13 @@ func New(conn *net.TCPConn) *client {
 	}
 
 	c.err <- nil
+
+	c.width, c.height = term.GetSize(conn)
+	c.Write(term.Setup(c.width, c.height))
+	c.rseq = term.Reset(c.height)
+	c.oseq = term.Output(c.height)
+	c.iseq = term.Input(c.height)
+	c.eat()
 
 	c.SetKeepAlive(true)
 	c.SetLinger(10)
@@ -136,8 +149,6 @@ func (c *client) Log(f string, a ...interface{}) {
 }
 
 func (c *client) cleanup() {
-	mailbox.Suffix(c.uid, "")
-
 	if err := c.error(); err != nil {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			mailbox.Send(c.uid, true,
@@ -150,10 +161,12 @@ func (c *client) cleanup() {
 	if cfg.logClient {
 		c.Log("disconnect from: %s", c.RemoteAddr())
 	}
-	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n"+text.Reset)
+	mailbox.Send(c.uid, true, text.Good+"\nBye bye!\n\n")
 
 	mailbox.Delete(c.uid)
 	<-c.quit
+
+	c.Write(c.rseq)
 
 	// Grab the BRL before player clean-up as player has been in the world
 	core.BWL.Lock()
@@ -226,12 +239,14 @@ func (c *client) messenger() {
 
 			buf = buf[:0]
 			if len(msg) > 0 {
+				buf = append(buf, c.oseq...)
 				buf = append(buf, text.Reset...)
 				buf = append(buf, msg...)
+				buf = append(buf, c.iseq...)
 			}
 
 			c.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			c.Write(text.Fold(buf, 80))
+			c.Write(text.Fold(buf, c.width-2))
 		}
 	}
 }
@@ -278,4 +293,13 @@ func clean(in []byte) string {
 	}
 
 	return string(o[:i])
+}
+
+// eat consumes any pending incoming client data.
+func (c *client) eat() {
+	b := []byte{10: 0}
+	c.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+	for n, err := c.Read(b); err == nil && n > 0; n, err = c.Read(b) {
+		c.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+	}
 }

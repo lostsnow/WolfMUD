@@ -22,7 +22,6 @@ const size = 100
 type mailbox struct {
 	queue   chan string // Queued messages waiting to be sent
 	lastMsg uint64      // Hash of last non-priority message sent
-	suffix  string      // Suffix to append to sent messages
 }
 
 // mbox stores all of the currenly active mailboxes, indexed by player UID.
@@ -94,8 +93,6 @@ func Send(uid string, priority bool, msg string) {
 		mbox[uid].lastMsg = sum
 	}
 
-	msg = msg + mbox[uid].suffix
-
 retry:
 	select {
 	case mbox[uid].queue <- msg:
@@ -105,15 +102,5 @@ retry:
 		default:
 		}
 		goto retry
-	}
-}
-
-// Suffix sets the current suffix to be appended to sent messages. Setting a
-// new suffix only effects new messages and not messages already queued.
-func Suffix(uid string, suffix string) {
-	mboxLock.Lock()
-	defer mboxLock.Unlock()
-	if m, found := mbox[uid]; found {
-		m.suffix = suffix
 	}
 }

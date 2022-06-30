@@ -372,8 +372,6 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.As[OnCleanup] = decode.String(r["ONCLEANUP"])
 		case "ONRESET":
 			t.As[OnReset] = decode.String(r["ONRESET"])
-		case "PROMPTSTYLE":
-			t.As[PromptStyle] = decode.Keyword(r["PROMPTSTYLE"])
 		case "REF":
 			t.As[Ref] = t.As[Zone] + decode.Keyword(r[field])
 		case "RESET":
@@ -691,9 +689,6 @@ func (t *Thing) Marshal() recordjar.Record {
 	if _, ok := t.As[OnReset]; ok {
 		r["OnReset"] = encode.String(t.As[OnReset])
 	}
-	if _, ok := t.As[PromptStyle]; ok {
-		r["PromptStyle"] = encode.Keyword(t.As[PromptStyle])
-	}
 	if _, ok := t.As[UID]; ok {
 		r["Ref"] = encode.String(t.As[UID])
 	}
@@ -886,6 +881,8 @@ func (t *Thing) Junk() {
 		return
 	}
 
+	t.Is &^= Using
+
 	for event := range t.Event {
 		t.Suspend(event)
 	}
@@ -1037,7 +1034,7 @@ func (t *Thing) dump(w io.Writer, width int, indent string, last bool) {
 		lAs--
 		line := simpleFold(v, width-len(indent)-len(asNames[k])-len("|  |- [00] : "))
 		pad := strings.Repeat(" ", len(asNames[k])+len("[00] : "))
-		p("%s%s[%2d] %s: %s", tree[false].b, tree[lAs == 0].i, k, asNames[k], line[0])
+		p("%s%s[%2d] %s: %q", tree[false].b, tree[lAs == 0].i, k, asNames[k], line[0])
 		for _, line := range line[1:] {
 			p("%s%s%s%s", tree[false].b, tree[lAs == 0].b, pad, line)
 		}
@@ -1174,7 +1171,7 @@ func (t *Thing) schedule(event eventKey) bool {
 	switch {
 	case delay+jitter+dueIn == 0:
 		return false
-	case dueIn != 0:
+	case dueIn > 0:
 		delay, jitter = dueIn, 0
 		t.Int[idx+DueInOffset] = 0
 	case jitter != 0:
@@ -1194,6 +1191,12 @@ func (t *Thing) schedule(event eventKey) bool {
 			if t.Is&Freed == Freed {
 				return
 			}
+
+			// Has event been cancelled while we were blocking?
+			if t.Event[event] == nil {
+				return
+			}
+
 			if cfg.debugEvents {
 				t.logEvent("delivered", event)
 			}
@@ -1260,7 +1263,7 @@ func (t *Thing) suspend(event eventKey) bool {
 		t.Int[dueIn] = 0
 	}
 	t.Int[dueAt] = 0
-	return true
+	return suspended
 }
 
 func (t *Thing) logEvent(action string, event eventKey) {

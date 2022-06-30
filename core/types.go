@@ -104,9 +104,9 @@ const (
 	OnCleanup        // Custome cleanup message for an item
 	OnReset          // Custom reset message for an item
 	Password         // Salted SHA512 hash of the account password
-	PromptStyle      // Current prompt style
 	Ref              // Item's original reference (zone:ref or ref)
 	Salt             // Salt used for the account password
+	StatusSeq        // Escape sequence for writing status updates
 	TheName          // Item's name with a/an/some prefix changed to 'the'
 	TriggerType      // Type of trigger event to send
 	UID              // Item's unique identifier
@@ -150,9 +150,9 @@ var asNames = []string{
 	"OnCleanup",
 	"OnReset",
 	"Password",
-	"PromptStyle",
 	"Ref",
 	"Salt",
+	"StatusSeq",
 	"TheName",
 	"TriggerType",
 	"UID",
@@ -220,6 +220,7 @@ const (
 	Body         // Body slots available to an item
 	Holdable     // Body slots required to hold item
 	OnAction     // Actions that can be performed
+	Opponents    // UID of opponents being defended against
 	Permissions  // Permissions a player has
 	Qualifier    // Alias qualifiers
 	Wearable     // Body slots required to wear item
@@ -240,6 +241,7 @@ var anyNames = []string{
 	"Body",
 	"Holdable",
 	"OnAction",
+	"Opponents",
 	"Permissions",
 	"Qualifier",
 	"Wearable",
@@ -264,6 +266,10 @@ const (
 	CleanupJitter // Maximum random delay to add to CleanupAfter
 	CleanupDueAt  // Time a scheduled clean-up is due
 	CleanupDueIn  // Time remaining for clean-up
+	CombatAfter   // How soon a clean-up event should occur
+	CombatJitter  // Maximum random delay to add to CleanupAfter
+	CombatDueAt   // Time a scheduled clean-up is due
+	CombatDueIn   // Time remaining for clean-up
 	HealthAfter   // How soon a healing event should occur
 	HealthJitter  // Maximum random delay to add to HealthAfter
 	HealthDueAt   // Time a scheduled healing event is due
@@ -297,6 +303,10 @@ var intNames = []string{
 	"CleanupJitter",
 	"CleanupDueAt",
 	"CleanupDueIn",
+	"CombatAfter",
+	"CombatJitter",
+	"CombatDueAt",
+	"CombatDueIn",
 	"HealthAfter",
 	"HealthJitter",
 	"HealthDueAt",
@@ -335,6 +345,7 @@ const (
 const (
 	Action  eventKey = eventKey(ActionAfter)
 	Cleanup          = eventKey(CleanupAfter)
+	Combat           = eventKey(CombatAfter)
 	Health           = eventKey(HealthAfter)
 	Reset            = eventKey(ResetAfter)
 	Trigger          = eventKey(TriggerAfter)
@@ -344,6 +355,7 @@ const (
 var eventNames = map[eventKey]string{
 	Action:  "Action",
 	Cleanup: "Cleanup",
+	Combat:  "Combat",
 	Health:  "Health",
 	Reset:   "Reset",
 	Trigger: "Trigger",
@@ -365,8 +377,9 @@ const (
 	Up
 	Down
 
-	Where  // Where an item is
-	Origin // Where a unique item resets to
+	Opponent // Opponent being directly attacked
+	Origin   // Where a unique item resets to
+	Where    // Where an item is
 )
 
 // refNames maps refKey values to their string name.
@@ -377,8 +390,9 @@ var refNames = []string{
 	"South", "Southwest", "West", "Northwest",
 	"Up", "Down",
 
-	"Where",
+	"Opponent",
 	"Origin",
+	"Where",
 }
 
 // preferredOrdering defines the preferred sorting or for attributes when

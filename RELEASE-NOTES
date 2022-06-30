@@ -6,6 +6,54 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.20 Released Thursday 30th June, 2022
+==============================================================================
+
+Added
+
+  - New state.Log method added for commands to log with actor's UID prefix.
+  - New Opponents anyKey+anyName and Opponent refKey+refName in core/types.go
+  - New Combat events with basic combat event handler.
+  - New ATTACK command added to initiate combat. KILL is an alias for ATTACK.
+  - New term package for controlling the client terminal.
+  - New client.eat method to consume pending incoming data.
+  - Added StatusSeq asKey and asName to core/types.go for storing the ANSI
+    escape sequence to update the terminal status line.
+  - New state.StatusUpdate method to update terminal status line via mailbox.
+
+Changed
+
+  - Source code for HIT command moved to core/combat.go
+  - Improved corpse descriptions.
+  - QUIT command updated to terminate combat.
+  - MOVE command updated to prevent combatants walking off when fighting.
+  - LOOK command now indicates combat at a location.
+  - Previous HIT command code removed and HIT aliased to ATTACK.
+  - Action events are not rescheduled if an action initiates combat.
+  - Updated core.client type to hold terminal width, height and ANSI escape
+    sequences.
+  - Text sent to the client is now folded using the terminal width minus 2
+    characters - Windows TELNET draws a scroll bar over the last two characters
+    on a line :(
+  - Prompt handling code has been removed, replaced by a status line.
+  - The mailbox suffix handling is no longer required and has been removed.
+  - There is no longer a need to nudge the actor off the prompt line in the
+    QUIT and $HEALTH commands.
+  - BotRunner updated to work with new terminal handling.
+
+Fixed
+
+  - Thing.suspend returns false on failure to suspend due to stale event.
+  - When an event firesThing.schedule checks if the event was cancelled while
+    waiting to acquire BRL.
+  - Thing.schedule should only schedule future events when using dueIn.
+  - Mobiles/NPC now reset will full health.
+  - TELL/TALK and WHISPER commands improved when actor targets themself.
+  - Added crowd control to health event messages.
+  - Resetting of item usage moved from state.Quit and state.quitUniqueCheck to
+    Thing.Junk where it makes more sense.
+  - Body parts are no longer lost when quitting while using a unique item.
+
 v0.0.19 Released Sunday 24th April, 2022
 ==============================================================================
 
