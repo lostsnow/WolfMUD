@@ -325,6 +325,14 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
+	// Upgrade if no natural armour
+	if _, found := jar[0]["ARMOUR"]; !found {
+		jar[0]["ARMOUR"] = []byte("10")
+	}
+	// Upgrade if no natural damage
+	if _, found := jar[0]["DAMAGE"]; !found {
+		jar[0]["DAMAGE"] = []byte("2+2")
+	}
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -433,5 +441,8 @@ func (c *client) createPlayer() {
 	c.Int[core.HealthRestore] = 2
 	c.Int[core.HealthCurrent] = 30
 	c.Int[core.HealthMaximum] = 30
+	c.Int[core.Armour] = 10
+	c.Int[core.DamageFixed] = 2
+	c.Int[core.DamageRandom] = 2
 	c.As[core.StatusSeq] = string(term.Status(c.height, c.width))
 }
