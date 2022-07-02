@@ -41,6 +41,29 @@ func createCorpse(t *Thing) *Thing {
 	return c
 }
 
+func (s *state) Eval() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "Who do you want to evluate you chances against?")
+		return
+	}
+
+	where := s.actor.Ref[Where]
+	uids := Match(s.word, where)
+	uid := uids[0]
+	what := where.Who[uid]
+	if what == nil {
+		what = where.In[uid]
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' here to evaluate.")
+	default:
+		chance := s.hitChance(s.actor, what) * 100.0
+		s.Msg(s.actor, text.Info, fmt.Sprintf("Hrm... %d:%d, %d:%d, %8.4f%%", attack(s.actor), defense(s.actor), attack(what), defense(what), chance))
+	}
+}
+
 func (s *state) Attack() {
 
 	if len(s.word) == 0 {
