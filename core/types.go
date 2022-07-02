@@ -420,6 +420,8 @@ var preferredOrdering = []string{
 	anyNames[Body],
 	asNames[Gender],
 	eventNames[Health],
+	intNames[Armour],
+	"Damage",
 	"Inv", "Inventory",
 	Holding.setNames(),
 	Wearing.setNames(),
