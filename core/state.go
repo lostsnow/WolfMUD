@@ -277,9 +277,11 @@ func (s *state) Log(f string, a ...interface{}) {
 	log.Printf(f, a...)
 }
 
-// StatusUpdate updates the player's statistics on the status bar.
+// StatusUpdate updates the player's statistics on the status bar. The
+// messages are sent as priority so that they do not effect the de-spamming of
+// other messages.
 func (s state) StatusUpdate(who *Thing) {
-	mailbox.Send(who.As[UID], false, fmt.Sprintf(
+	mailbox.Send(who.As[UID], true, fmt.Sprintf(
 		"%s Health: %[2]d/%[3]d\x1b8",
 		who.As[StatusSeq], who.Int[HealthCurrent], who.Int[HealthMaximum],
 	))
