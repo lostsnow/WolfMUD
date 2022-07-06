@@ -112,6 +112,7 @@ func (s *state) Attack() {
 		s.Msg(s.actor, text.Good, "You attack ", what.As[TheName], "!")
 		s.Msg(what, text.Bad, s.actor.As[TheName], " attacks you!")
 		s.Msg(where, text.Info, s.actor.As[UTheName], " attacks ", what.As[TheName], "!")
+		s.Log("%s attacked %s (%s)", s.actor.As[Name], what.As[Name], what.As[UID])
 	}
 }
 
@@ -152,6 +153,16 @@ func (s *state) Combat() {
 	s.Msg(attacker, "You kill ", defender.As[Name], "!")
 	s.Msg(defender, attacker.As[UTheName], " kills you!")
 	s.Msg(where, attacker.As[UTheName], " kills ", defender.As[Name], "!")
+
+	if s.actor.As[UID] == attacker.As[UID] {
+		s.Log("%s killed %s (%s)",
+			attacker.As[Name], defender.As[Name], defender.As[UID],
+		)
+	} else {
+		s.Log("%s killed by %s (%s)",
+			defender.As[Name], attacker.As[Name], attacker.As[UID],
+		)
+	}
 
 	// Stop everyone attacking defender and notify them, as they receive a
 	// specific message they won't get the message to the location.
