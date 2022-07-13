@@ -100,6 +100,8 @@ func (s *state) Attack() {
 		s.Msg(where, text.Info, s.actor.As[UName], " tries to attack ", what.As[Name], ".")
 	case where.As[VetoCombat] != "":
 		s.Msg(s.actor, text.Bad, where.As[VetoCombat])
+	case what.As[VetoCombat] != "":
+		s.Msg(s.actor, text.Bad, what.As[VetoCombat])
 	default:
 		what.Any[Opponents] = append(what.Any[Opponents], s.actor.As[UID])
 		what.Suspend(Action)
