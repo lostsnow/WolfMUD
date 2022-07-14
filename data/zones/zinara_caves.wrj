@@ -97,8 +97,8 @@ archway.
      Name: Chamber
   Aliases: CHAMBER
     Exits: N→L12 E→L11 S→L24 W→L9
-Inventory: L10N1 L10N2
   Barrier: EXIT→S ALLOW→PLAYER
+Inventory: L10N1 L10N2
 
 You are in a large square chamber. The walls of this chamber have been lined
 with smooth blocks of stone. A basin has been attached to one of the walls
@@ -146,8 +146,8 @@ here leading up.
      Name: Large cavern
   Aliases: CAVERN
     Exits: E→L19 S→L18 W→L16
-Inventory: N3
   Barrier: EXIT→W DENY→SLUG
+Inventory: N3
 
 You are in a huge cavern. It is very damp and cool providing ideal conditions
 for a huge type of toadstool to grow here. Some of them are over ten feet tall
@@ -187,8 +187,8 @@ disappear through a hole in the cap.
      Name: Large cavern
   Aliases: CAVERN
     Exits: N→L23 S→L22 W→L19
-Inventory: N3
   Barrier: EXIT→N ALLOW→PLAYER
+Inventory: N3
 
 You are in a huge cavern. It is very damp and cool providing ideal conditions
 for a huge type of toadstool to grow here. Some of the are over ten feet tall
@@ -432,13 +432,13 @@ disperse across the rest like a wave.
       Ref: M1
      Name: a taunting imp
     Alias: +TAUNTING:IMP CREATURE
+ Location: L3
      Body: HAND→2
    Health: MAXIMUM→10 RESTORE→2 AFTER→1m
    Armour: 5
    Damage: 1+2
 Inventory: O2
  Wielding: O2
- Location: L3
    Action: @MOBILE
  OnAction: $ACT flutters around a bit watching you.
          : $ACT jeers at you and pulls faces.
@@ -466,14 +466,14 @@ humanoid body, two small wings attached to it's back and a short tail.
         Ref: M2
        Name: a cowardly imp
       Alias: +COWARDLY:IMP CREATURE
-       Body: HAND→2
-  Inventory: O2
-   Wielding: O2
    Location: L20
 Description: @M1
+       Body: HAND→2
      Health: @M1
      Armour: @M1
      Damage: @M1
+  Inventory: O2
+   Wielding: O2
      Action: @MOBILE
    OnAction: $ACT flutters around a bit watching you from a distance.
            : $ACT settles down keeping out of your way.
@@ -489,15 +489,15 @@ Description: @M1
         Ref: M3
        Name: an ugly imp
       Alias: +UGLY:IMP CREATURE
+   Location: L4
+Description: @M1
        Body: HAND→2
+     Health: @M1
      Armour: @M1
      Damage: @M1
   Inventory: O2 O3
     Holding: O3
    Wielding: O2
-   Location: L4
-Description: @M1
-     Health: @M1
      Action: @MOBILE
    OnAction: $ACT chitters.
            : $ACT bares its teeth.
