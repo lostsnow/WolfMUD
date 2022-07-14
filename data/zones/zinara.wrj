@@ -908,6 +908,8 @@ This is a small, furry, grey mouse.
  Location: L4
      Body: @MOBILE
    Health: @MOBILE
+   Armour: @MOBILE
+   Damage: @MOBILE
 Inventory: M6O1
   Holding: M6O1
      Veto: COMBAT→The barkeep just shakes his head and sighs.
@@ -938,6 +940,8 @@ Always ready to listen to a drinking patron, dispensing advice when required.
  Location: L7
      Body: @MOBILE
    Health: @MOBILE
+   Armour: @MOBILE
+   Damage: @MOBILE
 Inventory: M7O1 M7O2
   Holding: M7O1
   Wearing: M7O2
@@ -960,6 +964,8 @@ This is a sweet little girl selling flowers to make some money.
 Location: L37
        // Hard to kill, but slow to recover...
   Health: MAXIMUM→50 RESTORE→10 AFTER→1m
+  Armour: 20
+  Damage: 2+6
   Action: @MOBILE
 OnAction: $ACT starts to slowly spin another web.
         : $ACT silently sits amongst the webs, watching.
@@ -1001,6 +1007,8 @@ This is a typical, shifty looking street vendor.
 Location: L57 L64 L69
     Body: @MOBILE
   Health: @MOBILE
+  Armour: @MOBILE
+  Damage: @MOBILE
   Action: AFTER→15s JITTER→15s
 OnAction: $ACT watches you suspiciously.
         : $ACT slowly paces backwards and forwards before the gates.
@@ -1022,6 +1030,8 @@ undesirables from the city.
      Body: @MOBILE
         // The city guard are supposed to be 'unkillable' peacekeepers ;)
    Health: MAXIMUM→2000000000 RESTORE→2000000000 AFTER→1s
+   Armour: @MOBILE
+   Damage: @MOBILE
 Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
   Wearing: L11O1 L11O2 L73O1 L73O7
  Wielding: L13O1
@@ -1046,6 +1056,8 @@ doers.
    Location: L21 L26 L61
        Body: @MOBILE
      Health: @M11
+     Armour: @M11
+     Damage: @M11
   Inventory: @M11
     Wearing: @M11
    Wielding: @M11
@@ -1062,6 +1074,8 @@ Description: @M11
 Location: L6
     Body: @MOBILE
   Health: @MOBILE
+  Armour: @MOBILE
+  Damage: @MOBILE
     Veto: COMBAT→You can't attack the baker, who would make cake?
   Action: @MOBILE
 OnAction: $ACT starts to make some more pastries.
@@ -1083,6 +1097,8 @@ so good it's irresistible.
 Location: L13
     Body: @MOBILE
   Health: @MOBILE
+  Armour: @MOBILE
+  Damage: @MOBILE
     Veto: COMBAT→You can't attack the bladesmith.
   Action: @MOBILE
 OnAction: $ACT works at honing the blade of a dagger.
@@ -1101,6 +1117,8 @@ he wears an apron.
 Location: L11
     Body: @MOBILE
   Health: @MOBILE
+  Armour: @MOBILE
+  Damage: @MOBILE
     Veto: COMBAT→You can't attack the armourer.
   Action: @MOBILE
 OnAction: $ACT starts to polish some plate mail while keeping an eye on you.
@@ -1119,6 +1137,7 @@ The Armourer is of a rough looking sort.
 Location: L8
     Body: @MOBILE
   Health: MAXIMUM→10 @MOBILE
+  Armour: 5
     Veto: COMBAT→You can't attack a little old lady!
   Action: @MOBILE
 OnAction: $ACT idly dusts a few random items.
@@ -1138,6 +1157,8 @@ This is a little old lady. The sort everyone wants as their grandmother.
 Location: L16
     Body: @MOBILE
   Health: @MOBILE
+  Armour: @MOBILE
+  Damage: @MOBILE
     Veto: COMBAT→You can't attack Hewman.
   Action: @MOBILE
 OnAction: @ACT_GENERAL
@@ -1153,6 +1174,8 @@ This is a very large, serious looking man.
 Location: L73
     Body: @MOBILE
   Health: @MOBILE
+  Armour: @MOBILE
+  Damage: @MOBILE
     Veto: COMBAT→Why would you want to attack Merkle of all people?
   Action: @MOBILE
 OnAction: $ACT folds some clothing and puts it back on a table.
@@ -1194,6 +1217,7 @@ This is a small iron key.
     Name: a lucky charm
    Alias: +LUCKY:CHARM
 Location: N2
+  Armour: 5
  Cleanup: @ITEM
    Reset: @NOW
 
@@ -1330,6 +1354,7 @@ This is a small bag, handy for carrying things in.
     Name: some leather breeches
  Aliases: +LEATHER:BREECHES CLOTHING CLOTHES
 Location: @M18
+  Armour: @MEDIUM_LARGE
 Wearable: @TROUSERS
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1340,6 +1365,7 @@ These are a pair of soft leather breeches.
     Name: a leather jerkin
  Aliases: +LEATHER:JERKIN CLOTHING CLOTHES
 Location: @M18
+  Armour: @MEDIUM_LARGE
 Wearable: @SHORT_SHIRT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1350,6 +1376,7 @@ This is a sleeveless, soft leather jerkin.
     Name: a leather jacket
  Aliases: +LEATHER:JACKET CLOTHING CLOTHES
 Location: @M18
+  Armour: @MEDIUM_LARGE
 Wearable: @LONG_SHIRT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1360,6 +1387,7 @@ This is a long sleeved, soft leather jacket.
     Name: a leather cap
  Aliases: +LEATHER:CAP CLOTHING CLOTHES
 Location: @M18
+  Armour: @MEDIUM
 Wearable: @HAT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1370,6 +1398,7 @@ This is a soft leather cap.
     Name: some leather bracers
  Aliases: +LEATHER:BRACERS ARMOUR
 Location: @M18
+  Armour: @MEDIUM
 Wearable: LOWER_ARM→2
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1380,6 +1409,7 @@ These are hard leather bracers. They are worn to protect the lower arms.
     Name: some shoes
  Aliases: +LEATHER:SHOES CLOTHING CLOTHES
 Location: @M18
+  Armour: @MEDIUM
 Wearable: @SHOES
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1390,6 +1420,7 @@ A pair of plain, soft leather shoes.
     Name: some boots
  Aliases: +LEATHER:BOOTS CLOTHING CLOTHES
 Location: @M18
+  Armour: @MEDIUM
 Wearable: @BOOTS
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1400,6 +1431,7 @@ A pair of plain, soft leather boots that come up to just below the knees.
     Name: a plain belt
  Aliases: +LEATHER:BELT CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT
 Wearable: @BELT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1411,6 +1443,7 @@ frame with a prong for fastening.
     Name: a floral belt
  Aliases: +FLORAL:BELT +LEATHER:BELT CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT
 Wearable: @BELT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1422,6 +1455,7 @@ fastening is a simple brass plate engraved with a flower.
     Name: a knotwork belt
  Aliases: +KNOTWORK:BELT +LEATHER:BELT CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT
 Wearable: @BELT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1433,6 +1467,7 @@ is a sculpted, ornate brass knot.
     Name: a cotton shirt
  Aliases: +COTTON:SHIRT CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT_LARGE
 Wearable: @LONG_SHIRT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1443,6 +1478,7 @@ This is a rough, light cotton shirt with long sleeves.
     Name: some cotton trousers
  Aliases: +COTTON:TROUSERS CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT_LARGE
 Wearable: @TROUSERS
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1453,6 +1489,7 @@ These are rough, long cotton trousers.
     Name: a cotton dress
  Aliases: +COTTON:DRESS CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT_LARGE
 Wearable: @DRESS
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1463,6 +1500,7 @@ This is a long, rough cotton dress.
     Name: a formal gown
  Aliases: +FORMAL:GOWN +FINE:GOWN CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT_LARGE
 Wearable: @GOWN
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1493,6 +1531,7 @@ This is a fine silk scarf with a colourful floral pattern on it.
     Name: a cotton skirt
  Aliases: +COTTON:SKIRT CLOTHING CLOTHES
 Location: @M18
+  Armour: @LIGHT_LARGE
 Wearable: @SKIRT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1507,6 +1546,7 @@ This is a long, rough cotton skirt.
      Name: a shortsword
   Aliases: +SHORT:SWORD SHORTSWORD
  Location: @M14
+   Damage: 1+5
 Wieldable: HAND
   Cleanup: @ITEM
     Reset: @SPAWN
@@ -1517,6 +1557,7 @@ This is a fine shortsword. It has a pointy end.
      Name: a dagger
   Aliases: DAGGER
  Location: @M14
+   Damage: 1+3
 Wieldable: HAND
   Cleanup: @ITEM
     Reset: @SPAWN
@@ -1527,6 +1568,7 @@ This is a small, sharp dagger.
      Name: a battle axe
   Aliases: +BATTLE:AXE
  Location: @M14
+   Damage: 1+7
 Wieldable: HAND→2
   Cleanup: @ITEM
     Reset: @SPAWN
@@ -1538,6 +1580,7 @@ efficiently.
      Name: a longsword
   Aliases: +LONG:SWORD LONGSWORD
  Location: @M14
+   Damage: 1+7
 Wieldable: HAND
   Cleanup: @ITEM
     Reset: @SPAWN
@@ -1552,6 +1595,7 @@ This is a fine longsword. It has a pointy end.
     Name: a steel cuirass
  Aliases: +STEEL:CUIRASS
 Location: @M15
+  Armour: @HEAVY_LARGE
 Wearable: @SHORT_SHIRT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1565,6 +1609,7 @@ shoulders and sides.
     Name: a steel helmet
  Aliases: +STEEL:HELMET
 Location: @M15
+  Armour: @HEAVY
 Wearable: @HAT
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1588,6 +1633,7 @@ This is a small bunch of wild flowers.
      Ref: M7O2
     Name: a tatty cotton dress
  Aliases: +COTTON:DRESS +TATTY:DRESS CLOTHING CLOTHES
+  Armour: @LIGHT_LARGE
 Wearable: @DRESS
  Cleanup: @ITEM
    Reset: @SPAWN
@@ -1644,6 +1690,8 @@ Cleanup: AFTER→1s
    Ref: MOBILE
   Body: @HUMANOID
 Health: MAXIMUM→20 RESTORE→2 AFTER→1m
+Armour: 10
+Damage: 1+2
 Action: AFTER→15s JITTER→15s
  Reset: AFTER→1m WAIT
 %%
@@ -1698,6 +1746,28 @@ Wearable: ANKLE→2 FOOT→2
 %%
      Ref: SHOES
 Wearable: FOOT→2
+%%
+//
+// ITEM ARMOUR TYPES
+//
+%%
+   Ref: LIGHT
+Armour: 1
+%%
+   Ref: LIGHT_LARGE
+Armour: 2
+%%
+   Ref: MEDIUM
+Armour: 2
+%%
+   Ref: MEDIUM_LARGE
+Armour: 3
+%%
+   Ref: HEAVY
+Armour: 3
+%%
+   Ref: HEAVY_LARGE
+Armour: 4
 %%
 //
 // STOCK VETOES

@@ -285,6 +285,7 @@ As you peer into it you see a small twinkle of light right at its centre.
       Ref: O2
      Name: a pointed stick
     Alias: +POINTED:STICK +POINTY:STICK
+   Damage: 1+2
 Wieldable: HAND
   Cleanup: @ITEM
     Reset: @SPAWN
@@ -433,6 +434,8 @@ disperse across the rest like a wave.
     Alias: +TAUNTING:IMP CREATURE
      Body: HAND→2
    Health: MAXIMUM→10 RESTORE→2 AFTER→1m
+   Armour: 5
+   Damage: 1+2
 Inventory: O2
  Wielding: O2
  Location: L3
@@ -469,6 +472,8 @@ humanoid body, two small wings attached to it's back and a short tail.
    Location: L20
 Description: @M1
      Health: @M1
+     Armour: @M1
+     Damage: @M1
      Action: @MOBILE
    OnAction: $ACT flutters around a bit watching you from a distance.
            : $ACT settles down keeping out of your way.
@@ -485,6 +490,8 @@ Description: @M1
        Name: an ugly imp
       Alias: +UGLY:IMP CREATURE
        Body: HAND→2
+     Armour: @M1
+     Damage: @M1
   Inventory: O2 O3
     Holding: O3
    Wielding: O2
@@ -507,21 +514,23 @@ Description: @M1
       Reset: @MOBILE
     OnReset: @M1
 %%
-        Ref: M4
-       Name: a giant fungus slug
-      Alias: +GIANT:SLUG +FUNGUS:SLUG CREATURE
-   Location: L17 L20 L21
-     Health: MAXIMUM→30 RESTORE→2 AFTER→1m
-     Action: @MOBILE
-   OnAction: $ACT dissolves a toadstool and starts feeding on it.
-           : $ACT moves slowly around leaving a trail of mucus.
-           : $ACT makes a soft wet, sticky noise as it moves slowly around.
-           : $ACT slowly waves its tentacle feelers in the air.
-           : HIT IMP
-           : N
-           : E
-           : S
-           : W
+     Ref: M4
+    Name: a giant fungus slug
+   Alias: +GIANT:SLUG +FUNGUS:SLUG CREATURE
+Location: L17 L20 L21
+  Health: MAXIMUM→30 RESTORE→2 AFTER→1m
+  Armour: 15
+  Damage: 1+3
+  Action: @MOBILE
+OnAction: $ACT dissolves a toadstool and starts feeding on it.
+        : $ACT moves slowly around leaving a trail of mucus.
+        : $ACT makes a soft wet, sticky noise as it moves slowly around.
+        : $ACT slowly waves its tentacle feelers in the air.
+        : HIT IMP
+        : N
+        : E
+        : S
+        : W
 
 This is a giant white slug almost 12 feet long and 2 feet high. It has two
 long tentacle feelers, each a foot long, extending from its head. It lives in
