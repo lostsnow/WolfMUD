@@ -1040,7 +1040,7 @@ Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
    Action: @MOBILE
  OnAction: $ACT watches you suspiciously.
          : $ACT paces up and down a bit.
-         : $ACT cocks one ear, listening for trouble.
+         : $ACT cocks an ear, listening for trouble.
          : TELL ANY PLAYER Mind how you go and keep out of trouble.
          : TELL ANY PLAYER I'm watching you.
          : @ACT_GENERAL
