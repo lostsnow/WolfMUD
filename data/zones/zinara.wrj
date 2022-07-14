@@ -991,9 +991,9 @@ Location: L14
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
         : $ACT saunters around a bit.
-        : SHOUT Burgers ina bun, get 'em while they're hot.
-        : SHOUT Sausages ina bun, get 'em while they're hot.
-        : SHOUT Meat ona stick, get 'em while they're hot.
+        : SHOUT Meat inna bun, get 'em while they're hot.
+        : SHOUT Sausages inna bun, get 'em while they're hot.
+        : SHOUT Meat onna stick, get 'em while they're hot.
         : SHOUT Hot food! Hot food!
         : TALK ANY PLAYER Something to eat?
         : @ACT_GENERAL
