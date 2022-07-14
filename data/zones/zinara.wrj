@@ -830,7 +830,7 @@ threads of silk.
     Name: a rabbit
    Alias: RABBIT CREATURE
 Location: L34
-  Health: MAXIMUM→10 RESTORE→2 AFTER→10s
+  Health: MAXIMUM→5 @MOBILE
 Holdable: HAND→2
   Action: @MOBILE
 OnAction: $ACT hops around a bit.
@@ -848,7 +848,7 @@ doesn't seem to be late for anything!
     Name: a small frog
    Alias: FROG CREATURE
 Location: L36
-  Health: MAXIMUM→5 RESTORE→1 AFTER→10s
+  Health: MAXIMUM→3 @MOBILE
 Holdable: HAND
   Action: @MOBILE
 OnAction: $ACT croaks a bit.
@@ -864,7 +864,7 @@ It is a small, lime green frog. It's slimy and croaks. What more can you say?
      Ref: M4
     Name: the tavern cat
    Alias: CAT CREATURE
-  Health: MAXIMUM→10 RESTORE→2 AFTER→10s
+  Health: MAXIMUM→10 @MOBILE
     Veto: GET→The cat looks at your hand, then looks at you. Hrm, probably a
           bad idea.
   Action: @MOBILE
@@ -887,7 +887,7 @@ one of its own.
     Name: a small mouse
    Alias: MOUSE CREATURE
 Location: L39
-  Health: MAXIMUM→2 RESTORE→1 AFTER→10s
+  Health: MAXIMUM→2 RESTORE→1 AFTER→1m
   Action: AFTER→5s JITTER→5s
 OnAction: $ACT squeaks.
         : $ACT washes its face with its paws.
@@ -959,7 +959,7 @@ This is a sweet little girl selling flowers to make some money.
  Aliases: SPIDER CREATURE
 Location: L37
        // Hard to kill, but slow to recover...
-  Health: MAXIMUM→100 AFTER→30s JITTER→5s RESTORE→10
+  Health: MAXIMUM→50 RESTORE→10 AFTER→1m
   Action: @MOBILE
 OnAction: $ACT starts to slowly spin another web.
         : $ACT silently sits amongst the webs, watching.
@@ -1020,7 +1020,7 @@ undesirables from the city.
  Location: L14
      Body: @MOBILE
         // The city guard are supposed to be 'unkillable' peacekeepers ;)
-   Health: MAXIMUM→2000000000 AFTER→15s RESTORE→2000000000
+   Health: MAXIMUM→2000000000 RESTORE→2000000000 AFTER→1s
 Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
   Wearing: L11O1 L11O2 L73O1 L73O7
  Wielding: L13O1
@@ -1114,7 +1114,7 @@ The Armourer is of a rough looking sort.
  Aliases: LADY NPC
 Location: L8
     Body: @MOBILE
-  Health: @MOBILE
+  Health: MAXIMUM→10 @MOBILE
   Action: @MOBILE
 OnAction: $ACT idly dusts a few random items.
         : $ACT tidies up some of the junk laying around.
@@ -1636,7 +1636,7 @@ Cleanup: AFTER→1s
      // Default for mobiles/NPCs
    Ref: MOBILE
   Body: @HUMANOID
-Health: MAXIMUM→20 AFTER→15s JITTER→5s RESTORE→2
+Health: MAXIMUM→20 RESTORE→2 AFTER→1m
 Action: AFTER→15s JITTER→15s
  Reset: AFTER→1m WAIT
 %%

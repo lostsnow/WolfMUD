@@ -432,10 +432,10 @@ disperse across the rest like a wave.
      Name: a taunting imp
     Alias: +TAUNTING:IMP CREATURE
      Body: HAND→2
+   Health: MAXIMUM→10 RESTORE→2 AFTER→1m
 Inventory: O2
  Wielding: O2
  Location: L3
-   Health: MAXIMUM→10 RESTORE→2 AFTER→10s
    Action: @MOBILE
  OnAction: $ACT flutters around a bit watching you.
          : $ACT jeers at you and pulls faces.
@@ -511,7 +511,7 @@ Description: @M1
        Name: a giant fungus slug
       Alias: +GIANT:SLUG +FUNGUS:SLUG CREATURE
    Location: L17 L20 L21
-     Health: MAXIMUM→40 RESTORE→2 AFTER→10s
+     Health: MAXIMUM→30 RESTORE→2 AFTER→1m
      Action: @MOBILE
    OnAction: $ACT dissolves a toadstool and starts feeding on it.
            : $ACT moves slowly around leaving a trail of mucus.
