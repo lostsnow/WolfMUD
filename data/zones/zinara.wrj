@@ -910,6 +910,7 @@ This is a small, furry, grey mouse.
    Health: @MOBILE
 Inventory: M6O1
   Holding: M6O1
+     Veto: COMBAT→The barkeep just shakes his head and sighs.
    Action: @MOBILE
  OnAction: $ACT picks up a glass and wipes it with a rag.
          : $ACT smears the top of the bar with a rag.
@@ -978,6 +979,7 @@ This is a giant spider. It's black, hairy and looks very dangerous.
 Location: L14
     Body: @MOBILE
   Health: @MOBILE
+    Veto: COMBAT→Now why would you want to attack the street vendor?
   Action: @MOBILE
 OnAction: $ACT looks around for passing punters.
         : $ACT arranges his dubious merchandise.
@@ -1060,6 +1062,7 @@ Description: @M11
 Location: L6
     Body: @MOBILE
   Health: @MOBILE
+    Veto: COMBAT→You can't attack the baker, who would make cake?
   Action: @MOBILE
 OnAction: $ACT starts to make some more pastries.
         : $ACT puts a fresh batch of cooking out for sale.
@@ -1080,6 +1083,7 @@ so good it's irresistible.
 Location: L13
     Body: @MOBILE
   Health: @MOBILE
+    Veto: COMBAT→You can't attack the bladesmith.
   Action: @MOBILE
 OnAction: $ACT works at honing the blade of a dagger.
         : $ACT watches you idly while tossing a small blade up and down.
@@ -1097,6 +1101,7 @@ he wears an apron.
 Location: L11
     Body: @MOBILE
   Health: @MOBILE
+    Veto: COMBAT→You can't attack the armourer.
   Action: @MOBILE
 OnAction: $ACT starts to polish some plate mail while keeping an eye on you.
         : $ACT starts to whistle and hum softly to himself.
@@ -1114,6 +1119,7 @@ The Armourer is of a rough looking sort.
 Location: L8
     Body: @MOBILE
   Health: MAXIMUM→10 @MOBILE
+    Veto: COMBAT→You can't attack a little old lady!
   Action: @MOBILE
 OnAction: $ACT idly dusts a few random items.
         : $ACT tidies up some of the junk laying around.
@@ -1132,6 +1138,7 @@ This is a little old lady. The sort everyone wants as their grandmother.
 Location: L16
     Body: @MOBILE
   Health: @MOBILE
+    Veto: COMBAT→You can't attack Hewman.
   Action: @MOBILE
 OnAction: @ACT_GENERAL
         : @ACT_TRADER
@@ -1146,6 +1153,7 @@ This is a very large, serious looking man.
 Location: L73
     Body: @MOBILE
   Health: @MOBILE
+    Veto: COMBAT→Why would you want to attack Merkle of all people?
   Action: @MOBILE
 OnAction: $ACT folds some clothing and puts it back on a table.
         : TELL ANY PLAYER Please look around, there must be something here you like?
