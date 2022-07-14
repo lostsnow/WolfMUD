@@ -974,6 +974,7 @@ OnAction: $ACT starts to slowly spin another web.
         : EXAMINE WEBS
         : EXAMINE BUNDLE
         : EXAMINE ANY PLAYER
+        : HIT ANY PLAYER
    Reset: @MOBILE
  OnReset: A giant spider crawls in.
 
