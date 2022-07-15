@@ -89,6 +89,23 @@ FIELD DATA TYPES
 
       Name: a curious brass lattice
 
+  INTEGER
+    The data is a simple signed integer. For exmaple:
+
+      Armour: 10
+
+  DOUBLE INTEGER
+    The data is two signed integers separated by either a plus '+' or minus
+    '-' sign. The leading integer may be signed. If a single value is
+    specified the second value is assumed to be zero. If only the second value
+    is significant the first must be zero. For example:
+
+      Damage:  1+3
+      Damage:  0-5
+      Damage: -1+5
+      Damage:  5
+      Damage: -5
+
   KEYWORD
     The data is a single case insensitive word, usually written upper-cased. A
     keyword may contain any Unicode letter, the digits 0-9, underscore '_' or
@@ -295,7 +312,9 @@ PREFERRED FIELD ORDERING
       Body          <----.
       Gender             |
       Health             |
-      Inv/Inventory      | Body related information
+      Armour             |
+      Damage             |
+      Inv/Inventory      | Body / item related information
       Holding            |
       Wearing            |
       Wielding      <----'
@@ -462,6 +481,30 @@ ZONE RECORDS
     by size, colour or material. It should also be noted that all players have
     the 'PLAYER' group alias automatically.
 
+  ARMOUR: <INTEGER>
+    ARMOUR, when specified for a player or mobile, indicates the base natural
+    armour or abilities for avoiding damage. When specified for an item it
+    indicates additional armour applied when the item is wielded or worn.
+    ARMOUR can reflect physical protection as in tough hide, or worn armour.
+    It can also reflect speed or skills used to avoid taking damage.
+
+      ARMOUR: 10
+
+    For a player or mobile this indicates a base ARMOUR value of 10. When
+    specified on an item it indicates an additional 10 points of armour when
+    the item is used.
+
+    If the ARMOUR value is negative it will be applied as a penalty, reducing
+    the total amount of armour. For example a huge battle axe could do a lot
+    of damage, but impose an armour reduction due to its tendency to pull you
+    off balance.
+
+    During combat the total armour for a player or mobile is:
+
+      Natural ARMOUR + ARMOUR of all wielded and worn items
+
+    See also: DAMAGE
+
   BARRIER: <PAIR LIST>
     BARRIER is used to conditionally block movement of a mobile in a specific
     direction. Movement through a barrier can be allowed or denied based on
@@ -623,6 +666,31 @@ ZONE RECORDS
     ONCLEANUP for the item.
 
     See also: ONCLEANUP
+
+  DAMAGE: <DOUBLE INTEGER>
+    DAMAGE specifies the amount of damage a successful attack will inflict.
+    DAMAGE is specified as a DOUBLE INTEGER. The first integer is the amount
+    of fixed damage. The second integer is the maximum amount of additional
+    random damage. For example to specify 2 points of damage plus 1-2 points
+    of additional damage:
+
+      DAMAGE: 2+2
+
+    DAMAGE, when specified for a player or mobile, indicates the base natural
+    damage from kicks, punches, claws, bites, stings, etc. When specified for
+    an item it indicates additional damage inflicted when the item is wielded
+    or worn.
+
+    If the DAMAGE specified is negative it will be applied as a penalty,
+    reducing the total damage inflicted. For example very heavy armour could
+    grant a high ARMOUR rating but the trade off is reduced damage due to lack
+    of manoeuvrability.
+
+    During combat the total damage inflicted by a successful attack is:
+
+      Natural DAMAGE + ( DAMAGE of all wielded or worn items )
+
+    See also: ARMOUR
 
   DESCRIPTION: <STRING>
     A DESCRIPTION provides the descriptive text for a location, mobile or
