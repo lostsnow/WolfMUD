@@ -1134,7 +1134,7 @@ The Armourer is of a rough looking sort.
 %%
      Ref: M16
     Name: a little old lady
- Aliases: LADY NPC
+ Aliases: +OLD:LADY NPC
 Location: L8
     Body: @MOBILE
   Health: MAXIMUM→10 @MOBILE
@@ -1180,7 +1180,8 @@ Location: L73
     Veto: COMBAT→Why would you want to attack Merkle of all people?
   Action: @MOBILE
 OnAction: $ACT folds some clothing and puts it back on a table.
-        : TELL ANY PLAYER Please look around, there must be something here you like?
+        : TELL ANY PLAYER Please look around, there must be something here
+          you like?
         : EXAMINE CLOTHING
         : @ACT_GENERAL
         : @ACT_TRADER
