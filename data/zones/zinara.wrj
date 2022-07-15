@@ -1217,9 +1217,10 @@ This is a small iron key.
 %%
      Ref: O3
     Name: a lucky charm
-   Alias: +LUCKY:CHARM
+   Alias: +LUCKY:CHARM NECKLACE JEWELLERY
 Location: N2
   Armour: 5
+Wearable: NECK
  Cleanup: @ITEM
    Reset: @NOW
 
