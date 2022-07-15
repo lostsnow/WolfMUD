@@ -544,7 +544,7 @@ the deep caves feeding on the fungus and mold.
     Ref: ITEM
    Door: RESET→1m JITTER→1m
 Cleanup: AFTER→10m
-  Reset: AFTER→1m JITTER→5m
+  Reset: AFTER→5m JITTER→5m
 %%
     // Default spawnable item
   Ref: SPAWN
@@ -568,7 +568,7 @@ Cleanup: AFTER→1s
      // Default for mobiles/NPCs
    Ref: MOBILE
 Action: AFTER→15s JITTER→15s
- Reset: AFTER→1m WAIT
+ Reset: AFTER→5m WAIT
 %%
 //
 // STOCK ACTIONS
