@@ -531,6 +531,7 @@ OnAction: $ACT dissolves a toadstool and starts feeding on it.
         : E
         : S
         : W
+ OnReset: A giant fungus slug slithers in.
 
 This is a giant white slug almost 12 feet long and 2 feet high. It has two
 long tentacle feelers, each a foot long, extending from its head. It lives in
