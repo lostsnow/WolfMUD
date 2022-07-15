@@ -318,13 +318,22 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 
 	// Upgrade and add HELTH if missing
 	if _, found := jar[0]["HEALTH"]; !found {
-		jar[0]["HEALTH"] = []byte("AFTER→10S MAXIMUM→30 RESTORE→2")
+		jar[0]["HEALTH"] = []byte("AFTER→1M MAXIMUM→30 RESTORE→2")
 	}
 	// If old HEALTH record upgrade fields
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
+	// Upgrade if no natural armour (also update old health record)
+	if _, found := jar[0]["ARMOUR"]; !found {
+		jar[0]["ARMOUR"] = []byte("10")
+		jar[0]["HEALTH"] = []byte("AFTER→1M MAXIMUM→30 RESTORE→2")
+	}
+	// Upgrade if no natural damage
+	if _, found := jar[0]["DAMAGE"]; !found {
+		jar[0]["DAMAGE"] = []byte("2+2")
+	}
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -429,9 +438,12 @@ func (c *client) createPlayer() {
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 	}
 	c.Int[core.Created] = time.Now().UnixNano()
-	c.Int[core.HealthAfter] = (10 * time.Second).Nanoseconds()
+	c.Int[core.HealthAfter] = (1 * time.Minute).Nanoseconds()
 	c.Int[core.HealthRestore] = 2
 	c.Int[core.HealthCurrent] = 30
 	c.Int[core.HealthMaximum] = 30
+	c.Int[core.Armour] = 10
+	c.Int[core.DamageFixed] = 2
+	c.Int[core.DamageRandom] = 2
 	c.As[core.StatusSeq] = string(term.Status(c.height, c.width))
 }

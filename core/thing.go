@@ -247,6 +247,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			for qualifier := range q {
 				t.Any[Qualifier] = append(t.Any[Qualifier], qualifier)
 			}
+		case "ARMOUR":
+			t.Int[Armour] = int64(decode.Integer(r[field]))
 		case "BARRIER":
 			for k, v := range decode.PairList(r[field]) {
 				switch k {
@@ -279,6 +281,14 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			}
 			if t.Int[CleanupAfter]+t.Int[CleanupJitter]+t.Int[CleanupDueIn] == 0 {
 				t.Int[CleanupAfter] = time.Second.Nanoseconds()
+			}
+		case "DAMAGE":
+			fixed, random := decode.DoubleInteger(r[field])
+			if fixed != 0 {
+				t.Int[DamageFixed] = int64(fixed)
+			}
+			if random != 0 {
+				t.Int[DamageRandom] = int64(random)
 			}
 		case "DESCRIPTION":
 			t.As[Description] = string(text.Unfold([]byte(decode.String(data))))
@@ -593,6 +603,9 @@ func (t *Thing) Marshal() recordjar.Record {
 	if len(aliases) > 0 {
 		r["Alias"] = encode.KeywordList(aliases)
 	}
+	if t.Int[Armour] != 0 {
+		r["Armour"] = encode.Integer(int(t.Int[Armour]))
+	}
 	if t.As[Barrier] != "" {
 		barrier := mss{"EXIT": string(encode.Keyword(t.As[Barrier]))}
 		if len(t.Any[BarrierAllow]) > 0 {
@@ -619,6 +632,11 @@ func (t *Thing) Marshal() recordjar.Record {
 			cleanup["DUE_IN"] = string(encode.Duration(dueIn))
 		}
 		r["Cleanup"] = encode.PairList(cleanup, '→')
+	}
+	if t.Int[DamageFixed] != 0 || t.Int[DamageRandom] != 0 {
+		r["Damage"] = encode.DoubleInteger(
+			int(t.Int[DamageFixed]), int(t.Int[DamageRandom]),
+		)
 	}
 	if _, ok := t.As[Description]; ok {
 		r["Description"] = encode.String(t.As[Description])

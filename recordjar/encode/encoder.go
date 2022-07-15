@@ -213,3 +213,35 @@ func Boolean(b bool) []byte {
 func Integer(i int) []byte {
 	return []byte(strconv.Itoa(i))
 }
+
+// DoubleInteger returns the passed integers as a stringified []byte with the
+// integers separated by the sign of the second integer - either a plus '+' or
+// minus '-'. If the second integer is zero it will be omitted. For example:
+//
+//  DoubleInteger( 0,  0) == ""
+//  DoubleInteger( 1,  0) == "1"
+//  DoubleInteger(-1,  0) == "-1"
+//  DoubleInteger(+1,  0) == "1"
+//  DoubleInteger( 0,  2) == "0+2"
+//  DoubleInteger( 1,  2) == "1+2"
+//  DoubleInteger( 1, -2) == "1-2"
+//  DoubleInteger(-1, -2) == "1-2"
+//
+func DoubleInteger(i1, i2 int) []byte {
+
+	if i1 == 0 && i2 == 0 {
+		return nil
+	}
+
+	var first, sign, second string
+
+	first = strconv.Itoa(i1)
+	if i2 != 0 {
+		second = strconv.Itoa(i2)
+		if i2 > 0 {
+			sign = "+"
+		}
+	}
+
+	return []byte(first + sign + second)
+}

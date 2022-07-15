@@ -282,6 +282,35 @@ func Integer(data []byte) (i int) {
 	return
 }
 
+// DoubleInteger return the []byte data as two integer values. The []byte
+// should contain the two integers separated by either a plus '+' or minus '-'
+// sign. The leading integer may have a plus '+' or minus '-' sign. If both
+// integers or the second integer is not specified zero will be assumed. For
+// example:
+//
+//        =  0,  0
+//  1     =  1,  0
+//  -1    = -1,  0
+//  +1    =  1,  0
+//  1+2   =  1,  2
+//  +1+2  =  1,  2
+//  1-2   =  1, -2
+//  -1+2  = -1,  2
+//  -1-2  = -1, -2
+//
+func DoubleInteger(data []byte) (i1, i2 int) {
+	if len(data) == 0 {
+		return
+	}
+	i := bytes.LastIndexAny(data, "+-")
+	if i == -1 || i == 0 {
+		i = len(data)
+	}
+	i1, _ = strconv.Atoi(string(data[:i]))
+	i2, _ = strconv.Atoi(string(data[i:]))
+	return
+}
+
 // indexSeparator returns the position (starting at 0) and length in bytes of
 // the first separator rune found. If no separator is found the position
 // returned will be equal to the length of 'b' and the length returned will be

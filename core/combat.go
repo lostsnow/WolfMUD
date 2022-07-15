@@ -7,6 +7,7 @@ package core
 
 import (
 	"fmt"
+	"math/big"
 	"math/rand"
 	"time"
 
@@ -38,6 +39,29 @@ func createCorpse(t *Thing) *Thing {
 	}
 
 	return c
+}
+
+func (s *state) Eval() {
+	if len(s.word) == 0 {
+		s.Msg(s.actor, text.Info, "Who do you want to evluate you chances against?")
+		return
+	}
+
+	where := s.actor.Ref[Where]
+	uids := Match(s.word, where)
+	uid := uids[0]
+	what := where.Who[uid]
+	if what == nil {
+		what = where.In[uid]
+	}
+
+	switch {
+	case what == nil:
+		s.Msg(s.actor, text.Bad, "You see no '", uid, "' here to evaluate.")
+	default:
+		chance := s.hitChance(s.actor, what) * 100.0
+		s.Msg(s.actor, text.Info, fmt.Sprintf("Hrm... %d:%d, %d:%d, %8.4f%%", attack(s.actor), defense(s.actor), attack(what), defense(what), chance))
+	}
 }
 
 func (s *state) Attack() {
@@ -76,6 +100,8 @@ func (s *state) Attack() {
 		s.Msg(where, text.Info, s.actor.As[UName], " tries to attack ", what.As[Name], ".")
 	case where.As[VetoCombat] != "":
 		s.Msg(s.actor, text.Bad, where.As[VetoCombat])
+	case what.As[VetoCombat] != "":
+		s.Msg(s.actor, text.Bad, what.As[VetoCombat])
 	default:
 		what.Any[Opponents] = append(what.Any[Opponents], s.actor.As[UID])
 		what.Suspend(Action)
@@ -88,6 +114,7 @@ func (s *state) Attack() {
 		s.Msg(s.actor, text.Good, "You attack ", what.As[TheName], "!")
 		s.Msg(what, text.Bad, s.actor.As[TheName], " attacks you!")
 		s.Msg(where, text.Info, s.actor.As[UTheName], " attacks ", what.As[TheName], "!")
+		s.Log("%s attacked %s (%s)", s.actor.As[Name], what.As[Name], what.As[UID])
 	}
 }
 
@@ -103,11 +130,11 @@ func (s *state) Combat() {
 	}
 
 	attacker, defender := s.actor, what
-	if rand.Int63n(100+1) < 50 {
+	if roll := rand.Float64(); roll > s.hitChance(attacker, defender) {
 		attacker, defender = defender, attacker
 	}
 
-	damage := 2 + rand.Int63n(2+1)
+	damage := damageFixed(attacker) + rand.Int63n(damageRandom(attacker)+1)
 	damageText := fmt.Sprintf(" doing %d damage.", damage)
 	defender.Int[HealthCurrent] -= damage
 
@@ -128,6 +155,16 @@ func (s *state) Combat() {
 	s.Msg(attacker, "You kill ", defender.As[Name], "!")
 	s.Msg(defender, attacker.As[UTheName], " kills you!")
 	s.Msg(where, attacker.As[UTheName], " kills ", defender.As[Name], "!")
+
+	if s.actor.As[UID] == attacker.As[UID] {
+		s.Log("%s killed %s (%s)",
+			attacker.As[Name], defender.As[Name], defender.As[UID],
+		)
+	} else {
+		s.Log("%s killed by %s (%s)",
+			defender.As[Name], attacker.As[Name], attacker.As[UID],
+		)
+	}
 
 	// Stop everyone attacking defender and notify them, as they receive a
 	// specific message they won't get the message to the location.
@@ -172,6 +209,9 @@ func (s *state) Combat() {
 }
 
 func (s *state) stopCombat(who, what *Thing) {
+	if who == nil {
+		return
+	}
 	if what == nil {
 		who.Cancel(Combat)
 		who.Schedule(Action)
@@ -186,4 +226,105 @@ func (s *state) stopCombat(who, what *Thing) {
 			delete(who.Any, Opponents)
 		}
 	}
+}
+
+var (
+	chanceMin, _ = new(big.Float).SetString("0.000001")
+	chanceMax, _ = new(big.Float).SetString("0.999999")
+)
+
+// hitChance returns the percentage, as a decimal float, chance of an attacker
+// hitting a defender. Chance range is 0.000001-0.999999 or 0.0001%-99.9999%.
+func (s *state) hitChance(Attacker, Defender *Thing) float64 {
+
+	Aatk, Adef := attack(Attacker), defense(Attacker)
+	Datk, Ddef := attack(Defender), defense(Defender)
+
+	Aatk_Aatk := new(big.Float).SetInt64(Aatk * Aatk)
+	Aatk_Ddef := new(big.Float).SetInt64(Aatk + Ddef)
+	Datk_Datk := new(big.Float).SetInt64(Datk * Datk)
+	Datk_Adef := new(big.Float).SetInt64(Datk + Adef)
+
+	// score = attack * attack / ( attack + opponent defense )
+	Ascore := new(big.Float).Quo(Aatk_Aatk, Aatk_Ddef)
+	Dscore := new(big.Float).Quo(Datk_Datk, Datk_Adef)
+
+	Ascore_Dscore := new(big.Float).Add(Ascore, Dscore)
+
+	// chance% = score / ( score + opponent score )
+	Achance := new(big.Float).Quo(Ascore, Ascore_Dscore)
+	Dchance := new(big.Float).Quo(Dscore, Ascore_Dscore)
+
+	// Allow for 1000000:1 chances to miss, or hit...
+	if Achance.Cmp(chanceMax) == 1 {
+		Achance.Copy(chanceMax)
+	}
+	if Achance.Cmp(chanceMin) == -1 {
+		Achance.Copy(chanceMin)
+	}
+
+	_ = Dchance // Used for debugging only, prevent compiler error
+
+	chance, _ := Achance.Float64()
+	return chance
+}
+
+// attack returns the total attack value for an actor. Items can provide
+// positive or negative contributions. Minimum attack is 1.0.
+func attack(actor *Thing) int64 {
+
+	// Note: integer division will truncate towards zero, we round up
+	d := damageRandom(actor)/2 + damageRandom(actor)%2
+	a := damageFixed(actor) + d + actor.Int[HealthCurrent]
+	if a < 1 {
+		a = 1
+	}
+	return a
+}
+
+// defense returns the total defense value for an actor. Items can provide
+// positive or negative contributions. Minimum defense is 1.0.
+func defense(actor *Thing) int64 {
+	d := actor.Int[Armour] + actor.Int[HealthCurrent]
+	for _, item := range actor.In {
+		if item.Is&(Wearing|Wielding) != 0 {
+			d += item.Int[Armour]
+		}
+	}
+	if d < 1 {
+		d = 1
+	}
+	return d
+}
+
+// damageFixed returns the total amount of fixed damage an actor can cause.
+// This includes natural and wielded/worn item damage. Items can provide
+// positive or negative contributions. Minimum damage is 1.
+func damageFixed(actor *Thing) int64 {
+	df := actor.Int[DamageFixed]
+	for _, item := range actor.In {
+		if item.Is&(Wearing|Wielding) != 0 {
+			df += item.Int[DamageFixed]
+		}
+	}
+	if df < 1 {
+		df = 1
+	}
+	return df
+}
+
+// damageRandom returns the total amount of random damage an actor can cause.
+// This includes naturnal and wielded/worn item damage. Items can provide
+// positive or negative contributions. Minimum damage is 0.
+func damageRandom(actor *Thing) int64 {
+	dr := actor.Int[DamageRandom]
+	for _, item := range actor.In {
+		if item.Is&(Wearing|Wielding) != 0 {
+			dr += item.Int[DamageRandom]
+		}
+	}
+	if dr < 0 {
+		dr = 0
+	}
+	return dr
 }
