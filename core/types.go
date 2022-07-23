@@ -220,6 +220,7 @@ const (
 	Body         // Body slots available to an item
 	Holdable     // Body slots required to hold item
 	OnAction     // Actions that can be performed
+	OnCombat     // Combat actions that can be performed
 	Opponents    // UID of opponents being defended against
 	Permissions  // Permissions a player has
 	Qualifier    // Alias qualifiers
@@ -241,6 +242,7 @@ var anyNames = []string{
 	"Body",
 	"Holdable",
 	"OnAction",
+	"OnCombat",
 	"Opponents",
 	"Permissions",
 	"Qualifier",
