@@ -135,12 +135,13 @@ func (s *state) Combat() {
 	}
 
 	damage := damageFixed(attacker) + rand.Int63n(damageRandom(attacker)+1)
-	damageText := fmt.Sprintf(" doing %d damage.", damage)
 	defender.Int[HealthCurrent] -= damage
 
-	s.MsgAppend(attacker, text.Good, "You hit ", defender.As[TheName], damageText)
-	s.MsgAppend(defender, text.Bad, attacker.As[UTheName], " hits you", damageText)
-	s.Msg(where, text.Info, attacker.As[UTheName], " hits ", defender.As[Name], ".")
+	amsg, dmsg, omsg := Message(attacker, defender, pickMessage(attacker))
+
+	s.MsgAppend(attacker, text.Good, amsg)
+	s.MsgAppend(defender, text.Bad, dmsg)
+	s.Msg(where, text.Info, omsg)
 
 	// defender not killed, do health bookkeeping and go another round
 	if defender.Int[HealthCurrent] > 0 {
