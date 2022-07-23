@@ -124,7 +124,7 @@ func (c *client) frontend() bool {
 			buf.Msg("Enter a name for your character or just press enter to cancel.")
 
 		case gender:
-			buf.Msg("Would you like ", c.As[core.Name], " to be male or female? Or just press enter to cancel.")
+			buf.Msg("Would you like ", c.As[core.Name], " to be male, female or neutral? Or just press enter to cancel.")
 
 		case create:
 			c.createPlayer()
@@ -293,8 +293,11 @@ func (c *client) frontend() bool {
 			case "F", "FEMALE":
 				c.As[core.Gender] = "FEMALE"
 				stage = create
+			case "N", "NEUTRAL":
+				c.As[core.Gender] = "NEUTRAL"
+				stage = create
 			default:
-				buf.Msg(text.Bad, "Please specify male or female.")
+				buf.Msg(text.Bad, "Please specify male, female or neutral.")
 			}
 		}
 	}
