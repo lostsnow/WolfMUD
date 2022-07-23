@@ -378,6 +378,8 @@ func (t *Thing) Unmarshal(r recordjar.Record) {
 			t.Is |= Narrative
 		case "ONACTION":
 			t.Any[OnAction] = decode.StringList(r["ONACTION"])
+		case "ONCOMBAT":
+			t.Any[OnCombat] = decode.StringList(r["ONCOMBAT"])
 		case "ONCLEANUP":
 			t.As[OnCleanup] = decode.String(r["ONCLEANUP"])
 		case "ONRESET":
@@ -703,6 +705,9 @@ func (t *Thing) Marshal() recordjar.Record {
 	}
 	if _, ok := t.As[OnCleanup]; ok {
 		r["OnCleanup"] = encode.String(t.As[OnCleanup])
+	}
+	if _, ok := t.Any[OnCombat]; ok {
+		r["OnCombat"] = encode.StringList(t.Any[OnCombat])
 	}
 	if _, ok := t.As[OnReset]; ok {
 		r["OnReset"] = encode.String(t.As[OnReset])

@@ -438,6 +438,7 @@ var preferredOrdering = []string{
 	"On" + eventNames[Action],
 	eventNames[Cleanup],
 	"On" + eventNames[Cleanup],
+	"On" + eventNames[Combat],
 	eventNames[Reset],
 	"On" + eventNames[Reset],
 }
