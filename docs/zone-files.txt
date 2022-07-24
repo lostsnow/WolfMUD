@@ -328,6 +328,7 @@ PREFERRED FIELD ORDERING
       OnAction           |
       Cleanup            | Event Information
       OnCleanup          |
+      OnCombat           |
       Reset              |
       OnReset       <----'
       Description   <----- Free text block (always last)
@@ -503,7 +504,7 @@ ZONE RECORDS
 
       Natural ARMOUR + ARMOUR of all wielded and worn items
 
-    See also: DAMAGE
+    See also: DAMAGE and ONCOMBAT
 
   BARRIER: <PAIR LIST>
     BARRIER is used to conditionally block movement of a mobile in a specific
@@ -690,7 +691,7 @@ ZONE RECORDS
 
       Natural DAMAGE + ( DAMAGE of all wielded or worn items )
 
-    See also: ARMOUR
+    See also: ARMOUR and ONCOMBAT
 
   DESCRIPTION: <STRING>
     A DESCRIPTION provides the descriptive text for a location, mobile or
@@ -786,6 +787,15 @@ ZONE RECORDS
     reference instead. For example, S→X
 
     See also: ZONELINKS
+
+  GENDER <KEYWORD>
+    GENDER is used to indicate the gender of a player's character or a mobile.
+    Valid values are MALE, FEMALE, NEUTRAL or IT. If not specified then IT is
+    assumed. The default is useful as most definitions for mobiles are for
+    creatures or objects where IT is appropriate. Players cannot choose to be
+    an IT when creating a charater.
+
+    See also: ONCOMBAT
 
   HEALTH: <PAIR LIST>
     The HEALTH field specifies the current, maximum and healing rate of a
@@ -998,6 +1008,94 @@ ZONE RECORDS
     simply disappear with no notification at all.
 
     See also: CLEANUP
+
+  ONCOMBAT: <STRING LIST>
+    ONCOMBAT can be used to provide a list of messages for successful combat
+    attacks. ONCOMBAT can be specified for player and mobiles, in which case
+    it represents natural attacks such as punches, kicks, bites and claws.
+    ONCOMBAT can be specified on items representing attacks with the item. For
+    example:
+
+      %%
+            Ref: O1
+           Name: a dagger
+          Alias: DAGGER
+         Damage: 1+3
+      Wieldable: HAND→1
+        Cleanup: AFTER→10M JITTER→0S
+       Oncombat: [%A] stab[/s] [%d] with [your/%a.their] dagger drawing blood.
+               : [%A] slash[/es] at [%d] with [your/%a.their] dagger.
+               : [%A] cut[/s] [%d] with [your/%a.their] dagger.
+
+      This is a small, sharp dagger.
+      %%
+
+    ONCOMBAT messages use a special format consisting of substitution blocks
+    of the format: [attacker/defender/observers]. Substitutions for attacker
+    are only shown to the attacker, likewise for defenders and observers. If
+    no substitution is specified for the observers the defender's substitution
+    is used. If there is no substitution specified for the defender then the
+    attacker's substitution is used. This mechanism can be overridden using an
+    empty substitution. Some examples:
+
+     "You see [a/d/o]."   Attacker sees: You see a.
+                          Defender sees: You see d.
+                          Observer sees: You see o.
+
+     "You see [a/d]."     Attacker sees: You see a.
+                          Defender sees: You see d.
+                          Observer sees: You see d.
+
+     "You see [a]."       Attacker sees: You see a.
+                          Defender sees: You see a.
+                          Observer sees: You see a.
+
+     "You see [a/d/]."    Attacker sees: You see a.
+                          Defender sees: You see d.
+                          Observer sees: You see .
+
+     "You see [a/]."      Attacker sees: You see a.
+                          Defender sees: You see .
+                          Observer sees: You see .
+
+    There are two special substitutions %A and %D which represent the attacker
+    and the defender. They will be substituted for the relevant names or "you"
+    if it is their message.If the substitutions are specified as uppercase, as
+    in %A and %D, then initial letter of the substitution will be uppercased.
+    If the substitutions are specified as lowercased, as in %a and %d, then
+    the substitution will be used "as is". For example, with Diddymus as the
+    attacker and an imp as the defender:
+
+     "[%A] hit[/s] [%d]."  Attacker sees: You hit an imp.
+                           Defender sees: Diddymus hits you.
+                           Observer sees: Diddymus hits an imp.
+
+    One of the neutral pronouns may follow %A or %D separated by a period. The
+    recognised pronouns are: they, them, their and themself. When substituted
+    the correct pronoun for the attacker's or defender's gender will be used:
+
+                     GENDER   PRONOUN SUBSTITUTIONS
+                     -------  ---------------------------
+                     NEUTRAL  they  them  their  themself
+                     FEMALE   she   her   her    herself
+                     MALE     he    him   his    himself
+                     IT       it    it    its    itself
+
+    If the attacker/defender does not have a GENDER of FEMALE, MALE, NEUTRAL
+    or IT set then a gender of IT is assumed.
+
+    For example:
+
+    "[%A] stab[/s] [%d] with [%a.their][r/] dagger causing [%d.them] to bleed."
+
+    Attacker sees: You stab an imp with your dagger causing it to bleed.
+    Defender sees: Diddymus stabs you with his dagger causing you to bleed.
+    Observer sees: Diddymus stabs an imp with his dagger causing it to bleed.
+
+    Note the use of "[%a.their][r/]" to turn 'you' into 'your' for the
+    attacker only. This could also be written as "[your/%a.their]".
+
+    See also: ARMOUR, DAMAGE and GENDER
 
   ONRESET: <string>
     ONRESET can be used to provide a custom message when an item is reset or
