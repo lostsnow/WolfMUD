@@ -337,6 +337,24 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 	if _, found := jar[0]["DAMAGE"]; !found {
 		jar[0]["DAMAGE"] = []byte("2+2")
 	}
+	// Upgrade if no combat actions
+	if _, found := jar[0]["ONCOMBAT"]; !found {
+		jar[0]["ONCOMBAT"] = []byte(`
+		  [%A] lash[/es] out at [%d] hitting [%d.them] with random blows.
+		: [%A] punch[/es] [%d] winding [%d.them].
+		: [%A] punch[/es] [%d], landing a solid blow.
+		: [%A] kick[/s] [%d], causing [%d.them] to yell.
+		: [%A] headbutt[/s] [%d], stunning [%d.them].
+		: [%A] feign[/s] an attack, then swiftly jab[/s] [%d.them].
+		: [%D] yell[s//s] as [%a] bite[/s] [%d.them].
+		: [%D] stumble[s//s] allowing [%a] to land a heavy blow.
+		: [%D] doge[s//s] the wrong way allowing [%a] to hit [%d.them].
+		: [%D] dodge[s//s] [%a] opening [%d.themself][/rself/] to a bashing.
+		: [%A] slam[/s] [%a.their][r/] body into [%d].
+		: [%A] dig[/s] an elbow into [%d].
+		: [%A] bring[/s] a knee up hitting [%d].
+    `)
+	}
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -448,5 +466,20 @@ func (c *client) createPlayer() {
 	c.Int[core.Armour] = 10
 	c.Int[core.DamageFixed] = 2
 	c.Int[core.DamageRandom] = 2
+	c.Any[core.OnCombat] = []string{
+		"[%A] lash[/es] out at [%d] hitting [%d.them] with random blows.",
+		"[%A] punch[/es] [%d] winding [%d.them].",
+		"[%A] punch[/es] [%d], landing a solid blow.",
+		"[%A] kick[/s] [%d], causing [%d.them] to yell.",
+		"[%A] headbutt[/s] [%d], stunning [%d.them].",
+		"[%A] feign[/s] an attack, then swiftly jab[/s] [%d.them].",
+		"[%D] yell[s//s] as [%a] bite[/s] [%d.them].",
+		"[%D] stumble[s//s] allowing [%a] to land a heavy blow.",
+		"[%D] doge[s//s] the wrong way allowing [%a] to hit [%d.them].",
+		"[%D] dodge[s//s] [%a] opening [%d.themself][/rself/] to a bashing.",
+		"[%A] slam[/s] [%a.their][r/] body into [%d].",
+		"[%A] dig[/s] an elbow into [%d].",
+		"[%A] bring[/s] a knee up hitting [%d].",
+	}
 	c.As[core.StatusSeq] = string(term.Status(c.height, c.width))
 }
