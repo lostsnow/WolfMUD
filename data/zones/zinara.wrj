@@ -837,6 +837,12 @@ OnAction: $ACT hops around a bit.
         : $ACT makes a soft squeaking and chattering noise.
         : HIT ANY PLAYER
         : @ACT_MOVE
+OnCombar: [%D] tr[ies/y/ies] to grab [%a] but [%a.they] pound[/s] [%d] in the
+          face with [%a.their][r/] back legs.
+        : [%A] launch[/es] [yourself/%a.themself] at [%d] winding [%d.them].
+        : [%A] dart[/s] aside causing [%d] to go crashing to the ground.
+        : [%A] sit[/s] looking all sweet and innocent as [%d] miss[es//es]
+          [%a.them] and go[es/] sprawling.
    Reset: @MOBILE
  OnReset: A rabbit hops into view.
 
@@ -855,6 +861,12 @@ OnAction: $ACT croaks a bit.
         : $ACT hops around a bit.
         : HIT ANY PLAYER
         : @ACT_MOVE
+OnCombar: [%D] tr[ies/y/ies] to grab [%a] but [%a.they] jump[/s] and poke[/s]
+          [%d.them] in the eye.
+        : [%D] lunge[s/] for [%a] but miss[es//es] and go[es//es] sprawling
+          across the ground.
+        : [%D] grab[s//s] for [%a] but [%a.they] jump[/s] out of
+          [%d.their][/r/] hand and hit[/s] [%d.them] in the eye.
    Reset: @MOBILE
  OnReset: A frog hops into view.
 
@@ -863,6 +875,7 @@ It is a small, lime green frog. It's slimy and croaks. What more can you say?
      Ref: M4
     Name: the tavern cat
    Alias: CAT CREATURE
+  Gender: MALE
   Health: MAXIMUM→10 @MOBILE
     Veto: GET→The cat looks at your hand, then looks at you. Hrm, probably a
           bad idea.
@@ -897,6 +910,12 @@ OnAction: $ACT squeaks.
         : $ACT twitches its whiskers.
         : $ACT cocks its head and listens.
         : @ACT_MOVE
+OnCombat: [%D] tr[ies/y/ies] to grab [%a] but [%d.they] hurt[s//s]
+          [%d.their][/r/] hand as [%a] scurr[y/ies] out of the way.
+        : [%D] tr[ies/y/ies] to grab [%a] but go[es//es] sprawling as [%a]
+          scurr[y/ies] out of the way.
+        : [%D] [isn't/aren't] quick enough to catch [%a] and end[s//s] up
+          hitting the ground.
    Reset: @MOBILE
  OnReset: A small mouse scurries into view.
 
@@ -907,6 +926,7 @@ This is a small, furry, grey mouse.
   Aliases: BARKEEP MAN NPC
  Location: L4
      Body: @MOBILE
+   Gender: MALE
    Health: @MOBILE
    Armour: @MOBILE
    Damage: @MOBILE
@@ -939,6 +959,7 @@ Always ready to listen to a drinking patron, dispensing advice when required.
   Aliases: +FLOWER:GIRL NPC
  Location: L7
      Body: @MOBILE
+   Gender: FEMALE
    Health: @MOBILE
    Armour: @MOBILE
    Damage: @MOBILE
@@ -953,6 +974,7 @@ Inventory: M7O1 M7O2
          : TALK ANY PLAYER Buy a flower? Very cheap.
          : @ACT_GENERAL
          : @ACT_MOVE
+ OnCombat: @HUMANOID
     Reset: @MOBILE
   OnReset: A flower girl walks in.
 
@@ -962,6 +984,7 @@ This is a sweet little girl selling flowers to make some money.
     Name: a giant spider
  Aliases: SPIDER CREATURE
 Location: L37
+  Gender: FEMALE
        // Hard to kill, but slow to recover...
   Health: MAXIMUM→50 RESTORE→10 AFTER→1m
   Armour: 20
@@ -975,6 +998,25 @@ OnAction: $ACT starts to slowly spin another web.
         : EXAMINE BUNDLE
         : EXAMINE ANY PLAYER
         : HIT ANY PLAYER
+        : HIT ANY PLAYER
+        : HIT ANY PLAYER
+OnCombat: [%A] spray[/s] [%d] covering [%d.them] with a stinging web.
+        : [%A] spray[/s] [%d] covering [%d.them] with a stinging web.
+        : [%A] spit[/s] at [%d] temporarily blinding [%d.them] while [%a.they]
+          bite[/s] at [%d.them].
+        : [%D] pound[s//s] at [%a] to little effect. [%A] move[/s] in on [%d]
+          knocking [%d.them] back.
+        : [%A] rear[/s] up over [%d] and drop[/s] [%a.their][r/] crushing body
+          on [%d.them].
+        : [%A] jab[/s] out with a foreleg impaling [%d].
+        : [%A] bash[/es] [%d] aside with a powerful foreleg.
+        : [%A] knock[/s] [%d] down with [%a.their][r/] powerful forelegs.
+        : [%A] rear[/s] up battering [%d] with [%a.their][r/] powerful
+          forelegs.
+        : [%A] sink[/s] [%a.their][r/] fangs into [%d] making [%d.them]
+          nauseas.
+        : [%A] bite[/s] [%d] sinking [%a.their][r/] fangs deeply into
+          [%d.them].
    Reset: @MOBILE
  OnReset: A giant spider crawls in.
 
@@ -985,6 +1027,7 @@ This is a giant spider. It's black, hairy and looks very dangerous.
  Aliases: +STREET:VENDOR MAN NPC
 Location: L14
     Body: @MOBILE
+  Gender: MALE
   Health: @MOBILE
     Veto: COMBAT→Now why would you want to attack the street vendor?
   Action: @MOBILE
@@ -997,6 +1040,7 @@ OnAction: $ACT looks around for passing punters.
         : SHOUT Hot food! Hot food!
         : TALK ANY PLAYER Something to eat?
         : @ACT_GENERAL
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: A street vendor walks in.
 
@@ -1007,6 +1051,7 @@ This is a typical, shifty looking street vendor.
  Aliases: GATEWARDEN +GATE:WARDEN MAN NPC
 Location: L57 L64 L69
     Body: @MOBILE
+  Gender: MALE
   Health: @MOBILE
   Armour: @MOBILE
   Damage: @MOBILE
@@ -1018,6 +1063,7 @@ OnAction: $ACT watches you suspiciously.
         : TELL ANY PLAYER I'm watching you.
         : @ACT_GENERAL
         : @ACT_MOVE
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: A gate warden walks into view.
 
@@ -1029,6 +1075,7 @@ undesirables from the city.
   Aliases: +CITY:GUARD CITYGUARD WOMAN NPC
  Location: L14
      Body: @MOBILE
+   Gender: FEMALE
         // The city guard are supposed to be 'unkillable' peacekeepers ;)
    Health: MAXIMUM→2000000000 RESTORE→2000000000 AFTER→1s
    Armour: @MOBILE
@@ -1045,6 +1092,7 @@ Inventory: L13O1 L11O1 L11O2 L73O1 L73O7
          : TELL ANY PLAYER I'm watching you.
          : @ACT_GENERAL
          : @ACT_MOVE
+ OnCombat: @HUMANOID
     Reset: @MOBILE
   OnReset: A city guard walks into view.
 
@@ -1056,6 +1104,7 @@ doers.
     Aliases: +CITY:GUARD CITYGUARD MAN NPC
    Location: L21 L26 L61
        Body: @MOBILE
+     Gender: MALE
      Health: @M11
      Armour: @M11
      Damage: @M11
@@ -1063,9 +1112,10 @@ doers.
     Wearing: @M11
    Wielding: @M11
        Veto: @M11
-     Action: @MOBILE
+     Action: @M11
    OnAction: @M11
-      Reset: @MOBILE
+   OnCombat: @M11
+      Reset: @M11
     OnReset: @M11
 Description: @M11
 %%
@@ -1074,6 +1124,7 @@ Description: @M11
  Aliases: BAKER WOMAN LADY NPC
 Location: L6
     Body: @MOBILE
+  Gender: FEMALE
   Health: @MOBILE
   Armour: @MOBILE
   Damage: @MOBILE
@@ -1086,6 +1137,7 @@ OnAction: $ACT starts to make some more pastries.
         : SAY Doesn't it all smells so lovely!
         : @ACT_GENERAL
         : @ACT_TRADER
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: A baker walks into view.
 
@@ -1097,6 +1149,7 @@ so good it's irresistible.
  Aliases: BLADESMITH MAN NPC
 Location: L13
     Body: @MOBILE
+  Gender: MALE
   Health: @MOBILE
   Armour: @MOBILE
   Damage: @MOBILE
@@ -1106,6 +1159,7 @@ OnAction: $ACT works at honing the blade of a dagger.
         : $ACT watches you idly while tossing a small blade up and down.
         : @ACT_GENERAL
         : @ACT_TRADER
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: The bladesmith walks into view.
 
@@ -1117,6 +1171,7 @@ he wears an apron.
  Aliases: ARMOURER MAN NPC
 Location: L11
     Body: @MOBILE
+  Gender: MALE
   Health: @MOBILE
   Armour: @MOBILE
   Damage: @MOBILE
@@ -1127,6 +1182,7 @@ OnAction: $ACT starts to polish some plate mail while keeping an eye on you.
         : $ACT starts making some adjustments to some leather padding.
         : @ACT_GENERAL
         : @ACT_TRADER
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: An armourer walks into view.
 
@@ -1137,6 +1193,7 @@ The Armourer is of a rough looking sort.
  Aliases: +OLD:LADY NPC
 Location: L8
     Body: @MOBILE
+  Gender: FEMALE
   Health: MAXIMUM→10 @MOBILE
   Armour: 5
     Veto: COMBAT→You can't attack a little old lady!
@@ -1157,6 +1214,7 @@ This is a little old lady. The sort everyone wants as their grandmother.
  Aliases: HEWMAN TRADER NPC
 Location: L16
     Body: @MOBILE
+  Gender: MALE
   Health: @MOBILE
   Armour: @MOBILE
   Damage: @MOBILE
@@ -1164,6 +1222,7 @@ Location: L16
   Action: @MOBILE
 OnAction: @ACT_GENERAL
         : @ACT_TRADER
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: Hewman the trader walks into view.
 
@@ -1174,6 +1233,7 @@ This is a very large, serious looking man.
  Aliases: MERKLE CLOTHIER NPC
 Location: L73
     Body: @MOBILE
+  Gender: NEUTRAL
   Health: @MOBILE
   Armour: @MOBILE
   Damage: @MOBILE
@@ -1185,6 +1245,7 @@ OnAction: $ACT folds some clothing and puts it back on a table.
         : EXAMINE CLOTHING
         : @ACT_GENERAL
         : @ACT_TRADER
+OnCombat: @HUMANOID
    Reset: @MOBILE
  OnReset: Merkle walks into view.
 
@@ -1552,6 +1613,26 @@ This is a long, rough cotton skirt.
    Damage: 1+5
 Wieldable: HAND
   Cleanup: @ITEM
+ OnCombat: [%A] swing[/s] a shortsword at [%d] slicing [%d.them].
+         : [%A] lunge[/s] at [%d] with a shortsword wounding [%d.them].
+         : [%A] slash[/es] at [%d] with [%a.their][r/] shortsword.
+         : [%A] slice[/s] at [%d] with [%a.their][r/] shortsword.
+         : [%A] nick[/s] [%d] with [%a.their] shortsword.
+         : [%A] thrust[/s] [%a.their][r/] shortsword at [%d] hitting
+           [%d.them].
+         : [%A][r/'s] shortsword finds its mark wounding [%d].
+         : [%A] wound[/s] [%d] with a sweep from [%a.their][r/] shortsword.
+         : [%A] [are/is] too quick for [%d] catching [%d.them] with
+           [%a.their][r/] shortsword.
+         : [%D] catch[es//es] a blow from [%a][r/'s] shortsword.
+         : [%D] catch[es//es] a blow from [%a][r/'s] shortsword.
+         : [%D] [doesn't/don't/doesn't] dodge quick enough to avoid [%a][r/'s]
+           shortsword.
+         : [%D] [isn't/aren't/isn't] quick enough to avoid [%a][r/'s]
+           shortsword.
+         : With a flourish, [%a][r/'s] shortsword carves into [%d].
+         : With a quick jab, [%a][r/'s] shortsword hits [%d].
+         : Swinging wildly, [%a][r/'s] shortsword hits [%d].
     Reset: @SPAWN
 
 This is a fine shortsword. It has a pointy end.
@@ -1563,6 +1644,15 @@ This is a fine shortsword. It has a pointy end.
    Damage: 1+3
 Wieldable: HAND
   Cleanup: @ITEM
+ OnCombat: [%A] stab[/s] out with [%a.their] dagger drawing blood.
+         : [%A] slash[/es] at [%d] with [%a.their][r/] dagger.
+         : [%A] stab[/s] at [%d].
+         : [%A] cut[/s] [%d] with [%a.their][r/] dagger.
+         : [%A] slice[/s] [%d] with [%a.their][r/] dagger drawing blood.
+         : [%D] receives the pointy end of [%a][r/'s] dagger.
+         : [%D] wince[s//s] in pain as [%a] stick[/s] [%d.them] with
+           [%a.their][r/] dagger.
+         : With a sneaky jab, [%a][r/'s] dagger bites into [%d].
     Reset: @SPAWN
 
 This is a small, sharp dagger.
@@ -1574,6 +1664,14 @@ This is a small, sharp dagger.
    Damage: 1+7
 Wieldable: HAND→2
   Cleanup: @ITEM
+ OnCombat: [%A] hit[/s] [%d] with [%a.their][r/] battle axe.
+         : [%A] swing[/s] [%a.their][r/] battle axe hitting [%d].
+         : [%A] widly swing[/s] [%a.their][r/] battle axe hitting [%d].
+         : [%A][r/'s] battle axe hits [%d] hard.
+         : [%A][r/'s] battle axe bites hard into [%d] drawing blood.
+         : [%A] bash[/es] [%d] with [%a.their][r/] heavy battle axe.
+         : [%D] receives the business end of [%a][r/'s] battle axe.
+         : There is a crunch as [%a.their][r/'s] battle axe hits [%d].
     Reset: @SPAWN
 
 This is a very large, heavy battle axe requiring two hands to wield it
@@ -1586,6 +1684,25 @@ efficiently.
    Damage: 1+7
 Wieldable: HAND
   Cleanup: @ITEM
+ OnCombat: [%A] swing[/s] a longsword at [%d] slicing [%d.them].
+         : [%A] lunge[/s] at [%d] with a longsword wounding [%d.them].
+         : [%A] slash[/es] at [%d] with [%a.their][r/] longsword.
+         : [%A] slice[/s] at [%d] with [%a.their][r/] longsword.
+         : [%A] nick[/s] [%d] with [%a.their] longsword.
+         : [%A] thrust[/s] [%a.their][r/] longsword at [%d] hitting [%d.them].
+         : [%A][r/'s] longsword finds its mark wounding [%d].
+         : [%A] wound[/s] [%d] with a sweep from [%a.their][r/] longsword.
+         : [%A] [are/is] too quick for [%d] catching [%d.them] with
+           [%a.their][r/] longsword.
+         : [%D] catch[es//es] a blow from [%a][r/'s] longsword.
+         : [%D] catch[es//es] a blow from [%a][r/'s] longsword.
+         : [%D] [doesn't/don't/doesn't] dodge quick enough to avoid [%a][r/'s]
+           longsword.
+         : [%D] [isn't/aren't/isn't] quick enough to avoid [%a][r/'s]
+           longsword.
+         : With a flourish, [%a][r/'s] longsword carves into [%d].
+         : With a quick jab, [%a][r/'s] longsword hits [%d].
+         : Swinging wildly, [%a][r/'s] longsword hits [%d].
     Reset: @SPAWN
 
 This is a fine longsword. It has a pointy end.
@@ -1703,12 +1820,25 @@ Action: AFTER→15s JITTER→15s
 //
 %%
    // Default humanoid body
- Ref: HUMANOID
-Body: HEAD→1 FACE→1 EAR→2 EYE→2 NOSE→1 MOUTH→1 UPPER_LIP→1 LOWER_LIP→1 NECK→1
-      SHOULDER→2 BACK→1 CHEST→1
-      UPPER_ARM→2 ELBOW→2 LOWER_ARM→2 WRIST→2 HAND→2 FINGER→8 THUMB→2
-      WAIST→1 PELVIS→1
-      UPPER_LEG→2 KNEE→2 LOWER_LEG→2 ANKLE→2 FOOT→2
+     Ref: HUMANOID
+    Body: HEAD→1 FACE→1 EAR→2 EYE→2 NOSE→1 MOUTH→1 UPPER_LIP→1 LOWER_LIP→1 NECK→1
+          SHOULDER→2 BACK→1 CHEST→1
+          UPPER_ARM→2 ELBOW→2 LOWER_ARM→2 WRIST→2 HAND→2 FINGER→8 THUMB→2
+          WAIST→1 PELVIS→1
+          UPPER_LEG→2 KNEE→2 LOWER_LEG→2 ANKLE→2 FOOT→2
+OnCombat: [%A] lash[/es] out at [%d] hitting [%d.them] with random blows.
+        : [%A] punch[/es] [%d] winding [%d.them].
+        : [%A] punch[/es] [%d], landing a solid blow.
+        : [%A] kick[/s] [%d], causing [%d.them] to yell.
+        : [%A] headbutt[/s] [%d], stunning [%d.them].
+        : [%A] feign[/s] an attack, then swiftly jab[/s] [%d.them].
+        : [%D] yell[s//s] as [%a] bite[/s] [%d.them].
+        : [%D] stumble[s//s] allowing [%a] to land a heavy blow.
+        : [%D] doge[s//s] the wrong way allowing [%a] to hit [%d.them].
+        : [%D] dodge[s//s] [%a] opening [%d.themself][/rself/] to a bashing.
+        : [%A] slam[/s] [%a.their][r/] body into [%d].
+        : [%A] dig[/s] an elbow into [%d].
+        : [%A] bring[/s] a knee up hitting [%d].
 %%
 //
 // STOCK BODY PART DEFINITIONS FOR COMMON TYPES OF CLOTHING

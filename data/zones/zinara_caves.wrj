@@ -288,6 +288,18 @@ As you peer into it you see a small twinkle of light right at its centre.
    Damage: 1+2
 Wieldable: HAND
   Cleanup: @ITEM
+ OnCombat: [%A] jab[/s] at [%d] with a pointy stick.
+         : [%A] viciously poke[/s] [%d] with a pointy stick.
+         : [%A] hit[/s] [%d] with a pointy stick.
+         : [%A] angrily whack[/s] [%d] with a pointy stick.
+         : [%D] tr[ies/y/ies] to dodge [%a], but [%a] jab[/s] [%d] with
+           [%a.their][r/] pointy stick.
+         : [%D] dodge[s//s] [%a][r/'s] pointy stick, but [%a] counter[/s] with
+           a sneaky jab.
+         : [%D] stumble[s//s] allowing [%a] a quick jab with [%a.their][r/]
+           pointy stick.
+         : [%D] slip[s//s] enabling [%a] to poke [%d.them] with [%a.their][r/]
+           pointy stick.
     Reset: @SPAWN
 
 This is a stout wooden stick about two fee long and sharpened at one end. A
@@ -457,6 +469,13 @@ Inventory: O2
          : HIT ANY SLUG
          : HIT ANY SLUG
          : @ACT_MOVE
+ OnCombat: [%A] lash[/es] out at [%d] scratching [%d.their][/r/] face.
+         : [%A] punch[/es] [%d] winding [%d.them].
+         : [%A] kick[/s] and punch[/es] [%d] causing nicks and scratches.
+         : [%A] bite[/s] [%d], causing [%d.them] to yell.
+         : [%D] grone[s//s] as [%d.they] get[s//s] whipped by [%a][r/'s] tail.
+         : [%D] yell[s//s] as [%a] bite[/s] [%d.them].
+         : [%D] stumble[s//s] allowing [%a] to claw [%d.them].
     Reset: @MOBILE
   OnReset: An imp flutters in.
 
@@ -531,6 +550,15 @@ OnAction: $ACT dissolves a toadstool and starts feeding on it.
         : E
         : S
         : W
+OnCombat: [%A] spit[/s] at [%d] covering [%d.them] with a stinging slime.
+        : [%D] pound[s//s] at [%a] to little effect. [%A] turn[/s] on [%d] and
+          knock[/s] [%d.them] back.
+        : [%A] rear[/s] up over [%d] and drop[/s] [your/%a.their] body on
+          [%d.them] crushing [%d.them].
+        : [%A] spit[/s] stinging slime at [%d.them].
+        : [%A] tr[y/ies] to crawl on [%d] and start[/s] engulfing [%d.them] in
+          slime.
+        : [%D] slip[s//s] on slime and go[es//es] crashing to the ground.
  OnReset: A giant fungus slug slithers in.
 
 This is a giant white slug almost 12 feet long and 2 feet high. It has two
