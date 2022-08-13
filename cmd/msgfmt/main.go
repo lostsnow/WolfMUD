@@ -188,13 +188,13 @@ func main() {
 		if *f != "" {
 			d, err = os.ReadFile(*f)
 			if err != nil {
-				fmt.Println("Error reading stdin: %s", err)
+				fmt.Printf("Error reading stdin: %s\n", err)
 				os.Exit(-1)
 			}
 		} else {
 			d, err = io.ReadAll(os.Stdin)
 			if err != nil {
-				fmt.Println("Error reading stdin: %s", err)
+				fmt.Printf("Error reading stdin: %s\n", err)
 				os.Exit(-1)
 			}
 		}
