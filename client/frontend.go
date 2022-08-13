@@ -301,7 +301,6 @@ func (c *client) frontend() bool {
 			}
 		}
 	}
-	return false
 }
 
 func (c *client) enterWorld() {
