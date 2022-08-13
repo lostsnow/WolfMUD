@@ -17,13 +17,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 )
 
-func Usage() {
-	o := flag.CommandLine.Output()
-	fmt.Fprintf(o, "Usage of %s:\n", filepath.Base(os.Args[0]))
-	fmt.Fprintln(o, "\n  msgfmt -a [N|M|F|I] -d [N|M|F|I] -f [FILE] | TEXT...\n")
-	flag.PrintDefaults()
-
-	fmt.Fprintln(o, `
+const help = `
 msgfmt is a utility for checking the syntax, formatting and replacements used
 for messages. The attacker and defender used can be specified using the -a and
 -d flags. For the available attackers and defenders, and their genders, that
@@ -128,9 +122,17 @@ Examples:
       Bob, defender: You lash out at Alice, but misjudge your attack and injure yourself.
            observer: Bob lashes out at Alice, but misjudges his attack and injures himself.
 
+`
 
+func Usage() {
+	o := flag.CommandLine.Output()
+	fmt.Fprintf(o, "Usage of %s:\n", filepath.Base(os.Args[0]))
+	fmt.Fprint(o, "\n  msgfmt -a [N|M|F|I] -d [N|M|F|I] -f [FILE] | TEXT...\n\n")
+	flag.PrintDefaults()
 
-`)
+	// Hide literal '%' used in raw help string from Fprint* to avoid Go vet
+	// "call has possible formatting directive" :(
+	fmt.Fprintf(o, "%s", help)
 }
 
 func main() {
