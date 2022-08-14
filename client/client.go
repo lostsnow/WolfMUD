@@ -123,15 +123,14 @@ func (c *client) Play() {
 // message to the log. The message will automatically be appended with the UID
 // uniquely identifying the connection with the current log, for example:
 //
-//  [#UID-6] connection from: 127.0.0.1:35848
+//	[#UID-6] connection from: 127.0.0.1:35848
 //
 // If the server configuration value Server.LogClient is set to false then an
 // attempt is made to rewrite the connecting IP address as "???". For example:
 //
-//  [#UID-6] connection from: ???:35848
-//  [#UID-6] client error: read tcp 127.0.0.1:4001->???:35848: i/o timeout
-//  [#UID-6] disconnect from: ???:35848
-//
+//	[#UID-6] connection from: ???:35848
+//	[#UID-6] client error: read tcp 127.0.0.1:4001->???:35848: i/o timeout
+//	[#UID-6] disconnect from: ???:35848
 func (c *client) Log(f string, a ...interface{}) {
 	f = fmt.Sprintf("[%s] %s", c.uid, f)
 

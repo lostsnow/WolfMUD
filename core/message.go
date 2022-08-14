@@ -96,10 +96,9 @@ func Message(A, D *Thing, msg string) (a, d, o string) {
 // '[...]' and non-substitution blocks. Substitution blocks are those strings
 // ending with a ']'. For example:
 //
-//  split("[%A] swing[/s] [your/%A.his] sword at [%D].")
+//	split("[%A] swing[/s] [your/%A.his] sword at [%D].")
 //
-//  []string{"%A]", " swing", "/s]", " ", "your/%A.his]", " sword at ", "%D]", "."}
-//
+//	[]string{"%A]", " swing", "/s]", " ", "your/%A.his]", " sword at ", "%D]", "."}
 func split(m string) []string {
 	chunks := strings.Split(m, "[")
 	split := make([]string, 0, len(chunks)*2)

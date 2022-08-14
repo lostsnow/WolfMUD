@@ -15,17 +15,17 @@ import (
 // indented line are kept. Trailing whitespace before a line feed is removed.
 // For example:
 //
-//   The quick brown \n
-//   fox jumps\n
-//   \n
-//     over the\n
-//   lazy dog.
+//	The quick brown \n
+//	fox jumps\n
+//	\n
+//	  over the\n
+//	lazy dog.
 //
 // Would be unfolded to:
 //
-//   The quick brown fox jumps
+//	The quick brown fox jumps
 //
-//     over the lazy dog.
+//	  over the lazy dog.
 //
 // If a line starts with one or more CSIm ANSI escape sequences before any
 // indenting whitespace, the escape sequences will be treated as zero width

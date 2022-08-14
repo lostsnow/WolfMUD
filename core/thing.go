@@ -1024,7 +1024,6 @@ func (t *Thing) Free() {
 //	         |- As - len: 1
 //	         |  `- [11] Alias: APPLE
 //	         `- In - len: 0, nil: true
-//
 func (t *Thing) Dump(w io.Writer, width int) {
 	t.dump(w, width, "", true)
 }

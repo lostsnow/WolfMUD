@@ -140,8 +140,7 @@ func StringList(data []string) []byte {
 //
 // Results in data containing:
 //
-//  GET→You cannot get that!\n: LOOK→Your eyes hurt to look at it!
-//
+//	GET→You cannot get that!\n: LOOK→Your eyes hurt to look at it!
 func KeyedStringList(pairs map[string]string, delimiter rune) (data []byte) {
 	d := make([]byte, utf8.RuneLen(delimiter))
 	utf8.EncodeRune(d, delimiter)
@@ -218,15 +217,14 @@ func Integer(i int) []byte {
 // integers separated by the sign of the second integer - either a plus '+' or
 // minus '-'. If the second integer is zero it will be omitted. For example:
 //
-//  DoubleInteger( 0,  0) == ""
-//  DoubleInteger( 1,  0) == "1"
-//  DoubleInteger(-1,  0) == "-1"
-//  DoubleInteger(+1,  0) == "1"
-//  DoubleInteger( 0,  2) == "0+2"
-//  DoubleInteger( 1,  2) == "1+2"
-//  DoubleInteger( 1, -2) == "1-2"
-//  DoubleInteger(-1, -2) == "1-2"
-//
+//	DoubleInteger( 0,  0) == ""
+//	DoubleInteger( 1,  0) == "1"
+//	DoubleInteger(-1,  0) == "-1"
+//	DoubleInteger(+1,  0) == "1"
+//	DoubleInteger( 0,  2) == "0+2"
+//	DoubleInteger( 1,  2) == "1+2"
+//	DoubleInteger( 1, -2) == "1-2"
+//	DoubleInteger(-1, -2) == "1-2"
 func DoubleInteger(i1, i2 int) []byte {
 
 	if i1 == 0 && i2 == 0 {

@@ -63,52 +63,51 @@ func (p *preprocess) process() {
 // same name, but from the record with a ref matching the @ref. An @ref defines
 // data at another reference - hence @ref. For example:
 //
-//  %%
-//        Ref: DEFAULT
-//      Reset: AFTER→1m JITTER→1m
-//    Cleanup: @DEFAULT_EXTRA
-//  Inventory: O1 O2
-//  %%
-//        Ref: DEFAULT_EXTRA
-//    Cleanup: AFTER→3m JITTER→4m
-//  Inventory: O3 O4
-//  %%
-//        Ref: M1
-//       Name: a bag
-//      Alias: BAG
-//      Reset: @DEFAULT SPAWN
-//    Cleanup: @DEFAULT
-//  Inventory: @DEFAULT @DEFAULT_EXTRA
+//	%%
+//	      Ref: DEFAULT
+//	    Reset: AFTER→1m JITTER→1m
+//	  Cleanup: @DEFAULT_EXTRA
+//	Inventory: O1 O2
+//	%%
+//	      Ref: DEFAULT_EXTRA
+//	  Cleanup: AFTER→3m JITTER→4m
+//	Inventory: O3 O4
+//	%%
+//	      Ref: M1
+//	     Name: a bag
+//	    Alias: BAG
+//	    Reset: @DEFAULT SPAWN
+//	  Cleanup: @DEFAULT
+//	Inventory: @DEFAULT @DEFAULT_EXTRA
 //
-//  This is a small bag for carrying things in.
-//  %%
+//	This is a small bag for carrying things in.
+//	%%
 //
 // The "Reset: @DEFAULT" field for the "Ref: M1" record will cause the
 // @DEFAULT to be replaced with the data from the Reset field copied from the
 // "Ref: DEFAULT" record.
 //
-//  - As only the @ref is replaced the field may contain other data - the
-//    Reset field on the "Ref: M1" record adds SPAWN after the @DEFAULT.
+//   - As only the @ref is replaced the field may contain other data - the
+//     Reset field on the "Ref: M1" record adds SPAWN after the @DEFAULT.
 //
-//  - An @ref may reference a field with another @ref - see Cleanup, it
-//    references Cleanup at "Ref: DEFAULT" which references Cleanup at
-//    "Ref: DEFAULT_EXTRA".
+//   - An @ref may reference a field with another @ref - see Cleanup, it
+//     references Cleanup at "Ref: DEFAULT" which references Cleanup at
+//     "Ref: DEFAULT_EXTRA".
 //
-//  - A field may contain more than one @ref - see the Inventory field.
+//   - A field may contain more than one @ref - see the Inventory field.
 //
 // The full expansion of M1 after pre-processing would be:
 //
-//  %%
-//        Ref: M1
-//       Name: a bag
-//      Alias: BAG
-//      Reset: AFTER→1m JITTER→1m SPAWN
-//    Cleanup: AFTER→3m JITTER→4m
-//  Inventory: O1 O2 O3 O4
+//	%%
+//	      Ref: M1
+//	     Name: a bag
+//	    Alias: BAG
+//	    Reset: AFTER→1m JITTER→1m SPAWN
+//	  Cleanup: AFTER→3m JITTER→4m
+//	Inventory: O1 O2 O3 O4
 //
-//  This is a small bag for carrying things in.
-//  %%
-//
+//	This is a small bag for carrying things in.
+//	%%
 func (p *preprocess) expandAtRef(field string, data []byte, seen string) []byte {
 
 	// Quickly exit if no @ref possible
