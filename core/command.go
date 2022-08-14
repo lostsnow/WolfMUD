@@ -108,6 +108,7 @@ func RegisterCommandHandlers() {
 		"#TELEPORT": (*state).Teleport,
 		"#GOTO":     (*state).Teleport,
 		"#DEBUG":    (*state).Debug,
+		"#EVAL":     (*state).Eval,
 
 		// Scripting only commands
 		"$POOF":    (*state).Poof,

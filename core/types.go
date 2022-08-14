@@ -220,6 +220,7 @@ const (
 	Body         // Body slots available to an item
 	Holdable     // Body slots required to hold item
 	OnAction     // Actions that can be performed
+	OnCombat     // Combat actions that can be performed
 	Opponents    // UID of opponents being defended against
 	Permissions  // Permissions a player has
 	Qualifier    // Alias qualifiers
@@ -241,6 +242,7 @@ var anyNames = []string{
 	"Body",
 	"Holdable",
 	"OnAction",
+	"OnCombat",
 	"Opponents",
 	"Permissions",
 	"Qualifier",
@@ -284,7 +286,10 @@ const (
 	TriggerDueIn  // Time remaining for trigger event
 
 	// Non-events
+	Armour        // Armour rating
 	Created       // Timestamp of when item (player) created
+	DamageFixed   // Fixed amount of damage for an actor/item
+	DamageRandom  // [0-DamageRandom] of random damage for an actor/item
 	HealthCurrent // Current health of a player/mobile
 	HealthMaximum // Maximum health a player/mobile heals up to.
 	HealthRestore // Health restored per healing event
@@ -321,7 +326,10 @@ var intNames = []string{
 	"TriggerDueIn",
 
 	// Non-events
+	"Armour",
 	"Created",
+	"DamageFixed",
+	"DamageRandom",
 	"HealthCurrent",
 	"HealthMaximum",
 	"HealthRestore",
@@ -414,6 +422,8 @@ var preferredOrdering = []string{
 	anyNames[Body],
 	asNames[Gender],
 	eventNames[Health],
+	intNames[Armour],
+	"Damage",
 	"Inv", "Inventory",
 	Holding.setNames(),
 	Wearing.setNames(),
@@ -428,6 +438,7 @@ var preferredOrdering = []string{
 	"On" + eventNames[Action],
 	eventNames[Cleanup],
 	"On" + eventNames[Cleanup],
+	"On" + eventNames[Combat],
 	eventNames[Reset],
 	"On" + eventNames[Reset],
 }

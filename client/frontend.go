@@ -2,6 +2,7 @@
 //
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
+
 package client
 
 import (
@@ -124,7 +125,7 @@ func (c *client) frontend() bool {
 			buf.Msg("Enter a name for your character or just press enter to cancel.")
 
 		case gender:
-			buf.Msg("Would you like ", c.As[core.Name], " to be male or female? Or just press enter to cancel.")
+			buf.Msg("Would you like ", c.As[core.Name], " to be male, female or neutral? Or just press enter to cancel.")
 
 		case create:
 			c.createPlayer()
@@ -293,12 +294,14 @@ func (c *client) frontend() bool {
 			case "F", "FEMALE":
 				c.As[core.Gender] = "FEMALE"
 				stage = create
+			case "N", "NEUTRAL":
+				c.As[core.Gender] = "NEUTRAL"
+				stage = create
 			default:
-				buf.Msg(text.Bad, "Please specify male or female.")
+				buf.Msg(text.Bad, "Please specify male, female or neutral.")
 			}
 		}
 	}
-	return false
 }
 
 func (c *client) enterWorld() {
@@ -318,13 +321,40 @@ func (c *client) assemblePlayer(jar recordjar.Jar) {
 
 	// Upgrade and add HELTH if missing
 	if _, found := jar[0]["HEALTH"]; !found {
-		jar[0]["HEALTH"] = []byte("AFTER→10S MAXIMUM→30 RESTORE→2")
+		jar[0]["HEALTH"] = []byte("AFTER→1M MAXIMUM→30 RESTORE→2")
 	}
 	// If old HEALTH record upgrade fields
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("REGENERATES"), []byte("RESTORE"))
 	jar[0]["HEALTH"] =
 		bytes.ReplaceAll(jar[0]["HEALTH"], []byte("FREQUENCY"), []byte("AFTER"))
+	// Upgrade if no natural armour (also update old health record)
+	if _, found := jar[0]["ARMOUR"]; !found {
+		jar[0]["ARMOUR"] = []byte("10")
+		jar[0]["HEALTH"] = []byte("AFTER→1M MAXIMUM→30 RESTORE→2")
+	}
+	// Upgrade if no natural damage
+	if _, found := jar[0]["DAMAGE"]; !found {
+		jar[0]["DAMAGE"] = []byte("2+2")
+	}
+	// Upgrade if no combat actions
+	if _, found := jar[0]["ONCOMBAT"]; !found {
+		jar[0]["ONCOMBAT"] = []byte(`
+		  [%A] lash[/es] out at [%d] hitting [%d.them] with random blows.
+		: [%A] punch[/es] [%d] winding [%d.them].
+		: [%A] punch[/es] [%d], landing a solid blow.
+		: [%A] kick[/s] [%d], causing [%d.them] to yell.
+		: [%A] headbutt[/s] [%d], stunning [%d.them].
+		: [%A] feign[/s] an attack, then swiftly jab[/s] [%d.them].
+		: [%D] yell[s//s] as [%a] bite[/s] [%d.them].
+		: [%D] stumble[s//s] allowing [%a] to land a heavy blow.
+		: [%D] doge[s//s] the wrong way allowing [%a] to hit [%d.them].
+		: [%D] dodge[s//s] [%a] opening [%d.themself][/rself/] to a bashing.
+		: [%A] slam[/s] [%a.their][r/] body into [%d].
+		: [%A] dig[/s] an elbow into [%d].
+		: [%A] bring[/s] a knee up hitting [%d].
+    `)
+	}
 
 	// Load player jar into temporary store
 	for _, record := range jar {
@@ -429,9 +459,27 @@ func (c *client) createPlayer() {
 		"UPPER_LEG", "KNEE", "LOWER_LEG", "ANKLE", "FOOT",
 	}
 	c.Int[core.Created] = time.Now().UnixNano()
-	c.Int[core.HealthAfter] = (10 * time.Second).Nanoseconds()
+	c.Int[core.HealthAfter] = (1 * time.Minute).Nanoseconds()
 	c.Int[core.HealthRestore] = 2
 	c.Int[core.HealthCurrent] = 30
 	c.Int[core.HealthMaximum] = 30
+	c.Int[core.Armour] = 10
+	c.Int[core.DamageFixed] = 2
+	c.Int[core.DamageRandom] = 2
+	c.Any[core.OnCombat] = []string{
+		"[%A] lash[/es] out at [%d] hitting [%d.them] with random blows.",
+		"[%A] punch[/es] [%d] winding [%d.them].",
+		"[%A] punch[/es] [%d], landing a solid blow.",
+		"[%A] kick[/s] [%d], causing [%d.them] to yell.",
+		"[%A] headbutt[/s] [%d], stunning [%d.them].",
+		"[%A] feign[/s] an attack, then swiftly jab[/s] [%d.them].",
+		"[%D] yell[s//s] as [%a] bite[/s] [%d.them].",
+		"[%D] stumble[s//s] allowing [%a] to land a heavy blow.",
+		"[%D] doge[s//s] the wrong way allowing [%a] to hit [%d.them].",
+		"[%D] dodge[s//s] [%a] opening [%d.themself][/rself/] to a bashing.",
+		"[%A] slam[/s] [%a.their][r/] body into [%d].",
+		"[%A] dig[/s] an elbow into [%d].",
+		"[%A] bring[/s] a knee up hitting [%d].",
+	}
 	c.As[core.StatusSeq] = string(term.Status(c.height, c.width))
 }

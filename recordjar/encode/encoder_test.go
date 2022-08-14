@@ -613,3 +613,33 @@ func TestInteger(t *testing.T) {
 		})
 	}
 }
+
+func TestDoubleInteger(t *testing.T) {
+	type ii struct {
+		i1 int
+		i2 int
+	}
+
+	for _, test := range []struct {
+		data ii
+		want string
+	}{
+		{ii{0, 0}, ""},
+		{ii{1, 0}, "1"},
+		{ii{1, -0}, "1"},
+		{ii{-1, 0}, "-1"},
+		{ii{0, 1}, "0+1"},
+		{ii{0, -1}, "0-1"},
+		{ii{1, 2}, "1+2"},
+		{ii{1, -2}, "1-2"},
+		{ii{-1, 2}, "-1+2"},
+		{ii{-1, -2}, "-1-2"},
+	} {
+		t.Run(fmt.Sprintf("%d,%d", test.data.i1, test.data.i2), func(t *testing.T) {
+			have := DoubleInteger(test.data.i1, test.data.i2)
+			if !bytes.Equal(have, []byte(test.want)) {
+				t.Errorf("\nhave %q\nwant %q", have, test.want)
+			}
+		})
+	}
+}

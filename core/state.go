@@ -270,16 +270,17 @@ func (s *state) MsgAppend(recipient *Thing, text ...string) {
 // to the log. The message will automatically be appended with the UID of the
 // actor. For example:
 //
-//  [#UID-202] Quitting: 72de37d1b2be008b83e760ef74cc460a
-//
+//	[#UID-202] Quitting: 72de37d1b2be008b83e760ef74cc460a
 func (s *state) Log(f string, a ...interface{}) {
 	f = fmt.Sprintf("[%s] %s", s.actor.As[UID], f)
 	log.Printf(f, a...)
 }
 
-// StatusUpdate updates the player's statistics on the status bar.
+// StatusUpdate updates the player's statistics on the status bar. The
+// messages are sent as priority so that they do not effect the de-spamming of
+// other messages.
 func (s state) StatusUpdate(who *Thing) {
-	mailbox.Send(who.As[UID], false, fmt.Sprintf(
+	mailbox.Send(who.As[UID], true, fmt.Sprintf(
 		"%s Health: %[2]d/%[3]d\x1b8",
 		who.As[StatusSeq], who.Int[HealthCurrent], who.Int[HealthMaximum],
 	))

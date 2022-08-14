@@ -89,6 +89,23 @@ FIELD DATA TYPES
 
       Name: a curious brass lattice
 
+  INTEGER
+    The data is a simple signed integer. For exmaple:
+
+      Armour: 10
+
+  DOUBLE INTEGER
+    The data is two signed integers separated by either a plus '+' or minus
+    '-' sign. The leading integer may be signed. If a single value is
+    specified the second value is assumed to be zero. If only the second value
+    is significant the first must be zero. For example:
+
+      Damage:  1+3
+      Damage:  0-5
+      Damage: -1+5
+      Damage:  5
+      Damage: -5
+
   KEYWORD
     The data is a single case insensitive word, usually written upper-cased. A
     keyword may contain any Unicode letter, the digits 0-9, underscore '_' or
@@ -295,7 +312,9 @@ PREFERRED FIELD ORDERING
       Body          <----.
       Gender             |
       Health             |
-      Inv/Inventory      | Body related information
+      Armour             |
+      Damage             |
+      Inv/Inventory      | Body / item related information
       Holding            |
       Wearing            |
       Wielding      <----'
@@ -309,6 +328,7 @@ PREFERRED FIELD ORDERING
       OnAction           |
       Cleanup            | Event Information
       OnCleanup          |
+      OnCombat           |
       Reset              |
       OnReset       <----'
       Description   <----- Free text block (always last)
@@ -461,6 +481,30 @@ ZONE RECORDS
     A good use of qualifiers, bound or unbound, is when differentiating items
     by size, colour or material. It should also be noted that all players have
     the 'PLAYER' group alias automatically.
+
+  ARMOUR: <INTEGER>
+    ARMOUR, when specified for a player or mobile, indicates the base natural
+    armour or abilities for avoiding damage. When specified for an item it
+    indicates additional armour applied when the item is wielded or worn.
+    ARMOUR can reflect physical protection as in tough hide, or worn armour.
+    It can also reflect speed or skills used to avoid taking damage.
+
+      ARMOUR: 10
+
+    For a player or mobile this indicates a base ARMOUR value of 10. When
+    specified on an item it indicates an additional 10 points of armour when
+    the item is used.
+
+    If the ARMOUR value is negative it will be applied as a penalty, reducing
+    the total amount of armour. For example a huge battle axe could do a lot
+    of damage, but impose an armour reduction due to its tendency to pull you
+    off balance.
+
+    During combat the total armour for a player or mobile is:
+
+      Natural ARMOUR + ARMOUR of all wielded and worn items
+
+    See also: DAMAGE and ONCOMBAT
 
   BARRIER: <PAIR LIST>
     BARRIER is used to conditionally block movement of a mobile in a specific
@@ -624,6 +668,31 @@ ZONE RECORDS
 
     See also: ONCLEANUP
 
+  DAMAGE: <DOUBLE INTEGER>
+    DAMAGE specifies the amount of damage a successful attack will inflict.
+    DAMAGE is specified as a DOUBLE INTEGER. The first integer is the amount
+    of fixed damage. The second integer is the maximum amount of additional
+    random damage. For example to specify 2 points of damage plus 1-2 points
+    of additional damage:
+
+      DAMAGE: 2+2
+
+    DAMAGE, when specified for a player or mobile, indicates the base natural
+    damage from kicks, punches, claws, bites, stings, etc. When specified for
+    an item it indicates additional damage inflicted when the item is wielded
+    or worn.
+
+    If the DAMAGE specified is negative it will be applied as a penalty,
+    reducing the total damage inflicted. For example very heavy armour could
+    grant a high ARMOUR rating but the trade off is reduced damage due to lack
+    of manoeuvrability.
+
+    During combat the total damage inflicted by a successful attack is:
+
+      Natural DAMAGE + ( DAMAGE of all wielded or worn items )
+
+    See also: ARMOUR and ONCOMBAT
+
   DESCRIPTION: <STRING>
     A DESCRIPTION provides the descriptive text for a location, mobile or
     item. The description may continue over more than one line however
@@ -718,6 +787,15 @@ ZONE RECORDS
     reference instead. For example, S→X
 
     See also: ZONELINKS
+
+  GENDER <KEYWORD>
+    GENDER is used to indicate the gender of a player's character or a mobile.
+    Valid values are MALE, FEMALE, NEUTRAL or IT. If not specified then IT is
+    assumed. The default is useful as most definitions for mobiles are for
+    creatures or objects where IT is appropriate. Players cannot choose to be
+    an IT when creating a charater.
+
+    See also: ONCOMBAT
 
   HEALTH: <PAIR LIST>
     The HEALTH field specifies the current, maximum and healing rate of a
@@ -930,6 +1008,94 @@ ZONE RECORDS
     simply disappear with no notification at all.
 
     See also: CLEANUP
+
+  ONCOMBAT: <STRING LIST>
+    ONCOMBAT can be used to provide a list of messages for successful combat
+    attacks. ONCOMBAT can be specified for player and mobiles, in which case
+    it represents natural attacks such as punches, kicks, bites and claws.
+    ONCOMBAT can be specified on items representing attacks with the item. For
+    example:
+
+      %%
+            Ref: O1
+           Name: a dagger
+          Alias: DAGGER
+         Damage: 1+3
+      Wieldable: HAND→1
+        Cleanup: AFTER→10M JITTER→0S
+       Oncombat: [%A] stab[/s] [%d] with [your/%a.their] dagger drawing blood.
+               : [%A] slash[/es] at [%d] with [your/%a.their] dagger.
+               : [%A] cut[/s] [%d] with [your/%a.their] dagger.
+
+      This is a small, sharp dagger.
+      %%
+
+    ONCOMBAT messages use a special format consisting of substitution blocks
+    of the format: [attacker/defender/observers]. Substitutions for attacker
+    are only shown to the attacker, likewise for defenders and observers. If
+    no substitution is specified for the observers the defender's substitution
+    is used. If there is no substitution specified for the defender then the
+    attacker's substitution is used. This mechanism can be overridden using an
+    empty substitution. Some examples:
+
+     "You see [a/d/o]."   Attacker sees: You see a.
+                          Defender sees: You see d.
+                          Observer sees: You see o.
+
+     "You see [a/d]."     Attacker sees: You see a.
+                          Defender sees: You see d.
+                          Observer sees: You see d.
+
+     "You see [a]."       Attacker sees: You see a.
+                          Defender sees: You see a.
+                          Observer sees: You see a.
+
+     "You see [a/d/]."    Attacker sees: You see a.
+                          Defender sees: You see d.
+                          Observer sees: You see .
+
+     "You see [a/]."      Attacker sees: You see a.
+                          Defender sees: You see .
+                          Observer sees: You see .
+
+    There are two special substitutions %A and %D which represent the attacker
+    and the defender. They will be substituted for the relevant names or "you"
+    if it is their message.If the substitutions are specified as uppercase, as
+    in %A and %D, then initial letter of the substitution will be uppercased.
+    If the substitutions are specified as lowercased, as in %a and %d, then
+    the substitution will be used "as is". For example, with Diddymus as the
+    attacker and an imp as the defender:
+
+     "[%A] hit[/s] [%d]."  Attacker sees: You hit an imp.
+                           Defender sees: Diddymus hits you.
+                           Observer sees: Diddymus hits an imp.
+
+    One of the neutral pronouns may follow %A or %D separated by a period. The
+    recognised pronouns are: they, them, their and themself. When substituted
+    the correct pronoun for the attacker's or defender's gender will be used:
+
+                     GENDER   PRONOUN SUBSTITUTIONS
+                     -------  ---------------------------
+                     NEUTRAL  they  them  their  themself
+                     FEMALE   she   her   her    herself
+                     MALE     he    him   his    himself
+                     IT       it    it    its    itself
+
+    If the attacker/defender does not have a GENDER of FEMALE, MALE, NEUTRAL
+    or IT set then a gender of IT is assumed.
+
+    For example:
+
+    "[%A] stab[/s] [%d] with [%a.their][r/] dagger causing [%d.them] to bleed."
+
+    Attacker sees: You stab an imp with your dagger causing it to bleed.
+    Defender sees: Diddymus stabs you with his dagger causing you to bleed.
+    Observer sees: Diddymus stabs an imp with his dagger causing it to bleed.
+
+    Note the use of "[%a.their][r/]" to turn 'you' into 'your' for the
+    attacker only. This could also be written as "[your/%a.their]".
+
+    See also: ARMOUR, DAMAGE and GENDER
 
   ONRESET: <string>
     ONRESET can be used to provide a custom message when an item is reset or

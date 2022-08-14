@@ -35,7 +35,7 @@ import (
 // would return the UID of the first blue ball matched. This can be changed
 // with the use of special prefix modifiers.
 //
-// Special Modifiers
+// # Special Modifiers
 //
 // A modifier may be used before a qualifier or alias to effect the matches
 // that are returned. For example:
@@ -74,16 +74,15 @@ func Match(words []string, where ...*Thing) (results []string) {
 // produce multiple results. For example, if we have a red, a green and two
 // blue balls then:
 //
-//  LimitedMatch(
+//	LimitedMatch(
 //		[]string{"RED", "BALL", "ALL", "BLUE", "BALL"}),
 //		s.actor,
-//  )
+//	)
 //
 // Would return one match, it being "all blue ball" with the results being the
 // two blue balls. In this case LimitedMatch would return, for example:
 //
-//  []string{"#UID-10A", "#UID-10E"} and []string{"RED", "BALL"}
-//
+//	[]string{"#UID-10A", "#UID-10E"} and []string{"RED", "BALL"}
 func LimitedMatch(words []string, where ...*Thing) (results, remaining []string) {
 	return match(words, where, true)
 }
@@ -229,8 +228,8 @@ func match(words []string, where []*Thing, oneShot bool) ([]string, []string) {
 // For example, assuming the player state for "tell any of the guard the vendor
 // is here!":
 //
-//  s.input: any of the guard the vendor is here
-//  s.word:  ANY GUARD VENDOR HERE!
+//	s.input: any of the guard the vendor is here
+//	s.word:  ANY GUARD VENDOR HERE!
 //
 // The matcher can match "ANY GUARD", however there is a problem. How do we
 // relate "VENDOR HERE" back to the original input of "any of the guard the

@@ -6,6 +6,53 @@ detailed information on changes please see the WolfMUD git repository:
                    git clone https://code.wolfmud.org/WolfMUD
 
 
+v0.0.21 Released Sunday 14th August, 2022
+==============================================================================
+
+Added
+
+  - RecordJar has a new double integer type, e.g. "+1+2".
+  - New ARMOUR (integer) and DAMAGE (double integer) attributes.
+  - Players and Mobiles/NPCs can have natural damage and armour.
+  - Items can have damage and armour specified.
+  - New #EVAL (evaluate) admin command to help with debugging combat. Compares
+    attacker's combat score with defender's combat score.
+  - Who starts and ends a fight is now logged by the server to help settle any
+    disputes.
+  - Players can now have a gender of male, female or neutral.
+  - New OnCombat attribute for specifying player, mobile/NPC and weapon combat
+    messages.
+  - New msgfmt utility to help validate combat message formatting and output.
+
+Changed
+
+  - Combat is now based on current health, the natural armour + armour of worn
+    items and natural damage + damge of worn or wielded items. Fighting action
+    is described using OnCombat messages.
+  - Mobiles/NPCs can now veto combat so they cannot be attacked. This is useful
+    for vendors and other 'important' mobiles/NPCs.
+  - Health and health regeneration has been rebalanced.
+  - Spider in the shed will now attack players.
+  - Zone files updated:
+      - tweaked mobile/NPC health
+      - vendors veto combat
+      - add armour and damage attributes to mobiles/NPCs,  armour and weapons
+      - add genders to mobiles/NPCs
+      - add Oncombat messages to mobiles/NPCs and weapons
+      - minor clean-ups, fixes and improvements.
+  - Documentation in docs/zone-files.txt updated for INTEGER and DOUBLE INTEGER
+    types. Added new sections for ARMOUR, DAMAGE and ONCOMBAT attributes.
+  - Existing players are upgraded to have a natural ARMOUR of 10, natural
+    damage of 2+2 and a set of default unarmed combat actions.
+  - code comments reformatted using Go 1.19 'go fmt'.
+
+Fixed
+
+  - Status update message no longer disrupt message de-spamming.
+  - In data/zinara.wrj the bladesmith had alias BAKER instead of BLADESMITH.
+  - In data/zinara.wrj fixed aliases and wearable attributes for lucky charm.
+  - In docs/zone-files.txt the GENDER attribute is now documented.
+
 v0.0.20 Released Thursday 30th June, 2022
 ==============================================================================
 

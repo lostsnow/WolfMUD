@@ -83,16 +83,16 @@ func KeywordList(data []byte) []string {
 //
 // If we take exits as an example:
 //
-//  Exits: E→L3 SE→L4 S→ W
+//	Exits: E→L3 SE→L4 S→ W
 //
 // Results in a map with four pairs:
 //
-//  map[string]string {
-//    "E": "L3",
-//    "SE": "L4",
-//    "S": "",
-//    "W": "",
-//  }
+//	map[string]string {
+//	  "E": "L3",
+//	  "SE": "L4",
+//	  "S": "",
+//	  "W": "",
+//	}
 //
 // Here the separator used is '→' but any non-letter, non-digit, non-underscore
 // or non-hyphen/minus may be used. If the same keyword occurs more than once
@@ -151,15 +151,15 @@ func StringList(data []byte) (s []string) {
 //
 // For example:
 //
-//  Vetoes:  GET→You can't get it.
-//        : DROP→You can't drop it.
+//	Vetoes:  GET→You can't get it.
+//	      : DROP→You can't drop it.
 //
 // Would produce a map with two entries:
 //
-//  map[string]string{
-//    "GET": "You can't get it.",
-//    "DROP": "You can't drop it.",
-//  }
+//	map[string]string{
+//	  "GET": "You can't get it.",
+//	  "DROP": "You can't drop it.",
+//	}
 //
 // If a keyword is specified more than once only the first instance will be
 // used. Leading and trailing whitespace will be removed from the returned
@@ -256,7 +256,7 @@ func DateTime(data []byte) (t time.Time) {
 // As a special case data of length zero will default to true. This allows true
 // to be represented as the presence or absence of just a keyword. For example:
 //
-//  Door: EXIT→E RESET→1m JITTER→1m OPEN
+//	Door: EXIT→E RESET→1m JITTER→1m OPEN
 //
 // Here OPEN is a boolean and will default to true.
 func Boolean(data []byte) (b bool) {
@@ -279,6 +279,34 @@ func Integer(data []byte) (i int) {
 	if i, err = strconv.Atoi(string(data)); err != nil {
 		log.Printf("Integer field has invalid value %q, using default: %d", data, i)
 	}
+	return
+}
+
+// DoubleInteger return the []byte data as two integer values. The []byte
+// should contain the two integers separated by either a plus '+' or minus '-'
+// sign. The leading integer may have a plus '+' or minus '-' sign. If both
+// integers or the second integer is not specified zero will be assumed. For
+// example:
+//
+//	      =  0,  0
+//	 1    =  1,  0
+//	-1    = -1,  0
+//	+1    =  1,  0
+//	 1+2  =  1,  2
+//	+1+2  =  1,  2
+//	 1-2  =  1, -2
+//	-1+2  = -1,  2
+//	-1-2  = -1, -2
+func DoubleInteger(data []byte) (i1, i2 int) {
+	if len(data) == 0 {
+		return
+	}
+	i := bytes.LastIndexAny(data, "+-")
+	if i == -1 || i == 0 {
+		i = len(data)
+	}
+	i1, _ = strconv.Atoi(string(data[:i]))
+	i2, _ = strconv.Atoi(string(data[i:]))
 	return
 }
 
