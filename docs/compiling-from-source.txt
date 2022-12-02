@@ -14,7 +14,7 @@ PREREQUISITES
   can be obtained from https://golang.org or it may be available from your
   package manager.
 
-  A minimum of Go 1.14 is required to compile WolfMUD. Using the latest
+  A minimum of Go 1.18 is required to compile WolfMUD. Using the latest
   version of Go available is recommended.
 
 COMPILING ON LINUX OR WINDOWS
