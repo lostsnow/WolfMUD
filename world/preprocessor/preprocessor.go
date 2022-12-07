@@ -3,7 +3,7 @@
 // Use of this source code is governed by the license in the LICENSE file
 // included with the source code.
 
-package world
+package preprocessor
 
 import (
 	"bytes"
@@ -23,9 +23,9 @@ type preprocess struct {
 	recIdx        int                // Index of record in jar being processed
 }
 
-// PreProcessor runs the pre-processor on the specified Jar, modifying the
-// content of the Jar in the process.
-func PreProcessor(j recordjar.Jar) {
+// Process runs the pre-processor on the specified Jar, modifying the content
+// of the Jar in the process.
+func Process(j recordjar.Jar) {
 	log.Printf("  Pre-processing")
 
 	p := &preprocess{
