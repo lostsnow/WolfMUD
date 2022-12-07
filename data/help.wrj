@@ -1,0 +1,88 @@
+// Copyright 2022 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
+%%
+   Ref: HELP
+Author: Andrew 'Diddymus' Rolfe
+
+Help topics for the /HELP or /? command.
+%%
+   Topic: DROP
+Synopsis: Drop items onto the ground.
+   Usage: DROP <item>...
+    Also: GET TAKE PUT
+Examples: DROP APPLE
+
+The DROP command is used to drop items, from your inventory, on the ground at
+your current location.
+%%
+   Topic: GET
+Synopsis: Pick up items.
+   Usage: GET <item>...
+    Also: DROP TAKE PUT
+Examples: GET APPLE
+
+The GET command is used to pick up items, from your current location, and put
+them into your inventory.
+%%
+   Topic: INVENTORY
+Synopsis: List items you are carrying, holding, wearing and wielding.
+   Usage: INVENTORY
+        : INV
+ Aliases: INV
+    Also: EXAMINE
+
+The INVENTORY command, or INV for short, lists all items currently in your
+inventory. If an item is held, worn or wielded this will be indicated next to
+the item. If there are any containers in your inventory only the container
+will be listed, not its content. To find out what is in a container you need
+to EXAMINE it.
+%%
+   Topic: PUT
+Synopsis: Place items into a comtainer.
+   Usage: PUT <item>... <container>
+    Also: GET DROP TAKE
+Examples: PUT APPLE BASKET
+        : PUT APPLE MY BASKET
+
+The PUT command is used to place items from your inventory into a container.
+
+@MY_CONTAINER
+
+Containers may be placed inside other containers.
+%%
+   Topic: TAKE
+Synopsis: Remove items from a comtainer.
+   Usage: TAKE <item>... <container>
+    Also: GET DROP PUT
+Examples: TAKE APPLE BASKET
+        : TAKE APPLE MY BASKET
+
+The TAKE command is used to remove items from a container and place them into
+your inventory.
+
+@MY_CONTAINER
+%%
+   Topic: /HELP
+Synopsis: Display a help topic or list all help topics.
+   Usage: /HELP
+        : /HELP <topic>
+ Aliases: /?
+    Also: COMMANDS
+Examples: /HELP
+        : /HELP GET
+        : /?
+        : /? GET
+
+The /HELP command, or its alias /? is used to display help. If /HELP is
+specified without a topic, all help topics are listed. If /HELP is followed by
+a topic then more specific help is displayed.
+%%
+ Ref: MY_CONTAINER
+
+The container may be in your inventory or at your current location. If there
+are multiple containers, containers at your current location will be used
+before containers of the same name in your inventory. To specifically use a
+container in your inventory use the MY qualifier.
+%%

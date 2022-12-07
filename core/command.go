@@ -101,6 +101,8 @@ func RegisterCommandHandlers() {
 		"/WHOAMI":  (*state).WhoAmI,
 		"/HISTORY": (*state).History,
 		"/!":       (*state).History,
+		"/HELP":    (*state).Help,
+		"/?":       (*state).Help,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1679,6 +1681,59 @@ func (s state) History() {
 	s.Msg(s.actor, text.Good, "Your three most recent commands:", text.Reset)
 	for x, h := range s.history {
 		s.MsgAppend(s.actor, "\n", historyMarks[x], h)
+	}
+}
+
+func (s state) Help() {
+
+	// No help available?
+	if len(help) == 0 {
+		s.Msg(s.actor, text.Bad, "Sorry, help is currently unavailable.")
+		return
+	}
+
+	// List topics if one not specified
+	if len(s.word) == 0 {
+		s.Msg(s.actor, "The following help topics are available:\n")
+		topics := []string{}
+		for k := range help {
+			topics = append(topics, k)
+		}
+		s.Msg(s.actor, strings.Join(topics, "  "))
+		return
+	}
+
+	// Display a specific help topic if available
+	if topic, ok := help[s.word[0]]; ok {
+		s.Msg(s.actor, text.Cyan, "Topic: ", text.Reset, s.word[0])
+		if len(topic.Aliases) > 0 {
+			s.MsgAppend(s.actor, " (aliases: ", text.Reset,
+				text.List(topic.Aliases), ")")
+		}
+		if len(topic.Synopsis) > 0 {
+			s.Msg(s.actor, text.Reset, "       ", topic.Synopsis)
+		}
+		if len(topic.Usage) > 0 {
+			s.Msg(s.actor, text.Cyan, "\nUsage: ", text.Reset,
+				strings.Join(topic.Usage, "\n       "))
+		}
+		s.Msg(s.actor, text.Reset, "\n", topic.Text)
+		if len(topic.Examples) > 0 {
+			s.Msg(s.actor, text.Cyan, "\nExamples: ", text.Reset,
+				strings.Join(topic.Examples, "\n          "))
+		}
+		if len(topic.Also) > 0 {
+			s.Msg(s.actor, text.Cyan, "\nSee also: ", text.Reset,
+				text.List(topic.Also))
+		}
+		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
+			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName],
+				" seems to be looking for answers...")
+		}
+	} else {
+		s.Msg(s.actor, text.Bad,
+			"Sorry, there is no help on the topic '", s.word[0], "'.",
+		)
 	}
 }
 
