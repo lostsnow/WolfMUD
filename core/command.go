@@ -1687,53 +1687,32 @@ func (s state) History() {
 func (s state) Help() {
 
 	// No help available?
-	if len(help) == 0 {
+	if help == nil {
 		s.Msg(s.actor, text.Bad, "Sorry, help is currently unavailable.")
 		return
 	}
 
-	// List topics if one not specified
+	// List top level categories if no category/topic specified
+	var ref string
 	if len(s.word) == 0 {
-		s.Msg(s.actor, "The following help topics are available:\n")
-		topics := []string{}
-		for k := range help {
-			topics = append(topics, k)
-		}
-		s.Msg(s.actor, strings.Join(topics, "  "))
+		ref = "MAIN"
+	} else {
+		ref = s.word[0]
+	}
+
+	// Is topic available?
+	if _, ok := help.xref[ref]; !ok {
+		s.Msg(s.actor, text.Bad,
+			"Sorry, there is no help on the topic '", ref, "'.",
+		)
 		return
 	}
 
-	// Display a specific help topic if available
-	if topic, ok := help[s.word[0]]; ok {
-		s.Msg(s.actor, text.Cyan, "Topic: ", text.Reset, s.word[0])
-		if len(topic.Aliases) > 0 {
-			s.MsgAppend(s.actor, " (aliases: ", text.Reset,
-				text.List(topic.Aliases), ")")
-		}
-		if len(topic.Synopsis) > 0 {
-			s.Msg(s.actor, text.Reset, "       ", topic.Synopsis)
-		}
-		if len(topic.Usage) > 0 {
-			s.Msg(s.actor, text.Cyan, "\nUsage: ", text.Reset,
-				strings.Join(topic.Usage, "\n       "))
-		}
-		s.Msg(s.actor, text.Reset, "\n", topic.Text)
-		if len(topic.Examples) > 0 {
-			s.Msg(s.actor, text.Cyan, "\nExamples: ", text.Reset,
-				strings.Join(topic.Examples, "\n          "))
-		}
-		if len(topic.Also) > 0 {
-			s.Msg(s.actor, text.Cyan, "\nSee also: ", text.Reset,
-				text.List(topic.Also))
-		}
-		if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
-			s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName],
-				" seems to be looking for answers...")
-		}
-	} else {
-		s.Msg(s.actor, text.Bad,
-			"Sorry, there is no help on the topic '", s.word[0], "'.",
-		)
+	s.Msg(s.actor, help.pages[help.xref[ref]])
+
+	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
+		s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName],
+			" seems to be looking for answers...")
 	}
 }
 

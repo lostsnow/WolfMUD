@@ -49,7 +49,7 @@ func Config(c config.Config) {
 		playerPath:  filepath.Join(c.Server.DataPath, "players"),
 		helpFile:    filepath.Join(c.Server.DataPath, "help.wrj"),
 	}
-	loadHelp()
+	loadLibrary(cfg.helpFile)
 }
 
 type state struct {
