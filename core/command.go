@@ -101,6 +101,8 @@ func RegisterCommandHandlers() {
 		"/WHOAMI":  (*state).WhoAmI,
 		"/HISTORY": (*state).History,
 		"/!":       (*state).History,
+		"/HELP":    (*state).Help,
+		"/?":       (*state).Help,
 
 		// Admin and debugging commands
 		"#DUMP":     (*state).Dump,
@@ -1679,6 +1681,38 @@ func (s state) History() {
 	s.Msg(s.actor, text.Good, "Your three most recent commands:", text.Reset)
 	for x, h := range s.history {
 		s.MsgAppend(s.actor, "\n", historyMarks[x], h)
+	}
+}
+
+func (s state) Help() {
+
+	// No help available?
+	if help == nil {
+		s.Msg(s.actor, text.Bad, "Sorry, help is currently unavailable.")
+		return
+	}
+
+	// List top level categories if no category/topic specified
+	var ref string
+	if len(s.word) == 0 {
+		ref = "MAIN"
+	} else {
+		ref = s.word[0]
+	}
+
+	// Is topic available?
+	if _, ok := help.xref[ref]; !ok {
+		s.Msg(s.actor, text.Bad,
+			"Sorry, there is no help on the topic '", ref, "'.",
+		)
+		return
+	}
+
+	s.Msg(s.actor, help.pages[help.xref[ref]])
+
+	if len(s.actor.Ref[Where].Who) < cfg.crowdSize {
+		s.Msg(s.actor.Ref[Where], text.Info, s.actor.As[UTheName],
+			" seems to be looking for answers...")
 	}
 }
 

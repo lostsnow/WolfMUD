@@ -1,0 +1,168 @@
+// Copyright 2022 Andrew 'Diddymus' Rolfe. All rights reserved.
+//
+// Use of this file is governed by the license in the LICENSE file included
+// with the source code.
+%%
+     Ref: HELP
+  Author: Andrew 'Diddymus' Rolfe
+Disabled: false
+
+Help topics for the /HELP or /? command.
+%%
+   Topic: MAIN
+Synopsis: Main help categories
+
+The following main help categories are available:
+%%
+   Topic: COMMANDS
+   Group: MAIN TOPICS
+Synopsis: Commands grouped by category
+
+The following categories of commands are available:
+%%
+   Topic: ALL
+   Group: MAIN TOPICS
+Synopsis: Help for all commands
+%%
+   Topic: TOPICS
+   Group: MAIN
+Synopsis: All help topics
+%%
+   Topic: MISC
+   Group: COMMANDS TOPICS
+Synopsis: Miscellaneous commands
+
+The following miscellaneous help topics are available:
+%%
+   Topic: ITEMS
+   Group: COMMANDS TOPICS
+Synopsis: Item commands
+
+The following topics are available for interacting with items:
+%%
+   Topic: COMMS
+   Group: COMMANDS TOPICS
+Synopsis: Commands for communicating
+
+The following topics are available for communicating with other players:
+%%
+   Topic: DROP
+   Group: ALL ITEMS
+Synopsis: Drop items onto the ground.
+   Usage: DROP <item>...
+    Also: GET TAKE PUT
+Examples: DROP APPLE
+
+The DROP command is used to drop items, from your inventory, on the ground at
+your current location.
+%%
+   Topic: GET
+   Group: ALL ITEMS
+Synopsis: Pick up items.
+   Usage: GET <item>...
+    Also: DROP TAKE PUT
+Examples: GET APPLE
+
+The GET command is used to pick up items, from your current location, and put
+them into your inventory.
+%%
+   Topic: INVENTORY
+   Group: ALL MISC
+Synopsis: List items you are carrying, holding, wearing and wielding.
+   Usage: INVENTORY
+        : INV
+ Aliases: INV
+    Also: EXAMINE
+
+The INVENTORY command, or INV for short, lists all items currently in your
+inventory. If an item is held, worn or wielded this will be indicated next to
+the item. If there are any containers in your inventory only the container
+will be listed, not its content. To find out what is in a container you need
+to EXAMINE it.
+%%
+   Topic: PUT
+   Group: ALL ITEMS
+Synopsis: Place items into a container.
+   Usage: PUT <item>... <container>
+    Also: GET DROP TAKE
+Examples: PUT APPLE BASKET
+        : PUT APPLE MY BASKET
+
+The PUT command is used to place items from your inventory into a container.
+
+@MY_CONTAINER
+
+Containers may be placed inside other containers.
+%%
+   Topic: TAKE
+   Group: ALL ITEMS
+Synopsis: Remove items from a container.
+   Usage: TAKE <item>... <container>
+    Also: GET DROP PUT
+Examples: TAKE APPLE BASKET
+        : TAKE APPLE MY BASKET
+
+The TAKE command is used to remove items from a container and place them into
+your inventory.
+
+@MY_CONTAINER
+%%
+   Topic: SAY
+   Group: ALL COMMS
+Synopsis: Say something out loud.
+   Usage: SAY <message>
+ Aliases: "
+    Also: SHOUT TALK TELL WHISPER
+
+The SAY command is used to say something to eveyone at your current location.
+%%
+   Topic: TELL
+   Group: ALL COMMS
+Synopsis: Say something to someone.
+   Usage: TELL <who> <message>
+ Aliases: TALK
+    Also: SAY SHOUT WHISPER
+
+The TELL command is used to say something to a spicific person.
+%%
+   Topic: SHOUT
+   Group: ALL COMMS
+Synopsis: Shout something to everybody nearby.
+   Usage: Shout <message>
+    Also: SAY TELL TALK WHISPER
+
+The SHOUT command is used to shout something. Everybody at the current
+location and surrounding locations will hear you.
+%%
+   Topic: WHISPER
+   Group: ALL COMMS
+Synopsis: Whisper something to someone.
+   Usage: WHISPER <who> <message>
+    Also: SAY SHOUT TELL TALK
+
+The WHISPER command is used to say something to a spicific person. Nobody else
+at your current location will know what is being said.
+%%
+   Topic: HELP
+   Group: ALL MAIN TOPICS
+Synopsis: Using the help system
+   Usage: /HELP
+        : /HELP <category | topic>
+ Aliases: /?
+    Also: COMMANDS
+Examples: /HELP
+        : /HELP COMMANDS
+        : /?
+        : /? GET
+
+The /HELP command, or its alias /? is used to display help. If /HELP is
+specified without a topic, all help topics are listed. If /HELP is followed by
+a topic then more specific help is displayed.
+%%
+Ref: MY_CONTAINER
+
+The container may be in your inventory or at your current location. If there
+are multiple containers, containers at your current location will be used
+before containers of the same name in your inventory. To specifically use a
+container in your inventory use the MY qualifier.
+%%

@@ -32,6 +32,7 @@ type pkgConfig struct {
 	debugThings bool
 	debugEvents bool
 	playerPath  string
+	helpFile    string
 }
 
 // cfg setup by Config and should be treated as immutable and not changed.
@@ -46,7 +47,9 @@ func Config(c config.Config) {
 		debugThings: c.Debug.Things,
 		debugEvents: c.Debug.Events,
 		playerPath:  filepath.Join(c.Server.DataPath, "players"),
+		helpFile:    filepath.Join(c.Server.DataPath, "help.wrj"),
 	}
+	loadLibrary(cfg.helpFile)
 }
 
 type state struct {

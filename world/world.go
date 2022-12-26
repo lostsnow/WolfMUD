@@ -15,6 +15,7 @@ import (
 	"code.wolfmud.org/WolfMUD.git/core"
 	"code.wolfmud.org/WolfMUD.git/recordjar"
 	"code.wolfmud.org/WolfMUD.git/recordjar/decode"
+	"code.wolfmud.org/WolfMUD.git/world/preprocessor"
 )
 
 type pkgConfig struct {
@@ -84,7 +85,7 @@ func Load() {
 		}
 
 		log.Printf("Loading %s: %s (%s)", filepath.Base(fName), zone, zref)
-		PreProcessor(jar)
+		preprocessor.Process(jar)
 		jar = jar[1:]
 
 		// Load everything into temporary store
